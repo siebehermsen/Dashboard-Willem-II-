@@ -1,0 +1,1514 @@
+{% extends "base.html" %}
+{% block title %}Voeding | Willem II{% endblock %}
+
+{% block content %}
+<main class="container">
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-success" style="margin-top: 10px;">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+<!-- HEADER -->
+<header class="nutrition-header">
+    <div class="header-left">
+        <img class="logo"
+             src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg"
+             alt="Willem II logo">
+        <div class="title-group">
+            <span class="dashboard-title">Dashboard Willem II</span>
+            <h2 class="section-title">huidplooimetingen</h2>
+        </div>
+    </div>
+</header>
+
+<!-- TABS: VOEDING / HUIDPLOOIEN -->
+<div class="page-toggle">
+    <a href="{% url 'nutrition' %}"
+       class="toggle-btn {% if active_page == 'nutrition' %}active{% endif %}">
+        🍽️ Voeding
+    </a>
+
+    <a href="{% url 'skinfolds' %}"
+       class="toggle-btn {% if active_page == 'skinfolds' %}active{% endif %}">
+        📏 Huidplooien
+    </a>
+</div>
+
+
+{% if active_page == "nutrition" %}
+
+<!-- WEEKVOEDINGSSCHEMA -->
+<section class="week-section">
+    <h3>📅 Weekvoedingsschema</h3>
+    <p>Vandaag is het <strong>{{ current_day }}</strong></p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="nutrition_day" value="1">
+
+        <table class="week-table">
+            <thead>
+                <tr>
+                    <th>Dag</th>
+                    <th>Maaltijd / Voedingsfocus</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for day, entry in nutrition_days.items %}
+                <tr>
+                    <td>{{ day }}</td>
+
+                    <!-- MAALTIJD (GEEN KLEUR MEER) -->
+                    <td>
+                        <input
+                            type="text"
+                            name="meal_{{ day }}"
+                            value="{{ entry.meal|default:'' }}"
+                            placeholder="Bijv. pasta met kip en groente"
+                            class="meal-input"
+                        >
+                    </td>
+
+                    <!-- STATUS (HIER KOMT DE KLEUR) -->
+                    <td>
+                        <select 
+                            name="color_{{ day }}" 
+                            class="status-select {% if entry and entry.color %}status-{{ entry.color }}{% endif %}"
+                        >
+                            <option value="">—</option>
+                            <option value="green" {% if entry and entry.color == "green" %}selected{% endif %}>
+                                Groen
+                            </option>
+                            <option value="yellow" {% if entry and entry.color == "yellow" %}selected{% endif %}>
+                                Geel
+                            </option>
+                            <option value="red" {% if entry and entry.color == "red" %}selected{% endif %}>
+                                Rood
+                            </option>
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit" class="primary-btn">
+            💾 Week opslaan
+        </button>
+    </form>
+</section>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.week-table select').forEach(select => {
+        select.addEventListener('change', function () {
+
+            // Oude status-klassen verwijderen
+            this.classList.remove('status-green', 'status-yellow', 'status-red');
+
+            // Nieuwe statusklasse toevoegen
+            if (this.value) {
+                this.classList.add(`status-${this.value}`);
+            }
+        });
+    });
+});
+</script>
+
+
+
+
+<!-- INLEIDING -->
+<section class="intro-section">
+    <h3>📊 Teamoverzicht Voeding</h3>
+    <p class="subtext">
+        Dit dashboard geeft inzicht in de gemiddelde energie- en macronutriënteninname binnen het team. 
+        Selecteer een speler om persoonlijke voedingspunten en aanbevelingen te bekijken.
+    </p>
+</section>
+
+<!-- OVERZICHTSKAARTEN -->
+<section class="summary-section">
+    <div class="summary-card">
+        <h4>🔥 Gem. energie-inname</h4>
+        <p><strong>3.050 kcal</strong> / dag</p>
+        <p class="small-text">Gemiddeld over het team</p>
+    </div>
+
+    <div class="summary-card">
+        <h4>🥩 Eiwitinname</h4>
+        <p><strong>2.0 g/kg</strong></p>
+        <p class="small-text">Binnen aanbevolen richtlijnen</p>
+    </div>
+
+    <div class="summary-card">
+        <h4>🍞 Koolhydraatinname</h4>
+        <p><strong>5.5 g/kg</strong></p>
+        <p class="small-text">Optimaal voor herstel en prestaties</p>
+    </div>
+
+    <div class="summary-card">
+        <h4>🥑 Vetinname</h4>
+        <p><strong>1.3 g/kg</strong></p>
+        <p class="small-text">Goede balans vetzuren</p>
+    </div>
+</section>
+
+<!-- GRAFIEKEN -->
+<div class="chart-grid">
+    <div class="chart-card">
+        <h3>🍽️ Gemiddelde macronutriëntenverdeling</h3>
+        <canvas id="macroChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+        <h3>⚽ Energie-inname per dagtype</h3>
+        <canvas id="energyChart"></canvas>
+    </div>
+</div>
+
+<!-- SPELERSELECTIE + DETAIL -->
+<section class="player-section">
+    <h3>👥 Speleroverzicht</h3>
+
+    <!-- Spelerkeuze -->
+    <form method="get" action="" class="player-form mb-3">
+        <label for="playerSelect"><strong>Selecteer speler:</strong></label>
+        <select name="player_id" id="playerSelect" class="form-select" onchange="this.form.submit()">
+            <option value="">-- Kies een speler --</option>
+            {% for player in players %}
+                <option value="{{ player.id }}" {% if selected_player and player.id == selected_player.id %}selected{% endif %}>
+                    {{ player.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if selected_player %}
+        <!-- Info over geselecteerde speler -->
+        <div class="player-card">
+            <h3 style="color:#e74c3c;">{{ selected_player.name }}</h3>
+            <p>
+                Energie-inname: 3050 kcal | 
+                Eiwit: 2.0 g/kg | 
+                Koolhydraten: 5.5 g/kg | 
+                Vet: 1.3 g/kg
+            </p>
+        </div>
+
+        <!-- Formulier voor aandachtspunt -->
+        <div class="focus-card">
+            <h4>🎯 Aandachtspunt</h4>
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="player_id" value="{{ selected_player.id }}">
+                
+                <textarea 
+                    name="nutrition_focus"
+                    class="form-control"
+                    rows="5"
+                    style="
+                        width: 100%;
+                        font-size: 15px;
+                        padding: 12px;
+                        border-radius: 10px;
+                        border: 1.5px solid #ccc;
+                        resize: vertical;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+                    "
+                    placeholder="Voer hier het aandachtspunt in...">{{ selected_player.nutrition_focus }}</textarea>
+                
+                <button 
+                    type="submit" 
+                    class="btn btn-primary mt-2"
+                    style="padding: 8px 16px; border-radius: 8px; font-weight: 500;">
+                    Opslaan
+                </button>
+            </form>
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-3">
+            Selecteer eerst een speler om zijn persoonlijke voedingsanalyse te bekijken.
+        </div>
+    {% endif %}
+</section>
+
+</main>
+
+<!-- STYLING -->
+<style>
+/* =========================
+   PAGE TOGGLE (VOEDING / HUIDPLOOIEN)
+   Zelfde stijl als Training/Wedstrijd knoppen
+========================= */
+
+.page-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 30px 0;
+}
+
+/* Basis knop */
+.page-toggle .toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 12px 26px;
+    border-radius: 999px; /* pill shape */
+    font-weight: 600;
+    font-size: 0.95rem;
+
+    text-decoration: none;
+    color: #1f2a44;
+    background: #ffffff;
+
+    box-shadow: 0 6px 18px rgba(31, 42, 68, 0.12);
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+/* Hover (niet actief) */
+.page-toggle .toggle-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(31, 42, 68, 0.18);
+}
+
+/* Actieve knop */
+.page-toggle .toggle-btn.active {
+    background: linear-gradient(135deg, #1f2a44, #182036);
+    color: #ffffff;
+
+    box-shadow: 0 10px 30px rgba(31, 42, 68, 0.35);
+}
+
+/* Hover op actieve knop */
+.page-toggle .toggle-btn.active:hover {
+    transform: none;
+    box-shadow: 0 12px 34px rgba(31, 42, 68, 0.4);
+}
+
+
+    /* HEADER */
+    .nutrition-header {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 25px;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .logo { height: 75px; }
+
+    .dashboard-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1f2a44;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .section-title {
+        border-bottom: 2px solid #e74c3c;
+        color: #1f2a44;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    /* ───────── WEEKPLANNING VOEDING ───────── */
+
+/* =========================
+   WEEKSECTIE
+========================= */
+.week-section {
+    margin: 45px 0;
+}
+
+.week-section h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #1f2a44;
+}
+
+/* =========================
+   TABEL CONTAINER
+========================= */
+.week-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(31, 42, 68, 0.08);
+}
+
+/* =========================
+   TABEL HEADER
+========================= */
+.week-table thead th {
+    background: linear-gradient(180deg, #1f2a44, #182036);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 16px 18px;
+    font-size: 0.9rem;
+    text-align: left;
+    letter-spacing: 0.4px;
+}
+
+/* =========================
+   RIJEN
+========================= */
+.week-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.week-table tbody tr:nth-child(even) {
+    background-color: #f7f9fc;
+}
+
+.week-table tbody tr:hover {
+    background-color: #eef2f7;
+}
+
+/* =========================
+   CELLEN
+========================= */
+.week-table td {
+    padding: 14px 18px;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #e5e9f2;
+    vertical-align: middle;
+}
+
+/* =========================
+   DAGNAAM
+========================= */
+.week-table td:first-child {
+    font-weight: 600;
+    color: #1f2a44;
+    width: 150px;
+    letter-spacing: 0.2px;
+}
+
+/* =========================
+   INPUTVELD
+========================= */
+.week-table input[type="text"] {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid #d3d9e4;
+    font-size: 0.95rem;
+    background-color: #fafbfc;
+    transition: 
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.week-table input[type="text"]:focus {
+    outline: none;
+    border-color: #1f2a44;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(31, 42, 68, 0.12);
+}
+
+/* =========================
+   SELECT
+========================= */
+.week-table select {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1.5px solid #d3d9e4;
+    font-size: 0.9rem;
+    background-color: #fafbfc;
+    cursor: pointer;
+    transition: 
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.week-table select:focus {
+    outline: none;
+    border-color: #1f2a44;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(31, 42, 68, 0.12);
+}
+
+/* =========================
+   KLEURSELECT VISUEEL
+========================= */
+.week-table select.status-green {
+    background-color: #e9f8ef;
+    border-color: #2ecc71;
+    color: #1f2a44;
+}
+
+.week-table select.status-yellow {
+    background-color: #fff7db;
+    border-color: #f1c40f;
+    color: #1f2a44;
+}
+
+.week-table select.status-red {
+    background-color: #fdecea;
+    border-color: #e74c3c;
+    color: #1f2a44;
+}
+
+/* =========================
+   OPSLAAN KNOP (PRIMARY)
+========================= */
+.week-section .primary-btn {
+    background-color: #1f2a44;          /* donkerblauw */
+    color: #ffffff;
+    border: none;
+    margin-top: 22px;
+    padding: 12px 22px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+
+    box-shadow: 0 4px 14px rgba(31, 42, 68, 0.25);
+    transition:
+        background-color 0.2s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.week-section .primary-btn:hover {
+    background-color: #182036;          /* iets donkerder */
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(31, 42, 68, 0.35);
+}
+
+.week-section .primary-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 10px rgba(31, 42, 68, 0.25);
+}
+
+/* KLEUR STATES */
+.meal-green {
+    background-color: #e9f8ef;
+    border-color: #2ecc71;
+}
+
+.meal-yellow {
+    background-color: #fff7db;
+    border-color: #f1c40f;
+}
+
+.meal-red {
+    background-color: #fdecea;
+    border-color: #e74c3c;
+}
+
+
+/* =========================
+   RESPONSIVE (MOBILE)
+========================= */
+@media (max-width: 768px) {
+    .week-table thead {
+        display: none;
+    }
+
+    .week-table tr {
+        display: block;
+        margin-bottom: 18px;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 6px 18px rgba(31, 42, 68, 0.1);
+        overflow: hidden;
+    }
+
+    .week-table td {
+        display: block;
+        padding: 12px 16px;
+        border: none;
+    }
+
+    .week-table td:first-child {
+        background: linear-gradient(180deg, #1f2a44, #182036);
+        color: #ffffff;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+}
+.week-table input.meal-green {
+    background-color: #e9f8ef !important;
+    border-color: #2ecc71 !important;
+}
+
+.week-table input.meal-yellow {
+    background-color: #fff7db !important;
+    border-color: #f1c40f !important;
+}
+
+.week-table input.meal-red {
+    background-color: #fdecea !important;
+    border-color: #e74c3c !important;
+}
+
+
+
+    /* REST VAN DE DASHBOARD STYLING */
+    .intro-section h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 5px; }
+    .subtext { font-style: italic; color: #555; margin-bottom: 25px; }
+
+    .summary-section {
+        display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 30px;
+    }
+
+    .summary-card {
+        flex: 1; min-width: 220px; background: white; border-radius: 15px;
+        padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease;
+    }
+
+    .summary-card:hover { transform: scale(1.03); }
+    .summary-card h4 { margin-bottom: 8px; color: #e74c3c; }
+    .small-text { font-size: 0.85rem; color: #777; }
+
+    .chart-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 25px; margin-bottom: 40px;
+    }
+
+    .chart-card {
+        background: white; border-radius: 15px; padding: 25px; text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .chart-card h3 { font-size: 1.1rem; margin-bottom: 10px; }
+
+    .player-form select {
+        padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc;
+        width: 300px; font-size: 15px;
+    }
+
+    .player-card, .focus-card {
+        background: white; border-radius: 15px; padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 20px;
+    }
+
+    .player-card h3 { color: #e74c3c; margin-bottom: 10px; }
+    .focus-card h4 { margin-bottom: 8px; color: #1f2a44; }
+
+    .hidden { display: none; }
+
+    @media (max-width: 768px) {
+        .summary-section { flex-direction: column; }
+        .chart-grid { grid-template-columns: 1fr; }
+    }
+
+
+
+</style>
+
+<!-- GRAFIEKEN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Macroverdeling
+    new Chart(document.getElementById('macroChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Eiwit', 'Koolhydraten', 'Vet'],
+            datasets: [{
+                data: [20, 55, 25],
+                backgroundColor: ['#1f2a44', '#e74c3c', '#f1c40f'],
+                borderWidth: 2
+            }]
+        },
+        options: { plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // Energie-inname per dagtype
+    new Chart(document.getElementById('energyChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Rustdag', 'Trainingsdag', 'Wedstrijddag'],
+            datasets: [{
+                label: 'Gem. kcal-inname',
+                data: [2700, 3050, 3400],
+                backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c'],
+                borderColor: '#1f2a44',
+                borderWidth: 2,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Energie (kcal)' } },
+                x: { title: { display: true, text: 'Dagtype' } }
+            }
+        }
+    });
+
+    // Speler-specifieke aandachtspunten
+    const playerFocus = {
+        "Nick Doodeman": "Houd eiwitinname stabiel en verhoog fruit- en groenteconsumptie.",
+        "Raffael Behounek": "Zorg voor meer koolhydraten op zware trainingsdagen.",
+        "Justin Hoogma": "Eet voldoende vetten voor hormonale balans.",
+        "Mikael Tirpan": "Meer hydratatie voor en na trainingen.",
+        "Jari Schuurman": "Focus op herstelvoeding binnen 30 min na training."
+    };
+
+    function showPlayerDetails() {
+        const selected = document.getElementById("player").value;
+        const details = document.getElementById("player-details");
+        const nameField = document.getElementById("player-name");
+        const infoField = document.getElementById("player-info");
+        const focusField = document.getElementById("player-focus");
+
+        if (selected) {
+            details.classList.remove("hidden");
+            nameField.textContent = selected;
+            infoField.textContent = "Energie-inname: 3050 kcal | Eiwit: 2.0 g/kg | Koolhydraten: 5.5 g/kg | Vet: 1.3 g/kg";
+            focusField.textContent = playerFocus[selected] || "Voedingsoverzicht binnenkort beschikbaar.";
+        } else {
+            details.classList.add("hidden");
+        }
+    }
+</script>
+{% endif %}
+
+
+
+
+{% if active_page == "skinfolds" %}
+
+<section class="skinfold-section">
+
+    <h3>📏 Antropometrische metingen</h3>
+    <p class="subtext">
+        Registreer per speler antropometrische metingen. 
+        Per variabele kunnen maximaal drie metingen worden ingevoerd.
+    </p>
+
+    <!-- =====================================
+         FORM 1: SPELER SELECTEREN (GET)
+    ====================================== -->
+    <form method="GET">
+        <div class="card skinfold-card">
+            <h4>Algemene gegevens</h4>
+
+            <div class="skinfold-meta-grid">
+                <div>
+                    <label>Speler</label>
+                    <select
+                        name="player"
+                        class="form-select"
+                        onchange="this.form.submit()"
+                    >
+                        <option value="">-- kies speler --</option>
+                        {% for player in players %}
+                            <option
+                                value="{{ player.id }}"
+                                {% if selected_player and player.id == selected_player.id %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ player.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+
+<!-- =====================================
+     FORM 2: METINGEN OPSLAAN (POST)
+====================================== -->
+<form method="POST">
+    {% csrf_token %}
+
+    {% if selected_player %}
+        <input type="hidden" name="player_id" value="{{ selected_player.id }}">
+    {% endif %}
+
+    <div class="card skinfold-card">
+        <h4>Algemene gegevens</h4>
+
+        <div class="skinfold-meta-grid">
+
+            <div>
+                <label>Datum</label>
+                <input
+                    type="date"
+                    name="measurement_date"
+                    class="form-control"
+                    required
+                    value="{% if antropometry %}{{ antropometry.date|date:'Y-m-d' }}{% endif %}"
+                >
+            </div>
+
+            <div>
+                <label>Body mass (kg)</label>
+                <input
+                    type="number"
+                    step="0.1"
+                    name="body_mass"
+                    class="form-control"
+                    value="{% if antropometry %}{{ antropometry.body_mass|default_if_none:'' }}{% endif %}"
+                >
+            </div>
+
+            <div>
+                <label>Length (cm)</label>
+                <input
+                    type="number"
+                    step="0.1"
+                    name="length"
+                    class="form-control"
+                    value="{% if antropometry %}{{ antropometry.length|default_if_none:'' }}{% endif %}"
+                >
+            </div>
+
+        </div>
+    </div>
+
+
+<!-- =========================
+     SKINFOLDS
+========================== -->
+<div class="card skinfold-card">
+    <h4>Skinfolds (mm)</h4>
+
+    <table class="skinfold-table">
+        <thead>
+            <tr>
+                <th>Locatie</th>
+                <th>Meting 1</th>
+                <th>Meting 2</th>
+                <th>Meting 3</th>
+                <th>3rd measure?</th>
+                <th>% diff</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for row in skinfold_rows %}
+            <tr class="skinfold-row">
+                <td>{{ row.site }}</td>
+
+                <td>
+                    <input
+                        type="number"
+                        step="0.1"
+                        class="skinfold-input m1"
+                        name="skinfold_{{ row.key }}_m1"
+                        value="{{ row.m1|default_if_none:'' }}"
+                        {% if row.site in formula_sites %}
+                            data-site="{{ row.site }}"
+                        {% endif %}
+                    >
+                </td>
+
+                <td>
+                    <input
+                        type="number"
+                        step="0.1"
+                        class="skinfold-input m2"
+                        name="skinfold_{{ row.key }}_m2"
+                        value="{{ row.m2|default_if_none:'' }}"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        type="number"
+                        step="0.1"
+                        class="skinfold-input m3"
+                        name="skinfold_{{ row.key }}_m3"
+                        value="{{ row.m3|default_if_none:'' }}"
+                    >
+                </td>
+
+                <td class="third-measure">—</td>
+                <td class="percent-diff">—</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="skinfold-sum">
+        <strong>Som skinfolds:</strong>
+        <span id="skinfold-total">0.0</span> mm
+    </div>
+</div>
+
+
+
+<!-- =========================
+     GIRTHS (OPSLAAN + TERUGTONEN)
+========================== -->
+<div class="card skinfold-card">
+    <h4>Girth measurements (cm)</h4>
+
+    <table class="skinfold-table">
+        <thead>
+            <tr>
+                <th>Locatie</th>
+                <th>Meting 1</th>
+                <th>Meting 2</th>
+                <th>Meting 3</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for girth in girth_sites %}
+                {% with girth_key=girth|slugify %}
+                <tr>
+                    <td>{{ girth }}</td>
+
+                    <td>
+                        <input
+                            type="number"
+                            step="0.1"
+                            name="girth_{{ girth_key }}_m1"
+                            class="girth-input"
+                            value="{% if girth_values %}{{ girth_values.girth_key.m1|default_if_none:'' }}{% endif %}"
+                        >
+                    </td>
+
+                    <td>
+                        <input
+                            type="number"
+                            step="0.1"
+                            name="girth_{{ girth_key }}_m2"
+                            class="girth-input"
+                            value="{% if girth_values %}{{ girth_values.girth_key.m2|default_if_none:'' }}{% endif %}"
+                        >
+                    </td>
+
+                    <td>
+                        <input
+                            type="number"
+                            step="0.1"
+                            name="girth_{{ girth_key }}_m3"
+                            class="girth-input"
+                            value="{% if girth_values %}{{ girth_values.girth_key.m3|default_if_none:'' }}{% endif %}"
+                        >
+                    </td>
+                </tr>
+                {% endwith %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<input type="hidden" name="fat_dw" id="fat_dw_input">
+<input type="hidden" name="fat_faulkner" id="fat_faulkner_input">
+<input type="hidden" name="fat_carter" id="fat_carter_input">
+<input type="hidden" name="fat_average" id="fat_average_input">
+
+
+<!-- =========================
+     OPSLAAN (ÉÉN KEER)
+========================== -->
+<div class="form-actions">
+    <button type="submit" class="primary-btn skinfold-save-btn">
+        💾 Metingen opslaan
+    </button>
+</div>
+
+
+
+        <!-- =========================
+             BODY FAT RESULTS
+        ========================== -->
+        <div class="card skinfold-card">
+            <h4>Vetpercentage (laatste meting)</h4>
+
+            <ul class="fat-results">
+                <li>Durnin–Womersley: <strong id="fat-dw">—</strong>%</li>
+                <li>Faulkner: <strong id="fat-faulkner">—</strong>%</li>
+                <li>Carter: <strong id="fat-carter">—</strong>%</li>
+            </ul>
+
+            <p>
+                <strong>Gemiddelde:</strong>
+                <span id="fat-average">—</span>%
+            </p>
+        </div>
+
+        <div class="card skinfold-card">
+            <h4>📈 Trend huidplooien</h4>
+
+            <canvas id="skinfoldTrendChart" height="120"></canvas>
+
+            <p class="subtext" style="margin-top: 12px;">
+                Trend van de som van huidplooien over tijd.
+            </p>
+        </div>
+
+
+    </form>
+
+</section>
+
+{% endif %}
+
+
+
+{{ chart_labels|json_script:"chart-labels" }}
+{{ chart_values|json_script:"chart-values" }}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    /* =====================================================
+       CONSTANTEN & HULPFUNCTIES
+    ===================================================== */
+
+    const THRESHOLD = 5; // % verschil m1 vs m2
+
+    function num(val) {
+        if (val === undefined || val === null) return null;
+
+        const s = String(val)
+            .trim()
+            .replace(",", ".");
+
+        if (s === "") return null;
+
+        const v = Number(s);
+        return Number.isFinite(v) ? v : null;
+    }
+
+    const mean = (a, b) => (a + b) / 2;
+
+    /* =====================================================
+       OPSLAAN BEREKENDE VETPERCENTAGES
+    ===================================================== */
+
+    function updateFatInputs(fatDW, fatFaulkner, fatCarter, avg) {
+
+        const setValue = (id, value) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            if (Number.isFinite(value)) {
+                el.value = value.toFixed(1);
+            } else {
+                el.value = "";
+            }
+        };
+
+        setValue("fat_dw_input", fatDW);
+        setValue("fat_faulkner_input", fatFaulkner);
+        setValue("fat_carter_input", fatCarter);
+        setValue("fat_average_input", avg);
+    }
+
+    /* =====================================================
+       PER RIJ: % VERSCHIL + 3E METING
+    ===================================================== */
+
+    function updateRow(row) {
+        const v1 = num(row.querySelector(".m1").value);
+        const v2 = num(row.querySelector(".m2").value);
+
+        const diffCell = row.querySelector(".percent-diff");
+        const thirdCell = row.querySelector(".third-measure");
+
+        if (v1 === null || v2 === null) {
+            diffCell.textContent = "—";
+            thirdCell.textContent = "—";
+            thirdCell.style.color = "";
+            return;
+        }
+
+        const pct = Math.abs(v1 - v2) / mean(v1, v2) * 100;
+        diffCell.textContent = pct.toFixed(2) + "%";
+
+        if (pct > THRESHOLD) {
+            thirdCell.textContent = "Yes";
+            thirdCell.style.color = "#e30613";
+        } else {
+            thirdCell.textContent = "No";
+            thirdCell.style.color = "#2ecc71";
+        }
+    }
+
+    /* =====================================================
+       SOM SKINFOLDS
+    ===================================================== */
+
+    function calculateSkinfoldSum() {
+        let sum = 0;
+
+        document.querySelectorAll(".skinfold-row").forEach(row => {
+            const m1 = num(row.querySelector(".m1").value);
+            const m2 = num(row.querySelector(".m2").value);
+            const m3 = num(row.querySelector(".m3").value);
+
+            let value = null;
+
+            if (m1 !== null && m2 !== null) value = mean(m1, m2);
+            if (m3 !== null) value = m3;
+
+            if (value !== null) sum += value;
+        });
+
+        document.getElementById("skinfold-total").textContent = sum.toFixed(1);
+        return sum;
+    }
+
+    /* =====================================================
+       VETPERCENTAGE
+    ===================================================== */
+
+    function updateBodyFat() {
+
+        const getSite = name =>
+            num(document.querySelector(`[data-site="${name}"]`)?.value);
+
+        let fatDW = 0, fatFaulkner = 0, fatCarter = 0;
+
+        // Durnin–Womersley
+        const dwSites = [
+            "Triceps SF",
+            "Biceps SF",
+            "Subscapular SF",
+            "Iliac crest SF"
+        ];
+
+        const dwValues = dwSites.map(getSite);
+
+        if (dwValues.every(v => v !== null)) {
+            const sumDW = dwValues.reduce((a, b) => a + b, 0);
+            const density = 1.1631 - (0.0632 * Math.log10(sumDW));
+            fatDW = ((4.95 / density) - 4.5) * 100;
+        }
+
+        // Faulkner
+        const faulknerSites = [
+            "Triceps SF",
+            "Subscapular SF",
+            "Supraspinale SF",
+            "Abdominale SF"
+        ];
+
+        const fValues = faulknerSites.map(getSite);
+
+        if (fValues.every(v => v !== null)) {
+            fatFaulkner = 5.783 + 0.153 * fValues.reduce((a, b) => a + b, 0);
+        }
+
+        // Carter
+        const sumSF = calculateSkinfoldSum();
+        if (sumSF > 0) fatCarter = 2.585 + 0.1051 * sumSF;
+
+        const methods = [fatDW, fatFaulkner, fatCarter].filter(v => v > 0);
+        const avg = methods.length
+            ? methods.reduce((a, b) => a + b, 0) / methods.length
+            : 0;
+
+        document.getElementById("fat-dw").textContent = fatDW.toFixed(1);
+        document.getElementById("fat-faulkner").textContent = fatFaulkner.toFixed(1);
+        document.getElementById("fat-carter").textContent = fatCarter.toFixed(1);
+        document.getElementById("fat-average").textContent = avg.toFixed(1);
+
+        // 🔑 NIEUW: opslaan in hidden inputs
+        updateFatInputs(fatDW, fatFaulkner, fatCarter, avg);
+    }
+
+    /* =====================================================
+       📈 SKINFOLD TREND CHART
+    ===================================================== */
+
+    const ctx = document.getElementById("skinfoldTrendChart");
+
+    if (ctx && window.Chart) {
+        new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: ["2024-09-01", "2024-09-15", "2024-10-01", "2024-10-15"],
+                datasets: [{
+                    label: "Som huidplooien (mm)",
+                    data: [62, 58, 55, 52],
+                    borderColor: "#e30613",
+                    backgroundColor: "rgba(227,6,19,0.1)",
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    /* =====================================================
+       EVENTS
+    ===================================================== */
+
+    document.querySelectorAll(".skinfold-row").forEach(row => {
+        row.querySelectorAll("input").forEach(input => {
+            input.addEventListener("input", () => {
+                updateRow(row);
+                updateBodyFat();
+            });
+        });
+    });
+
+});
+</script>
+
+
+
+<style>
+
+/* =========================
+   PAGE TOGGLE (VOEDING / HUIDPLOOIEN)
+   Zelfde stijl als Training/Wedstrijd knoppen
+========================= */
+
+.page-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 30px 0;
+}
+
+/* Basis knop */
+.page-toggle .toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 12px 26px;
+    border-radius: 999px; /* pill shape */
+    font-weight: 600;
+    font-size: 0.95rem;
+
+    text-decoration: none;
+    color: #1f2a44;
+    background: #ffffff;
+
+    box-shadow: 0 6px 18px rgba(31, 42, 68, 0.12);
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+/* Hover (niet actief) */
+.page-toggle .toggle-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(31, 42, 68, 0.18);
+}
+
+/* Actieve knop */
+.page-toggle .toggle-btn.active {
+    background: linear-gradient(135deg, #1f2a44, #182036);
+    color: #ffffff;
+
+    box-shadow: 0 10px 30px rgba(31, 42, 68, 0.35);
+}
+
+/* Hover op actieve knop */
+.page-toggle .toggle-btn.active:hover {
+    transform: none;
+    box-shadow: 0 12px 34px rgba(31, 42, 68, 0.4);
+}
+
+
+/* =========================================================
+   SKINFOLDS – WILLEM II PERFORMANCE STYLING
+========================================================= */
+
+.skinfold-section {
+    margin-top: 30px;
+    font-family: "Poppins", sans-serif;
+}
+
+/* TITELS */
+.skinfold-section h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1f2a44;
+    margin-bottom: 6px;
+}
+
+.skinfold-section .subtext {
+    font-size: 0.95rem;
+    color: #5f6b82;
+    margin-bottom: 25px;
+}
+
+/* ---------------------------------------------------------
+   CARDS
+--------------------------------------------------------- */
+.skinfold-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 22px 24px;
+    margin-bottom: 22px;
+    box-shadow: 0 8px 28px rgba(31, 42, 68, 0.08);
+}
+
+.skinfold-card h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1f2a44;
+    margin-bottom: 18px;
+    border-left: 4px solid #e30613; /* Willem II rood */
+    padding-left: 10px;
+}
+
+/* ---------------------------------------------------------
+   META GRID (ALGEMENE GEGEVENS)
+--------------------------------------------------------- */
+.skinfold-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.skinfold-meta-grid label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #5f6b82;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.skinfold-meta-grid input,
+.skinfold-meta-grid select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    border: 1.5px solid #d3d9e4;
+    background: #fafbfc;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.skinfold-meta-grid input:focus,
+.skinfold-meta-grid select:focus {
+    outline: none;
+    border-color: #1f2a44;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(31, 42, 68, 0.12);
+}
+
+/* ---------------------------------------------------------
+   TABLES
+--------------------------------------------------------- */
+.skinfold-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+}
+
+.skinfold-table thead th {
+    background: linear-gradient(180deg, #1f2a44, #182036);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 14px 12px;
+    text-align: left;
+}
+
+.skinfold-table thead th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.skinfold-table thead th:last-child {
+    border-top-right-radius: 12px;
+}
+
+.skinfold-table tbody tr:nth-child(even) {
+    background-color: #f7f9fc;
+}
+
+.skinfold-table tbody tr:hover {
+    background-color: #eef2f7;
+}
+
+.skinfold-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e9f2;
+    vertical-align: middle;
+}
+
+/* LOCATIE CEL */
+.skinfold-table td:first-child {
+    font-weight: 600;
+    color: #1f2a44;
+    width: 180px;
+}
+
+/* INPUTS IN TABEL */
+.skinfold-table input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1.5px solid #d3d9e4;
+    background: #fafbfc;
+    font-size: 0.9rem;
+}
+
+.skinfold-table input:focus {
+    outline: none;
+    border-color: #1f2a44;
+    background: #ffffff;
+}
+
+/* ---------------------------------------------------------
+   3RD MEASURE & % DIFF
+--------------------------------------------------------- */
+.third-measure,
+.percent-diff {
+    font-weight: 600;
+    text-align: center;
+    color: #5f6b82;
+}
+
+/* ---------------------------------------------------------
+   SOM SKINFOLDS
+--------------------------------------------------------- */
+.skinfold-sum {
+    margin-top: 18px;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #f7f9fc, #eef2f7);
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2a44;
+    border-left: 5px solid #e30613;
+}
+
+/* ---------------------------------------------------------
+   FAT RESULTS
+--------------------------------------------------------- */
+.fat-results {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px 0;
+}
+
+.fat-results li {
+    padding: 6px 0;
+    font-size: 0.95rem;
+    color: #1f2a44;
+}
+
+/* ---------------------------------------------------------
+   OPSLAAN KNOP – WILLEM II SIGNATURE
+--------------------------------------------------------- */
+.form-actions {
+    margin-top: 30px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.skinfold-save-btn {
+    background: linear-gradient(135deg, #0b1f3b, #08162b);
+    color: #ffffff;
+    border: none;
+    padding: 14px 30px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 14px;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(11, 31, 59, 0.35);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.skinfold-save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 38px rgba(11, 31, 59, 0.5);
+}
+
+.skinfold-save-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 18px rgba(11, 31, 59, 0.3);
+}
+
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+--------------------------------------------------------- */
+@media (max-width: 768px) {
+    .skinfold-table thead {
+        display: none;
+    }
+
+    .skinfold-table tr {
+        display: block;
+        margin-bottom: 16px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(31, 42, 68, 0.1);
+    }
+
+    .skinfold-table td {
+        display: block;
+        padding: 10px 14px;
+        border: none;
+    }
+
+    .skinfold-table td:first-child {
+        background: linear-gradient(180deg, #1f2a44, #182036);
+        color: #ffffff;
+        border-radius: 12px 12px 0 0;
+    }
+
+}.form-select {
+    height: 38px;
+    line-height: 38px;
+}
+
+</style>
+
+
+{% endblock %}
+
+{% endblock %}

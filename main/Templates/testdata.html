@@ -1,0 +1,859 @@
+{% extends "base.html" %}
+{% block title %}Testdata{% endblock %}
+
+{% block content %}
+<main style="max-width:1600px;margin:auto;padding:20px">
+
+<!-- ============================================ -->
+<!-- SPELERSELECTIE – MOOIE KAART                 -->
+<!-- ============================================ -->
+<section class="player-select-card">
+    <h2 class="card-title">🧪 Testdata Analyse</h2>
+    <p class="card-description">
+        Selecteer een speler om zijn fysieke testresultaten te bekijken.
+    </p>
+
+    <form method="get" action="">
+        <div class="select-wrapper">
+            <select name="player_id" class="styled-select" onchange="this.form.submit()">
+                <option value="">-- Kies een speler --</option>
+                {% for player in players %}
+                    <option value="{{ player.id }}"
+                        {% if selected_player and selected_player.id == player.id %}selected{% endif %}>
+                        {{ player.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</section>
+
+{% if selected_player and selected_player.latest_test %}
+
+<section class="player-profile-layout">
+
+    <!-- ========== LINKERKOLOM ========== -->
+    <aside class="player-info-card">
+        <img src="{{ selected_player.image.url }}" class="player-photo" alt="{{ selected_player.name }}">
+        <h2 class="player-name">{{ selected_player.name }}</h2>
+
+        <p class="player-meta">
+            <strong>Team:</strong> {{ selected_player.team }}<br>
+            <strong>Leeftijd:</strong> {{ selected_player.age }} jaar
+        </p>
+    </aside>
+
+    <!-- ========== RECHTERKOLOM (Donuts + Kwadrant) ========== -->
+    <div class="metrics-row">
+
+        <!-- 2×2 DONUTS -->
+        <div class="metrics-left">
+            <div class="small-donuts">
+
+                <!-- Sprint -->
+                <div class="donut-card">
+                    <h3>Sprint</h3>
+                    <canvas id="donut_sprint"></canvas>
+                    <div class="donut-value">{{ percentiles.sprint_10 }}%</div>
+                    <p class="donut-label">
+                        10m: {{ selected_player.latest_test.sprint_10 }} s<br>
+                        30m: {{ selected_player.latest_test.sprint_30 }} s
+                    </p>
+                </div>
+
+                <!-- CMJ -->
+                <div class="donut-card">
+                    <h3>Explosiviteit</h3>
+                    <canvas id="donut_cmj"></canvas>
+                    <div class="donut-value">{{ percentiles.cmj }}%</div>
+                    <p class="donut-label">
+                        CMJ: {{ selected_player.latest_test.cmj }} cm
+                    </p>
+                </div>
+
+                <!-- ISRT -->
+                <div class="donut-card">
+                    <h3>Uithoudingsvermogen</h3>
+                    <canvas id="donut_isrt"></canvas>
+                    <div class="donut-value">{{ percentiles.isrt }}%</div>
+                    <p class="donut-label">
+                        ISRT: {{ selected_player.latest_test.isrt }} m
+                    </p>
+                </div>
+
+                <!-- Submax -->
+                <div class="donut-card">
+                    <h3>Submaximaal</h3>
+                    <canvas id="donut_submax"></canvas>
+                    <div class="donut-value">{{ percentiles.submax }}%</div>
+                    <p class="donut-label">
+                        {{ selected_player.latest_test.submax }} %HRmax
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RECHTS: Fysiek kwadrant -->
+        <div class="metrics-right">
+            <div class="quadrant-card">
+                <h3 class="quadrant-title">Fysiek Kwadrant</h3>
+
+                <div class="quadrant-canvas-wrap" style="width: 360px; height: 360px; margin: auto;">
+                    <canvas id="quadrantChart"
+                        style="width: 100% !important; height: 100% !important;"></canvas>
+                </div>
+
+            </div>
+        </div>
+
+    </div> <!-- 🔥 ENIGE CORRECTE SLUITING VAN metrics-row -->
+
+</section> <!-- sluit player-profile-layout -->
+
+<!-- =============================== -->
+<!--  ANTHROPOMETRIE TRENDGRAFIEK   -->
+<!-- =============================== -->
+<div class="anthro-card">
+    <h3 class="anthro-title">Gewicht & Huidplooien – Trend</h3>
+
+    <div class="anthro-chart-container">
+        <canvas id="anthroChart"></canvas>
+    </div>
+
+</div> <!-- ✅ deze was vergeten -->
+
+<!-- =============================== -->
+<!--  JSON DATA VIA DJANGO          -->
+<!-- =============================== -->
+{{ anthropometry_dates|json_script:"dates-json" }}
+{{ anthropometry_weights|json_script:"weights-json" }}
+{{ anthropometry_skinfolds|json_script:"skinfolds-json" }}
+
+
+<!-- =============================== -->
+<!--  CHART.JS LADEN (ÉÉN KEER!)    -->
+<!-- =============================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<!-- =============================== -->
+<!--  TRENDGRAFIEK SCRIPT           -->
+<!-- =============================== -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    // Zorg dat deze grafiek alleen draait wanneer er daadwerkelijk een speler is
+    const chartCanvas = document.getElementById("anthroChart");
+    if (!chartCanvas) return;
+
+    const datesEl = document.getElementById("dates-json");
+    const weightsEl = document.getElementById("weights-json");
+    const skinsEl = document.getElementById("skinfolds-json");
+
+    if (!datesEl || !weightsEl || !skinsEl) return;
+
+    const dates = JSON.parse(datesEl.textContent);
+    const weights = JSON.parse(weightsEl.textContent);
+    const skinfolds = JSON.parse(skinsEl.textContent);
+
+    const ctx = chartCanvas.getContext("2d");
+
+    new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: "Gewicht (kg)",
+                    data: weights,
+                    borderWidth: 3,
+                    borderColor: "rgba(0, 0, 120, 0.9)",
+                    backgroundColor: "rgba(0, 0, 120, 0.15)",
+                    pointRadius: 5,
+                    pointBackgroundColor: "rgba(0, 0, 120, 1)",
+                    tension: 0.35
+                },
+                {
+                    label: "Som huidplooien (mm)",
+                    data: skinfolds,
+                    borderWidth: 3,
+                    borderColor: "rgba(180, 0, 0, 0.9)",
+                    backgroundColor: "rgba(180, 0, 0, 0.15)",
+                    pointRadius: 5,
+                    pointBackgroundColor: "rgba(180, 0, 0, 1)",
+                    tension: 0.35
+                }
+            ]
+        }
+    });
+
+});
+</script>
+
+
+{% endif %}
+
+
+ <!-- ===================================== -->
+<!-- NIEUWE TESTDATA INVOER (MOOIE LAYOUT) -->
+<!-- ===================================== -->
+{% if not selected_player %}
+<section class="input-card">
+
+    <h3 class="input-title">📝 Nieuwe testdata invoeren</h3>
+
+    <form method="post" class="input-form">
+        {% csrf_token %}
+
+        <!-- ====================== -->
+        <!-- DATUM METING (NIEUW) -->
+        <!-- ====================== -->
+        <h4 class="category-title">📅 Datum van de meting</h4>
+
+        <div class="form-row">
+            <label for="test_date">Datum meting</label>
+            <input id="test_date" type="date" name="test_date" required>
+        </div>
+
+        <!-- ====================== -->
+        <!-- SPELERSELECTIE -->
+        <!-- ====================== -->
+        <h4 class="category-title">👤 Speler</h4>
+
+        <div class="form-row">
+            <label for="player_id">Speler</label>
+            <select name="player_id" id="player_id" required>
+                <option value="">-- Kies een speler --</option>
+                {% for p in players %}
+                <option value="{{ p.id }}">{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- ====================== -->
+        <!-- SPRINT -->
+        <!-- ====================== -->
+        <h4 class="category-title">⚡ Sprint</h4>
+
+        <div class="form-row">
+            <label for="s10">10m sprint (s)</label>
+            <input id="s10" type="number" step="0.01" name="sprint_10" placeholder="Bijv. 1.72">
+        </div>
+
+        <div class="form-row">
+            <label for="s30">30m sprint (s)</label>
+            <input id="s30" type="number" step="0.01" name="sprint_30" placeholder="Bijv. 4.35">
+        </div>
+
+        <!-- ====================== -->
+        <!-- SPRONGKRACHT -->
+        <!-- ====================== -->
+        <h4 class="category-title">🦘 Sprongkracht</h4>
+
+        <div class="form-row">
+            <label for="cmj">CMJ (cm)</label>
+            <input id="cmj" type="number" step="0.1" name="cmj" placeholder="Bijv. 41.2">
+        </div>
+
+        <!-- ====================== -->
+        <!-- UITHOUDINGSVERMOGEN -->
+        <!-- ====================== -->
+        <h4 class="category-title">💨 Uithoudingsvermogen</h4>
+
+        <div class="form-row">
+            <label for="isrt">ISRT (m)</label>
+            <input id="isrt" type="number" name="isrt" placeholder="Bijv. 1780">
+        </div>
+
+        <div class="form-row">
+            <label for="submax">Submaximaal test (%HRmax)</label>
+            <input id="submax" type="number" step="0.1" name="submax" placeholder="Bijv. 87.5">
+        </div>
+
+        <!-- ====================== -->
+        <!-- ANTROPOMETRIE -->
+        <!-- ====================== -->
+        <h4 class="category-title">📏 Antropometrie</h4>
+
+        <div class="form-row">
+            <label for="weight">Gewicht (kg)</label>
+            <input id="weight" type="number" step="0.1" name="curr_weight" placeholder="Bijv. 72.5">
+        </div>
+
+        <div class="form-row">
+            <label for="length">Lengte (cm)</label>
+            <input id="length" type="number" step="0.1" name="length" placeholder="Bijv. 180">
+        </div>
+
+        <div class="form-row">
+            <label for="skinfolds">Som huidplooien (mm)</label>
+            <input id="skinfolds" type="number" step="0.1" name="sum_skinfolds" placeholder="Bijv. 42.0">
+        </div>
+
+        <!-- ====================== -->
+        <!-- OPSLAAN BUTTON -->
+        <!-- ====================== -->
+        <div class="button-container">
+            <button type="submit" class="save-btn">💾 Opslaan</button>
+        </div>
+
+    </form>
+</section>
+{% endif %}
+
+
+<script>
+const quadrantCtx = document.getElementById("quadrantChart").getContext("2d");
+
+new Chart(quadrantCtx, {
+    type: "scatter",
+    data: {
+        datasets: [{
+            label: "Player",
+            data: [{
+                x: 42,   // 30-15 IFT (leeftijd-percentiel)
+                y: 68    // Sprint 30m (leeftijd-percentiel)
+            }],
+            pointRadius: 8,
+            pointBackgroundColor: "#55C3C1", 
+            pointBorderColor: "#55C3C1"
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        scales: {
+            x: {
+                min: 0,
+                max: 100,
+                title: {
+                    display: true,
+                    text: "MAS test (leeftijd)"
+                },
+                ticks: {
+                    stepSize: 10
+                },
+                grid: {
+                    color: (context) =>
+                        context.tick.value === 50 ? "#888" : "#ddd",
+                    lineWidth: (context) =>
+                        context.tick.value === 50 ? 2 : 1
+                }
+            },
+
+            y: {
+                min: 0,
+                max: 100,
+                title: {
+                    display: true,
+                    text: "Sprint 30m (leeftijd)"
+                },
+                ticks: {
+                    stepSize: 10
+                },
+                grid: {
+                    color: (context) =>
+                        context.tick.value === 50 ? "#888" : "#ddd",
+                    lineWidth: (context) =>
+                        context.tick.value === 50 ? 2 : 1
+                }
+            }
+        },
+
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+</script>
+
+
+
+</script>
+
+<!-- ==================================================== -->
+<!--  PREMIUM DONUT CHARTS VOOR SPELERPROFIEL             -->
+<!-- ==================================================== -->
+<script>
+function makeDonut(id, value) {
+    if (value === null || value === undefined) return;
+
+    new Chart(document.getElementById(id), {
+        type: "doughnut",
+        data: {
+            datasets: [{
+                data: [value, 100 - value],
+                backgroundColor: ["#B60000", "#E8E8E8"],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            cutout: "70%",
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+// Donuts activeren met Django-percentielen
+makeDonut("donut_sprint",  {{ percentiles.sprint_10|default:0 }});
+makeDonut("donut_cmj",     {{ percentiles.cmj|default:0 }});
+makeDonut("donut_isrt",    {{ percentiles.isrt|default:0 }});
+makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
+</script>
+
+
+
+<style>
+
+/* ================================ */
+/* KAART STYLING                    */
+/* ================================ */
+.player-select-card {
+    background: #ffffff;
+    padding: 24px 28px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-left: 5px solid #b60000; /* Willem II rood */
+    margin-bottom: 32px;
+}
+
+/* TITEL & TEKST */
+.card-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #1f2a44; /* Navy blauw */
+}
+
+.card-description {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 16px;
+}
+
+/* ================================ */
+/* STYLED DROPDOWN                  */
+/* ================================ */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 350px;
+}
+
+.styled-select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #c7cbd3;
+    font-size: 1rem;
+    background: #f7f8fa;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.styled-select:hover {
+    background: #eef0f4;
+}
+
+.styled-select:focus {
+    border-color: #b60000;
+    box-shadow: 0 0 0 3px rgba(182, 0, 0, 0.25);
+    outline: none;
+}
+
+/* ======================================= */
+/*  SPELER PROFIEL LAYOUT                  */
+/* ======================================= */
+
+.player-profile-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 40px;
+    margin: 30px 0 45px;
+    align-items: start;
+}
+
+/* ======================================= */
+/*  SPELER INFOCARD                        */
+/* ======================================= */
+
+.player-info-card {
+    background: #ffffff;
+    padding: 26px;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border-left: 6px solid #b60000;
+    text-align: center;
+}
+
+.player-photo {
+    width: 100%;
+    max-width: 190px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    object-fit: cover;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+}
+
+.player-name {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #1f2a44;
+    margin-bottom: 8px;
+}
+
+.player-meta {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+/* ======================================= */
+/* DONUT GRID – iets verder naar links     */
+/* ======================================= */
+
+.small-donuts {
+    display: grid;
+    grid-template-columns: repeat(2, 150px);
+    gap: 16px 26px;
+
+    justify-content: start;      /* donuts links uitlijnen */
+    align-items: start;
+
+    margin-left: -20px;          /* 🔥 sterkere linkerschuiving */
+}
+
+
+/* ======================================= */
+/* DONUT CARD – strak & clean              */
+/* ======================================= */
+
+.donut-card {
+    width: 150px;
+    height: 200px;
+
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 12px 10px;
+
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+/* Titel boven de donut */
+.donut-card h3 {
+    margin-bottom: 6px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2a44;
+}
+
+
+/* Donut canvas */
+.donut-card canvas {
+    width: 105px !important;
+    height: 105px !important;
+    display: block;
+    margin: 0 auto;
+}
+
+
+/* Percentage beter gecentreerd in de donut */
+.donut-value {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -54%);  
+    /* -48% = minder correctie → tekst komt hoger uit, visueel midden */
+
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1f2a44;
+    pointer-events: none;
+}
+
+
+/* Ondertekst onder de donut */
+.donut-label {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #666;
+    line-height: 1.25;
+    text-align: center;
+}
+
+
+
+/* ======================================= */
+/*  DATA LIST                               */
+/* ======================================= */
+
+.data-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+    font-size: 0.92rem;
+    color: #444;
+}
+
+.data-list li {
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+
+/* ======================================= */
+/*  RESPONSIVE BEHAVIOUR                   */
+/* ======================================= */
+
+@media (max-width: 1100px) {
+    .metrics-row {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 900px) {
+    .player-profile-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .small-donuts {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .small-donuts {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+
+
+/* ============================================= */
+/* INVOER KAART                                   */
+/* ============================================= */
+.input-card {
+    background: #ffffff;
+    padding: 28px;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    margin-top: 40px;
+    margin-bottom: 50px;
+    border-left: 5px solid #B60000; /* Willem II rood */
+}
+
+.input-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1F2A44;
+    margin-bottom: 20px;
+}
+
+/* ============================================= */
+/* FORM LAYOUT                                    */
+/* ============================================= */
+.input-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.form-row label {
+    flex: 1;
+    font-weight: 600;
+    color: #1F2A44;
+}
+
+.form-row input,
+.form-row select {
+    flex: 1.2;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #c7cbd3;
+    font-size: 0.95rem;
+    background: #f7f8fa;
+    transition: 0.2s ease;
+}
+
+.form-row input:focus,
+.form-row select:focus {
+    outline: none;
+    border-color: #B60000;
+    box-shadow: 0 0 0 3px rgba(182,0,0,0.25);
+}
+
+/* BUTTON */
+.button-container {
+    margin-top: 10px;
+    text-align: right;
+}
+
+.save-btn {
+    background: #1F2A44;
+    color: white;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.save-btn:hover {
+    background: #B60000;
+    transform: translateY(-2px);
+}
+.category-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1F2A44;
+    margin-top: 25px;
+    margin-bottom: 6px;
+}
+.player-metrics-column {
+    width: 100%;
+}
+
+
+
+/* ======================================= */
+/*  FYSIEK KWADRANT (MID-SIZE, CLEAN)      */
+/* ======================================= */
+
+.metrics-row {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+    margin-top: 10px;
+}
+
+.metrics-left {
+    flex: 1.2;
+}
+
+.metrics-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+/* --- Kaart zelf --- */
+.quadrant-card {
+    width: 100%;
+    max-width: 460px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 22px 22px 14px 22px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+/* --- Titel --- */
+.quadrant-title {
+    font-size: 1.28rem;
+    font-weight: 700;
+    color: #1f2a44;
+    margin-bottom: 14px;
+}
+
+/* --- Vierkante verhouding --- */
+.quadrant-canvas-wrap {
+    width: 100%;
+    position: relative;
+    aspect-ratio: 1 / 1; /* altijd vierkant */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Canvas --- */
+#quadrantChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* --- Mobile fallback --- */
+@media (max-width: 1100px) {
+    .metrics-row {
+        flex-direction: column;
+    }
+    .metrics-right {
+        justify-content: flex-start;
+    }
+    .quadrant-card {
+        max-width: 520px;
+    }
+}
+
+
+
+/* ======================================= */
+/*  ANTROPOMETRIE KAART (BREDE LAY-OUT)    */
+/* ======================================= */
+
+.anthro-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 10px 0 20px 0;  /* 🔥 LINKS/RECHTS GEEN PADDING MEER */
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    margin-top: 25px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Titel */
+.anthro-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1f2a44;
+    margin-bottom: 18px;
+    padding-left: 20px;   /* optioneel: laat titel mooi uitlijnen */
+}
+
+/* Grafiek-container */
+.anthro-chart-container {
+    width: 100%;
+    height: 450px;
+    position: relative;
+
+    padding: 0 !important;   /* 🔥 GEEN INTERNE RUIMTE */
+    margin: 0 !important;
+}
+
+/* Canvas binnen container */
+.anthro-chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+
+    display: block !important;
+    padding: 0 !important;   /* 🔥 VERZEKERT GEEN WITRUIMTE */
+    margin: 0 !important;
+}
+
+
+</style>
+
+
+{% endblock %}

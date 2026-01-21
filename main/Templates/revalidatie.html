@@ -1,0 +1,878 @@
+{% extends "base.html" %}
+{% block title %}Revalidatie Veld - Willem II{% endblock %}
+
+{% block content %}
+<style>
+    .revalidatie-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 40px;
+        border-bottom: 2px solid #e74c3c;
+        padding-bottom: 10px;
+    }
+
+    .revalidatie-header h1 {
+        font-size: 2rem;
+        color: #1f2a44;
+        margin: 0;
+    }
+
+    .player-select {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .player-select label {
+        font-weight: 600;
+        color: #1f2a44;
+    }
+
+    .player-select select {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 0.95rem;
+    }
+
+    .revalidatie-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .rehab-section {
+        background-color: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .rehab-section h2 {
+        color: #b60000;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #e74c3c;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    table th, table td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
+
+    table th {
+        background-color: #1f2a44;
+        color: white;
+    }
+
+    .progress-bar {
+        height: 12px;
+        background-color: #eee;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background-color: #e74c3c;
+        transition: width 0.3s ease;
+    }
+
+    .note {
+        color: #555;
+        font-size: 0.95rem;
+        margin-top: 10px;
+    }
+
+    .phase-table {
+        margin-top: 15px;
+        border: 1px solid #ddd;
+    }
+
+    .phase-header {
+        background-color: #f7f9fc;
+        color: #1f2a44;
+        font-weight: 700;
+        padding: 10px;
+        border-left: 5px solid #e74c3c;
+    }
+
+    .tip-box {
+        background-color: #f7f9fc;
+        border-left: 4px solid #b60000;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-top: 25px;
+        color: #333;
+    }
+
+    .tip-box h3 {
+        margin-top: 0;
+        color: #1f2a44;
+    }
+
+    canvas {
+        margin-top: 20px;
+        max-width: 100%;
+    }
+</style>
+
+<div class="revalidatie-header">
+    <h1>⚽ Revalidatie Veld-overzicht</h1>
+
+<div class="revalidatie-container">
+
+    <!-- 🔹 Actieve blessures -->
+    <section class="rehab-section">
+        <h2>Actieve blessures</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Speler</th>
+                    <th>Type blessure</th>
+                    <th>Startdatum</th>
+                    <th>Verwachte terugkeer</th>
+                    <th>Herstelstatus</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Amine Lachkar</td>
+                    <td>Hamstring</td>
+                    <td>10 oktober 2025</td>
+                    <td>25 november 2025</td>
+                    <td>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 70%;"></div></div>
+                        <small>70% hersteld</small>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Niels van Berkel</td>
+                    <td>Enkelverstuiking</td>
+                    <td>22 oktober 2025</td>
+                    <td>10 november 2025</td>
+                    <td>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 40%;"></div></div>
+                        <small>Fase 2: loop- en stabiliteitsoefeningen</small>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Thomas Verheydt</td>
+                    <td>Schouderblessure</td>
+                    <td>1 november 2025</td>
+                    <td>Onbekend</td>
+                    <td>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 20%;"></div></div>
+                        <small>Fase 1: mobiliteit & pijnvrij bewegen</small>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="note">Laatste update: 6 november 2025</p>
+    </section>
+
+    <!-- 🔹 Analyse laatste 4 weken -->
+    <section class="rehab-section">
+        <h2>Analyse externe belasting – afgelopen 4 weken</h2>
+        <p>Onderstaand overzicht toont de totale externe belasting van de geselecteerde speler in de laatste vier weken. Deze data helpt bij het bepalen van de juiste instapfase in het revalidatieplan.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Week</th>
+                    <th>Totale afstand (m)</th>
+                    <th>HIR (m)</th>
+                    <th>HIS (m)</th>
+                    <th>Acceleraties/Deceleraties</th>
+                    <th>sRPE</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Week 41</td><td>14500</td><td>2200</td><td>400</td><td>250</td><td>290</td></tr>
+                <tr><td>Week 42</td><td>16800</td><td>2600</td><td>500</td><td>280</td><td>310</td></tr>
+                <tr><td>Week 43</td><td>18200</td><td>2900</td><td>600</td><td>310</td><td>330</td></tr>
+                <tr><td>Week 44</td><td>19500</td><td>3100</td><td>750</td><td>340</td><td>350</td></tr>
+            </tbody>
+        </table>
+
+        <canvas id="loadChart"></canvas>
+    </section>
+
+<!-- 🔹 Revalidatiefases -->
+<section class="rehab-section">
+  <h2>Veldrevalidatie – 6 Fases Plan</h2>
+  <p>
+    Onderstaand overzicht toont de opbouw van het revalidatieproces. Elke fase bevat concrete voorwaarden,
+    externe belasting en ruimte voor notities, duur en RPE.
+  </p>
+
+  <style>
+    .phase-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .phase-table th,
+    .phase-table td {
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .phase-table th {
+      background-color: #0c2340;
+      color: white;
+      font-weight: 600;
+    }
+
+    .phase-header {
+      margin-top: 28px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #b30000;
+      border-left: 4px solid #b30000;
+      padding-left: 8px;
+    }
+
+    .phase-table input[type="number"],
+    .phase-table input[type="text"] {
+      width: 70px;
+      padding: 4px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      text-align: center;
+    }
+
+    .phase-table input[type="checkbox"] {
+      transform: scale(1.1);
+    }
+
+    .rehab-section h2 {
+      color: #b30000;
+    }
+
+    .rehab-section p {
+      margin-bottom: 20px;
+    }
+  </style>
+
+  <form method="GET" action="{% url 'revalidatie' %}">
+  <div class="player-select">
+    <label for="player">Speler:</label>
+    <select name="player" id="player" onchange="this.form.submit()">
+      <option value="">-- Selecteer speler --</option>
+      {% for p in players %}
+        <option value="{{ p.name }}" {% if selected_player and selected_player.name == p.name %}selected{% endif %}>{{ p.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</form>
+
+<!-- 🩵 Fase 1 -->
+<form method="POST" action="{% url 'revalidatie' %}">
+  {% csrf_token %}
+
+  {% if selected_player %}
+    <input type="hidden" name="player" value="{{ selected_player.id }}">
+  {% endif %}
+
+  <!-- 🔹 Verborgen fasewaarde -->
+  <input type="hidden" name="phase" value="Fase 1">
+
+  <div class="phase-header">Fase 1 – Loop load belasting</div>
+
+  <table class="phase-table">
+    <thead>
+      <tr>
+        <th>Onderdeel</th>
+        <th>✓</th>
+        <th>Duur (min)</th>
+        <th>RPE</th>
+        <th>Tot. afstand (m)</th>
+        <th>>20 km/u (m)</th>
+        <th>>25 km/u (m)</th>
+        <th>Acc</th>
+        <th>Dec</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>
+          Hardlopen tot 12 km/u rechte stukken
+          <input type="hidden" name="onderdeel[]" value="Hardlopen tot 12 km/u rechte stukken">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Hardlopen tot 15 km/u rechte stukken
+          <input type="hidden" name="onderdeel[]" value="Hardlopen tot 15 km/u rechte stukken">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Slalom loop 100m zonder bal
+          <input type="hidden" name="onderdeel[]" value="Slalom loop 100m zonder bal">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Slalom loop 100m met bal
+          <input type="hidden" name="onderdeel[]" value="Slalom loop 100m met bal">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 🔹 Submitknop -->
+  <button type="submit" style="
+    margin-top: 10px;
+    background-color: #b60000;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+  ">
+    Opslaan
+  </button>
+</form>
+
+<!-- 🩵 Fase 2 -->
+<form method="POST" action="{% url 'revalidatie' %}">
+  {% csrf_token %}
+
+  {% if selected_player %}
+    <input type="hidden" name="player" value="{{ selected_player.id }}">
+  {% endif %}
+
+  <!-- 🔹 Verborgen fasewaarde -->
+  <input type="hidden" name="phase" value="Fase 2">
+
+  <div class="phase-header">Fase 2 – Basis voetbaltechniek</div>
+
+  <table class="phase-table">
+    <thead>
+      <tr>
+        <th>Onderdeel</th>
+        <th>✓</th>
+        <th>Duur (min)</th>
+        <th>RPE</th>
+        <th>Tot. afstand (m)</th>
+        <th>>20 km/u (m)</th>
+        <th>>25 km/u (m)</th>
+        <th>Acc</th>
+        <th>Dec</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>
+          Korte afstand pass (±10 m)
+          <input type="hidden" name="onderdeel[]" value="Korte afstand pass (±10 m)">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+
+      <tr>
+        <td>
+          High intensity run (20–24 km/u lineair)
+          <input type="hidden" name="onderdeel[]" value="High intensity run (20–24 km/u lineair)">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Duurvormen (intensief & extensief)
+          <input type="hidden" name="onderdeel[]" value="Duurvormen (intensief & extensief)">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 🔹 Submitknop -->
+  <button type="submit" style="
+    margin-top: 10px;
+    background-color: #b60000;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+  ">
+    Opslaan
+  </button>
+</form>
+
+
+ <!-- 🩵 Fase 3 -->
+<form method="POST" action="{% url 'revalidatie' %}">
+  {% csrf_token %}
+
+  {% if selected_player %}
+    <input type="hidden" name="player" value="{{ selected_player.id }}">
+  {% endif %}
+
+  <!-- 🔹 Verborgen fasewaarde -->
+  <input type="hidden" name="phase" value="Fase 3">
+
+  <div class="phase-header">Fase 3 – Wenden en keren</div>
+
+  <table class="phase-table">
+    <thead>
+      <tr>
+        <th>Onderdeel</th>
+        <th>✓</th>
+        <th>Duur (min)</th>
+        <th>RPE</th>
+        <th>Tot. afstand (m)</th>
+        <th>>20 km/u (m)</th>
+        <th>>25 km/u (m)</th>
+        <th>Acc</th>
+        <th>Dec</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>
+          Acc-dec lineair (voor- & zijwaarts)
+          <input type="hidden" name="onderdeel[]" value="Acc-dec lineair (voor- & zijwaarts)">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Voorwaartse versnelling met bal
+          <input type="hidden" name="onderdeel[]" value="Voorwaartse versnelling met bal">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+
+      <tr>
+        <td>
+          COD 0–45° hoeken (met/zonder bal)
+          <input type="hidden" name="onderdeel[]" value="COD 0–45° hoeken (met/zonder bal)">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+
+      <tr>
+        <td>
+          COD 45–60° hoeken (met/zonder bal)
+          <input type="hidden" name="onderdeel[]" value="COD 45–60° hoeken (met/zonder bal)">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 🔹 Submitknop -->
+  <button type="submit" style="
+    margin-top: 10px;
+    background-color: #b60000;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+  ">
+    Opslaan
+  </button>
+</form>
+
+<!-- 🩵 Fase 4 -->
+<form method="POST" action="{% url 'revalidatie' %}">
+  {% csrf_token %}
+
+  {% if selected_player %}
+    <input type="hidden" name="player" value="{{ selected_player.id }}">
+  {% endif %}
+
+  <!-- 🔹 Verborgen fasewaarde -->
+  <input type="hidden" name="phase" value="Fase 4">
+
+  <div class="phase-header">Fase 4 – Explosieve load belasting</div>
+
+  <table class="phase-table">
+    <thead>
+      <tr>
+        <th>Onderdeel</th>
+        <th>✓</th>
+        <th>Duur (min)</th>
+        <th>RPE</th>
+        <th>Tot. afstand (m)</th>
+        <th>>20 km/u (m)</th>
+        <th>>25 km/u (m)</th>
+        <th>Acc</th>
+        <th>Dec</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>
+          Cognitieve training (kleine ruimte)
+          <input type="hidden" name="onderdeel[]" value="Cognitieve training (kleine ruimte)">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Lineaire snelheid 80–100% (functioneel)
+          <input type="hidden" name="onderdeel[]" value="Lineaire snelheid 80–100% (functioneel)">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Afwerken op goal
+          <input type="hidden" name="onderdeel[]" value="Afwerken op goal">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 🔹 Submitknop -->
+  <button type="submit" style="
+    margin-top: 10px;
+    background-color: #b60000;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+  ">
+    Opslaan
+  </button>
+</form>
+
+<!-- 🩵 Fase 5 -->
+<form method="POST" action="{% url 'revalidatie' %}">
+  {% csrf_token %}
+
+  {% if selected_player %}
+    <input type="hidden" name="player" value="{{ selected_player.id }}">
+  {% endif %}
+
+  <!-- 🔹 Verborgen fasewaarde -->
+  <input type="hidden" name="phase" value="Fase 5">
+
+  <div class="phase-header">Fase 5 – Positie specifieke load</div>
+
+  <table class="phase-table">
+    <thead>
+      <tr>
+        <th>Onderdeel</th>
+        <th>✓</th>
+        <th>Duur (min)</th>
+        <th>RPE</th>
+        <th>Tot. afstand (m)</th>
+        <th>>20 km/u (m)</th>
+        <th>>25 km/u (m)</th>
+        <th>Acc</th>
+        <th>Dec</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>
+          Positie specifieke vormen (gecontroleerd)
+          <input type="hidden" name="onderdeel[]" value="Positie specifieke vormen (gecontroleerd)">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Positiespecifiek met weerstand/dubbeltaken
+          <input type="hidden" name="onderdeel[]" value="Positiespecifiek met weerstand/dubbeltaken">
+        </td>
+        <td><input type="checkbox" name="afgevinkt[]"></td>
+        <td><input type="number" name="duur[]"></td>
+        <td><input type="number" name="rpe[]" min="0" max="10"></td>
+        <td><input type="number" name="totale_afstand[]"></td>
+        <td><input type="number" name="afstand_20[]"></td>
+        <td><input type="number" name="afstand_25[]"></td>
+        <td><input type="number" name="acceleraties[]"></td>
+        <td><input type="number" name="deceleraties[]"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 🔹 Submitknop -->
+  <button type="submit" style="
+    margin-top: 10px;
+    background-color: #b60000;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+  ">
+    Opslaan
+  </button>
+</form>
+
+
+<!-- 🩵 Fase 6 -->
+<form method="POST" action="{% url 'revalidatie' %}">
+  {% csrf_token %}
+
+  {% if selected_player %}
+    <input type="hidden" name="player" value="{{ selected_player.id }}">
+  {% endif %}
+
+  <!-- 🔹 Verborgen fasewaarde -->
+  <input type="hidden" name="phase" value="Fase 6">
+
+  <div class="phase-header">Fase 6 – Return to Train & Play</div>
+
+  <table class="phase-table">
+    <thead>
+      <tr>
+        <th>Factor</th>
+        <th>Observatie / Notitie</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>
+          Duur afwezigheid
+          <input type="hidden" name="onderdeel[]" value="Duur afwezigheid">
+        </td>
+        <td><input type="text" name="observatie[]" style="width:100%"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Chronische load
+          <input type="hidden" name="onderdeel[]" value="Chronische load">
+        </td>
+        <td><input type="text" name="observatie[]" style="width:100%"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Blessurevoorgeschiedenis
+          <input type="hidden" name="onderdeel[]" value="Blessurevoorgeschiedenis">
+        </td>
+        <td><input type="text" name="observatie[]" style="width:100%"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Leeftijd / ervaring speler
+          <input type="hidden" name="onderdeel[]" value="Leeftijd / ervaring speler">
+        </td>
+        <td><input type="text" name="observatie[]" style="width:100%"></td>
+      </tr>
+
+      <tr>
+        <td>
+          Fase competitie
+          <input type="hidden" name="onderdeel[]" value="Fase competitie">
+        </td>
+        <td><input type="text" name="observatie[]" style="width:100%"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 🔹 Submitknop -->
+  <button type="submit" style="
+    margin-top: 10px;
+    background-color: #b60000;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+  ">
+    Opslaan
+  </button>
+</form>
+
+<!-- 🔹 Chart.js grafiek -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('loadChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Week 41', 'Week 42', 'Week 43', 'Week 44'],
+        datasets: [
+            {
+                label: 'Totale afstand (m)',
+                data: [14500, 16800, 18200, 19500],
+                borderColor: '#e74c3c',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: false
+            },
+            {
+                label: 'HIR (m)',
+                data: [2200, 2600, 2900, 3100],
+                borderColor: '#1f2a44',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: false
+            },
+            {
+                label: 'HIS (m)',
+                data: [400, 500, 600, 750],
+                borderColor: '#b60000',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: false
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: false,
+                title: { display: true, text: 'Afstand (m)' }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

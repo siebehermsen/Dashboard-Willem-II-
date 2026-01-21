@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+  /* ---------- TITELS ---------- */
+  .page-title {
+    color: #b60000;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+
+  .subtitle {
+    color: #444;
+    margin-bottom: 20px;
+  }
+
+  /* ---------- CARDS ---------- */
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 25px;
+  }
+
+  /* ---------- PLAYER LIST ---------- */
+  .player-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+  }
+
+  .player-item {
+    background: #f7f7f7;
+    border-radius: 8px;
+    text-align: center;
+    padding: 12px;
+    border-left: 4px solid #0c2340;
+    transition: 0.2s;
+    cursor: pointer;
+  }
+
+  .player-item:hover {
+    background: #e9e9e9;
+    transform: translateY(-2px);
+  }
+
+  .player-name {
+    font-weight: 600;
+    margin-top: 5px;
+  }
+
+  /* ---------- FORM ELEMENTEN ---------- */
+  textarea, input, select {
+    width: 100%;
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 6px;
+    margin-top: 4px;
+    font-size: 15px;
+  }
+
+  /* ---------- BUTTONS ---------- */
+  .btn-primary {
+    background: #0c2340;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-primary:hover {
+    background: #153a6e;
+  }
+
+  .btn-danger {
+    background: #b60000;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-danger:hover {
+    background: #910000;
+  }
+
+  /* ---------- OEFENINGEN TABEL ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  th {
+    background: #0c2340;
+    color: white;
+    padding: 8px;
+  }
+
+  td {
+    padding: 6px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  /* ---------- MESSAGES ---------- */
+  .alert-success {
+    background: #e6ffe6;
+    border: 1px solid #4CAF50;
+    padding: 10px;
+    color: #145214;
+    border-radius: 6px;
+    margin-bottom: 15px;
+  }
+
+</style>
+
+
+<h2 class="page-title">⚽ Individueel Programma</h2>
+<p class="subtitle">Selecteer een speler om een dagprogramma of individueel programma te bekijken of te maken.</p>
+
+<hr>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert-success">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+
+<!-- ------------------------------------------------------------- -->
+<!-- 🔥 BEGINPAGINA — SPelersoverzicht voordat iemand gekozen is -->
+<!-- ------------------------------------------------------------- -->
+
+{% if not selected_player %}
+  <div class="card">
+    <h3 style="color:#0c2340; margin-bottom:10px;">👥 Kies een speler</h3>
+
+    <div class="player-list">
+      {% for player in players %}
+        <a href="?player_id={{ player.id }}" style="text-decoration:none; color:inherit;">
+          <div class="player-item">
+            <img src="{% if player.image %}{{ player.image.url }}{% else %}/static/images/default_player.png{% endif %}" 
+                 style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #b60000;">
+            <div class="player-name">{{ player.name }}</div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+{% endif %}
+
+
+
+<!-- ------------------------------------------------------------- -->
+<!-- 🔥 PAGINA NA SELECTIE VAN SPELER -->
+<!-- ------------------------------------------------------------- -->
+
+{% if selected_player %}
+
+  <!-- 🔹 Spelerprofiel -->
+  <div class="card" style="text-align:center;">
+    <img src="{% if selected_player.image %}{{ selected_player.image.url }}{% else %}/static/images/default_player.png{% endif %}"
+         style="width:130px; height:130px; border-radius:50%; border:3px solid #b60000; object-fit:cover;">
+    <h3 style="margin-top:10px;">{{ selected_player.name }}</h3>
+  </div>
+
+
+  <!-- 🔹 Dagprogramma -->
+  <div class="card">
+    <h3 style="color:#0c2340;">📅 Dagprogramma ({{ day_program.date }})</h3>
+
+    <form method="POST">
+      {% csrf_token %}
+      <textarea name="program_text" rows="6" placeholder="Schrijf hier het dagprogramma...">{{ day_program.program_text }}</textarea>
+
+      <br><br>
+      <button class="btn-primary">💾 Dagprogramma opslaan</button>
+    </form>
+  </div>
+
+
+  <!-- 🔹 Individueel Programma -->
+  <div class="card">
+    <h3 style="color:#0c2340;">🏋️‍♂️ Individueel Programma</h3>
+
+    <form method="POST" action="{% url 'individueel_programma_opslaan' selected_player.id %}">
+      {% csrf_token %}
+
+      <label><strong>Doel van het programma</strong></label>
+      <textarea name="doel" rows="2"></textarea>
+
+      <h4 style="margin-top:20px; color:#0c2340;">Oefeningen</h4>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Naam</th>
+            <th>Duur</th>
+            <th>RPE</th>
+            <th>Freq.</th>
+            <th>Opmerkingen</th>
+          </tr>
+        </thead>
+        <tbody id="exercise-table">
+          <tr>
+            <td><input type="text" name="exercise_name[]"></td>
+            <td><input type="text" name="exercise_duration[]"></td>
+            <td><input type="number" name="exercise_rpe[]" min="0" max="10"></td>
+            <td><input type="text" name="exercise_frequency[]"></td>
+            <td><input type="text" name="exercise_notes[]"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <button type="button" class="btn-primary" onclick="addExerciseRow()">➕ Oefening toevoegen</button>
+      <button type="submit" class="btn-danger" style="margin-left:10px;">💾 Opslaan</button>
+    </form>
+
+    {% if oefeningen %}
+      <h4 style="margin-top:25px;">📘 Laatste opgeslagen programma</h4>
+      <ul>
+        {% for oef in oefeningen %}
+          <li><strong>{{ oef.naam }}</strong> – {{ oef.duur }} – RPE {{ oef.rpe }} – {{ oef.frequentie }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+
+{% endif %}
+
+
+
+<script>
+  function addExerciseRow() {
+    const table = document.getElementById("exercise-table");
+    const newRow = document.createElement("tr");
+    newRow.innerHTML = `
+      <td><input type="text" name="exercise_name[]"></td>
+      <td><input type="text" name="exercise_duration[]"></td>
+      <td><input type="number" name="exercise_rpe[]" min="0" max="10"></td>
+      <td><input type="text" name="exercise_frequency[]"></td>
+      <td><input type="text" name="exercise_notes[]"></td>
+    `;
+    table.appendChild(newRow);
+  }
+</script>
+
+{% endblock %}

@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<style>
+    .jeugd-section {
+        background: white;
+        padding: 40px 45px;
+        border-radius: 18px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        margin-bottom: 35px;
+    }
+    .jeugd-title {
+        font-weight: 800;
+        font-size: 2rem;
+        color: #1f2a44;
+        margin-bottom: 8px;
+    }
+    .jeugd-subtitle {
+        color: #6c757d;
+        font-size: 1rem;
+        margin-bottom: 30px;
+    }
+    .jeugd-block-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #1f2a44;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+
+    .calculator-box {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 16px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    .calculator-box label {
+        display: block;
+        margin-top: 15px;
+        font-weight: 600;
+        color: #1f2a44;
+    }
+    .calculator-box input[type=range] {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    /* Correctie-box */
+    .correction-box {
+        margin-top: 20px;
+        padding: 12px 15px;
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #dcdcdc;
+    }
+
+    .correction-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin-top: 15px;
+    }
+
+    .correction-item label {
+        font-weight: 600;
+        color: #1f2a44;
+        margin-left: 6px;
+    }
+
+    /* Weekplanning tabel */
+    .week-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+    .week-table th {
+        background: #1f2a44;
+        color: white;
+        padding: 12px;
+        font-weight: 600;
+        text-align: left;
+    }
+    .week-table td {
+        padding: 10px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .week-table input {
+        width: 100%;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+</style>
+
+<div class="jeugd-section">
+
+    <h3 class="jeugd-title">HIT – High Intensity Training</h3>
+    <p class="jeugd-subtitle">Tools, protocollen en loopvormen voor intensieve running sessies.</p>
+
+    <div class="jeugd-divider"></div>
+
+    <h4 class="jeugd-block-title">
+        <span class="jeugd-icon">🏃‍♂️</span>HIT Calculator
+    </h4>
+
+    <div class="calculator-box">
+
+        <label>Afstand (m): <span id="afstandLabel">100</span></label>
+        <input type="range" id="afstand" min="10" max="300" value="100">
+
+        <label>Tijd (s): <span id="tijdLabel">18</span></label>
+        <input type="range" id="tijd" min="1" max="60" value="18">
+
+        <label>Snelheid (km/u): <span id="snelheidLabel">20</span></label>
+        <input type="range" id="snelheid" min="5" max="35" value="20">
+
+        <label>Aantal keerpunten: <span id="keerpuntenLabel">0</span></label>
+        <input type="range" id="keerpunten" min="0" max="10" value="0">
+
+        <!-- Correctieblok -->
+        <div class="correction-box">
+            <strong>Bij keerpunten corrigeren op:</strong>
+
+            <div class="correction-options">
+                <div class="correction-item">
+                    <input type="radio" name="correctie" id="corrAfstand" value="afstand" checked>
+                    <label for="corrAfstand">Afstand (tijd verandert)</label>
+                </div>
+
+                <div class="correction-item">
+                    <input type="radio" name="correctie" id="corrTijd" value="tijd">
+                    <label for="corrTijd">Tijd (snelheid verandert)</label>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+<div class="jeugd-divider"></div>
+
+<div id="hitTypeBox" class="hit-box" style="display:none;">
+
+    <div class="hit-header">
+        <h4 class="hit-title">🎯 HIT Type: <span id="hitTypeResult"></span></h4>
+        <p id="hitTypeDescription" class="hit-subtitle"></p>
+    </div>
+
+    <div class="hit-load-section">
+
+        <!-- AERO -->
+        <div class="hit-load-block">
+            <div class="hit-load-label">
+                <span>Aerobe belasting</span>
+                <span id="aeroValue" class="hit-load-value"></span>
+            </div>
+            <div class="hit-bar-bg">
+                <div id="aeroLoadBar" class="hit-bar aero"></div>
+            </div>
+        </div>
+
+        <!-- ANAERO -->
+        <div class="hit-load-block">
+            <div class="hit-load-label">
+                <span>Anaerobe belasting</span>
+                <span id="anaeroValue" class="hit-load-value"></span>
+            </div>
+            <div class="hit-bar-bg">
+                <div id="anaeroLoadBar" class="hit-bar anaero"></div>
+            </div>
+        </div>
+
+        <!-- NEUROMUSCULAIR -->
+        <div class="hit-load-block">
+            <div class="hit-load-label">
+                <span>Neuromusculaire belasting</span>
+                <span id="neuroValue" class="hit-load-value"></span>
+            </div>
+            <div class="hit-bar-bg">
+                <div id="neuroLoadBar" class="hit-bar neuro"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+/* Main container */
+.hit-box {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #dcdcdc;
+    padding: 22px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+    margin-top: 20px;
+}
+
+/* Title & subtitle */
+.hit-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1f2a44;
+    margin: 0;
+}
+
+.hit-subtitle {
+    font-size: 0.95rem;
+    color: #5a6473;
+    margin: 6px 0 18px 0;
+}
+
+/* Load blocks */
+.hit-load-block {
+    margin-bottom: 18px;
+}
+
+.hit-load-label {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    color: #1f2a44;
+    margin-bottom: 4px;
+}
+
+.hit-load-value {
+    font-size: 0.85rem;
+}
+
+/* Bar backgrounds */
+.hit-bar-bg {
+    height: 12px;
+    background: #eef1f4;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* Bars */
+.hit-bar {
+    height: 12px;
+    width: 0%;
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+/* Color schemes */
+.hit-bar.aero {
+    background: linear-gradient(90deg, #4caf50, #3e8f41);
+}
+
+.hit-bar.anaero {
+    background: linear-gradient(90deg, #e63946, #c12730);
+}
+
+.hit-bar.neuro {
+    background: linear-gradient(90deg, #457b9d, #3a6b8a);
+}
+</style>
+
+
+<!-- WEEKPLANNING -->
+<h4 class="jeugd-block-title">
+    <span class="jeugd-icon">📆</span>Weekplanning HIT Running
+</h4>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <table class="week-table">
+        <tr><th>Dag</th><th>HIT Loopvorm / Opdracht</th></tr>
+
+        <tr>
+            <td>Maandag</td>
+            <td>
+                <input type="text" name="maandag"
+                       value="{{ weekplanning.monday }}"
+                       placeholder="Bijv. 6×60m @ 95%">
+            </td>
+        </tr>
+
+        <tr>
+            <td>Dinsdag</td>
+            <td>
+                <input type="text" name="dinsdag"
+                       value="{{ weekplanning.tuesday }}"
+                       placeholder="Bijv. RSA 8×30m">
+            </td>
+        </tr>
+
+        <tr>
+            <td>Woensdag</td>
+            <td>
+                <input type="text" name="woensdag"
+                       value="{{ weekplanning.wednesday }}"
+                       placeholder="Bijv. 10″ on / 20″ off × 12">
+            </td>
+        </tr>
+
+        <tr>
+            <td>Donderdag</td>
+            <td>
+                <input type="text" name="donderdag"
+                       value="{{ weekplanning.thursday }}"
+                       placeholder="Bijv. Sprints 5–20m">
+            </td>
+        </tr>
+
+        <tr>
+            <td>Vrijdag</td>
+            <td>
+                <input type="text" name="vrijdag"
+                       value="{{ weekplanning.friday }}"
+                       placeholder="Bijv. HIT herhalingen op 90–95%">
+            </td>
+        </tr>
+
+        <tr>
+            <td>Zaterdag</td>
+            <td>
+                <input type="text" name="zaterdag"
+                       value="{{ weekplanning.saturday }}"
+                       placeholder="Wedstrijdbelasting">
+            </td>
+        </tr>
+
+        <tr>
+            <td>Zondag</td>
+            <td>
+                <input type="text" name="zondag"
+                       value="{{ weekplanning.sunday }}"
+                       placeholder="Herstel of geen HIT">
+            </td>
+        </tr>
+    </table>
+
+    <!-- OPSLAAN KNOP -->
+    <button type="submit"
+            style="
+                margin-top: 18px;
+                padding: 12px 22px;
+                font-weight: 700;
+                font-size: 1rem;
+                background-color: #1f2a44;
+                border: none;
+                border-radius: 12px;
+                color: white;
+                cursor: pointer;
+                transition: 0.2s ease;
+            "
+            onmouseover="this.style.opacity='0.85'"
+            onmouseout="this.style.opacity='1'">
+        💾 Opslaan
+    </button>
+
+</form>
+
+
+<script>
+function updateValues(changed) {
+
+    let afstand = parseFloat(document.getElementById('afstand').value);
+    let tijd = parseFloat(document.getElementById('tijd').value);
+    let snelheid = parseFloat(document.getElementById('snelheid').value);
+    let keerpunten = parseFloat(document.getElementById('keerpunten').value);
+
+    let totaleAfstand = afstand + (keerpunten * 2);
+    let correctie = document.querySelector('input[name="correctie"]:checked').value;
+
+    if (correctie === "afstand") {
+        tijd = totaleAfstand / (snelheid / 3.6);
+        document.getElementById("tijd").value = tijd.toFixed(1);
+    }
+
+    if (correctie === "tijd") {
+        snelheid = (totaleAfstand / tijd) * 3.6;
+        document.getElementById("snelheid").value = snelheid.toFixed(1);
+    }
+
+    document.getElementById('afstandLabel').innerText = afstand;
+    document.getElementById('tijdLabel').innerText = tijd.toFixed(1);
+    document.getElementById('snelheidLabel').innerText = snelheid.toFixed(1);
+    document.getElementById('keerpuntenLabel').innerText = keerpunten;
+}
+
+["afstand","tijd","snelheid","keerpunten"].forEach(id => {
+    document.getElementById(id).addEventListener("input", () => updateValues(id));
+});
+
+document.querySelectorAll('input[name="correctie"]').forEach(r => {
+    r.addEventListener("change", () => updateValues());
+});
+
+updateValues();
+</script>
+<script>
+function classifyHIT() {
+
+    let afstand = parseFloat(document.getElementById('afstand').value);
+    let tijd = parseFloat(document.getElementById('tijd').value);
+    let snelheid = parseFloat(document.getElementById('snelheid').value);
+    let keerpunten = parseFloat(document.getElementById('keerpunten').value);
+
+    // labels updaten
+    document.getElementById("tijdLabel").innerText = tijd.toFixed(1);
+    document.getElementById("snelheidLabel").innerText = snelheid.toFixed(1);
+
+    // --- DYNAMISCHE BELASTING BEREKENING ---
+    const maxSpeed = 35; // geschatte MSS voor schaalverhouding
+    let intensity = snelheid / maxSpeed;  // 0-1 schaal
+    let durationFactor = Math.min(tijd / 30, 1); // 0-1 (lange intervallen = aerobe bias)
+
+    // Basisverdeling
+    let aero = (1 - intensity) * 70 + durationFactor * 30;
+    let anaero = intensity * 70 + (1 - durationFactor) * 20;
+    let neuro = intensity * 40 + keerpunten * 10;
+
+    // Normaliseren naar max 100
+    aero = Math.min(aero, 100);
+    anaero = Math.min(anaero, 100);
+    neuro = Math.min(neuro, 100);
+
+    // ---- HIT TYPE LOGICA (HIIT Science) ----
+    let type = "";
+    let desc = "";
+
+    const aerobic = tijd > 15;
+    const neuromuscular = snelheid > 24 || keerpunten > 0;
+    const anaerobic = tijd <= 15;
+
+    if (aerobic && !neuromuscular) {
+        type = "Type 1";
+        desc = "Aerobe metabole belasting (O₂-systeem), lage neuromusculaire stress.";
+    }
+    else if (aerobic && neuromuscular) {
+        type = "Type 2";
+        desc = "Aerobe + neuromusculaire belasting. Typisch 15–25 sec intervallen.";
+    }
+    else if (anaerobic && !neuromuscular) {
+        type = "Type 3";
+        desc = "Anaerobe + aerobe mix. Kortere intervallen met matige snelheid.";
+    }
+    else if (anaerobic && neuromuscular) {
+        type = "Type 4";
+        desc = "Zeer hoge anaerobe + neuromusculaire belasting. Explosief intervalwerk.";
+    }
+    else if (tijd <= 8) {
+        type = "Type 5";
+        desc = "Maximale neuromusculaire stimulus (sprint, kracht, speed development).";
+    }
+
+    // tonen in DOM
+    document.getElementById("hitTypeBox").style.display = "block";
+    document.getElementById("hitTypeResult").innerText = type;
+    document.getElementById("hitTypeDescription").innerText = desc;
+
+    document.getElementById("aeroLoadBar").style.width = aero + "%";
+    document.getElementById("anaeroLoadBar").style.width = anaero + "%";
+    document.getElementById("neuroLoadBar").style.width = neuro + "%";
+}
+
+// sliders luisteren
+["afstand","tijd","snelheid","keerpunten"].forEach(id => {
+    document.getElementById(id).addEventListener("input", classifyHIT);
+});
+
+classifyHIT();
+</script>
+
+
+{% endblock %}

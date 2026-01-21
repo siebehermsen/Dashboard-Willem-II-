@@ -1,0 +1,687 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+
+    /* ============================
+       ALGEMENE STYLING
+    ============================= */
+    .section-title {
+        font-weight: 800;
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: #1f2a44;
+    }
+
+    .subtitle {
+        color: #6c757d;
+        margin-bottom: 35px;
+        font-size: 1rem;
+    }
+
+    /* ============================
+       DASHBOARD-KAARTEN
+    ============================= */
+    .overig-card {
+        background: white;
+        border-radius: 18px;
+        padding: 40px 25px;
+        text-align: center;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.07);
+        transition: all 0.28s ease;
+        cursor: pointer;
+        height: 100%;
+    }
+    .overig-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 14px 28px rgba(0,0,0,0.15);
+    }
+
+    .overig-card h4 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: #1f2a44;
+    }
+
+    .overig-card p {
+        margin-top: 8px;
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+
+    /* ============================
+       TERUGKNOP & CONTENT BOX
+    ============================= */
+    .back-btn {
+        border-radius: 10px;
+        padding: 7px 16px;
+        font-weight: 500;
+    }
+
+    .section-box {
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    /* ============================
+       CALCULATOR BLOK
+    ============================= */
+    .calculator-box {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 16px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+
+    .calculator-box label {
+        display: block;
+        margin-top: 15px;
+        font-weight: 600;
+        color: #1f2a44;
+    }
+
+    .calculator-box input[type=range] {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+</style>
+
+<div class="container mt-4">
+    <h2 class="section-title">Overig</h2>
+
+<!-- ============================
+     MENU PAGINA
+============================== -->
+{% if page == "menu" %}
+    <p class="subtitle">Kies hieronder wat je wilt openen.</p>
+
+    <div class="row g-4">
+
+        <div class="col-md-3">
+            <a href="/overig/?page=pop" class="text-decoration-none text-dark">
+                <div class="overig-card">
+                    <h4>POP Gesprekken</h4>
+                    <p>Bekijk of vul POP-gesprekken in</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="/overig/?page=hp" class="text-decoration-none text-dark">
+                <div class="overig-card">
+                    <h4>High Potentials</h4>
+                    <p>Overzicht van spelers met potentie</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="/overig/?page=notities" class="text-decoration-none text-dark">
+                <div class="overig-card">
+                    <h4>Overige Notities</h4>
+                    <p>Schrijf en bekijk notities</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="/overig/?page=jeugd" class="text-decoration-none text-dark">
+                <div class="overig-card">
+                    <h4>Jeugd Willem II</h4>
+                    <p>Materialen & info voor jeugdopleiding</p>
+                </div>
+            </a>
+        </div>
+
+{% endif %}
+
+
+
+<!-- ============================
+       NOTITIES – VERBETERDE UI
+============================== -->
+{% if page == "notities" %}
+<a href="/overig/" class="btn btn-secondary mb-3 back-btn">← Terug</a>
+
+<style>
+    .notes-wrapper {
+        background: white;
+        padding: 40px 45px;
+        border-radius: 18px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        margin-bottom: 35px;
+    }
+
+    .notes-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1f2a44;
+        margin-bottom: 12px;
+    }
+
+    .notes-subtitle {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 25px;
+    }
+
+    .notes-input {
+        width: 100%;
+        min-height: 160px;
+        padding: 18px;
+        border-radius: 14px;
+        border: 1px solid #ced4da;
+        font-size: 1.05rem;
+        background: #f8f9fa;
+        resize: vertical;
+    }
+
+    .notes-card {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 22px 26px;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .notes-date {
+        font-size: 0.85rem;
+        color: #8a8a8a;
+    }
+
+    .notes-divider {
+        width: 100%;
+        height: 1px;
+        background: #e5e7eb;
+        margin: 35px 0;
+    }
+
+    .notes-card p {
+        font-size: 1.05rem;
+        margin-bottom: 6px;
+    }
+</style>
+
+<!-- ============================
+       NIEUWE NOTITIE BLOK
+============================== -->
+<div class="notes-wrapper">
+    <h3 class="notes-title">Nieuwe notitie</h3>
+    <p class="notes-subtitle">Voeg een persoonlijke notitie toe. Dit kan over spelers, observaties of belangrijke aandachtspunten gaan.</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <textarea class="notes-input" name="text" placeholder="Schrijf hier jouw notitie..." required></textarea>
+        <button class="btn btn-primary mt-3 px-4 py-2" style="font-size:1rem;">Opslaan</button>
+    </form>
+</div>
+
+<!-- ============================
+       EERDERE NOTITIES
+============================== -->
+<div class="notes-wrapper">
+    <h3 class="notes-title">Eerdere notities</h3>
+    <p class="notes-subtitle">Jouw opgeslagen notities. De nieuwste staan bovenaan.</p>
+
+    {% for item in items %}
+        <div class="notes-card">
+            <p>{{ item.text }}</p>
+            <div class="notes-date">{{ item.created_at|date:"d-m-Y H:i" }}</div>
+        </div>
+    {% empty %}
+        <p class="text-muted">Nog geen notities.</p>
+    {% endfor %}
+</div>
+
+{% endif %}
+
+
+  <!-- ============================
+     POP PAGINA
+============================== -->
+{% if page == "pop" %}
+    <a href="/overig/" class="btn btn-secondary mb-3 back-btn">← Terug</a>
+
+    <style>
+        .pop-section {
+            background: white;
+            border-radius: 18px;
+            padding: 40px 45px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            margin-bottom: 35px;
+        }
+        .pop-divider {
+            height: 1px;
+            width: 100%;
+            background: #e5e7eb;
+            margin: 32px 0;
+        }
+        .pop-textarea {
+            width: 100% !important;
+            min-height: 180px !important;
+            padding: 16px;
+            border-radius: 12px;
+            resize: vertical;
+            margin-top: 12px;
+            margin-bottom: 22px;
+        }
+
+        /* Nieuwe styling voor 2 kolommen */
+        .pop-select-row {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        .pop-select-box {
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .player-select {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 10px;
+            margin-top: 6px;
+        }
+    </style>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="pop-section">
+            <h3 class="fw-bold">POP Gesprekken</h3>
+            <p class="text-muted">Persoonlijk OntwikkelingsPlan van de speler of staflid.</p>
+
+            <!-- ============================================
+                 SPELER + STAFLID SELECTIE (NIEUWE FUNCTIE)
+            =============================================== -->
+            <div class="pop-select-row">
+
+                <!-- Speler dropdown -->
+                <div class="pop-select-box">
+                    <label for="player" class="fw-bold">Selecteer speler</label>
+                    <select name="player" id="player" class="form-select player-select">
+                        <option value="">-- Kies een speler --</option>
+                        {% for p in players %}
+                            <option value="{{ p.id }}">{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Staflid dropdown -->
+                <div class="pop-select-box">
+                    <label for="staff" class="fw-bold">Selecteer staflid</label>
+                    <select name="staff" id="staff" class="form-select player-select">
+                        <option value="">-- Kies een staflid --</option>
+                        {% for s in staff %}
+                            <option value="{{ s.id }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="pop-divider"></div>
+
+            <h4>📍 Waar sta ik nu?</h4>
+            <textarea name="waar_sta_ik_nu" class="pop-textarea"></textarea>
+
+            <div class="pop-divider"></div>
+
+            <h4>🎯 Doelen & Ontwikkelpunten</h4>
+            <textarea name="doelen" class="pop-textarea"></textarea>
+
+            <div class="pop-divider"></div>
+
+            <h4>🪞 Reflectie</h4>
+            <textarea name="reflectie" class="pop-textarea"></textarea>
+
+            <div class="pop-divider"></div>
+
+            <h4>📝 Actieplan</h4>
+            <textarea name="actieplan" class="pop-textarea"></textarea>
+
+            <button class="btn btn-primary mt-3">Opslaan</button>
+        </div>
+    </form>
+{% endif %}
+
+
+{% if page == "hp" %}
+<a href="/overig/" class="btn btn-secondary mb-3 back-btn">← Terug</a>
+
+<style>
+    .hp-section {
+        background: white;
+        padding: 40px 45px;
+        border-radius: 18px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        margin-bottom: 35px;
+    }
+    .hp-divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 35px 0;
+    }
+    .hp-block-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1f2a44;
+        margin-bottom: 8px;
+    }
+    .hp-subtitle {
+        color: #6b7280;
+        font-size: 0.95rem;
+        margin-bottom: 20px;
+    }
+    .hp-input {
+        width: 100%;
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid #dadada;
+        min-height: 150px;
+        resize: vertical;
+        background: #fff;
+        margin-bottom: 18px;
+        font-size: 0.95rem;
+    }
+    .hp-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-bottom: 18px;
+    }
+    .hp-card {
+        background: #f9fafb;
+        border-radius: 16px;
+        border: 1px solid #e5e7eb;
+        padding: 20px;
+    }
+    .hp-save-btn {
+        background: #1f2a44;
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .hp-save-btn:hover {
+        background: #e74c3c;
+    }
+</style>
+
+<div class="hp-section">
+
+    <!-- ⭐ TITEL -->
+    <h3 class="hp-block-title">High Potentials</h3>
+    <p class="hp-subtitle">Vul hieronder alles in over talentprofielen, testdata, aandachtspunten en ontwikkelplannen.</p>
+
+    <div class="hp-divider"></div>
+
+    <!-- ⭐ 1. OVERZICHT HIGH POTENTIALS -->
+    <h4 class="hp-block-title">⭐ Overzicht spelers & Sterkten</h4>
+    <p class="hp-subtitle">Beschrijf hier de spelers die jij als high potential ziet en waarom.</p>
+
+    <textarea class="hp-input" id="hp_overview" placeholder="Voorbeeld:
+- Speler X: explosief profiel, aanvallend sterk
+- Speler Y: groot loopvermogen, hoge belastbaarheid
+- Speler Z: spelintelligentie, creatief in kleine ruimtes"></textarea>
+
+    <button class="hp-save-btn">Opslaan</button>
+
+    <div class="hp-divider"></div>
+
+    <!-- ⭐ 2. TESTDATA PER SPELER -->
+    <h4 class="hp-block-title">📊 Testdata per speler</h4>
+    <p class="hp-subtitle">Noteer sprint-, kracht- en conditiemetingen.</p>
+
+    <div class="hp-card">
+        <div class="hp-grid">
+            <textarea class="hp-input" id="hp_sprint" placeholder="Sprinttijden (bijv. 5m / 10m / 30m)..."></textarea>
+            <textarea class="hp-input" id="hp_strength" placeholder="Krachtmetingen (CMJ, squat, nordic)..."></textarea>
+        </div>
+
+        <textarea class="hp-input" id="hp_condition" placeholder="Conditietesten (YoYo, HR herstel, RSA)..."></textarea>
+
+        <button class="hp-save-btn">Opslaan</button>
+    </div>
+
+    <div class="hp-divider"></div>
+
+    <!-- ⭐ 3. AANDACHTSPUNTEN IN HET VELD -->
+    <h4 class="hp-block-title">🎯 Aandachtspunten in het veld</h4>
+    <p class="hp-subtitle">Technische, tactische en fysieke ontwikkelpunten in trainingen en wedstrijden.</p>
+
+    <textarea class="hp-input" id="hp_field" placeholder="Voorbeeld:
+- Timing loopacties
+- 1v1 gedrag
+- Scanning
+- Explosiviteit eerste meters"></textarea>
+
+    <button class="hp-save-btn">Opslaan</button>
+
+    <div class="hp-divider"></div>
+
+    <!-- ⭐ 4. AANDACHTSPUNTEN BUITEN HET VELD -->
+    <h4 class="hp-block-title">🧍‍♂️ Aandachtspunten buiten het veld</h4>
+    <p class="hp-subtitle">Voeding, herstel, gedrag, mindset, professionaliteit.</p>
+
+    <textarea class="hp-input" id="hp_off_field" placeholder="Voorbeeld:
+- Consistent ontbijten
+- Beter slapen
+- Herstelroutine na training
+- Mentale weerbaarheid"></textarea>
+
+    <button class="hp-save-btn">Opslaan</button>
+
+    <div class="hp-divider"></div>
+
+    <!-- ⭐ 5. WERKPLAN PER SPELER -->
+    <h4 class="hp-block-title">📝 Werkplan per speler</h4>
+    <p class="hp-subtitle">Jouw strategie, aanpak en planning.</p>
+
+    <textarea class="hp-input" id="hp_plan" placeholder="Jouw werkplan..."></textarea>
+
+    <button class="hp-save-btn">Opslaan</button>
+
+    <div class="hp-divider"></div>
+
+    <!-- ⭐ 6. INDIVIDUELE ONTWIKKELPLANNEN -->
+    <h4 class="hp-block-title">📚 Individuele ontwikkelplannen</h4>
+    <p class="hp-subtitle">Langetermijnontwikkelingen en groeilijnen.</p>
+
+    <textarea class="hp-input" id="hp_development" placeholder="Bijv. voortgang op sprint, techniek, mindset en fysieke waarden..."></textarea>
+
+    <button class="hp-save-btn">Opslaan</button>
+
+</div>
+
+{% endif %}
+
+
+
+    <!-- ============================
+     JEUGD WILLEM II PAGINA
+============================= -->
+{% if page == "jeugd" %}
+
+<a href="/overig/" class="btn btn-secondary mb-3 back-btn">← Terug</a>
+
+<style>
+    .jeugd-section {
+        background: white;
+        padding: 40px 45px;
+        border-radius: 18px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        margin-bottom: 35px;
+    }
+
+    .jeugd-title {
+        font-weight: 800;
+        font-size: 2rem;
+        color: #1f2a44;
+        margin-bottom: 8px;
+    }
+
+    .jeugd-subtitle {
+        color: #6c757d;
+        font-size: 1rem;
+        margin-bottom: 30px;
+    }
+
+    .jeugd-block-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #1f2a44;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+
+    .jeugd-icon {
+        font-size: 1.4rem;
+        margin-right: 8px;
+    }
+
+    .jeugd-text {
+        color: #6c757d;
+        line-height: 1.55;
+        margin-bottom: 14px;
+    }
+
+    .jeugd-divider {
+        height: 1px;
+        background: #e5e7eb;
+        width: 100%;
+        margin: 32px 0;
+    }
+
+    .jeugd-input {
+        width: 100%;
+        min-height: 160px;
+        padding: 16px;
+        font-size: 1rem;
+        border-radius: 12px;
+        border: 1px solid #d4d4d4;
+        resize: vertical;
+        margin-bottom: 25px;
+    }
+</style>
+
+<div class="jeugd-section">
+
+    <h3 class="jeugd-title">Jeugd Willem II</h3>
+    <p class="jeugd-subtitle">Informatie, werkwijze en ontwikkelstructuren voor de academie.</p>
+
+    <div class="jeugd-divider"></div>
+
+    
+    <!-- ============================
+         1. WERKWIJZE ACADEMIE
+    ============================= -->
+    <h4 class="jeugd-block-title">
+        <span class="jeugd-icon">🏫</span>Werkwijze binnen de Academie
+    </h4>
+    <p class="jeugd-text">
+        Beschrijf hier de kernwaarden, ontwikkelvisie, speelwijze en dagelijkse werkwijze binnen de academie.
+    </p>
+    <textarea class="jeugd-input" placeholder="Voorbeeld:
+- Hoe trainen we binnen de academie?
+- Wat verwachten we per leeftijdscategorie?
+- Hoe ziet de speelwijze eruit?
+- Gedrag, normen & waarden..."></textarea>
+
+
+    <div class="jeugd-divider"></div>
+
+
+    <!-- ============================
+         2. PROFPLAN ACADEMIE
+    ============================= -->
+    <h4 class="jeugd-block-title">
+        <span class="jeugd-icon">📘</span>Profplan Academie
+    </h4>
+    <p class="jeugd-text">
+        Gebruik dit gedeelte om het langere ontwikkelplan van de jeugdopleiding vast te leggen.
+    </p>
+    <textarea class="jeugd-input" placeholder="Voorbeeld:
+- Opleidingsplan per leeftijdsfase
+- Technische/tactische ontwikkellijnen
+- Langetermijnontwikkeling van spelers
+- Beleid rondom groei & selectie..."></textarea>
+
+
+    <div class="jeugd-divider"></div>
+
+
+    <!-- ============================
+         3. INDIVIDUELE BEGELEIDING
+    ============================= -->
+    <h4 class="jeugd-block-title">
+        <span class="jeugd-icon">🧑‍🏫</span>Individuele Begeleiding binnen de Academie
+    </h4>
+    <p class="jeugd-text">
+        Beschrijf hier de manier waarop spelers individueel begeleid worden, inclusief rollen van trainers, coördinatoren,
+        fysieke staf en mental coaches.
+    </p>
+    <textarea class="jeugd-input" placeholder="Voorbeeld:
+- Hoe zien POP-momenten eruit?
+- Rol van connection coach / individueel traject
+- Extra trainingen, techniektraining, videoanalyse
+- Communicatie met ouders..."></textarea>
+
+
+    <div class="jeugd-divider"></div>
+
+
+    <!-- ============================
+         4. KORTE TERMIJN DOELEN
+    ============================= -->
+    <h4 class="jeugd-block-title">
+        <span class="jeugd-icon">🎯</span>Korte Termijn Doelen (4–8 weken)
+    </h4>
+    <p class="jeugd-text">
+        Formuleer hier concrete doelen voor de spelersgroep of individuele trajecten binnen de komende weken.
+    </p>
+    <textarea class="jeugd-input" placeholder="Voorbeeld:
+- Ontwikkelpunt X verbeteren
+- Werkpunten vanuit trainer
+- Teamdoelen komende wedstrijden
+- Afspraken voor trainingen..."></textarea>
+
+
+    <div class="jeugd-divider"></div>
+
+
+    <!-- ============================
+         5. LANGE TERMIJN DOELEN
+    ============================= -->
+    <h4 class="jeugd-block-title">
+        <span class="jeugd-icon">🚀</span>Lange Termijn Doelen (seizoen)
+    </h4>
+    <p class="jeugd-text">
+        Noteer hier de belangrijkste doelen voor de rest van het seizoen – individueel én teamgericht.
+    </p>
+    <textarea class="jeugd-input" placeholder="Voorbeeld:
+- Spelers voorbereiden op volgende leeftijdsgroep
+- Doorstroom naar O21 / 1e elftal
+- Technische, fysieke en mentale groeilijnen
+- Opleiden volgens academiefilosofie..."></textarea>
+
+
+</div>
+
+{% endif %}
+
+{% endblock %}

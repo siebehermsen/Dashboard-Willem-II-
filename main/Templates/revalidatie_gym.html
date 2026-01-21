@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+{% block title %}Revalidatie Gym - Willem II{% endblock %}
+
+{% block content %}
+<style>
+/* ---------- BASISSTIJLEN ---------- */
+body {
+    background: #f4f6fa;
+    font-family: "Inter", sans-serif;
+    color: #1f2a44;
+    margin: 0;
+}
+.container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+h1, h2, h3 {
+    margin: 0;
+}
+a { color: #b60000; text-decoration: none; }
+
+/* ---------- HEADER ---------- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+.header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.header .phase-count {
+    background: #b60000;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* ---------- ALGEMENE CARDS ---------- */
+.card, .rehab-card, .program-section {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    padding: 25px;
+    margin-bottom: 40px;
+}
+.card h2, .program-section h2 {
+    color: #b60000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+}
+.card h2 i, .program-section h2 i {
+    color: #1f2a44;
+}
+
+/* ---------- TABELSTIJLEN ---------- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+th {
+    background-color: #1f2a44;
+    color: white;
+    font-weight: 600;
+}
+tr:nth-child(even) {
+    background-color: #f8f9fb;
+}
+
+/* ---------- PROGRESS BARS ---------- */
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+.progress-fill {
+    height: 8px;
+    background: linear-gradient(90deg, #b60000, #43a047);
+}
+.note {
+    font-size: 0.85rem;
+    color: #777;
+    margin-top: 10px;
+    text-align: right;
+}
+
+/* ---------- FASE OVERZICHT ---------- */
+.protocol-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+.phase-box {
+    background: #f7f9fc;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    transition: 0.3s;
+}
+.phase-box:hover {
+    transform: scale(1.03);
+}
+.phase-box h3 {
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+    color: #1f2a44;
+}
+.phase-box p {
+    font-size: 0.9rem;
+    color: #555;
+}
+.phase-early { border-left: 5px solid #d32f2f; }
+.phase-mid { border-left: 5px solid #f9a825; }
+.phase-final { border-left: 5px solid #43a047; }
+.phase-performance { border-left: 5px solid #1976d2; }
+
+/* ---------- FORMULIERSTIJLEN ---------- */
+.program-form label {
+    display: block;
+    font-weight: 500;
+    margin-top: 12px;
+}
+.program-form input,
+.program-form textarea,
+.program-form select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 4px;
+    font-family: "Inter", sans-serif;
+}
+.program-form textarea {
+    resize: vertical;
+}
+.add-btn {
+    display: inline-block;
+    margin-top: 20px;
+    background-color: #b60000;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.25s;
+}
+.add-btn:hover {
+    background-color: #1f2a44;
+}
+
+/* ---------- TOEGEVOEGDE PROGRAMMA'S ---------- */
+.program-summary {
+    margin-top: 30px;
+}
+.program-summary h3 {
+    color: #b60000;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+}
+.program-summary th {
+    background-color: #1f2a44;
+    color: white;
+}
+.program-summary tr:nth-child(even) {
+    background-color: #f8f9fb;
+}
+
+/* ---------- EXTRA ---------- */
+.section-divider {
+    margin: 50px 0 20px;
+    border-top: 2px solid #ddd;
+}
+.badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+.badge.phase1 { background: #ffcdd2; color: #b71c1c; }
+.badge.phase2 { background: #fff59d; color: #f57f17; }
+.badge.phase3 { background: #c8e6c9; color: #1b5e20; }
+.badge.phase4 { background: #bbdefb; color: #0d47a1; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 768px) {
+    .protocol-grid { grid-template-columns: 1fr; }
+    .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
+</style>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>🏋️‍♂️ Revalidatie Gym Protocol</h1>
+        <div class="phase-count">4 Fases - Gym Focus</div>
+    </div>
+
+    <!-- ACTIEVE BLESSURES -->
+    <div class="rehab-card">
+        <h2><i data-feather="activity"></i> Actieve blessures</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Speler</th>
+                    <th>Type blessure</th>
+                    <th>Startdatum</th>
+                    <th>Verwachte terugkeer</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Amine Lachkar</td>
+                    <td>Hamstring</td>
+                    <td>10 okt 2025</td>
+                    <td>25 nov 2025</td>
+                    <td>
+                        <div class="progress-bar"><div class="progress-fill" style="width:70%;"></div></div>
+                        <small>70% – <span class="badge phase3">Fase 3</span></small>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Niels van Berkel</td>
+                    <td>Enkelverstuiking</td>
+                    <td>22 okt 2025</td>
+                    <td>10 nov 2025</td>
+                    <td>
+                        <div class="progress-bar"><div class="progress-fill" style="width:40%;"></div></div>
+                        <small>40% – <span class="badge phase2">Fase 2</span></small>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="note">Laatste update: 7 november 2025</p>
+    </div>
+
+    <!-- FASES OVERZICHT -->
+    <div class="card">
+        <h2><i data-feather="layers"></i> Overzicht revalidatiefases</h2>
+        <div class="protocol-grid">
+            <div class="phase-box phase-early">
+                <h3>Fase 1 – Pijnvrij bewegen</h3>
+                <p>Herstel mobiliteit, pijnvrije ROM en basiscontrole.</p>
+            </div>
+            <div class="phase-box phase-mid">
+                <h3>Fase 2 – Voorwaarden creëren</h3>
+                <p>Stabiliteit, activatie en volledige bewegingsuitslag.</p>
+            </div>
+            <div class="phase-box phase-final">
+                <h3>Fase 3 – Robust Body</h3>
+                <p>Power, full range en functionele kracht.</p>
+            </div>
+            <div class="phase-box phase-performance">
+                <h3>Fase 4 – Performance</h3>
+                <p>Transfer naar veldspecifieke kracht en snelheid.</p>
+            </div>
+        </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- NIEUW PROGRAMMA TOEVOEGEN -->
+    <div class="program-section">
+        <h2><i data-feather="clipboard"></i> Persoonlijk Revalidatieprogramma</h2>
+        <p style="color:#666; margin-bottom:15px;">
+            Voeg hieronder een oefening toe aan het revalidatieprogramma van een speler.
+        </p>
+
+        <form class="program-form" method="post">
+            {% csrf_token %}
+
+            <label for="player">Speler:</label>
+            <select name="player" id="player" required>
+                <option value="">-- Kies speler --</option>
+                {% for speler in spelers %}
+                    <option value="{{ speler.id }}">{{ speler.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="phase">Fase:</label>
+<select id="phase" name="phase" required>
+    <option>Fase 1 – Pijnvrij bewegen</option>
+    <option>Fase 2 – Voorwaarden creëren</option>
+    <option>Fase 3 – Robust Body</option>
+    <option>Fase 4 – Performance</option>
+</select>
+
+<!-- 🔽 Nieuw toegevoegd veld -->
+<label for="focus_point">Fysiek aandachtspunt:</label>
+<input type="text" id="focus_point" name="focus_point" placeholder="Bijv. focus op enkel, core, heup..." required>
+
+<label for="exercise">Oefening:</label>
+<input type="text" id="exercise" name="exercise" placeholder="Bijv. Nordic Hamstring" required>
+
+<label for="description">Beschrijving:</label>
+<textarea id="description" name="description" rows="3" placeholder="Beschrijving van de oefening..." required></textarea>
+
+<label for="sets_reps">Sets / Herhalingen:</label>
+<input type="text" id="sets_reps" name="sets_reps" placeholder="Bijv. 3 x 8" required>
+
+<button type="submit" class="add-btn">💾 Oefening opslaan</button>
+</form>
+</div>
+
+    <!-- OVERZICHT TOEGEVOEGDE OEFENINGEN -->
+    {% if oefeningen %}
+    <div class="program-section program-summary">
+        <h2><i data-feather="list"></i> Opgeslagen programma's</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Speler</th>
+                    <th>Fase</th>
+                    <th>Oefening</th>
+                    <th>Beschrijving</th>
+                    <th>Sets / Reps</th>
+                    <th>Datum toegevoegd</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for oef in oefeningen %}
+                <tr>
+                    <td>{{ oef.player.name }}</td>
+                    <td>{{ oef.phase }}</td>
+                    <td>{{ oef.exercise }}</td>
+                    <td>{{ oef.description }}</td>
+                    <td>{{ oef.sets_reps }}</td>
+                    <td>{{ oef.created_at|date:"d-m-Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p style="color:#777; text-align:center;">Nog geen oefeningen toegevoegd aan het programma.</p>
+    {% endif %}
+
+</div>
+
+<script>
+feather.replace();
+</script>
+{% endblock %}

@@ -1,0 +1,645 @@
+{% extends "base.html" %}
+{% block title %}Willem II | Performance Dashboard{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/feather-icons"></script>
+
+<style>
+/* 🌐 ALGEMEEN */
+body { background: #f4f6fa; font-family: "Inter", sans-serif; color: #1f2a44; }
+.container { max-width: 1400px; margin: 40px auto; padding: 0 25px; }
+h1, h2, h3 { font-weight: 600; }
+.section-title { border-left: 5px solid #b60000; padding-left: 12px; font-size: 1.6rem; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+
+/* 🧱 KAARTEN */
+.card { background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.07); padding: 25px; margin-bottom: 45px; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+.card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; margin-bottom: 15px; padding-bottom: 10px; }
+.card-header h2 { margin: 0; font-size: 1.35rem; display: flex; align-items: center; gap: 8px; }
+
+/* ⚙️ BUTTONS */
+button.primary-btn { background-color: #1f2a44; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.2s; }
+button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
+
+/* 📊 OVERVIEW BOXES */
+.stats-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 25px; margin-bottom: 35px; }
+.stat-box { flex: 1; min-width: 250px; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 3px 12px rgba(0,0,0,0.08); text-align: center; }
+.stat-box h3 { font-size: 1rem; color: #555; margin-bottom: 8px; }
+.stat-box p { font-size: 1.8rem; font-weight: 700; color: #1f2a44; }
+.stat-icon { color: #b60000; margin-bottom: 8px; }
+
+/* ⚽ VOLGENDE WEDSTRIJD */
+.match-card { text-align: center; }
+.teams { display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 10px; }
+.team-logo { height: 80px; border-radius: 10px; }
+.vs { font-size: 1.8rem; font-weight: bold; color: #b60000; }
+.match-info { color: #555; font-size: 1.1rem; }
+
+/* 📅 WEEKPROGRAMMA */
+.weekprogram-table { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
+.weekprogram-table th, .weekprogram-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+.weekprogram-table th { background-color: #1f2a44; color: white; font-weight: 500; }
+.weekprogram-table tr:nth-child(even) { background-color: #f8f9fb; }
+.action-btn { text-decoration: none; padding: 6px 10px; border-radius: 5px; color: white; font-weight: 500; font-size: 0.9rem; }
+.btn-edit { background-color: #1f2a44; } .btn-edit:hover { background-color: #b60000; }
+.btn-delete { background-color: #b60000; } .btn-delete:hover { background-color: #8a0000; }
+
+/* 🩹 REVALIDATIESPELERS */
+.table-rehab { width: 100%; border-collapse: collapse; margin-top: 10px; }
+.table-rehab th, .table-rehab td { border: 1px solid #ddd; padding: 10px; }
+.table-rehab th { background-color: #1f2a44; color: white; }
+.table-rehab tr:nth-child(even) { background-color: #f8f9fb; }
+.status { border-radius: 6px; padding: 4px 8px; font-size: 0.9rem; font-weight: 500; text-align: center; }
+.status-early { background-color: #ffe1e1; color: #b60000; }
+.status-mid { background-color: #fff4cc; color: #b68a00; }
+.status-final { background-color: #e5ffe5; color: #007b00; }
+.progress-bar { width: 100%; height: 8px; border-radius: 6px; background: #eee; overflow: hidden; margin-top: 4px; }
+.progress-fill { height: 100%; transition: width 0.3s; }
+
+/* 📈 GRAFIEKEN */
+.chart-container { width: 100%; max-width: 850px; margin: 40px auto; }
+
+/* 🪟 MODALS */
+.modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+.modal-content { background-color: white; margin: 6% auto; padding: 25px; border-radius: 10px; width: 450px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.close { float: right; font-size: 1.4rem; cursor: pointer; }
+.close:hover { color: #b60000; }
+
+/* 🔍 FILTERS */
+.filter-container { display: flex; align-items: center; gap: 10px; }
+select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
+
+/* 👥 TEAMOVERZICHT — Strakkere, moderne stijl */
+.player-table-wrapper {
+    overflow-x: auto;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.table-players {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    background-color: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.table-players thead th {
+    background-color: #1f2a44;
+    color: #ffffff;
+    text-align: left;
+    padding: 14px 16px;
+    font-weight: 600;
+    font-size: 0.93rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table-players tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e6e9ef;
+    vertical-align: middle;
+    transition: background-color 0.2s ease;
+}
+
+.table-players tbody tr:nth-child(even) {
+    background-color: #f8f9fb;
+}
+
+.table-players tbody tr:hover {
+    background-color: #eef2f8;
+}
+
+.player-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #1f2a44;
+    letter-spacing: 0.3px;
+}
+
+.player-icon {
+    width: 17px;
+    height: 17px;
+    color: #b60000;
+    opacity: 0.85;
+}
+
+.diff-up { color: #009b4d; font-weight: 600; }
+.diff-down { color: #c11b1b; font-weight: 600; }
+.diff-neutral { color: #666; font-weight: 500; }
+
+.table-players td,
+.table-players th {
+    text-align: center;
+}
+
+.table-players td:first-child,
+.table-players th:first-child {
+    text-align: left;
+}
+</style>
+
+<main class="container">
+
+    <!-- 📊 OVERALL STATISTICS -->
+    <div class="stats-row">
+        <div class="stat-box">
+            <i data-feather="activity" class="stat-icon"></i>
+            <h3>Actieve revalidaties</h3>
+            <p>{{ rehab_players|length }}</p>
+        </div>
+        <div class="stat-box">
+            <i data-feather="users" class="stat-icon"></i>
+            <h3>Teamleden</h3>
+            <p>{{ players|length }}</p>
+        </div>
+        <div class="stat-box">
+            <i data-feather="percent" class="stat-icon"></i>
+            <h3>Gem. vetpercentage</h3>
+            <p>{{ avg_fat|default:"-" }}%</p>
+        </div>
+    </div>
+
+<!-- ⚽ VOLGENDE WEDSTRIJD -->
+<div class="card match-card">
+    <h2 class="section-title"><i data-feather="calendar"></i> Volgende wedstrijd</h2>
+
+    {% if upcoming_match %}
+        <div class="teams">
+            <div>
+                {% if home_logo %}
+                    <img src="{{ home_logo }}" alt="{{ upcoming_match.home }}" class="team-logo">
+                {% endif %}
+                <p>{{ upcoming_match.home }}</p>
+            </div>
+
+            <p class="vs">VS</p>
+
+            <div>
+                {% if away_logo %}
+                    <img src="{{ away_logo }}" alt="{{ upcoming_match.away }}" class="team-logo">
+                {% endif %}
+                <p>{{ upcoming_match.away }}</p>
+            </div>
+        </div>
+
+        <p class="match-info">{{ upcoming_match.kickoff|date:"l d F Y - H:i" }}</p>
+
+    {% else %}
+        <p>Geen wedstrijd gepland 🎉</p>
+    {% endif %}
+</div>
+
+
+<!-- 🗓️ WEEKPROGRAMMA -->
+<div class="card">
+    <div class="card-header">
+        <h2><i data-feather="clock"></i> Weekplanning</h2>
+        <button id="openWeekModal" class="primary-btn">➕ Trainingsdag toevoegen</button>
+    </div>
+
+    <table class="weekprogram-table">
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Activiteiten</th>
+                <th>Bijzonderheden</th>
+                <th>Acties</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for day in dayprograms %}
+            <tr id="row-{{ day.id }}">
+                <!-- BEKIJK-MODUS -->
+                <td id="date-{{ day.id }}">{{ day.date }}</td>
+                <td id="activities-{{ day.id }}">{{ day.activities }}</td>
+                <td id="notes-{{ day.id }}">{{ day.notes|default:"-" }}</td>
+
+                <!-- ACTIEKNOPPEN -->
+                <td id="actions-{{ day.id }}" style="white-space: nowrap;">
+                    <button 
+                        type="button" 
+                        class="action-btn btn-edit" 
+                        onclick="enableEdit({{ day.id }})"
+                    >✏️</button>
+
+                    <form action="{% url 'delete_weekday' day.id %}" method="POST" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn btn-delete">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Nog geen weekplanning ingevoerd.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- INLINE EDIT SCRIPT -->
+<script>
+function enableEdit(id) {
+    // Elements
+    const dateCell = document.getElementById(`date-${id}`);
+    const actCell = document.getElementById(`activities-${id}`);
+    const notesCell = document.getElementById(`notes-${id}`);
+    const actionsCell = document.getElementById(`actions-${id}`);
+
+    // Original values
+    const oldDate = dateCell.innerText.trim();
+    const oldAct = actCell.innerText.trim();
+    const oldNotes = notesCell.innerText.trim();
+
+    // Turn cells into input fields
+    dateCell.innerHTML = `<input type="date" id="edit-date-${id}" value="${oldDate}">`;
+    actCell.innerHTML = `<input type="text" id="edit-act-${id}" value="${oldAct}">`;
+    notesCell.innerHTML = `<input type="text" id="edit-notes-${id}" value="${oldNotes}">`;
+
+    // Replace actions with Save + Cancel
+    actionsCell.innerHTML = `
+        <form action="/edit-weekday/${id}/" method="POST" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="date" id="save-date-${id}">
+            <input type="hidden" name="activities" id="save-act-${id}">
+            <input type="hidden" name="notes" id="save-notes-${id}">
+
+            <button type="submit" class="action-btn btn-edit"
+                onclick="
+                    document.getElementById('save-date-${id}').value =
+                        document.getElementById('edit-date-${id}').value;
+                    document.getElementById('save-act-${id}').value =
+                        document.getElementById('edit-act-${id}').value;
+                    document.getElementById('save-notes-${id}').value =
+                        document.getElementById('edit-notes-${id}').value;
+                "
+            >💾</button>
+        </form>
+
+        <button 
+            type="button" 
+            class="action-btn btn-delete" 
+            onclick="cancelEdit(${id}, '${oldDate}', '${oldAct}', '${oldNotes}')"
+        >❌</button>
+    `;
+}
+
+function cancelEdit(id, oldDate, oldAct, oldNotes) {
+    document.getElementById(`date-${id}`).innerText = oldDate;
+    document.getElementById(`activities-${id}`).innerText = oldAct;
+    document.getElementById(`notes-${id}`).innerText = oldNotes;
+
+    document.getElementById(`actions-${id}`).innerHTML = `
+        <button 
+            type="button" 
+            class="action-btn btn-edit" 
+            onclick="enableEdit(${id})"
+        >✏️</button>
+
+        <form action="/delete-weekday/${id}/" method="POST" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="action-btn btn-delete">🗑️</button>
+        </form>
+    `;
+}
+</script>
+
+<!-- 🗓️ MODAL: Trainingsdag toevoegen -->
+<div id="weekModal" class="modal" style="
+    display:none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(3px);
+    justify-content: center;
+    align-items: center;
+">
+    <div class="modal-content" style="
+        background: white;
+        width: 420px;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+        animation: fadeIn 0.25s ease-out;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    ">
+        
+        <!-- Sluit-knop rechtsboven -->
+        <span id="closeWeekModal" style="
+            align-self: flex-end;
+            cursor: pointer;
+            font-size: 24px;
+            margin-top: -10px;
+            color: #333;
+        ">&times;</span>
+
+        <h3 style="margin: 0 0 10px 0; font-size: 22px; font-weight: 600; color: #1f2a44;">
+            Trainingsdag toevoegen
+        </h3>
+
+        <form action="{% url 'add_weekday' %}" method="POST" style="
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        ">
+            {% csrf_token %}
+
+            <!-- Datum -->
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 500;">Datum</label>
+                <input type="date" name="date" required class="form-control" style="
+                    padding: 8px;
+                    border-radius: 6px;
+                    border: 1px solid #ccc;
+                ">
+            </div>
+
+            <!-- Activiteiten -->
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 500;">Activiteiten</label>
+                <input type="text" name="activities" required class="form-control" style="
+                    padding: 8px;
+                    border-radius: 6px;
+                    border: 1px solid #ccc;
+                ">
+            </div>
+
+            <!-- Bijzonderheden -->
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 500;">Bijzonderheden</label>
+                <input type="text" name="notes" class="form-control" style="
+                    padding: 8px;
+                    border-radius: 6px;
+                    border: 1px solid #ccc;
+                ">
+            </div>
+
+            <!-- Knoppen -->
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
+                <button type="submit" class="primary-btn">
+                    Opslaan
+                </button>
+                <button type="button" id="closeWeekModalBtn" class="secondary-btn">
+                    Annuleren
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- Kleine fade-in animatie -->
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+
+<!-- 🩹 REVALIDATIESPELERS -->
+<div class="card">
+    <div class="card-header">
+        <h2><i data-feather="heart"></i> Revalidatiespelers</h2>
+        <div class="filter-container">
+            <select id="statusFilter" onchange="filterTable()">
+                <option value="all">Alle fases</option>
+                <option value="early">Vroege fase</option>
+                <option value="mid">Middenfase</option>
+                <option value="final">Laatste fase</option>
+            </select>
+
+            <!-- KNOP OM MODAL TE OPENEN -->
+            <button id="openRehabModal" class="primary-btn">➕ Blessure toevoegen</button>
+        </div>
+    </div>
+
+    <table id="rehabTable" class="table-rehab">
+        <thead>
+            <tr>
+                <th>Naam</th>
+                <th>Blessure</th>
+                <th>Startdatum</th>
+                <th>Duur</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rehab in rehab_players %}
+            <tr data-status="{{ rehab.phase }}">
+                <td>{{ rehab.name }}</td>
+                <td>{{ rehab.injury_type }}</td>
+                <td>{{ rehab.start_date|date:"d-m-Y" }}</td>
+                <td>{{ rehab.duration|default:"-" }}</td>
+                <td>
+                    {% if rehab.phase == 'early' %}
+                        <span class="status status-early">Vroege fase</span>
+                        <div class="progress-bar"><div class="progress-fill" style="width:25%;background:#b60000;"></div></div>
+                    {% elif rehab.phase == 'mid' %}
+                        <span class="status status-mid">Middenfase</span>
+                        <div class="progress-bar"><div class="progress-fill" style="width:55%;background:#b68a00;"></div></div>
+                    {% elif rehab.phase == 'final' %}
+                        <span class="status status-final">Laatste fase</span>
+                        <div class="progress-bar"><div class="progress-fill" style="width:85%;background:#007b00;"></div></div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Geen revalidatiespelers actief.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="chart-container">
+        <canvas id="rehabChart"></canvas>
+    </div>
+</div>
+
+
+<!-- 🩺 MODAL: Blessure toevoegen (ENKEL EN CORRECT) -->
+<div id="rehabModal" style="
+    display: none; 
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(3px);
+    z-index: 9999;
+
+    justify-content: center;
+    align-items: center;
+">
+
+    <div style="
+        background: white;
+        width: 420px;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 6px 25px rgba(0,0,0,0.25);
+        animation: fadeIn 0.25s ease-out;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    ">
+
+        <!-- Sluitknop -->
+        <span id="closeRehabModal" style="
+            align-self: flex-end;
+            cursor: pointer;
+            font-size: 26px;
+            margin-top: -10px;
+            color: #444;
+        ">&times;</span>
+
+        <h3 style="
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0;
+            color: #1f2a44;
+        ">
+            Blessure toevoegen
+        </h3>
+
+        <form method="post" action="{% url 'add_rehab' %}"
+              style="display: flex; flex-direction: column; gap: 16px;">
+            {% csrf_token %}
+
+            <div>
+                <label>Naam speler</label>
+                <input type="text" name="name" required
+                    style="padding:10px; border:1px solid #ccc; border-radius:6px;">
+            </div>
+
+            <div>
+                <label>Blessuretype</label>
+                <input type="text" name="injury_type" required
+                    style="padding:10px; border:1px solid #ccc; border-radius:6px;">
+            </div>
+
+            <div>
+                <label>Startdatum</label>
+                <input type="date" name="start_date" required
+                    style="padding:10px; border:1px solid #ccc; border-radius:6px;">
+            </div>
+
+            <div>
+                <label>Duur (dagen)</label>
+                <input type="number" name="duration" min="1" required
+                    style="padding:10px; border:1px solid #ccc; border-radius:6px;">
+            </div>
+
+            <div>
+                <label>Fase</label>
+                <select name="phase" required
+                style="padding:10px; border-radius:6px; border:1px solid #ccc;">
+                    <option value="early">Vroege fase</option>
+                    <option value="mid">Middenfase</option>
+                    <option value="final">Laatste fase</option>
+                </select>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:12px;">
+                <button type="submit" class="primary-btn">Opslaan</button>
+                <button type="button" id="closeRehabBtn" class="secondary-btn">Annuleren</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+
+
+<!-- 🗓️ MODAL: Trainingsdag toevoegen -->
+<div id="weekModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" id="closeWeekModal">&times;</span>
+        <h3>Trainingsdag toevoegen</h3>
+
+        <form action="{% url 'add_weekday' %}" method="POST">
+            {% csrf_token %}
+
+            <label>Datum</label>
+            <input type="date" name="date" required>
+
+            <label>Activiteiten</label>
+            <input type="text" name="activities" required>
+
+            <label>Bijzonderheden</label>
+            <input type="text" name="notes">
+
+            <button type="submit" class="primary-btn">Opslaan</button>
+            <button type="button" class="secondary-btn" id="closeWeekModal">Annuleren</button>
+        </form>
+    </div>
+</div>
+
+
+<!-- ⭐ SCRIPT: Trainingsdag modal openen/sluiten -->
+<script>
+const openWeekBtn = document.getElementById("openWeekModal");
+const closeWeekBtn = document.getElementById("closeWeekModal");
+const weekModal = document.getElementById("weekModal");
+
+if (openWeekBtn) {
+    openWeekBtn.addEventListener("click", () => {
+        weekModal.style.display = "block";
+    });
+}
+
+if (closeWeekBtn) {
+    closeWeekBtn.addEventListener("click", () => {
+        weekModal.style.display = "none";
+    });
+}
+
+window.addEventListener("click", (e) => {
+    if (e.target === weekModal) {
+        weekModal.style.display = "none";
+    }
+});
+</script>
+
+
+<!-- ⭐ SCRIPT: Blessuremodal openen/sluiten -->
+<script>
+const openRehabBtn = document.getElementById("openRehabModal");
+const closeRehabBtn = document.getElementById("closeRehabModal");
+const rehabModal = document.getElementById("rehabModal");
+
+if (openRehabBtn) {
+    openRehabBtn.addEventListener("click", () => {
+        rehabModal.style.display = "flex";
+    });
+}
+
+if (closeRehabBtn) {
+    closeRehabBtn.addEventListener("click", () => {
+        rehabModal.style.display = "none";
+    });
+}
+
+window.addEventListener("click", (e) => {
+    if (e.target === rehabModal) {
+        rehabModal.style.display = "none";
+    }
+});
+</script>
+
+
+
+{% endblock %}

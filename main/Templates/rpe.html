@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* ---------- Pagina container ---------- */
+.page-container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 30px;
+}
+
+/* ---------- Card ---------- */
+.card-box {
+    background: #fff;
+    padding: 32px;
+    border-radius: 18px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    border: 1px solid #eef0f4;
+    margin-bottom: 40px;
+}
+
+/* ---------- Titel ---------- */
+.section-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #1f2a44;
+    text-align: center;
+    margin-bottom: 6px;
+}
+
+.section-subtitle {
+    text-align: center;
+    color: #6a6f7d;
+    font-size: 16px;
+    margin-bottom: 25px;
+}
+
+/* ---------- Tabs zoals wellness ---------- */
+.tab-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.tab-btn {
+    padding: 10px 24px;
+    font-size: 15px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: #d5d8de;
+    color: #1f2a44;
+    font-weight: 600;
+    transition: .2s;
+}
+
+.tab-btn.active {
+    background: #1f2a44;
+    color: white;
+}
+
+/* ---------- Tabel ---------- */
+.table-wrapper {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #1f2a44;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #eef0f4;
+}
+
+tr:hover td {
+    background: #f7f8fc;
+}
+
+/* ---------- Form elementen ---------- */
+.form-select {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-weight: 600;
+}
+
+input[type="date"] {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+/* ---------- Opslaan knop ---------- */
+.save-btn {
+    background: #1f2a44;
+    color: white;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.save-btn:hover {
+    background: #152033;
+}
+</style>
+
+
+
+<div class="page-container">
+
+    <div class="card-box">
+
+        <h2 class="section-title">📋 RPE Dashboard</h2>
+        <p class="section-subtitle">Datum: <strong>{{ today }}</strong></p>
+
+        <!-- TABS -->
+        <div class="tab-buttons">
+            <button class="tab-btn active" id="tab-not-filled">Niet ingevuld</button>
+            <button class="tab-btn" id="tab-filled">Wel ingevuld</button>
+        </div>
+
+
+        <!-- ---------- NIET INGEVULD ---------- -->
+        <div id="section-not-filled">
+
+            {% if not_filled %}
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Speler</th>
+                            <th>Datum</th>
+                            <th>Type</th>
+                            <th>RPE</th>
+                            <th>Opslaan</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for p in not_filled %}
+                        <tr>
+                            <form method="post">
+                            {% csrf_token %}
+
+                            <td>{{ p.name }}</td>
+
+                            <td>
+                                <input type="date" name="date" value="{{ today }}" required>
+                            </td>
+
+                            <td>
+                                <select name="training_type" class="form-select" required>
+                                    <option value="">-- Type --</option>
+                                    <option>Training</option>
+                                    <option>Wedstrijd</option>
+                                    <option>Individueel</option>
+                                </select>
+                            </td>
+
+                            <!-- RPE dropdown met kleuren -->
+                            <td>
+                                <select name="rpe" class="form-select rpe-colored" required>
+                                    <option value="" disabled selected>-- RPE --</option>
+                                    <option value="1" data-color="#00A651">1 – Minimaal</option>
+                                    <option value="2" data-color="#27AE60">2 – Erg licht</option>
+                                    <option value="3" data-color="#2ECC71">3 – Licht / Comfortabel</option>
+                                    <option value="4" data-color="#F7DC6F">4 – Iets uitdagend</option>
+                                    <option value="5" data-color="#F1C40F">5 – Uitdagend</option>
+                                    <option value="6" data-color="#F39C12">6 – Zwaar</option>
+                                    <option value="7" data-color="#E67E22">7 – Heel zwaar</option>
+                                    <option value="8" data-color="#D35400">8 – Extreem zwaar</option>
+                                    <option value="9" data-color="#C0392B">9 – Maximaal zwaar</option>
+                                    <option value="10" data-color="#A93226">10 – Volledig uitgeput</option>
+                                </select>
+                            </td>
+
+                            <td>
+                                <input type="hidden" name="player_id" value="{{ p.id }}">
+                                <button class="save-btn">Opslaan</button>
+                            </td>
+
+                            </form>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% else %}
+            <p style="text-align:center;">🎉 Alle spelers hebben hun RPE ingevuld!</p>
+            {% endif %}
+
+        </div>
+
+
+        <!-- ---------- WEL INGEVULD ---------- -->
+        <div id="section-filled" style="display:none;">
+
+            {% if filled %}
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Speler</th>
+                            <th>Datum</th>
+                            <th>Type</th>
+                            <th>RPE</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for entry in filled %}
+                        <tr>
+                            <td>{{ entry.player.name }}</td>
+                            <td>{{ entry.date }}</td>
+                            <td>{{ entry.training_type }}</td>
+                            <td><strong>{{ entry.rpe }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% else %}
+            <p style="text-align:center;">Nog geen ingevulde RPE’s vandaag.</p>
+            {% endif %}
+
+        </div>
+
+    </div> <!-- einde card -->
+
+</div>
+
+
+
+<!-- ---------- SCRIPT: RPE dropdown kleuren ---------- -->
+<script>
+document.querySelectorAll(".rpe-colored").forEach(select => {
+    select.addEventListener("change", function () {
+        const color = this.options[this.selectedIndex].dataset.color;
+        this.style.backgroundColor = color;
+        this.style.color = "white";
+    });
+});
+
+
+/* Tabs */
+document.getElementById("tab-not-filled").addEventListener("click", function () {
+    document.getElementById("section-not-filled").style.display = "block";
+    document.getElementById("section-filled").style.display = "none";
+    this.classList.add("active");
+    document.getElementById("tab-filled").classList.remove("active");
+});
+
+document.getElementById("tab-filled").addEventListener("click", function () {
+    document.getElementById("section-filled").style.display = "block";
+    document.getElementById("section-not-filled").style.display = "none";
+    this.classList.add("active");
+    document.getElementById("tab-not-filled").classList.remove("active");
+});
+</script>
+
+{% endblock %}

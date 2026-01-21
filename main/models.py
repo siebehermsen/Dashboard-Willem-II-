@@ -1,0 +1,643 @@
+from django.db import models
+from django.utils import timezone
+from datetime import date
+
+# ---------- SPELERGEGEVENS ----------
+class Player(models.Model):
+    POSITION_CHOICES = [
+        ("Spits", "Spits"),
+        ("Targetman", "Targetman"),
+        ("Buitenspeler", "Buitenspeler"),
+        ("Dynamische middenvelder", "Dynamische middenvelder"),
+        ("Controlerende middenvelder", "Controlerende middenvelder"),
+        ("Centrale verdediger", "Centrale verdediger"),
+        ("Vleugelverdediger", "Vleugelverdediger"),
+    ]
+
+    name = models.CharField(max_length=100, verbose_name="Naam speler")
+
+    # ➤ Positie (koppeling aan PositionTarget)
+    position = models.CharField(
+        max_length=50,
+        choices=POSITION_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name="Positie"
+    )
+
+    # 📸 Foto van speler
+    image = models.ImageField(
+        upload_to="player_images/",
+        null=True,
+        blank=True,
+        verbose_name="Profielfoto"
+    )
+
+    # 📏 Fysieke gegevens
+    prev_weight = models.FloatField(blank=True, null=True, verbose_name="Vorig gewicht (kg)")
+    curr_weight = models.FloatField(blank=True, null=True, verbose_name="Huidig gewicht (kg)")
+    sum_skinfolds = models.FloatField(blank=True, null=True, verbose_name="Som huidplooien (mm)")
+    fat_perc = models.FloatField(blank=True, null=True, verbose_name="Vetpercentage (%)")
+
+    # 🍽️ Voedingsfocus
+    nutrition_focus = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Voedingsaandachtspunt",
+        help_text="Bijv. 'Meer ontbijt eten', 'Extra herstelshake nemen na training', etc."
+    )
+
+    def weight_diff(self):
+        """Verschil tussen huidig en vorig gewicht (kan negatief zijn)."""
+        if self.prev_weight is not None and self.curr_weight is not None:
+            return round(self.curr_weight - self.prev_weight, 1)
+        return None
+
+    def __str__(self):
+        position_label = f" ({self.position})" if self.position else ""
+        return f"{self.name}{position_label}"
+
+        
+# ---------- STAFLEDEN (NIEUW MODEL) ----------
+class Staff(models.Model):
+    name = models.CharField(max_length=100)
+    role = models.CharField(max_length=200, blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Staflid"
+        verbose_name_plural = "Stafleden"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+# ---------- REVALIDATIESPELERS ----------
+class Injury(models.Model):
+    """
+    Model voor spelers die momenteel geblesseerd zijn of revalideren.
+    Wordt gebruikt voor het revalidatieoverzicht op het dashboard.
+    """
+    PHASE_CHOICES = [
+        ('early', 'Vroege fase'),
+        ('mid', 'Middenfase'),
+        ('final', 'Laatste fase'),
+    ]
+
+    name = models.CharField(max_length=100, verbose_name="Naam speler")
+    injury_type = models.CharField(max_length=100, verbose_name="Blessuretype")
+    duration = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="Duur",
+        help_text="Bijv. '3 weken', 'tot eind november', etc."
+    )
+    start_date = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name="Startdatum",
+        help_text="Datum waarop blessure begon (optioneel)."
+    )
+    phase = models.CharField(      # 👈 nieuw veld
+        max_length=10,
+        choices=PHASE_CHOICES,
+        default='early',
+        verbose_name="Fase"
+    )
+
+    class Meta:
+        verbose_name = "Blessure"
+        verbose_name_plural = "Blessures"
+        ordering = ["-start_date", "name"]
+
+    def __str__(self):
+        return f"{self.name} – {self.injury_type} ({self.get_phase_display()})"
+
+    def is_active(self):
+        """Geeft True terug als de blessure momenteel actief is."""
+        return True if not self.start_date else False
+
+
+
+# ---------- TRAININGSGEGEVENS ----------
+class TrainingData(models.Model):
+
+    # --- Koppeling aan speler ---
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+
+    # --- Datum van de sessie (NIEUW, essentieel) ---
+    session_date = models.DateField(verbose_name="Datum sessie")
+
+    # --- Afgeleide informatie ---
+    week = models.PositiveIntegerField(verbose_name="Weeknummer")
+
+    # --- Metrics ---
+    total_distance = models.FloatField(verbose_name="Totale afstand (m)")
+    hsd = models.FloatField(verbose_name="High-speed distance (m)")
+    sprints = models.IntegerField(verbose_name="Aantal sprints")
+    load = models.FloatField(verbose_name="Trainingsbelasting")
+
+    class Meta:
+        verbose_name = "Trainingsdata"
+        verbose_name_plural = "Trainingsdata"
+
+        # voorkomt dubbele regels
+        unique_together = ("player", "session_date")
+
+        # overzichtelijk sorteren
+        ordering = ["session_date", "player"]
+
+    def __str__(self):
+        return f"{self.player.name} – {self.session_date}"
+
+
+class WedstrijdData(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    match_date = models.DateField(verbose_name="Datum wedstrijd")
+    week = models.PositiveIntegerField(verbose_name="Weeknummer")
+
+    # Metrics volgens CSV:
+    accelerations = models.IntegerField(default=0, verbose_name="Accelerations (Absolute)")
+    decelerations = models.IntegerField(default=0, verbose_name="Decelerations (Absolute)")
+    hsd = models.FloatField(default=0, verbose_name="HIR (m >20 km/u)")    # HIR
+    his = models.FloatField(default=0, verbose_name="HIS (m >25 km/u)")    # HIS
+    total_distance = models.FloatField(default=0, verbose_name="Totale afstand (m)")
+    sprints = models.IntegerField(default=0, verbose_name="Aantal sprints")
+    load = models.FloatField(default=0, verbose_name="HML Distance (m)")   # Wedstrijdbelasting
+
+    class Meta:
+        verbose_name = "Wedstrijddata"
+        verbose_name_plural = "Wedstrijddata"
+        unique_together = ("player", "match_date")
+        ordering = ["match_date", "player"]
+
+    def __str__(self):
+        return f"{self.player.name} – {self.match_date}"
+
+
+
+# ---------- WEEKPROGRAMMA / WEEKPLANNING ----------
+class DayProgram(models.Model):
+    """
+    Dagelijks programma binnen een weekplanning.
+    Bevat datum, activiteiten en eventuele bijzonderheden.
+    Wordt gebruikt voor het weekoverzicht op het dashboard.
+    """
+    date = models.CharField(max_length=100, verbose_name="Datum (bijv. Maandag 3 november)")
+    activities = models.TextField(verbose_name="Activiteiten (bijv. training, lunch, videoanalyse)")
+    notes = models.TextField(blank=True, null=True, verbose_name="Bijzonderheden")
+
+    class Meta:
+        verbose_name = "Dagprogramma"
+        verbose_name_plural = "Weekprogramma"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.date
+
+
+from django.db import models
+from django.utils import timezone
+
+class PlayerTest(models.Model):
+    """
+    Testresultaten per speler (één meetmoment).
+    Ondersteunt sprint, sprong, uithouding en antropometrie.
+    """
+
+    # ===========================
+    # KOPPELING NAAR SPELER
+    # ===========================
+    player = models.ForeignKey(
+        "Player",
+        on_delete=models.CASCADE,
+        related_name="tests"
+    )
+
+    # ===========================
+    # DATUM VAN DE METING  (NIEUW)
+    # ===========================
+    test_date = models.DateField(
+        default=timezone.now,
+        verbose_name="Datum meting"
+    )
+
+    # ===========================
+    # SPRINT
+    # ===========================
+    sprint_10 = models.FloatField(null=True, blank=True, verbose_name="10m sprint (s)")
+    sprint_30 = models.FloatField(null=True, blank=True, verbose_name="30m sprint (s)")
+
+    # ===========================
+    # SPRONGKRACHT
+    # ===========================
+    cmj = models.FloatField(null=True, blank=True, verbose_name="CMJ (cm)")
+    squat_jump = models.FloatField(null=True, blank=True, verbose_name="Squat Jump (cm)")
+
+    # ===========================
+    # UITHOUDINGSVERMOGEN
+    # ===========================
+    isrt = models.FloatField(null=True, blank=True, verbose_name="ISRT (m)")
+    submax = models.FloatField(null=True, blank=True, verbose_name="Submaximaal (%HRmax)")
+
+    # ===========================
+    # ANTROPOMETRIE
+    # ===========================
+    curr_weight = models.FloatField(null=True, blank=True, verbose_name="Gewicht (kg)")
+    length = models.FloatField(null=True, blank=True, verbose_name="Lengte (cm)")
+    sum_skinfolds = models.FloatField(null=True, blank=True, verbose_name="Som huidplooien (mm)")
+
+    # ===========================
+    # META
+    # ===========================
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Testresultaat"
+        verbose_name_plural = "Testresultaten"
+        ordering = ["-test_date"]   # 🔥 sorteert nu op de METINGSDATUM!
+
+    def __str__(self):
+        return f"{self.player.name} – {self.test_date}"
+
+
+
+
+from django.utils import timezone  # <-- voeg deze import bovenaan het bestand toe (niet in de class)
+
+
+class Oefening(models.Model):
+    """
+    Model voor revalidatieoefeningen per speler.
+    Wordt gebruikt om in de Revalidatie Gym oefeningen toe te voegen en weer te geven.
+    """
+    player = models.ForeignKey(
+        Player,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        db_column='player_id'  # <-- verwijst expliciet naar bestaande kolom in MySQL
+    )
+    phase = models.CharField(max_length=100, verbose_name="Fase")
+    focus_point = models.CharField(max_length=100, blank=True, null=True)
+    exercise = models.CharField(max_length=150, verbose_name="Oefening", blank=True, null=True)
+    description = models.TextField(verbose_name="Beschrijving", blank=True, null=True)
+    sets_reps = models.CharField(max_length=50, verbose_name="Sets / Herhalingen", blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now, verbose_name="Datum toegevoegd")
+
+    class Meta:
+        verbose_name = "Oefening"
+        verbose_name_plural = "Oefeningen"
+        ordering = ["player", "-created_at"]
+
+    def __str__(self):
+        return f"{self.player} - {self.exercise}"
+
+
+class Overig(models.Model):
+    text = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Overig item {self.id}"
+
+
+
+        # ---------- RPE TRAININGSGEGEVENS ----------
+class RPEEntry(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    date = models.DateField()
+    training_type = models.CharField(max_length=50, verbose_name="Trainingstype")
+    rpe = models.IntegerField(verbose_name="RPE (1–10)")
+    session_load = models.IntegerField(null=True, blank=True, verbose_name="Sessie Load (optioneel)")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "RPE Invoer"
+        verbose_name_plural = "RPE Registraties"
+        ordering = ["-date", "player"]
+
+    def __str__(self):
+        return f"{self.player.name} – {self.date} – RPE {self.rpe}"
+
+        
+
+
+# ---------- WELLNESS DASHBOARD ----------
+class WellnessEntry(models.Model):
+    """
+    Dagelijkse wellness-invoer per speler.
+    Wordt gebruikt voor het wellnessoverzicht binnen het Willem II-dashboard.
+    """
+
+    player = models.ForeignKey(
+        Player,
+        on_delete=models.CASCADE,
+        db_column='player_id',
+        verbose_name="Speler"
+    )
+
+    date = models.DateField(verbose_name="Datum")
+
+    sleep = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Hoe heb je geslapen? (1–5)"
+    )
+    mood = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Hoe voel je je? (1–5)"
+    )
+    fitness = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Voel je je fit? (1–5)"
+    )
+    soreness = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Spierpijn? (1–5)"
+    )
+
+    comment = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="Opmerkingen"
+    )
+
+    class Meta:
+        verbose_name = "Wellnessinvoer"
+        verbose_name_plural = "Wellnessdata"
+        ordering = ["-date", "player"]
+
+    def __str__(self):
+        return f"{self.player.name} – {self.date}"
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class HitWeekPlanning(models.Model):
+    # Trainer is optioneel omdat dit een algemene planning is
+    trainer = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    monday = models.CharField(max_length=255, blank=True)
+    tuesday = models.CharField(max_length=255, blank=True)
+    wednesday = models.CharField(max_length=255, blank=True)
+    thursday = models.CharField(max_length=255, blank=True)
+    friday = models.CharField(max_length=255, blank=True)
+    saturday = models.CharField(max_length=255, blank=True)
+    sunday = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return "Algemene HIT Weekplanning"
+
+
+
+# ---------- VELDREVALIDATIE GEGEVENS ----------
+class FieldRehabSession(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, verbose_name="Speler")
+    phase = models.CharField(max_length=50, verbose_name="Revalidatiefase")
+    onderdeel = models.CharField(max_length=100, verbose_name="Onderdeel")
+    afgevinkt = models.BooleanField(default=False, verbose_name="Afgevinkt")
+    duur = models.PositiveIntegerField(null=True, blank=True, verbose_name="Duur (min)")
+    rpe = models.PositiveIntegerField(null=True, blank=True, verbose_name="RPE (0–10)")
+    totale_afstand = models.PositiveIntegerField(null=True, blank=True, verbose_name="Totale afstand (m)")
+    afstand_20 = models.PositiveIntegerField(null=True, blank=True, verbose_name=">20 km/u (m)")
+    afstand_25 = models.PositiveIntegerField(null=True, blank=True, verbose_name=">25 km/u (m)")
+    acceleraties = models.PositiveIntegerField(null=True, blank=True, verbose_name="Acceleraties")
+    deceleraties = models.PositiveIntegerField(null=True, blank=True, verbose_name="Deceleraties")
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = "Veldrevalidatie sessie"
+        verbose_name_plural = "Veldrevalidatie sessies"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.player.name} – {self.phase} – {self.onderdeel}"
+
+
+# ---------- INDIVIDUEEL PROGRAMMA ----------
+class Programma(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, verbose_name="Speler")
+    doel = models.CharField(max_length=255, blank=True, null=True, verbose_name="Doel")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Individueel Programma"
+        verbose_name_plural = "Individuele Programma's"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Programma voor {self.player.name} – {self.created_at.date()}"
+
+
+# ---------- INDIVIDUEEL PROGRAMMA OEFENING ----------
+class ProgrammaOefening(models.Model):
+    programma = models.ForeignKey(
+        Programma,
+        on_delete=models.CASCADE,
+        related_name="oefeningen"
+    )
+    naam = models.CharField(max_length=150)
+    duur = models.CharField(max_length=50, blank=True, null=True)
+    rpe = models.CharField(max_length=20, blank=True, null=True)
+    frequentie = models.CharField(max_length=50, blank=True, null=True)
+    opmerkingen = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Programma Oefening"
+        verbose_name_plural = "Programma Oefeningen"
+
+    def __str__(self):
+        return f"{self.naam} ({self.programma.player.name})"
+
+
+# ---------- DAGPROGRAMMA (SIMPEL PER SPELER PER DAG) ----------
+class DailyProgram(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, verbose_name="Speler")
+    date = models.DateField(default=date.today, verbose_name="Datum")
+    program_text = models.TextField(blank=True, null=True, verbose_name="Dagprogramma (tekst)")
+
+    class Meta:
+        verbose_name = "Dagprogramma"
+        verbose_name_plural = "Dagprogramma's"
+        unique_together = ('player', 'date')
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.player.name} – {self.date}"
+
+class Aanwezigheid(models.Model):
+    STATUS_OPTIES = [
+        ('extern', 'Extern (behandeling)'),
+        ('ziek', 'Ziek'),
+        ('training_aangepast', 'Training aangepast'),
+        ('training_uitgevallen', 'Training uitgevallen'),
+        ('training', 'Training'),
+        ('wedstrijd', 'Wedstrijd'),
+        ('training_o21', 'Training O21'),
+        ('wedstrijd_o21', 'Wedstrijd O21'),
+        ('fysio', 'Fysio'),
+        ('overig', 'Overig'),
+    ]
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, verbose_name="Speler")
+    date = models.DateField(verbose_name="Datum")
+
+    # Dropdown
+    status = models.CharField(
+        max_length=30,
+        choices=STATUS_OPTIES,
+        default='training',
+        verbose_name="Status"
+    )
+
+    # ✔ Checkmark: ingevuld
+    completed = models.BooleanField(default=False, verbose_name="Ingevuld")
+
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Laatst bijgewerkt")
+
+    class Meta:
+        verbose_name = "Aanwezigheid"
+        verbose_name_plural = "Aanwezigheden"
+        unique_together = ('player', 'date')
+        ordering = ['player']
+
+    def __str__(self):
+        return f"{self.player.name} – {self.date} – {self.get_status_display()}"
+
+class NutritionDay(models.Model):
+    DAY_CHOICES = [
+        ("Maandag", "Maandag"),
+        ("Dinsdag", "Dinsdag"),
+        ("Woensdag", "Woensdag"),
+        ("Donderdag", "Donderdag"),
+        ("Vrijdag", "Vrijdag"),
+        ("Zaterdag", "Zaterdag"),
+        ("Zondag", "Zondag"),
+    ]
+
+    COLOR_CHOICES = [
+        ("red", "Rood"),
+        ("yellow", "Geel"),
+        ("green", "Groen"),
+    ]
+
+    day = models.CharField(max_length=20, choices=DAY_CHOICES, unique=True)
+    meal = models.CharField(max_length=255)
+    color = models.CharField(max_length=20, choices=COLOR_CHOICES)
+
+    def __str__(self):
+        return f"{self.day} - {self.meal}"
+
+
+class Antropometry(models.Model):
+    player = models.ForeignKey(
+        Player,
+        on_delete=models.CASCADE,
+        related_name="antropometry"
+    )
+
+    date = models.DateField()
+
+    # ======================
+    # ALGEMENE DATA
+    # ======================
+    body_mass = models.FloatField(null=True, blank=True)
+    length = models.FloatField(null=True, blank=True)
+
+    # ======================
+    # SKINFOLDS (mm)
+    # ======================
+    triceps_m1 = models.FloatField(null=True, blank=True)
+    triceps_m2 = models.FloatField(null=True, blank=True)
+    triceps_m3 = models.FloatField(null=True, blank=True)
+
+    biceps_m1 = models.FloatField(null=True, blank=True)
+    biceps_m2 = models.FloatField(null=True, blank=True)
+    biceps_m3 = models.FloatField(null=True, blank=True)
+
+    subscapular_m1 = models.FloatField(null=True, blank=True)
+    subscapular_m2 = models.FloatField(null=True, blank=True)
+    subscapular_m3 = models.FloatField(null=True, blank=True)
+
+    iliac_crest_m1 = models.FloatField(null=True, blank=True)
+    iliac_crest_m2 = models.FloatField(null=True, blank=True)
+    iliac_crest_m3 = models.FloatField(null=True, blank=True)
+
+    supraspinale_m1 = models.FloatField(null=True, blank=True)
+    supraspinale_m2 = models.FloatField(null=True, blank=True)
+    supraspinale_m3 = models.FloatField(null=True, blank=True)
+
+    abdominal_m1 = models.FloatField(null=True, blank=True)
+    abdominal_m2 = models.FloatField(null=True, blank=True)
+    abdominal_m3 = models.FloatField(null=True, blank=True)
+
+    thigh_m1 = models.FloatField(null=True, blank=True)
+    thigh_m2 = models.FloatField(null=True, blank=True)
+    thigh_m3 = models.FloatField(null=True, blank=True)
+
+    calf_m1 = models.FloatField(null=True, blank=True)
+    calf_m2 = models.FloatField(null=True, blank=True)
+    calf_m3 = models.FloatField(null=True, blank=True)
+
+    # ======================
+    # GIRTHS (cm)
+    # ======================
+    arm_relaxed_m1 = models.FloatField(null=True, blank=True)
+    arm_relaxed_m2 = models.FloatField(null=True, blank=True)
+    arm_relaxed_m3 = models.FloatField(null=True, blank=True)
+
+    arm_flexed_m1 = models.FloatField(null=True, blank=True)
+    arm_flexed_m2 = models.FloatField(null=True, blank=True)
+    arm_flexed_m3 = models.FloatField(null=True, blank=True)
+
+    thigh_girth_m1 = models.FloatField(null=True, blank=True)
+    thigh_girth_m2 = models.FloatField(null=True, blank=True)
+    thigh_girth_m3 = models.FloatField(null=True, blank=True)
+
+    calf_girth_m1 = models.FloatField(null=True, blank=True)
+    calf_girth_m2 = models.FloatField(null=True, blank=True)
+    calf_girth_m3 = models.FloatField(null=True, blank=True)
+
+    # ======================
+    # BODY FAT RESULTS (%)
+    # ======================
+    fat_dw = models.FloatField(null=True, blank=True)
+    fat_faulkner = models.FloatField(null=True, blank=True)
+    fat_carter = models.FloatField(null=True, blank=True)
+    fat_average = models.FloatField(null=True, blank=True)
+
+    # ======================
+    # META
+    # ======================
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("player", "date")
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.player.name} – {self.date}"
+
+
+from django.db import models
+
+class Match(models.Model):
+    kickoff = models.DateTimeField()
+    home = models.CharField(max_length=100)
+    away = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ["kickoff"]
+        constraints = [
+            models.UniqueConstraint(fields=["kickoff", "home", "away"], name="unique_match")
+        ]
+
+    def __str__(self):
+        return f"{self.home} - {self.away} ({self.kickoff:%Y-%m-%d %H:%M})"

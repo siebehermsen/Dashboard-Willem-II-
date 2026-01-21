@@ -1,0 +1,923 @@
+{% extends "base.html" %}
+{% block title %}Training | Willem II{% endblock %}
+
+{% block content %}
+<main class="container">
+
+   <!-- SUCCESS BERICHTEN -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-success mt-3" style="max-width: 600px; margin: 0 auto;">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- HEADER -->
+<header class="page-header">
+    <div class="header-left">
+        <img class="club-logo"
+             src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg"
+             alt="Willem II logo">
+        <div class="header-text">
+            <h1>🏋️ Trainings- & Wedstrijdanalyse</h1>
+            <p>Inzicht in belasting, afstand en intensiteit op team- en individueel niveau.</p>
+        </div>
+    </div>
+
+    <div class="header-right">
+        <span class="badge">Seizoen 2025/26</span>
+    </div>
+</header>
+
+<!-- SWITCH KNOPPEN: TRAINING / WEDSTRIJDDATA -->
+<div class="data-tabs-container">
+    <a href="{% url 'training' %}"
+       class="data-tab {% if active_page == 'training' %}active{% endif %}">
+        📊 Trainingdata
+    </a>
+
+    <a href="{% url 'wedstrijddata' %}"
+       class="data-tab {% if active_page == 'wedstrijd' %}active{% endif %}">
+        ⚽ Wedstrijddata
+    </a>
+</div>
+
+
+</div>
+
+<!-- UPLOADFORMULIER -->
+<section class="card fade-in" style="margin-bottom: 25px;">
+    <h3>📁 Upload StatsSports CSV-bestand</h3>
+
+    {% if active_page == "wedstrijd" %}
+        <!-- WEDSTRIJD UPLOAD -->
+        <form method="post" action="{% url 'upload_wedstrijddata' %}" enctype="multipart/form-data"
+              class="upload-block-form" style="margin-top: 10px;">
+            {% csrf_token %}
+            <input type="file" name="file" accept=".csv" required class="form-control" style="margin-bottom: 10px;">
+            <button type="submit" class="btn btn-primary">Uploaden</button>
+        </form>
+
+    {% else %}
+        <!-- TRAINING UPLOAD -->
+        <form method="post" action="{% url 'upload_file' %}" enctype="multipart/form-data"
+              class="upload-block-form" style="margin-top: 10px;">
+            {% csrf_token %}
+            <input type="file" name="file" accept=".csv" required class="form-control" style="margin-bottom: 10px;">
+            <button type="submit" class="btn btn-primary">Uploaden</button>
+        </form>
+    {% endif %}
+</section>
+
+
+<!-- SPELERSELECTIE -->
+ {% if active_page == "training" %}
+<section class="selection-section">
+    <form method="get" action="" class="player-form">
+        <label for="player"><strong>Selecteer speler:</strong></label>
+        <select name="player" id="player" onchange="this.form.submit()">
+            <option value="">-- Teamniveau (geen speler) --</option>
+            {% for player in players %}
+                <option value="{{ player.name }}"
+                    {% if selected_player and selected_player.name == player.name %}selected{% endif %}>
+                    {{ player.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+</section>
+
+<!-- TITEL -->
+{% if selected_player %}
+    <h2 class="section-heading">📊 Trainingsbelasting van {{ selected_player.name }}</h2>
+{% else %}
+    <h2 class="section-heading">📈 Gemiddelde trainingsbelasting team</h2>
+    <p class="subtext">Overzicht van de gemiddelde trainingsbelasting, ACWR en wedstrijdbelasting.</p>
+{% endif %}
+
+<!-- KPI-BOXEN -->
+<section class="kpi-grid">
+    <div class="kpi-card">
+        <h4>Gemiddelde Load</h4>
+        <p class="kpi-value">{{ avg_load|default:"-" }}</p>
+    </div>
+
+    <div class="kpi-card">
+        <h4>Gemiddelde ACWR</h4>
+        <p class="kpi-value
+            {% if avg_acwr and avg_acwr > 1.5 %}risk-high
+            {% elif avg_acwr and avg_acwr > 1.2 %}risk-medium
+            {% else %}risk-low{% endif %}">
+            {{ avg_acwr|default:"-" }}
+        </p>
+    </div>
+
+    <div class="kpi-card">
+        <h4>Gemiddeld aantal sprints</h4>
+        <p class="kpi-value">{{ avg_sprints|default:"-" }}</p>
+    </div>
+</section>
+
+<!-- 📊 Vergelijking tussen spelers -->
+<section class="card chart-card fade-in">
+    <h3>📊 Vergelijking tussen spelers</h3>
+    <p class="subtext">Totale load, afstand en sprints per speler.</p>
+    <canvas id="playerComparisonChart"></canvas>
+</section>
+
+<!-- EWMA -->
+<section class="card chart-card fade-in">
+    <div class="chart-header">
+        <h3>📉 Acute vs. Chronische Load (EWMA)</h3>
+
+        <div class="metric-buttons">
+            <a href="?metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
+            <a href="?metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D20+</a>
+            <a href="?metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
+        </div>
+    </div>
+
+    <p class="subtext">Exponential moving average van de wekelijkse trainingsload.</p>
+    <canvas id="ewmaChart"></canvas>
+</section>
+
+<!-- 📈 GRAFIEKEN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const playerLabels = {{ chart_labels|safe }};
+const playerLoad = {{ chart_loads|safe }};
+const playerDistance = {{ chart_distances|safe }};
+const playerSprints = {{ chart_sprints|safe }};
+
+new Chart(document.getElementById('playerComparisonChart'), {
+    type: 'bar',
+    data: {
+        labels: playerLabels,
+        datasets: [
+            {
+                label: 'Totale Load',
+                data: playerLoad,
+                backgroundColor: 'rgba(52,152,219,0.8)',
+                borderRadius: 8
+            },
+            {
+                label: 'Totale Afstand (m)',
+                data: playerDistance,
+                backgroundColor: 'rgba(231,76,60,0.8)',
+                borderRadius: 8
+            },
+            {
+                label: 'Totale Sprints',
+                data: playerSprints,
+                backgroundColor: 'rgba(46,204,113,0.8)',
+                borderRadius: 8
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: { 
+            legend: { position: 'bottom' } 
+        },
+        scales: {
+            y: { 
+                beginAtZero: true,
+                title: { display: true, text: 'Waarde' } 
+            },
+            x: {
+                ticks: { 
+                    autoSkip: false,
+                    maxRotation: 90,
+                    minRotation: 45
+                }
+            }
+        }
+    }
+});
+</script>
+
+
+<script>
+// ---------------------------
+// EWMA DATA
+// ---------------------------
+const ewmaWeeks   = {{ weeks|safe }};
+const ewmaAcute   = {{ acute_values|safe }};
+const ewmaChronic = {{ chronic_values|safe }};
+
+// Stop als er geen data is
+if (ewmaWeeks.length > 0) {
+
+    new Chart(document.getElementById('ewmaChart'), {
+        type: 'line',
+        data: {
+            labels: ewmaWeeks.map(w => "Week " + w),
+            datasets: [
+                {
+                    label: 'Acute Load (EWMA-7)',
+                    data: ewmaAcute,
+                    borderColor: 'rgba(231,76,60,0.9)',
+                    backgroundColor: 'rgba(231,76,60,0.15)',
+                    fill: true,
+                    borderWidth: 3,
+                    tension: 0.3,
+                    pointRadius: 4
+                },
+                {
+                    label: 'Chronic Load (EWMA-28)',
+                    data: ewmaChronic,
+                    borderColor: 'rgba(52,152,219,0.9)',
+                    backgroundColor: 'rgba(52,152,219,0.15)',
+                    fill: true,
+                    borderWidth: 3,
+                    tension: 0.3,
+                    pointRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    suggestedMin: Math.min(...ewmaAcute, ...ewmaChronic) * 0.9,
+                    suggestedMax: Math.max(...ewmaAcute, ...ewmaChronic) * 1.1,
+                    title: { display: true, text: 'Load' }
+                }
+            }
+        }
+    });
+}
+</script>
+
+
+<!-- 🧮 Trainingsdata per week -->
+<section class="card fade-in">
+    <h3>🏃 Trainingsdata per week</h3>
+    <p class="subtext">Ruwe data van alle geregistreerde sessies (weekniveau).</p>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Week</th>
+                <th>Speler</th>
+                <th>Totale afstand (m)</th>
+                <th>High-speed (m)</th>
+                <th>Sprints</th>
+                <th>Load</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in all_training_data %}
+                <tr>
+                    <td>{{ t.week }}</td>
+                    <td>{{ t.player__name }}</td>
+                    <td>{{ t.total_distance|floatformat:0 }}</td>
+                    <td>{{ t.hsd|floatformat:0 }}</td>
+                    <td>{{ t.sprints }}</td>
+                    <td><strong>{{ t.load|floatformat:0 }}</strong></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6">Geen trainingsdata beschikbaar.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<!-- GRID -->
+<div class="grid-layout">
+    <!-- TRAININGSDATA TABEL -->
+    <section class="card fade-in">
+        <h3>🏃 Trainingsdata</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Week</th>
+                    <th>Totale afstand (m)</th>
+                    <th>High-speed (m)</th>
+                    <th>Sprints</th>
+                    <th>Load</th>
+                    <th>ACWR</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in training_data %}
+                    <tr>
+                        <td>{{ week.week }}</td>
+                        <td>{{ week.total_distance }}</td>
+                        <td>{{ week.hsd }}</td>
+                        <td>{{ week.sprints }}</td>
+                        <td><strong>{{ week.load }}</strong></td>
+                        <td class="{% if week.acwr and week.acwr > 1.5 %}risk-high
+                                   {% elif week.acwr and week.acwr > 1.2 %}risk-medium
+                                   {% else %}risk-low{% endif %}">
+                            {{ week.acwr }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">Geen trainingsdata beschikbaar.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+
+{% endif %}
+
+
+{% if active_page == "wedstrijd" %}
+
+<!-- Chart.js voor wedstrijdgrafieken -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- SPELERSELECTIE -->
+<section class="selection-section">
+    <form method="get" class="player-form">
+        <label><strong>Selecteer speler:</strong></label>
+        <select name="player" onchange="this.form.submit()">
+            <option value="">-- Teamniveau (laatste 5 wedstrijden) --</option>
+            {% for p in players %}
+                <option value="{{ p.name }}" 
+                    {% if selected_player and p.name == selected_player.name %}selected{% endif %}>
+                    {{ p.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+</section>
+
+<!-- TITEL -->
+<h2 class="section-heading">
+    ⚽ Wedstrijdbelasting – 
+    {% if selected_player %}
+        {{ selected_player.name }} ({{ selected_player.position }})
+    {% else %}
+        Team Gemiddelde
+    {% endif %}
+</h2>
+
+<!-- TARGETS BLOK -->
+{% if selected_player %}
+<section class="card fade-in target-card">
+    <h3 class="target-title">🎯 Doelwaarden voor positie: <strong>{{ selected_player.position }}</strong></h3>
+
+    {% if targets %}
+    <div class="target-grid">
+        <div class="target-item">
+            <span class="target-label">KM</span>
+            <span class="target-value">{{ targets.km }}</span>
+        </div>
+
+        <div class="target-item">
+            <span class="target-label">HIR</span>
+            <span class="target-value">{{ targets.hir }}</span>
+        </div>
+
+        <div class="target-item">
+            <span class="target-label">HIS</span>
+            <span class="target-value">{{ targets.his }}</span>
+        </div>
+
+        <div class="target-item">
+            <span class="target-label">A + D</span>
+            <span class="target-value">{{ targets.a_d }}</span>
+        </div>
+    </div>
+    {% else %}
+        <p class="no-targets">Geen doelwaarden beschikbaar voor deze positie.</p>
+    {% endif %}
+</section>
+{% endif %}
+
+
+<!-- GEMIDDELD & TOPWAARDEN -->
+<section class="card fade-in" style="margin-top: 20px;">
+    <h3>📊 Laatste 5 wedstrijden – Overzicht</h3>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>KM</th>
+                <th>HIR</th>
+                <th>HIS</th>
+                <th>A+D</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Gemiddelde</strong></td>
+                <td>{{ avg_stats.avg_distance|floatformat:1 }}</td>
+                <td>{{ avg_stats.avg_hsd|floatformat:1 }}</td>
+                <td>{{ avg_stats.avg_sprints|floatformat:1 }}</td>
+                <td>{{ avg_stats.avg_load|floatformat:1 }}</td>
+            </tr>
+
+            <tr>
+                <td><strong>Topwaarden</strong></td>
+                <td>{{ top_stats.top_distance|floatformat:1 }}</td>
+                <td>{{ top_stats.top_hsd|floatformat:1 }}</td>
+                <td>{{ top_stats.top_sprints|floatformat:1 }}</td>
+                <td>{{ top_stats.top_load|floatformat:1 }}</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- RAW MATCH DATA -->
+<section class="card fade-in">
+    <h3>📅 Laatste 5 wedstrijden – Ruwe data</h3>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Speler</th>
+                <th>Week</th>
+                <th>KM</th>
+                <th>HIR</th>
+                <th>HIS</th>
+                <th>A+D</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in last_5_matches %}
+            <tr>
+                <td>{{ m.player.name }}</td>
+                <td>{{ m.week }}</td>
+                <td>{{ m.total_distance|floatformat:0 }}</td>
+                <td>{{ m.hsd|floatformat:0 }}</td>
+                <td>{{ m.sprints }}</td>
+                <td>{{ m.load }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">Geen wedstrijden beschikbaar.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<!-- 📊 Vergelijking tussen spelers (wedstrijddata) -->
+<section class="card chart-card fade-in">
+    <h3>📊 Teamoverzicht – Laatste wedstrijd</h3>
+    <p class="subtext">Totale afstand, high-intensity running en sprints per speler in kilometers.</p>
+
+    <!-- DATA INLADEN VIA DJANGO -->
+    {{ team_labels|json_script:"team_labels" }}
+    {{ team_distance|json_script:"team_distance" }}
+    {{ team_hsd|json_script:"team_hsd" }}
+    {{ team_sprints|json_script:"team_sprints" }}
+    {{ team_his|json_script:"team_his" }}
+
+
+    <div class="chart-scroll-wrapper">
+    <canvas id="teamComparisonChart" height="280"></canvas>
+</div>
+</section>
+
+<!-- 📈 CHART.JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// -------------------------
+// DATA INLADEN (DJANGO)
+// -------------------------
+const teamLabels   = JSON.parse(document.getElementById("team_labels").textContent);
+const teamDistance = JSON.parse(document.getElementById("team_distance").textContent);
+const teamHIR      = JSON.parse(document.getElementById("team_hsd").textContent);
+const teamSprints  = JSON.parse(document.getElementById("team_sprints").textContent);
+const teamHIS      = JSON.parse(document.getElementById("team_his").textContent);
+
+// -------------------------
+// Meter → Kilometer conversie
+// -------------------------
+const teamDistanceKM = teamDistance.map(v => v / 1000);
+const teamHIR_KM     = teamHIR.map(v => v / 1000);
+// Sprints blijven aantallen!
+
+// -------------------------
+// GRAFIEK – GROUPED BAR CHART
+// -------------------------
+new Chart(document.getElementById('teamComparisonChart'), {
+    type: 'bar',
+    data: {
+        labels: teamLabels,
+        datasets: [
+            {
+                label: 'Totale Afstand (km)',
+                data: teamDistanceKM,
+                backgroundColor: 'rgba(231,76,60,0.85)',
+                borderRadius: 6,
+                yAxisID: 'y'
+            },
+            {
+                label: 'High Intensity Running (km)',
+                data: teamHIR_KM,
+                backgroundColor: 'rgba(52,152,219,0.85)',
+                borderRadius: 6,
+                yAxisID: 'y'
+            },
+            {
+                label: 'Sprints (aantal)',
+                data: teamSprints,
+                backgroundColor: 'rgba(46,204,113,0.85)',
+                borderRadius: 6,
+                yAxisID: 'y2'
+            },
+            {
+                label: 'HIS (meters)',
+                data: teamHIS,
+                backgroundColor: 'rgba(241,196,15,0.85)',
+                borderRadius: 6,
+                yAxisID: 'y2'
+            }
+        ]
+    },
+
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+                callbacks: {
+                    label: ctx => {
+                        // Sprints
+                        if (ctx.dataset.label.includes("aantal")) {
+                            return ctx.raw + "x";
+                        }
+                        // HIS (meters)
+                        if (ctx.dataset.label.includes("HIS")) {
+                            return ctx.raw.toFixed(0) + " m";
+                        }
+                        // KM
+                        return ctx.raw.toFixed(2).replace(".", ",") + " km";
+                    }
+                }
+            }
+        },
+
+        scales: {
+            y: {
+                beginAtZero: true,
+                position: 'left',
+                title: { display: true, text: 'Afstand (km)' }
+            },
+            y2: {
+                beginAtZero: true,
+                position: 'right',
+                grid: { drawOnChartArea: false },
+                title: { display: true, text: 'Sprints / HIS (meters)' }
+            },
+            x: {
+                ticks: {
+                    autoSkip: false,
+                    maxRotation: 45
+                }
+            }
+        }
+    }
+});
+</script>
+
+
+
+{% endif %}
+
+<style>
+/* =======================================================================
+   ALGEMENE STYLING
+   ======================================================================= */
+
+body {
+    background: #f5f7fb;
+    color: #1f2a44;
+    font-family: "Poppins", sans-serif;
+}
+
+main.container {
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 25px;
+}
+
+/* =======================================================================
+   HEADER
+   ======================================================================= */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.club-logo {
+    height: 90px;
+    border-radius: 50%;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+}
+
+.header-text h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.badge {
+    background: #e74c3c;
+    color: white;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(231,76,60,0.25);
+}
+
+/* =======================================================================
+   CARD COMPONENTS
+   ======================================================================= */
+
+.card {
+    background: white;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+}
+
+.chart-card {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+}
+
+.chart-wrapper {
+    height: 420px;
+    padding: 10px 5px 0 5px;
+}
+
+.subtext {
+    margin-top: -4px;
+    margin-bottom: 15px;
+    font-size: 0.92rem;
+    color: #555;
+}
+
+/* =======================================================================
+   TARGETS BLOK
+   ======================================================================= */
+
+.target-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    margin-top: 18px;
+}
+
+.target-box {
+    background: #f8fafc;
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid #e3e6ed;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    transition: 0.2s ease;
+}
+
+.target-box:hover {
+    transform: translateY(-3px);
+}
+
+.target-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.target-value {
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1f2a44;
+}
+
+/* =======================================================================
+   KPI-GRID
+   ======================================================================= */
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 20px;
+    margin: 28px 0;
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 14px;
+    padding: 22px;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+    transition: 0.2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+}
+
+.risk-low { color: #27ae60; font-weight: 600; }
+.risk-medium { color: #f1c40f; font-weight: 600; }
+.risk-high { color: #e74c3c; font-weight: 600; }
+
+/* =======================================================================
+   TABELLEN
+   ======================================================================= */
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 0.95rem;
+}
+
+.data-table th {
+    background-color: #1f2a44;
+    color: white;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.data-table td {
+    background: #ffffff;
+    border: 1px solid #e3e6ed;
+    padding: 10px;
+    text-align: center;
+}
+
+/* =======================================================================
+   BUTTONS
+   ======================================================================= */
+
+.btn-primary {
+    background-color: #1f2a44;
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #e74c3c;
+    transform: translateY(-2px);
+}
+
+/* --------------------------
+   TABS – TRAINING / WEDSTRIJD
+--------------------------- */
+
+.data-tabs-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 25px 0 35px 0;
+}
+
+.data-tab {
+    padding: 12px 24px;
+    background: #eef1f7;
+    border-radius: 25px;
+    font-weight: 600;
+    color: #1f2a44;
+    text-decoration: none;
+    border: 2px solid transparent;
+    transition: 0.25s;
+    font-size: 1rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.data-tab:hover {
+    background: #e0e6ef;
+    transform: translateY(-2px);
+}
+
+.data-tab.active {
+    background: #1f2a44;
+    color: white;
+    border-color: #1f2a44;
+    box-shadow: 0 4px 12px rgba(31,42,68,0.25);
+}
+
+/* =======================================================================
+   METRIC TOGGLE BUTTONS (NIEUW TOEGEVOEGD)
+   ======================================================================= */
+
+.metric-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.metric-btn {
+    padding: 8px 16px;
+    background: #eef1f7;
+    border: 1px solid #ccd2dd;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #1f2a44;
+    transition: 0.2s;
+}
+
+.metric-btn.active {
+    background: #1f2a44;
+    color: white;
+    border-color: #1f2a44;
+}
+
+.metric-btn:hover {
+    background: #dfe4ee;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap; /* voorkomt botsen bij kleine schermen */
+}
+
+.metric-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap; /* knoppen mogen afbreken naar nieuwe regel */
+}
+
+.metric-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: #eef1f7;
+    border: 1px solid #ccd2dd;
+    font-weight: 600;
+    color: #1f2a44;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.metric-btn.active {
+    background: #1f2a44;
+    color: white;
+    border-color: #1f2a44;
+}
+
+/* =======================================================================
+   CHART.JS EXTRA
+   ======================================================================= */
+
+canvas {
+    border-radius: 10px;
+}
+
+/* =======================================================================
+   CHART.JS EXTRA (GEFIXT)
+   ======================================================================= */
+
+.chart-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.chart-scroll-wrapper canvas {
+    min-width: 900px;
+}
+
+/* Belangrijk: correcte ID + vaste hoogte */
+#teamComparisonChart {
+    height: 350px !important;
+    max-height: 450px;
+}
+</style>
+
+{% endblock %}
+
+ 

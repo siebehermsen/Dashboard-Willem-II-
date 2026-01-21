@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Willem II Dashboard{% endblock %}</title>
+
+    <style>
+        /* ALGEMEEN */
+        body {
+            font-family: "Poppins", Arial, sans-serif;
+            background-color: #f7f9fc;
+            margin: 0;
+            padding: 0;
+            color: #1f2a44;
+        }
+
+        header {
+            background-color: #1f2a44;
+            color: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-left img {
+            height: 55px;
+        }
+
+        .dashboard-title {
+            font-weight: 700;
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* NAVIGATIE */
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding-bottom: 4px;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        nav a:hover {
+            border-bottom: 2px solid #e74c3c;
+        }
+
+        nav a.active {
+            border-bottom: 2px solid #e74c3c;
+        }
+
+        /* PAGINA-INHOUD */
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #f1f1f1;
+            margin-top: 50px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        footer span {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <div class="header-left">
+        <img src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg" alt="Willem II logo">
+        <span class="dashboard-title">Willem II Dashboard</span>
+    </div>
+
+    <nav>
+        <a href="{% url 'dashboard' %}" class="{% if 'dashboard' in request.path %}active{% endif %}">Home</a>
+        <a href="{% url 'nutrition' %}" class="{% if 'nutrition' in request.path %}active{% endif %}">Voeding</a>
+        <a href="{% url 'training' %}" class="{% if 'training' in request.path %}active{% endif %}">Training</a>
+        <a href="{% url 'testdata' %}" class="{% if 'testdata' in request.path %}active{% endif %}">Testdata</a>
+        <a href="{% url 'revalidatie_gym' %}" class="{% if 'revalidatie-gym' in request.path %}active{% endif %}">Revalidatie Gym</a>
+        <a href="{% url 'revalidatie' %}" class="{% if 'revalidatie' in request.path %}active{% endif %}">Revalidatie</a>
+        <a href="{% url 'individuele_programmas' %}" class="{% if 'individuele_programmas' in request.path %}active{% endif %}">Individuele Programma's</a>
+        <a href="{% url 'rpe' %}">rpe</a>
+        <a href="{% url 'wellness' %}" class="{% if 'wellness' in request.path %}active{% endif %}">Wellness</a>
+        <a href="{% url 'hit' %}" class="{% if 'hit' in request.path %}active{% endif %}">HIT</a>
+        <a href="{% url 'aanwezigheden' %}" class="{% if 'aanwezigheden' in request.path %}active{% endif %}">Aanwezigheden</a>
+        <a href="{% url 'overig' %}">Overig</a>
+
+
+    </nav>
+</header>
+
+<main class="container">
+    {% block content %}
+    {% endblock %}
+</main>
+
+<footer>
+    © 2025 <span>Willem II</span> | Ontworpen door Siebe Hermsen
+</footer>
+</body>
+</html>

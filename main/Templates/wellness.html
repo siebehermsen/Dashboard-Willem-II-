@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+{% block title %}Wellness - Willem II{% endblock %}
+
+{% block content %}
+<style>
+    .wellness-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+
+    h1 {
+        color: #1f2a44;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .tabs {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .tab-btn {
+        padding: 10px 22px;
+        border-radius: 8px;
+        border: 2px solid #1f2a44;
+        font-weight: 600;
+        cursor: pointer;
+        background: white;
+        color: #1f2a44;
+        transition: 0.2s;
+    }
+
+    .tab-btn.active {
+        background: #1f2a44;
+        color: white;
+    }
+
+    .date-selector {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .nav-btn {
+    background: #1f2a44;
+    color: white;
+    border: none;
+    padding: 7px 18px;
+    margin: 0 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+
+.nav-btn:hover {
+    background: #e74c3c;
+    transform: scale(1.05);
+}
+
+.date-selector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+    font-size: 1.1rem;
+}
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    table th, table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+
+    table th {
+        background-color: #1f2a44;
+        color: white;
+    }
+
+    select, input[type="text"] {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 5px;
+        width: 95%;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+    .save-row {
+        background-color: #1f2a44;
+        color: white;
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        border: none;
+    }
+
+    .save-row:hover {
+        background-color: #e74c3c;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+.option-good {
+    background-color: #d4edda !important;
+    color: #155724 !important;
+    border-color: #c3e6cb !important;
+}
+
+.option-medium {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
+    border-color: #ffeeba !important;
+}
+
+.option-bad {
+    background-color: #f8d7da !important;
+    color: #721c24 !important;
+    border-color: #f5c6cb !important;
+}
+</style>
+
+<div class="wellness-container">
+    <h1>🏋️‍♂️ Wellness Dashboard</h1>
+
+    <div class="date-selector">
+        <span class="date-label">Datum:</span>
+
+        <button id="prev-day" class="nav-btn" type="button">◀ Vorige</button>
+
+        <!-- BELANGRIJK: value moet YYYY-MM-DD zijn -->
+        <input type="date" id="date" class="date-input" value="{{ date }}">
+
+        <button id="next-day" class="nav-btn" type="button">Volgende ▶</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" id="btn-not-filled" type="button">Niet ingevuld</button>
+        <button class="tab-btn" id="btn-filled" type="button">Wel ingevuld</button>
+    </div>
+
+    <table id="wellnessTable">
+        <thead>
+            <tr>
+                <th>Speler</th>
+                <th>Hoe heb je geslapen?</th>
+                <th>Hoe voel je je?</th>
+                <th>Voel je je fit?</th>
+                <th>Spierpijn?</th>
+                <th>Opmerkingen</th>
+                <th>Opslaan</th>
+            </tr>
+        </thead>
+
+        <tbody id="tbody-not-filled">
+            {% for player in players_not_filled %}
+            <tr>
+                <td class="player-name">{{ player.name }}</td>
+
+                <td>
+                    <select class="slaap">
+                        <option value="">-</option>
+                        <option value="1">Heel goed</option>
+                        <option value="2">Goed</option>
+                        <option value="3">Oké</option>
+                        <option value="4">Slecht</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select class="gevoel">
+                        <option value="">-</option>
+                        <option value="1">Heel goed</option>
+                        <option value="2">Goed</option>
+                        <option value="3">Matig</option>
+                        <option value="4">Slecht</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select class="fit">
+                        <option value="">-</option>
+                        <option value="1">Heel fit</option>
+                        <option value="2">Fit</option>
+                        <option value="3">Oké</option>
+                        <option value="4">Vermoeid</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select class="spierpijn">
+                        <option value="">-</option>
+                        <option value="1">Geen</option>
+                        <option value="2">Licht</option>
+                        <option value="3">Veel</option>
+                    </select>
+                </td>
+
+                <td>
+                    <input type="text" class="comment" placeholder="Opmerking...">
+                </td>
+
+                <td>
+                    <button class="save-row" type="button" onclick="saveRow(this, {{ player.id }})">Opslaan</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+        <tbody id="tbody-filled" class="hidden">
+            {% for entry in existing_entries %}
+            <tr>
+                <td class="player-name">{{ entry.player.name }}</td>
+
+                <td>
+                    <select class="slaap">
+                        <option value="1" {% if entry.sleep == 1 %}selected{% endif %}>Heel goed</option>
+                        <option value="2" {% if entry.sleep == 2 %}selected{% endif %}>Goed</option>
+                        <option value="3" {% if entry.sleep == 3 %}selected{% endif %}>Oké</option>
+                        <option value="4" {% if entry.sleep == 4 %}selected{% endif %}>Slecht</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select class="gevoel">
+                        <option value="1" {% if entry.mood == 1 %}selected{% endif %}>Heel goed</option>
+                        <option value="2" {% if entry.mood == 2 %}selected{% endif %}>Goed</option>
+                        <option value="3" {% if entry.mood == 3 %}selected{% endif %}>Matig</option>
+                        <option value="4" {% if entry.mood == 4 %}selected{% endif %}>Slecht</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select class="fit">
+                        <option value="1" {% if entry.fitness == 1 %}selected{% endif %}>Heel fit</option>
+                        <option value="2" {% if entry.fitness == 2 %}selected{% endif %}>Fit</option>
+                        <option value="3" {% if entry.fitness == 3 %}selected{% endif %}>Oké</option>
+                        <option value="4" {% if entry.fitness == 4 %}selected{% endif %}>Vermoeid</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select class="spierpijn">
+                        <option value="1" {% if entry.soreness == 1 %}selected{% endif %}>Geen</option>
+                        <option value="2" {% if entry.soreness == 2 %}selected{% endif %}>Licht</option>
+                        <option value="3" {% if entry.soreness == 3 %}selected{% endif %}>Veel</option>
+                    </select>
+                </td>
+
+                <td>
+                    <input type="text" class="comment" value="{{ entry.comment }}">
+                </td>
+
+                <td>
+                    <button class="save-row" type="button" onclick="saveRow(this, {{ entry.player.id }})">Opslaan</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+function saveRow(button, playerId) {
+    const row = button.closest("tr");
+    const dateValue = document.getElementById("date").value;
+
+    const payload = {
+        player_id: playerId,
+        date: dateValue,
+        sleep: row.querySelector(".slaap").value,
+        mood: row.querySelector(".gevoel").value,
+        fitness: row.querySelector(".fit").value,
+        soreness: row.querySelector(".spierpijn").value,
+        comment: row.querySelector(".comment").value,
+    };
+
+    fetch("/wellness/?date=" + encodeURIComponent(dateValue), {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: new URLSearchParams(payload),
+        redirect: "follow"
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("Server error: " + response.status);
+
+        // ✅ feedback op knop
+        button.style.background = "#2ecc71";
+        button.innerText = "✔";
+
+        // ✅ jouw view.py doet redirect om filled/not filled te herberekenen
+        // dus we herladen gewoon de pagina op dezelfde datum
+        setTimeout(() => {
+            window.location.href = "/wellness/?date=" + encodeURIComponent(dateValue);
+        }, 400);
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        button.style.background = "#e74c3c";
+        button.innerText = "Fout";
+        setTimeout(() => {
+            button.style.background = "#1f2a44";
+            button.innerText = "Opslaan";
+        }, 1200);
+    });
+}
+</script>
+
+
+<script>
+// tabs
+document.getElementById("btn-not-filled").onclick = () => {
+    document.getElementById("btn-not-filled").classList.add("active");
+    document.getElementById("btn-filled").classList.remove("active");
+    document.getElementById("tbody-not-filled").classList.remove("hidden");
+    document.getElementById("tbody-filled").classList.add("hidden");
+};
+
+document.getElementById("btn-filled").onclick = () => {
+    document.getElementById("btn-filled").classList.add("active");
+    document.getElementById("btn-not-filled").classList.remove("active");
+    document.getElementById("tbody-filled").classList.remove("hidden");
+    document.getElementById("tbody-not-filled").classList.add("hidden");
+};
+</script>
+
+<script>
+// kleurupdates
+function updateDropdownColor(select) {
+    const value = select.options[select.selectedIndex].text.toLowerCase();
+
+    select.classList.remove("option-good", "option-medium", "option-bad");
+
+    if (value.includes("heel goed") || value.includes("goed") || value.includes("geen")) {
+        select.classList.add("option-good");
+    }
+    else if (value.includes("ok") || value.includes("licht") || value.includes("matig")) {
+        select.classList.add("option-medium");
+    }
+    else if (value.includes("slecht") || value.includes("veel") || value.includes("vermoeid")) {
+        select.classList.add("option-bad");
+    }
+}
+
+document.querySelectorAll("select").forEach(select => {
+    updateDropdownColor(select);
+    select.addEventListener("change", () => updateDropdownColor(select));
+});
+</script>
+
+<script>
+// === DATUM AUTOMATISCH EN NAVIGATIE ===
+const dateInput = document.getElementById("date");
+
+// Als datum leeg is → vul met vandaag
+if (!dateInput.value || dateInput.value === "None") {
+    const today = new Date();
+    dateInput.value = today.toISOString().substring(0, 10);
+}
+
+// Bij aanpassing van de datum → herlaad pagina
+dateInput.addEventListener("change", () => {
+    window.location.href = `/wellness/?date=${dateInput.value}`;
+});
+
+// Dag terug
+document.getElementById("prev-day").addEventListener("click", () => {
+    const current = new Date(dateInput.value);
+    current.setDate(current.getDate() - 1);
+    const newDate = current.toISOString().substring(0, 10);
+    window.location.href = `/wellness/?date=${newDate}`;
+});
+
+// Dag vooruit
+document.getElementById("next-day").addEventListener("click", () => {
+    const current = new Date(dateInput.value);
+    current.setDate(current.getDate() + 1);
+    const newDate = current.toISOString().substring(0, 10);
+    window.location.href = `/wellness/?date=${newDate}`;
+});
+</script>
+
+{% endblock %}
