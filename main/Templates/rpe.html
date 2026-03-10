@@ -156,7 +156,7 @@ input[type="date"] {
                             <td>{{ p.name }}</td>
 
                             <td>
-                                <input type="date" name="date" value="{{ today }}" required>
+                                <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" required>
                             </td>
 
                             <td>

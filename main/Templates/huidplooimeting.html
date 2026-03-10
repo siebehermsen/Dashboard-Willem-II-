@@ -1,0 +1,1089 @@
+﻿{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<section class="skinfold-section {% if pdf_mode %}pdf-mode{% endif %}">
+    <div class="page-toggle">
+        <a href="{% url 'nutrition' %}" class="toggle-btn">Voeding</a>
+        <a href="{% url 'huidplooimeting' %}" class="toggle-btn active">Huidplooimeting</a>
+    </div>
+    <h3>Antropometrische metingen</h3>
+    <p class="subtext">
+        Registreer per speler antropometrische metingen.
+        Per variabele kunnen maximaal drie metingen worden ingevoerd.
+    </p>
+
+    {% if pdf_mode %}
+    <div class="card skinfold-card pdf-header">
+        <div class="pdf-title">Huidplooimeting rapport</div>
+        <div class="pdf-meta">
+            <span class="pdf-player">
+                {% if selected_player %}{{ selected_player.name }}{% else %}Geen speler geselecteerd{% endif %}
+            </span>
+            <span class="pdf-date">
+                {% if antropometry %}{{ antropometry.date|date:"Y-m-d" }}{% else %}-{% endif %}
+            </span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- =====================================
+         FORM 1: SPELER SELECTEREN (GET)
+    ====================================== -->
+    <form method="GET">
+        <div class="card skinfold-card skinfold-data-card">
+            <h4>Algemene gegevens</h4>
+
+            <div class="skinfold-meta-grid">
+                <div>
+                    <label>Speler</label>
+                    <select
+                        name="player"
+                        class="form-select"
+                        onchange="this.form.submit()"
+                    >
+                        <option value="">-- kies speler --</option>
+                        {% for player in players %}
+                            <option
+                                value="{{ player.id }}"
+                                {% if selected_player and player.id == selected_player.id %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ player.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- =====================================
+         FORM 2: METINGEN OPSLAAN (POST)
+    ====================================== -->
+    <form method="POST">
+        {% csrf_token %}
+
+        {% if selected_player %}
+            <input type="hidden" name="player_id" value="{{ selected_player.id }}">
+        {% endif %}
+
+        <div class="card skinfold-card skinfold-data-card">
+            <h4>Algemene gegevens</h4>
+
+            <div class="skinfold-meta-grid">
+
+                <div>
+                    <label>Datum</label>
+                    <input
+                        type="date"
+                        name="measurement_date"
+                        class="form-control"
+                        required
+                        value="{% if antropometry %}{{ antropometry.date|date:'Y-m-d' }}{% endif %}"
+                    >
+                </div>
+
+                <div>
+                    <label>Body mass (kg)</label>
+                    <input
+                        type="number"
+                        step="0.1"
+                        name="body_mass"
+                        class="form-control"
+                        value="{% if antropometry %}{{ antropometry.body_mass|default_if_none:'' }}{% endif %}"
+                    >
+                </div>
+
+                <div>
+                    <label>Length (cm)</label>
+                    <input
+                        type="number"
+                        step="0.1"
+                        name="length"
+                        class="form-control"
+                        value="{% if antropometry %}{{ antropometry.length|default_if_none:'' }}{% endif %}"
+                    >
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- =========================
+             SKINFOLDS
+        ========================== -->
+        <div class="card skinfold-card skinfold-data-card">
+            <h4>Skinfolds (mm)</h4>
+
+            <table class="skinfold-table">
+                <thead>
+                    <tr>
+                        <th>Locatie</th>
+                        <th>Meting 1</th>
+                        <th>Meting 2</th>
+                        <th>Meting 3</th>
+                        <th>3rd measure?</th>
+                        <th>% diff</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for row in skinfold_rows %}
+                    <tr class="skinfold-row">
+                        <td>{{ row.site }}</td>
+
+                        <td>
+                            <input
+                                type="number"
+                                step="0.1"
+                                class="skinfold-input m1"
+                                name="skinfold_{{ row.key }}_m1"
+                                value="{{ row.m1|default_if_none:'' }}"
+                                {% if row.site in formula_sites %}
+                                    data-site="{{ row.site }}"
+                                {% endif %}
+                            >
+                        </td>
+
+                        <td>
+                            <input
+                                type="number"
+                                step="0.1"
+                                class="skinfold-input m2"
+                                name="skinfold_{{ row.key }}_m2"
+                                value="{{ row.m2|default_if_none:'' }}"
+                            >
+                        </td>
+
+                        <td>
+                            <input
+                                type="number"
+                                step="0.1"
+                                class="skinfold-input m3"
+                                name="skinfold_{{ row.key }}_m3"
+                                value="{{ row.m3|default_if_none:'' }}"
+                            >
+                        </td>
+
+                        <td class="third-measure">-</td>
+                        <td class="percent-diff">-</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="skinfold-sum">
+                <strong>Som skinfolds:</strong>
+                <span id="skinfold-total">0.0</span> mm
+            </div>
+        </div>
+
+
+
+        <!-- =========================
+             GIRTHS (OPSLAAN + TERUGTONEN)
+        ========================== -->
+        <div class="card skinfold-card skinfold-data-card">
+            <h4>Girth measurements (cm)</h4>
+
+            <table class="skinfold-table">
+                <thead>
+                    <tr>
+                        <th>Locatie</th>
+                        <th>Meting 1</th>
+                        <th>Meting 2</th>
+                        <th>Meting 3</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for girth in girth_sites %}
+                        {% with girth_key=girth|slugify %}
+                        <tr>
+                            <td>{{ girth }}</td>
+
+                            <td>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    name="girth_{{ girth_key }}_m1"
+                                    class="girth-input"
+                                    value="{% if girth_values %}{{ girth_values.girth_key.m1|default_if_none:'' }}{% endif %}"
+                                >
+                            </td>
+
+                            <td>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    name="girth_{{ girth_key }}_m2"
+                                    class="girth-input"
+                                    value="{% if girth_values %}{{ girth_values.girth_key.m2|default_if_none:'' }}{% endif %}"
+                                >
+                            </td>
+
+                            <td>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    name="girth_{{ girth_key }}_m3"
+                                    class="girth-input"
+                                    value="{% if girth_values %}{{ girth_values.girth_key.m3|default_if_none:'' }}{% endif %}"
+                                >
+                            </td>
+                        </tr>
+                        {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <input type="hidden" name="fat_dw" id="fat_dw_input">
+        <input type="hidden" name="fat_faulkner" id="fat_faulkner_input">
+        <input type="hidden" name="fat_carter" id="fat_carter_input">
+        <input type="hidden" name="fat_average" id="fat_average_input">
+
+
+ <div class="form-actions" style="gap: 12px;">
+
+    <a
+        id="download-pdf-btn"
+        href="{% url 'huidplooimeting_pdf' %}{% if selected_player %}?player={{ selected_player.id }}{% endif %}"
+        class="primary-btn skinfold-save-btn"
+        style="text-decoration:none;"
+        target="_blank"
+    >
+        Download PDF
+    </a>
+
+    <button type="submit" class="primary-btn skinfold-save-btn">
+        Metingen opslaan
+    </button>
+
+</div>
+
+
+
+        <!-- =========================
+             BODY FAT RESULTS
+        ========================== -->
+        <div class="card skinfold-card">
+            <h4>Vetpercentage (laatste meting)</h4>
+
+            <ul class="fat-results">
+                <li>Durnin-Womersley: <strong id="fat-dw">-</strong>%</li>
+                <li>Faulkner: <strong id="fat-faulkner">-</strong>%</li>
+                <li>Carter: <strong id="fat-carter">-</strong>%</li>
+            </ul>
+
+            <p>
+                <strong>Gemiddelde:</strong>
+                <span id="fat-average">-</span>%
+            </p>
+        </div>
+
+        <div class="skinfold-charts-grid">
+            <div class="card skinfold-card chart-card">
+                <h4>Trend huidplooien</h4>
+
+                <canvas id="skinfoldTrendChart" height="120"></canvas>
+
+                <p class="subtext chart-subtext">
+                    Trend van de som van huidplooien over tijd.
+                </p>
+            </div>
+
+            <div class="card skinfold-card chart-card">
+                <h4>Huidplooien vergelijking</h4>
+
+                <canvas id="skinfoldCompareChart" height="120"></canvas>
+
+                <p class="subtext chart-subtext">
+                    Extra grafiek naast de trend.
+                </p>
+            </div>
+        </div>
+
+    </form>
+
+</section>
+
+{# Trend-data vanuit je view #}
+{{ chart_labels|json_script:"chart-labels" }}
+{{ chart_values|json_script:"chart-values" }}
+{{ compare_labels|json_script:"compare-labels" }}
+{{ compare_prev|json_script:"compare-prev" }}
+{{ compare_last|json_script:"compare-last" }}
+{{ fat_values|json_script:"fat-values" }}
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    /* =====================================================
+       CONSTANTEN & HULPFUNCTIES
+    ===================================================== */
+
+    const THRESHOLD = 5; // % verschil m1 vs m2
+
+    function num(val) {
+        if (val === undefined || val === null) return null;
+
+        const s = String(val)
+            .trim()
+            .replace(",", ".");
+
+        if (s === "") return null;
+
+        const v = Number(s);
+        return Number.isFinite(v) ? v : null;
+    }
+
+    const mean = (a, b) => (a + b) / 2;
+
+    /* =====================================================
+       OPSLAAN BEREKENDE VETPERCENTAGES
+    ===================================================== */
+
+    function updateFatInputs(fatDW, fatFaulkner, fatCarter, avg) {
+
+        const setValue = (id, value) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            if (Number.isFinite(value)) {
+                el.value = value.toFixed(1);
+            } else {
+                el.value = "";
+            }
+        };
+
+        setValue("fat_dw_input", fatDW);
+        setValue("fat_faulkner_input", fatFaulkner);
+        setValue("fat_carter_input", fatCarter);
+        setValue("fat_average_input", avg);
+    }
+
+    /* =====================================================
+       PER RIJ: % VERSCHIL + 3E METING
+    ===================================================== */
+
+    function updateRow(row) {
+        const v1 = num(row.querySelector(".m1").value);
+        const v2 = num(row.querySelector(".m2").value);
+
+        const diffCell = row.querySelector(".percent-diff");
+        const thirdCell = row.querySelector(".third-measure");
+
+        if (v1 === null || v2 === null) {
+            diffCell.textContent = "-";
+            thirdCell.textContent = "-";
+            thirdCell.style.color = "";
+            return;
+        }
+
+        const pct = Math.abs(v1 - v2) / mean(v1, v2) * 100;
+        diffCell.textContent = pct.toFixed(2) + "%";
+
+        if (pct > THRESHOLD) {
+            thirdCell.textContent = "Yes";
+            thirdCell.style.color = "#e30613";
+        } else {
+            thirdCell.textContent = "No";
+            thirdCell.style.color = "#2ecc71";
+        }
+    }
+
+    /* =====================================================
+       SOM SKINFOLDS
+    ===================================================== */
+
+    function calculateSkinfoldSum() {
+        let sum = 0;
+
+        document.querySelectorAll(".skinfold-row").forEach(row => {
+            const m1 = num(row.querySelector(".m1").value);
+            const m2 = num(row.querySelector(".m2").value);
+            const m3 = num(row.querySelector(".m3").value);
+
+            let value = null;
+
+            if (m1 !== null && m2 !== null) value = mean(m1, m2);
+            if (m3 !== null) value = m3;
+
+            if (value !== null) sum += value;
+        });
+
+        const totalEl = document.getElementById("skinfold-total");
+        if (totalEl) totalEl.textContent = sum.toFixed(1);
+
+        return sum;
+    }
+
+    /* =====================================================
+       VETPERCENTAGE
+    ===================================================== */
+
+    function updateBodyFat() {
+
+        const getSite = name => {
+            const m1Input = document.querySelector(`[data-site="${name}"]`);
+            if (!m1Input) return null;
+
+            const row = m1Input.closest(".skinfold-row");
+            if (!row) return null;
+
+            const m1 = num(m1Input.value);
+            const m2 = num(row.querySelector(".m2")?.value);
+            const m3 = num(row.querySelector(".m3")?.value);
+
+            if (m3 !== null) return m3;
+            if (m1 !== null && m2 !== null) return mean(m1, m2);
+            if (m1 !== null) return m1;
+            if (m2 !== null) return m2;
+            return null;
+        };
+
+        const storedFat = key => {
+            const raw = fatValuesFromView ? fatValuesFromView[key] : null;
+            const parsed = num(raw);
+            return parsed !== null ? parsed : 0;
+        };
+
+
+        let fatDW = 0, fatFaulkner = 0, fatCarter = 0;
+
+        // Durnin-Womersley
+        const dwSites = [
+            "Triceps SF",
+            "Biceps SF",
+            "Subscapular SF",
+            "Iliac crest SF"
+        ];
+
+        const dwValues = dwSites.map(getSite);
+
+        if (dwValues.every(v => v !== null)) {
+            const sumDW = dwValues.reduce((a, b) => a + b, 0);
+            const density = 1.1631 - (0.0632 * Math.log10(sumDW));
+            fatDW = ((4.95 / density) - 4.5) * 100;
+        }
+
+        // Faulkner
+        const faulknerSites = [
+            "Triceps SF",
+            "Subscapular SF",
+            "Supraspinale SF",
+            "Abdominale SF"
+        ];
+
+        const fValues = faulknerSites.map(getSite);
+
+        if (fValues.every(v => v !== null)) {
+            fatFaulkner = 5.783 + 0.153 * fValues.reduce((a, b) => a + b, 0);
+        }
+
+        // Carter
+        const sumSF = calculateSkinfoldSum();
+        if (sumSF > 0) fatCarter = 2.585 + 0.1051 * sumSF;
+
+        if (!(fatDW > 0)) fatDW = storedFat("dw");
+        if (!(fatFaulkner > 0)) fatFaulkner = storedFat("faulkner");
+        if (!(fatCarter > 0)) fatCarter = storedFat("carter");
+
+        const methods = [fatDW, fatFaulkner, fatCarter].filter(v => v > 0);
+        const avg = methods.length
+            ? methods.reduce((a, b) => a + b, 0) / methods.length
+            : storedFat("average");
+
+        const dwEl = document.getElementById("fat-dw");
+        const fEl  = document.getElementById("fat-faulkner");
+        const cEl  = document.getElementById("fat-carter");
+        const aEl  = document.getElementById("fat-average");
+
+        if (dwEl) dwEl.textContent = fatDW.toFixed(1);
+        if (fEl)  fEl.textContent  = fatFaulkner.toFixed(1);
+        if (cEl)  cEl.textContent  = fatCarter.toFixed(1);
+        if (aEl)  aEl.textContent  = avg.toFixed(1);
+
+        // opslaan in hidden inputs
+        updateFatInputs(fatDW, fatFaulkner, fatCarter, avg);
+
+        // Markeer voor PDF dat vetpercentage klaar is
+        window.__fatReady = true;
+    }
+
+    /* =====================================================
+       SKINFOLD TREND CHART
+    ===================================================== */
+
+    function readJsonScript(id) {
+        const el = document.getElementById(id);
+        if (!el) return null;
+        try {
+            return JSON.parse(el.textContent);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    const ctx = document.getElementById("skinfoldTrendChart");
+    const ctxCompare = document.getElementById("skinfoldCompareChart");
+
+    const labelsFromView = readJsonScript("chart-labels");
+    const valuesFromView = readJsonScript("chart-values");
+    const fatValuesFromView = readJsonScript("fat-values");
+
+    const compareLabelsFromView = readJsonScript("compare-labels");
+    const comparePrevFromView = readJsonScript("compare-prev");
+    const compareLastFromView = readJsonScript("compare-last");
+
+    const labels = (Array.isArray(labelsFromView) && labelsFromView.length)
+        ? labelsFromView
+        : ["2024-09-01", "2024-09-15", "2024-10-01", "2024-10-15"];
+
+    const values = (Array.isArray(valuesFromView) && valuesFromView.length)
+        ? valuesFromView
+        : [62, 58, 55, 52];
+
+    if (ctx && window.Chart) {
+        new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Som huidplooien (mm)",
+                    data: values,
+                    borderColor: "#e30613",
+                    backgroundColor: "rgba(227,6,19,0.1)",
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Markeer dat een chart klaar is (voor PDF)
+        window.__chartsReadyCount = (window.__chartsReadyCount || 0) + 1;
+        if (window.__chartsReadyCount >= 2) {
+            window.__skinfoldChartsDone = true;
+        }
+    }
+
+    const compareLabels = (Array.isArray(compareLabelsFromView) && compareLabelsFromView.length)
+        ? compareLabelsFromView
+        : ["Triceps", "Subscap", "Biceps", "Iliac", "Supra", "Abdom", "Thigh", "Calf"];
+
+    const comparePrev = (Array.isArray(comparePrevFromView) && comparePrevFromView.length)
+        ? comparePrevFromView
+        : [9, 10, 5, 14, 9, 13, 13, 7];
+
+    const compareLast = (Array.isArray(compareLastFromView) && compareLastFromView.length)
+        ? compareLastFromView
+        : [8, 9, 4, 11, 8, 10, 11, 7];
+
+    // Zorg dat we alleen de 8 huidplooien tonen
+    const maxSkinfolds = 8;
+    const minLen = Math.min(
+        compareLabels.length,
+        comparePrev.length,
+        compareLast.length,
+        maxSkinfolds
+    );
+
+    const compareLabelsTrimmed = compareLabels.slice(0, minLen);
+    const comparePrevTrimmed = comparePrev.slice(0, minLen);
+    const compareLastTrimmed = compareLast.slice(0, minLen);
+
+    if (ctxCompare && window.Chart) {
+        new Chart(ctxCompare, {
+            type: "bar",
+            data: {
+                labels: compareLabelsTrimmed,
+                datasets: [
+                    {
+                        label: "Vorige meting",
+                        data: comparePrevTrimmed,
+                        backgroundColor: "rgba(31, 42, 68, 0.25)",
+                        borderColor: "#1f2a44",
+                        borderWidth: 1
+                    },
+                    {
+                        label: "Laatste meting",
+                        data: compareLastTrimmed,
+                        backgroundColor: "rgba(227, 6, 19, 0.25)",
+                        borderColor: "#e30613",
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: true } }
+            }
+        });
+
+        // Markeer dat een chart klaar is (voor PDF)
+        window.__chartsReadyCount = (window.__chartsReadyCount || 0) + 1;
+        if (window.__chartsReadyCount >= 2) {
+            window.__skinfoldChartsDone = true;
+        }
+    }
+
+    /* =====================================================
+       EVENTS
+    ===================================================== */
+
+    document.querySelectorAll(".skinfold-row").forEach(row => {
+        row.querySelectorAll("input").forEach(input => {
+            input.addEventListener("input", () => {
+                updateRow(row);
+                updateBodyFat();
+            });
+        });
+
+        // Init render per row (handig bij bestaande waarden)
+        updateRow(row);
+    });
+
+    // Init totals/fat (handig bij bestaande waarden)
+    calculateSkinfoldSum();
+    updateBodyFat();
+
+});
+</script>
+
+<style>
+
+/* =========================
+   PAGE TOGGLE (VOEDING / HUIDPLOOIEN)
+   Zelfde stijl als Training/Wedstrijd knoppen
+========================= */
+
+.page-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 30px 0;
+}
+
+/* Basis knop */
+.page-toggle .toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 12px 26px;
+    border-radius: 999px; /* pill shape */
+    font-weight: 600;
+    font-size: 0.95rem;
+
+    text-decoration: none;
+    color: #1f2a44;
+    background: #ffffff;
+
+    box-shadow: 0 6px 18px rgba(31, 42, 68, 0.12);
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+/* Hover (niet actief) */
+.page-toggle .toggle-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(31, 42, 68, 0.18);
+}
+
+/* Actieve knop */
+.page-toggle .toggle-btn.active {
+    background: linear-gradient(135deg, #1f2a44, #182036);
+    color: #ffffff;
+
+    box-shadow: 0 10px 30px rgba(31, 42, 68, 0.35);
+}
+
+/* Hover op actieve knop */
+.page-toggle .toggle-btn.active:hover {
+    transform: none;
+    box-shadow: 0 12px 34px rgba(31, 42, 68, 0.4);
+}
+
+
+/* =========================================================
+   SKINFOLDS - WILLEM II PERFORMANCE STYLING
+========================================================= */
+
+.skinfold-section {
+    margin-top: 30px;
+    font-family: "Poppins", sans-serif;
+}
+
+/* PAGE TOGGLE (VOEDING / HUIDPLOOIMETING) */
+.page-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 10px 0 28px;
+}
+
+.page-toggle .toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 26px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    color: #1f2a44;
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(31, 42, 68, 0.12);
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.page-toggle .toggle-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(31, 42, 68, 0.18);
+}
+
+.page-toggle .toggle-btn.active {
+    background: linear-gradient(135deg, #1f2a44, #182036);
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(31, 42, 68, 0.35);
+}
+
+/* TITELS */
+.skinfold-section h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1f2a44;
+    margin-bottom: 6px;
+}
+
+.skinfold-section .subtext {
+    font-size: 0.95rem;
+    color: #5f6b82;
+    margin-bottom: 25px;
+}
+
+/* ---------------------------------------------------------
+   CARDS
+--------------------------------------------------------- */
+.skinfold-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 22px 24px;
+    margin-bottom: 22px;
+    box-shadow: 0 8px 28px rgba(31, 42, 68, 0.08);
+}
+
+.skinfold-card h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1f2a44;
+    margin-bottom: 18px;
+    border-left: 4px solid #e30613; /* Willem II rood */
+    padding-left: 10px;
+}
+
+/* ---------------------------------------------------------
+   PDF MODE
+--------------------------------------------------------- */
+.pdf-mode .skinfold-card {
+    box-shadow: none;
+    border: 1px solid #e6eaf2;
+}
+
+.pdf-mode form[method="GET"],
+.pdf-mode .skinfold-meta-grid,
+.pdf-mode .skinfold-table,
+.pdf-mode .skinfold-sum,
+.pdf-mode .form-actions,
+.pdf-mode #download-pdf-btn {
+    display: none !important;
+}
+
+.pdf-mode .skinfold-data-card {
+    display: none !important;
+}
+
+.pdf-mode .pdf-header {
+    padding: 18px 22px;
+}
+
+.pdf-mode .pdf-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1f2a44;
+    margin-bottom: 6px;
+}
+
+.pdf-mode .pdf-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-weight: 600;
+    color: #5f6b82;
+}
+
+.pdf-mode .chart-card canvas {
+    max-height: 240px;
+}
+
+/* ---------------------------------------------------------
+   CHART GRID
+--------------------------------------------------------- */
+.skinfold-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 18px;
+}
+
+/* PDF: forceer 2 kolommen naast elkaar */
+.pdf-mode .skinfold-charts-grid {
+    grid-template-columns: 1fr 1fr;
+}
+
+.pdf-mode .chart-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.chart-card .chart-subtext {
+    margin-top: 12px;
+}
+
+/* ---------------------------------------------------------
+   META GRID (ALGEMENE GEGEVENS)
+--------------------------------------------------------- */
+.skinfold-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.skinfold-meta-grid label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #5f6b82;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.skinfold-meta-grid input,
+.skinfold-meta-grid select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    border: 1.5px solid #d3d9e4;
+    background: #fafbfc;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.skinfold-meta-grid input:focus,
+.skinfold-meta-grid select:focus {
+    outline: none;
+    border-color: #1f2a44;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(31, 42, 68, 0.12);
+}
+
+/* ---------------------------------------------------------
+   TABLES
+--------------------------------------------------------- */
+.skinfold-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+}
+
+.skinfold-table thead th {
+    background: linear-gradient(180deg, #1f2a44, #182036);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 14px 12px;
+    text-align: left;
+}
+
+.skinfold-table thead th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.skinfold-table thead th:last-child {
+    border-top-right-radius: 12px;
+}
+
+.skinfold-table tbody tr:nth-child(even) {
+    background-color: #f7f9fc;
+}
+
+.skinfold-table tbody tr:hover {
+    background-color: #eef2f7;
+}
+
+.skinfold-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e9f2;
+    vertical-align: middle;
+}
+
+/* LOCATIE CEL */
+.skinfold-table td:first-child {
+    font-weight: 600;
+    color: #1f2a44;
+    width: 180px;
+}
+
+/* INPUTS IN TABEL */
+.skinfold-table input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1.5px solid #d3d9e4;
+    background: #fafbfc;
+    font-size: 0.9rem;
+}
+
+.skinfold-table input:focus {
+    outline: none;
+    border-color: #1f2a44;
+    background: #ffffff;
+}
+
+/* ---------------------------------------------------------
+   3RD MEASURE & % DIFF
+--------------------------------------------------------- */
+.third-measure,
+.percent-diff {
+    font-weight: 600;
+    text-align: center;
+    color: #5f6b82;
+}
+
+/* ---------------------------------------------------------
+   SOM SKINFOLDS
+--------------------------------------------------------- */
+.skinfold-sum {
+    margin-top: 18px;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #f7f9fc, #eef2f7);
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2a44;
+    border-left: 5px solid #e30613;
+}
+
+/* ---------------------------------------------------------
+   FAT RESULTS
+--------------------------------------------------------- */
+.fat-results {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px 0;
+}
+
+.fat-results li {
+    padding: 6px 0;
+    font-size: 0.95rem;
+    color: #1f2a44;
+}
+
+/* ---------------------------------------------------------
+   OPSLAAN KNOP - WILLEM II SIGNATURE
+--------------------------------------------------------- */
+.form-actions {
+    margin-top: 30px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.skinfold-save-btn {
+    background: linear-gradient(135deg, #0b1f3b, #08162b);
+    color: #ffffff;
+    border: none;
+    padding: 14px 30px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 14px;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(11, 31, 59, 0.35);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.skinfold-save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 38px rgba(11, 31, 59, 0.5);
+}
+
+.skinfold-save-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 18px rgba(11, 31, 59, 0.3);
+}
+
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+--------------------------------------------------------- */
+@media (max-width: 768px) {
+    .skinfold-table thead {
+        display: none;
+    }
+
+    .skinfold-table tr {
+        display: block;
+        margin-bottom: 16px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(31, 42, 68, 0.1);
+    }
+
+    .skinfold-table td {
+        display: block;
+        padding: 10px 14px;
+        border: none;
+    }
+
+    .skinfold-table td:first-child {
+        background: linear-gradient(180deg, #1f2a44, #182036);
+        color: #ffffff;
+        border-radius: 12px 12px 0 0;
+    }
+}
+
+.form-select {
+    height: 38px;
+    line-height: 38px;
+}
+
+</style>
+{% endblock scripts %}
+

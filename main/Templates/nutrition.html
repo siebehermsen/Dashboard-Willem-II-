@@ -1,7 +1,9 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Voeding | Willem II{% endblock %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <main class="container">
 {% if messages %}
   {% for message in messages %}
@@ -18,24 +20,17 @@
              src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg"
              alt="Willem II logo">
         <div class="title-group">
-            <span class="dashboard-title">Dashboard Willem II</span>
-            <h2 class="section-title">huidplooimetingen</h2>
+            <span class="dashboard-title">Voeding</span>
         </div>
     </div>
 </header>
 
-<!-- TABS: VOEDING / HUIDPLOOIEN -->
 <div class="page-toggle">
-    <a href="{% url 'nutrition' %}"
-       class="toggle-btn {% if active_page == 'nutrition' %}active{% endif %}">
-        🍽️ Voeding
-    </a>
-
-    <a href="{% url 'skinfolds' %}"
-       class="toggle-btn {% if active_page == 'skinfolds' %}active{% endif %}">
-        📏 Huidplooien
-    </a>
+    <a href="{% url 'nutrition' %}" class="toggle-btn active">Voeding</a>
+    <a href="{% url 'huidplooimeting' %}" class="toggle-btn">Huidplooimeting</a>
 </div>
+
+
 
 
 {% if active_page == "nutrition" %}
@@ -104,6 +99,68 @@
 </section>
 
 
+<!-- WEDSTRIJDVOEDING INFOGRAFIC -->
+<section class="match-infographic">
+    <div class="info-head">
+        <h3>Voeding op wedstrijddag</h3>
+        <span class="info-sub">Voorbeeldschema (20:00 aftrap)</span>
+    </div>
+
+    <div class="info-stage">
+        <div class="time-grid">
+            <div class="time-item">
+                <div class="time-label">19:00</div>
+                <div class="time-title">Aanloop</div>
+                <div class="time-note">Koolhydraten + cafeine</div>
+                <div class="time-icons">
+                    <img src="{% static 'img/nutrition/amax_gel.webp' %}" alt="Amax gel">
+                    <img src="{% static 'img/nutrition/caffeine.jpg' %}" alt="Cafeine">
+                    <img src="{% static 'img/nutrition/amax_bar.jpg' %}" alt="Amax bar">
+                </div>
+            </div>
+
+            <div class="time-item center">
+                <div class="time-label">20:00 wedstrijd</div>
+                <div class="time-title">Energie aanvullen</div>
+                <div class="time-note">2-3 producten kiezen</div>
+                <div class="time-icons">
+                    <img src="{% static 'img/nutrition/amax_gel.webp' %}" alt="Amax gel">
+                    <img src="{% static 'img/nutrition/banana.jpg' %}" alt="Banaan">
+                </div>
+            </div>
+
+            <div class="time-item">
+                <div class="time-label">20:45 rust</div>
+                <div class="time-title">Aanvullen koolhydraten</div>
+                <div class="time-note">Gel + water / sportdrank</div>
+                <div class="time-icons">
+                    <img src="{% static 'img/nutrition/amax_gel.webp' %}" alt="Amax gel">
+                    <img src="{% static 'img/nutrition/powerade.jpg' %}" alt="Sportdrank">
+                </div>
+            </div>
+
+            <div class="time-item">
+                <div class="time-label">22:00 na afloop</div>
+                <div class="time-title">Herstel</div>
+                <div class="time-note">Koolhydraten + eiwitten</div>
+                <div class="time-icons">
+                    <img src="{% static 'img/nutrition/pasta.webp' %}" alt="Pasta">
+                    <img src="{% static 'img/nutrition/chocomel.jpg' %}" alt="Chocomel">
+                    <img src="{% static 'img/nutrition/powerade.jpg' %}" alt="Drink">
+                </div>
+            </div>
+        </div>
+
+        <div class="time-line">
+            <div class="time-dot" style="--pos: 10%;">19:00</div>
+            <div class="time-dot" style="--pos: 35%;">20:00</div>
+            <div class="time-dot" style="--pos: 60%;">20:45</div>
+            <div class="time-dot" style="--pos: 85%;">22:00</div>
+        </div>
+    </div>
+</section>
+
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll('.week-table select').forEach(select => {
@@ -121,61 +178,152 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
+<script>
+function downloadWeightsPdf() {
+    const section = document.querySelector(".player-section");
+    if (!section) return;
+
+    const win = window.open("", "_blank", "width=900,height=700");
+    if (!win) return;
+
+    const styles = `
+        <style>
+            body { font-family: "Inter", sans-serif; color: #1f2a44; margin: 24px; }
+            h2 { margin: 0 0 12px 0; }
+            table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+            th { background: #1f2a44; color: #fff; }
+            tr:nth-child(even) { background: #f8f9fb; }
+            .meta { color: #6c757d; margin-bottom: 16px; font-size: 0.9rem; }
+        </style>
+    `;
+
+    const table = section.querySelector(".table-players");
+    if (!table) return;
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString();
+
+    win.document.write(`
+        <html>
+            <head>
+                <title>Gewichten spelers</title>
+                ${styles}
+            </head>
+            <body>
+                <h2>Gewichten spelers</h2>
+                <div class="meta">Datum: ${dateStr}</div>
+                ${table.outerHTML}
+            </body>
+        </html>
+    `);
+    win.document.close();
+    win.focus();
+    win.print();
+}
+</script>
+
+<script>
+let weightModalChart;
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".weight-row").forEach((row) => {
+        row.addEventListener("click", (e) => {
+            if (e.target && e.target.tagName === "INPUT") return;
+            const playerId = row.getAttribute("data-player-id");
+            const name = row.querySelector(".weight-player-name")?.textContent?.trim() || "Speler";
+            if (playerId) {
+                openWeightModal(playerId, name);
+            }
+        });
+    });
+});
+
+async function openWeightModal(playerId, playerName) {
+    const modal = document.getElementById("weightModal");
+    const title = document.getElementById("weightModalTitle");
+    const emptyMsg = document.getElementById("weightModalEmpty");
+    const ctx = document.getElementById("weightModalChart");
+    if (!modal || !title || !ctx) return;
+
+    title.textContent = `Gewicht trend - ${playerName}`;
+    modal.style.display = "flex";
+
+    const res = await fetch(`/player/${playerId}/weights/`);
+    if (!res.ok) {
+        if (emptyMsg) emptyMsg.style.display = "block";
+        return;
+    }
+    const data = await res.json();
+
+    if (emptyMsg) {
+        emptyMsg.style.display = (data.weights && data.weights.length) ? "none" : "block";
+    }
+
+    if (weightModalChart) {
+        weightModalChart.destroy();
+    }
+
+    weightModalChart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: data.dates,
+            datasets: [{
+                label: "Gewicht (kg)",
+                data: data.weights,
+                borderColor: "#b60000",
+                backgroundColor: "rgba(182, 0, 0, 0.12)",
+                fill: true,
+                tension: 0.3,
+                pointRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: false } }
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const closeWeightModal = document.getElementById("closeWeightModal");
+    const weightModal = document.getElementById("weightModal");
+
+    if (!weightModal) return;
+
+    const closeModal = () => {
+        weightModal.style.display = "none";
+    };
+
+    if (closeWeightModal) {
+        closeWeightModal.addEventListener("click", closeModal);
+    }
+
+    window.addEventListener("click", (e) => {
+        if (e.target === weightModal) {
+            closeModal();
+        }
+    });
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const today = new Date().toISOString().slice(0, 10);
+    document.querySelectorAll(".meetdate-input").forEach((input) => {
+        if (!input.value) {
+            input.value = today;
+        }
+    });
+});
+</script>
 
 
 
-<!-- INLEIDING -->
-<section class="intro-section">
-    <h3>📊 Teamoverzicht Voeding</h3>
-    <p class="subtext">
-        Dit dashboard geeft inzicht in de gemiddelde energie- en macronutriënteninname binnen het team. 
-        Selecteer een speler om persoonlijke voedingspunten en aanbevelingen te bekijken.
-    </p>
-</section>
-
-<!-- OVERZICHTSKAARTEN -->
-<section class="summary-section">
-    <div class="summary-card">
-        <h4>🔥 Gem. energie-inname</h4>
-        <p><strong>3.050 kcal</strong> / dag</p>
-        <p class="small-text">Gemiddeld over het team</p>
-    </div>
-
-    <div class="summary-card">
-        <h4>🥩 Eiwitinname</h4>
-        <p><strong>2.0 g/kg</strong></p>
-        <p class="small-text">Binnen aanbevolen richtlijnen</p>
-    </div>
-
-    <div class="summary-card">
-        <h4>🍞 Koolhydraatinname</h4>
-        <p><strong>5.5 g/kg</strong></p>
-        <p class="small-text">Optimaal voor herstel en prestaties</p>
-    </div>
-
-    <div class="summary-card">
-        <h4>🥑 Vetinname</h4>
-        <p><strong>1.3 g/kg</strong></p>
-        <p class="small-text">Goede balans vetzuren</p>
-    </div>
-</section>
-
-<!-- GRAFIEKEN -->
-<div class="chart-grid">
-    <div class="chart-card">
-        <h3>🍽️ Gemiddelde macronutriëntenverdeling</h3>
-        <canvas id="macroChart"></canvas>
-    </div>
-
-    <div class="chart-card">
-        <h3>⚽ Energie-inname per dagtype</h3>
-        <canvas id="energyChart"></canvas>
-    </div>
-</div>
-
-<!-- SPELERSELECTIE + DETAIL -->
+<!-- SPELERSELECTIE + INTAKE -->
 <section class="player-section">
-    <h3>👥 Speleroverzicht</h3>
+    <h3>👥 Intake formulier voeding</h3>
 
     <!-- Spelerkeuze -->
     <form method="get" action="" class="player-form mb-3">
@@ -190,57 +338,254 @@ document.addEventListener("DOMContentLoaded", function () {
         </select>
     </form>
 
-    {% if selected_player %}
-        <!-- Info over geselecteerde speler -->
-        <div class="player-card">
-            <h3 style="color:#e74c3c;">{{ selected_player.name }}</h3>
-            <p>
-                Energie-inname: 3050 kcal | 
-                Eiwit: 2.0 g/kg | 
-                Koolhydraten: 5.5 g/kg | 
-                Vet: 1.3 g/kg
-            </p>
+{% if selected_player %}
+
+<!-- Speler header kaart -->
+<div class="player-card">
+  <div class="player-card-top">
+    <h3 class="player-name">{{ selected_player.name }}</h3>
+    <span class="player-subtitle">Intake gesprek – voeding</span>
+  </div>
+</div>
+
+<!-- =========================
+     INTAKE FORM
+========================= -->
+<div class="focus-card">
+  <h4>📝 Intake formulier</h4>
+  <p class="intake-subtext">
+    Vul de intake in en klik op <strong>Opslaan</strong>.
+    De informatie wordt gekoppeld aan deze speler.
+  </p>
+
+  <form method="POST" novalidate class="intake-form">
+    {% csrf_token %}
+
+    <!-- Marker zodat Django weet welk formulier dit is -->
+    <input type="hidden" name="form_type" value="intake">
+
+    <!-- Speler koppeling -->
+    <input type="hidden" name="player_id" value="{{ selected_player.id }}">
+
+    <!-- Rij 1: Naam + Datum -->
+    <div class="intake-grid">
+      <div class="intake-field">
+        <label class="intake-label"><strong>Naam</strong></label>
+        <input class="form-control" value="{{ selected_player.name }}" disabled>
+      </div>
+
+      <div class="intake-field">
+        <label class="intake-label"><strong>Datum</strong></label>
+        <input type="date"
+               class="form-control"
+               name="date"
+               value="{{ intake.date|date:'Y-m-d' }}">
+      </div>
+    </div>
+
+    <!-- Doel -->
+    <div class="intake-field mt-2">
+      <label class="intake-label"><strong>Doel</strong></label>
+      <input class="form-control"
+             name="goal"
+             value="{{ intake.goal|default_if_none:'' }}"
+             placeholder="Bijv. aankomen, vetverlies, energie rond training, herstel verbeteren">
+    </div>
+
+    <hr class="intake-divider">
+
+    <!-- Wat eet hij? -->
+    <h5 class="intake-section-title">🍽️ Wat eet hij gemiddeld?</h5>
+
+    <div class="intake-field">
+      <label class="intake-label"><strong>Ontbijt</strong></label>
+      <input class="form-control"
+             name="breakfast"
+             value="{{ intake.breakfast|default_if_none:'' }}"
+             placeholder="Bijv. yoghurt + fruit + granola">
+    </div>
+
+    <div class="intake-field mt-2">
+      <label class="intake-label"><strong>Snack 1</strong></label>
+      <input class="form-control"
+             name="snack1"
+             value="{{ intake.snack1|default_if_none:'' }}"
+             placeholder="Bijv. banaan + kwark / mueslireep">
+    </div>
+
+    <div class="intake-field mt-2">
+      <label class="intake-label"><strong>Lunch</strong></label>
+      <input class="form-control"
+             name="lunch"
+             value="{{ intake.lunch|default_if_none:'' }}"
+             placeholder="Bijv. brood + kipfilet + melk">
+    </div>
+
+    <div class="intake-field mt-2">
+      <label class="intake-label"><strong>Snack 2</strong></label>
+      <input class="form-control"
+             name="snack2"
+             value="{{ intake.snack2|default_if_none:'' }}"
+             placeholder="Bijv. noten / eiwitreep / fruit">
+    </div>
+
+    <div class="intake-field mt-2">
+      <label class="intake-label"><strong>Avondeten</strong></label>
+      <input class="form-control"
+             name="dinner"
+             value="{{ intake.dinner|default_if_none:'' }}"
+             placeholder="Bijv. pasta/rijst/aardappels + groente + vlees/vis">
+    </div>
+
+    <div class="intake-field mt-2">
+      <label class="intake-label"><strong>Snack 3</strong></label>
+      <input class="form-control"
+             name="snack3"
+             value="{{ intake.snack3|default_if_none:'' }}"
+             placeholder="Bijv. kwark / boterham / herstelshake">
+    </div>
+
+    <div class="intake-field mt-2">
+      <label class="intake-label"><strong>Supplementen</strong></label>
+      <input class="form-control"
+             name="supplements"
+             value="{{ intake.supplements|default_if_none:'' }}"
+             placeholder="Bijv. creatine, omega 3, vitamine D">
+    </div>
+
+    <hr class="intake-divider">
+
+    <!-- Next meeting goal -->
+    <div class="intake-field">
+      <label class="intake-label">
+        <strong>Aandachtspunt → doel volgende meeting</strong>
+      </label>
+      <textarea name="next_meeting_goal"
+                class="form-control"
+                rows="4"
+                placeholder="Bijv. 5/7 dagen ontbijt + post-training snack + 2L/dag drinken"
+      >{{ intake.next_meeting_goal|default_if_none:'' }}</textarea>
+    </div>
+
+    <!-- Extra notities -->
+    <div class="intake-field mt-2">
+      <label class="intake-label"><strong>Extra notities</strong></label>
+      <textarea name="nutrition_focus"
+                class="form-control"
+                rows="3"
+                placeholder="Overige notities..."
+      >{{ selected_player.monitor_nutrition_focus|default_if_none:'' }}</textarea>
+    </div>
+
+    <!-- FIXED OPSLAAN KNOP (los van layout) -->
+    <div class="intake-save-fixed">
+      <button type="submit" class="btn btn-primary intake-save-btn">
+        💾 Opslaan intake
+      </button>
+    </div>
+
+  </form>
+</div>
+
+{% else %}
+<div class="alert alert-info mt-3">
+  Selecteer eerst een speler om intake in te vullen.
+</div>
+{% endif %}
+
+
+
+<!-- SPELERGEWICHTEN -->
+<section class="player-section">
+    <h3>🏋️ Gewichten spelers</h3>
+    <p class="intake-subtext">
+        Vul het huidige gewicht per speler in en klik op <strong>Opslaan</strong>.
+    </p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="weights">
+
+        <div class="player-table-wrapper">
+            <table class="table-players">
+                <thead>
+                    <tr>
+                        <th>Meetdatum</th>
+                        <th>Speler</th>
+                        <th>Vorig gewicht (kg)</th>
+                        <th>Huidig gewicht (kg)</th>
+                        <th>Verschil (kg)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in players %}
+                    <tr class="weight-row" data-player-id="{{ player.id }}">
+                        <td class="meetdate-cell">
+                            <input
+                                type="date"
+                                class="form-control meetdate-input"
+                                name="weight_date_{{ player.id }}"
+                            >
+                        </td>
+                        <td>
+                            <span class="weight-player-name">
+                                {{ player.name }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ player.monitor_prev_weight|default_if_none:"-" }}
+                        </td>
+                        <td>
+                            <input
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                name="weight_{{ player.id }}"
+                                value="{{ player.monitor_curr_weight|default_if_none:'' }}"
+                                placeholder="Bijv. 72.5"
+                                class="form-control"
+                            >
+                        </td>
+                        <td>
+                            {{ player.monitor_weight_diff|default_if_none:"-" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
-        <!-- Formulier voor aandachtspunt -->
-        <div class="focus-card">
-            <h4>🎯 Aandachtspunt</h4>
-            <form method="POST" action="">
-                {% csrf_token %}
-                <input type="hidden" name="player_id" value="{{ selected_player.id }}">
-                
-                <textarea 
-                    name="nutrition_focus"
-                    class="form-control"
-                    rows="5"
-                    style="
-                        width: 100%;
-                        font-size: 15px;
-                        padding: 12px;
-                        border-radius: 10px;
-                        border: 1.5px solid #ccc;
-                        resize: vertical;
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-                        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-                    "
-                    placeholder="Voer hier het aandachtspunt in...">{{ selected_player.nutrition_focus }}</textarea>
-                
-                <button 
-                    type="submit" 
-                    class="btn btn-primary mt-2"
-                    style="padding: 8px 16px; border-radius: 8px; font-weight: 500;">
-                    Opslaan
-                </button>
-            </form>
+        <div class="weights-actions">
+            <button type="submit" class="btn btn-primary intake-save-btn">
+                💾 Gewichten opslaan
+            </button>
+            <button type="button" class="btn btn-secondary weight-pdf-btn" onclick="downloadWeightsPdf()">
+                ⬇️ Download PDF
+            </button>
         </div>
-    {% else %}
-        <div class="alert alert-info mt-3">
-            Selecteer eerst een speler om zijn persoonlijke voedingsanalyse te bekijken.
-        </div>
-    {% endif %}
+    </form>
+
+    {% comment %}
+    <div class="weight-chart-wrap">
+        <h4 class="weight-chart-title">📈 Gewicht trend</h4>
+        <p class="weight-chart-sub">Klik op een speler om de trend te bekijken.</p>
+        <canvas id="weightChart" height="120"></canvas>
+    </div>
+    {% endcomment %}
+
 </section>
 
-</main>
+<!-- WEIGHT CHART MODAL -->
+<div id="weightModal" class="modal" style="display:none;">
+    <div class="modal-content" style="width: 720px; max-width: 92vw;">
+        <span class="close" id="closeWeightModal">&times;</span>
+        <h3 id="weightModalTitle" style="margin: 0 0 10px 0; color: #1f2a44;">Gewicht trend</h3>
+        <p id="weightModalEmpty" style="margin: 0 0 10px 0; color: #6c757d; display: none;">
+            Nog geen gewichtsdata gevonden.
+        </p>
+        <canvas id="weightModalChart" height="160"></canvas>
+    </div>
+</div>
 
 <!-- STYLING -->
 <style>
@@ -300,35 +645,54 @@ document.addEventListener("DOMContentLoaded", function () {
 }
 
 
-    /* HEADER */
-    .nutrition-header {
-        display: flex;
-        align-items: flex-start;
-        margin-bottom: 25px;
-    }
+/* =========================
+   HEADER / BANNER
+========================= */
 
-    .header-left {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
+.nutrition-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
 
-    .logo { height: 75px; }
+    background: linear-gradient(180deg, #1f2a44, #182036);
+    padding: 18px 22px;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(31, 42, 68, 0.18);
+}
 
-    .dashboard-title {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #1f2a44;
-        text-transform: uppercase;
-        margin-bottom: 5px;
-    }
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
 
-    .section-title {
-        border-bottom: 2px solid #e74c3c;
-        color: #1f2a44;
-        font-size: 1.3rem;
-        font-weight: 600;
-    }
+.logo {
+    height: 75px;
+}
+
+/* Dashboard titel (kleiner bovenaan) */
+.dashboard-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #dbe3f2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+/* Hoofd sectietitel = Voeding */
+.section-title {
+    color: #ffffff; /* ← dit lost jouw probleem op */
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0;
+    padding-bottom: 6px;
+
+    border-bottom: 3px solid #e74c3c;
+    display: inline-block;
+}
+
+    
 
     /* ───────── WEEKPLANNING VOEDING ───────── */
 
@@ -575,940 +939,685 @@ document.addEventListener("DOMContentLoaded", function () {
     border-color: #e74c3c !important;
 }
 
-
-
-    /* REST VAN DE DASHBOARD STYLING */
-    .intro-section h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 5px; }
-    .subtext { font-style: italic; color: #555; margin-bottom: 25px; }
-
-    .summary-section {
-        display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 30px;
-    }
-
-    .summary-card {
-        flex: 1; min-width: 220px; background: white; border-radius: 15px;
-        padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        transition: transform 0.2s ease;
-    }
-
-    .summary-card:hover { transform: scale(1.03); }
-    .summary-card h4 { margin-bottom: 8px; color: #e74c3c; }
-    .small-text { font-size: 0.85rem; color: #777; }
-
-    .chart-grid {
-        display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 25px; margin-bottom: 40px;
-    }
-
-    .chart-card {
-        background: white; border-radius: 15px; padding: 25px; text-align: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
-
-    .chart-card h3 { font-size: 1.1rem; margin-bottom: 10px; }
-
-    .player-form select {
-        padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc;
-        width: 300px; font-size: 15px;
-    }
-
-    .player-card, .focus-card {
-        background: white; border-radius: 15px; padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 20px;
-    }
-
-    .player-card h3 { color: #e74c3c; margin-bottom: 10px; }
-    .focus-card h4 { margin-bottom: 8px; color: #1f2a44; }
-
-    .hidden { display: none; }
-
-    @media (max-width: 768px) {
-        .summary-section { flex-direction: column; }
-        .chart-grid { grid-template-columns: 1fr; }
-    }
-
-
-
-</style>
-
-<!-- GRAFIEKEN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // Macroverdeling
-    new Chart(document.getElementById('macroChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Eiwit', 'Koolhydraten', 'Vet'],
-            datasets: [{
-                data: [20, 55, 25],
-                backgroundColor: ['#1f2a44', '#e74c3c', '#f1c40f'],
-                borderWidth: 2
-            }]
-        },
-        options: { plugins: { legend: { position: 'bottom' } } }
-    });
-
-    // Energie-inname per dagtype
-    new Chart(document.getElementById('energyChart'), {
-        type: 'bar',
-        data: {
-            labels: ['Rustdag', 'Trainingsdag', 'Wedstrijddag'],
-            datasets: [{
-                label: 'Gem. kcal-inname',
-                data: [2700, 3050, 3400],
-                backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c'],
-                borderColor: '#1f2a44',
-                borderWidth: 2,
-                borderRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, title: { display: true, text: 'Energie (kcal)' } },
-                x: { title: { display: true, text: 'Dagtype' } }
-            }
-        }
-    });
-
-    // Speler-specifieke aandachtspunten
-    const playerFocus = {
-        "Nick Doodeman": "Houd eiwitinname stabiel en verhoog fruit- en groenteconsumptie.",
-        "Raffael Behounek": "Zorg voor meer koolhydraten op zware trainingsdagen.",
-        "Justin Hoogma": "Eet voldoende vetten voor hormonale balans.",
-        "Mikael Tirpan": "Meer hydratatie voor en na trainingen.",
-        "Jari Schuurman": "Focus op herstelvoeding binnen 30 min na training."
-    };
-
-    function showPlayerDetails() {
-        const selected = document.getElementById("player").value;
-        const details = document.getElementById("player-details");
-        const nameField = document.getElementById("player-name");
-        const infoField = document.getElementById("player-info");
-        const focusField = document.getElementById("player-focus");
-
-        if (selected) {
-            details.classList.remove("hidden");
-            nameField.textContent = selected;
-            infoField.textContent = "Energie-inname: 3050 kcal | Eiwit: 2.0 g/kg | Koolhydraten: 5.5 g/kg | Vet: 1.3 g/kg";
-            focusField.textContent = playerFocus[selected] || "Voedingsoverzicht binnenkort beschikbaar.";
-        } else {
-            details.classList.add("hidden");
-        }
-    }
-</script>
-{% endif %}
-
-
-
-
-{% if active_page == "skinfolds" %}
-
-<section class="skinfold-section">
-
-    <h3>📏 Antropometrische metingen</h3>
-    <p class="subtext">
-        Registreer per speler antropometrische metingen. 
-        Per variabele kunnen maximaal drie metingen worden ingevoerd.
-    </p>
-
-    <!-- =====================================
-         FORM 1: SPELER SELECTEREN (GET)
-    ====================================== -->
-    <form method="GET">
-        <div class="card skinfold-card">
-            <h4>Algemene gegevens</h4>
-
-            <div class="skinfold-meta-grid">
-                <div>
-                    <label>Speler</label>
-                    <select
-                        name="player"
-                        class="form-select"
-                        onchange="this.form.submit()"
-                    >
-                        <option value="">-- kies speler --</option>
-                        {% for player in players %}
-                            <option
-                                value="{{ player.id }}"
-                                {% if selected_player and player.id == selected_player.id %}
-                                    selected
-                                {% endif %}
-                            >
-                                {{ player.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-        </div>
-    </form>
-
-<!-- =====================================
-     FORM 2: METINGEN OPSLAAN (POST)
-====================================== -->
-<form method="POST">
-    {% csrf_token %}
-
-    {% if selected_player %}
-        <input type="hidden" name="player_id" value="{{ selected_player.id }}">
-    {% endif %}
-
-    <div class="card skinfold-card">
-        <h4>Algemene gegevens</h4>
-
-        <div class="skinfold-meta-grid">
-
-            <div>
-                <label>Datum</label>
-                <input
-                    type="date"
-                    name="measurement_date"
-                    class="form-control"
-                    required
-                    value="{% if antropometry %}{{ antropometry.date|date:'Y-m-d' }}{% endif %}"
-                >
-            </div>
-
-            <div>
-                <label>Body mass (kg)</label>
-                <input
-                    type="number"
-                    step="0.1"
-                    name="body_mass"
-                    class="form-control"
-                    value="{% if antropometry %}{{ antropometry.body_mass|default_if_none:'' }}{% endif %}"
-                >
-            </div>
-
-            <div>
-                <label>Length (cm)</label>
-                <input
-                    type="number"
-                    step="0.1"
-                    name="length"
-                    class="form-control"
-                    value="{% if antropometry %}{{ antropometry.length|default_if_none:'' }}{% endif %}"
-                >
-            </div>
-
-        </div>
-    </div>
-
-
-<!-- =========================
-     SKINFOLDS
-========================== -->
-<div class="card skinfold-card">
-    <h4>Skinfolds (mm)</h4>
-
-    <table class="skinfold-table">
-        <thead>
-            <tr>
-                <th>Locatie</th>
-                <th>Meting 1</th>
-                <th>Meting 2</th>
-                <th>Meting 3</th>
-                <th>3rd measure?</th>
-                <th>% diff</th>
-            </tr>
-        </thead>
-
-        <tbody>
-        {% for row in skinfold_rows %}
-            <tr class="skinfold-row">
-                <td>{{ row.site }}</td>
-
-                <td>
-                    <input
-                        type="number"
-                        step="0.1"
-                        class="skinfold-input m1"
-                        name="skinfold_{{ row.key }}_m1"
-                        value="{{ row.m1|default_if_none:'' }}"
-                        {% if row.site in formula_sites %}
-                            data-site="{{ row.site }}"
-                        {% endif %}
-                    >
-                </td>
-
-                <td>
-                    <input
-                        type="number"
-                        step="0.1"
-                        class="skinfold-input m2"
-                        name="skinfold_{{ row.key }}_m2"
-                        value="{{ row.m2|default_if_none:'' }}"
-                    >
-                </td>
-
-                <td>
-                    <input
-                        type="number"
-                        step="0.1"
-                        class="skinfold-input m3"
-                        name="skinfold_{{ row.key }}_m3"
-                        value="{{ row.m3|default_if_none:'' }}"
-                    >
-                </td>
-
-                <td class="third-measure">—</td>
-                <td class="percent-diff">—</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <div class="skinfold-sum">
-        <strong>Som skinfolds:</strong>
-        <span id="skinfold-total">0.0</span> mm
-    </div>
-</div>
-
-
-
-<!-- =========================
-     GIRTHS (OPSLAAN + TERUGTONEN)
-========================== -->
-<div class="card skinfold-card">
-    <h4>Girth measurements (cm)</h4>
-
-    <table class="skinfold-table">
-        <thead>
-            <tr>
-                <th>Locatie</th>
-                <th>Meting 1</th>
-                <th>Meting 2</th>
-                <th>Meting 3</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for girth in girth_sites %}
-                {% with girth_key=girth|slugify %}
-                <tr>
-                    <td>{{ girth }}</td>
-
-                    <td>
-                        <input
-                            type="number"
-                            step="0.1"
-                            name="girth_{{ girth_key }}_m1"
-                            class="girth-input"
-                            value="{% if girth_values %}{{ girth_values.girth_key.m1|default_if_none:'' }}{% endif %}"
-                        >
-                    </td>
-
-                    <td>
-                        <input
-                            type="number"
-                            step="0.1"
-                            name="girth_{{ girth_key }}_m2"
-                            class="girth-input"
-                            value="{% if girth_values %}{{ girth_values.girth_key.m2|default_if_none:'' }}{% endif %}"
-                        >
-                    </td>
-
-                    <td>
-                        <input
-                            type="number"
-                            step="0.1"
-                            name="girth_{{ girth_key }}_m3"
-                            class="girth-input"
-                            value="{% if girth_values %}{{ girth_values.girth_key.m3|default_if_none:'' }}{% endif %}"
-                        >
-                    </td>
-                </tr>
-                {% endwith %}
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<input type="hidden" name="fat_dw" id="fat_dw_input">
-<input type="hidden" name="fat_faulkner" id="fat_faulkner_input">
-<input type="hidden" name="fat_carter" id="fat_carter_input">
-<input type="hidden" name="fat_average" id="fat_average_input">
-
-
-<!-- =========================
-     OPSLAAN (ÉÉN KEER)
-========================== -->
-<div class="form-actions">
-    <button type="submit" class="primary-btn skinfold-save-btn">
-        💾 Metingen opslaan
-    </button>
-</div>
-
-
-
-        <!-- =========================
-             BODY FAT RESULTS
-        ========================== -->
-        <div class="card skinfold-card">
-            <h4>Vetpercentage (laatste meting)</h4>
-
-            <ul class="fat-results">
-                <li>Durnin–Womersley: <strong id="fat-dw">—</strong>%</li>
-                <li>Faulkner: <strong id="fat-faulkner">—</strong>%</li>
-                <li>Carter: <strong id="fat-carter">—</strong>%</li>
-            </ul>
-
-            <p>
-                <strong>Gemiddelde:</strong>
-                <span id="fat-average">—</span>%
-            </p>
-        </div>
-
-        <div class="card skinfold-card">
-            <h4>📈 Trend huidplooien</h4>
-
-            <canvas id="skinfoldTrendChart" height="120"></canvas>
-
-            <p class="subtext" style="margin-top: 12px;">
-                Trend van de som van huidplooien over tijd.
-            </p>
-        </div>
-
-
-    </form>
-
-</section>
-
-{% endif %}
-
-
-
-{{ chart_labels|json_script:"chart-labels" }}
-{{ chart_values|json_script:"chart-values" }}
-
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-
-    /* =====================================================
-       CONSTANTEN & HULPFUNCTIES
-    ===================================================== */
-
-    const THRESHOLD = 5; // % verschil m1 vs m2
-
-    function num(val) {
-        if (val === undefined || val === null) return null;
-
-        const s = String(val)
-            .trim()
-            .replace(",", ".");
-
-        if (s === "") return null;
-
-        const v = Number(s);
-        return Number.isFinite(v) ? v : null;
-    }
-
-    const mean = (a, b) => (a + b) / 2;
-
-    /* =====================================================
-       OPSLAAN BEREKENDE VETPERCENTAGES
-    ===================================================== */
-
-    function updateFatInputs(fatDW, fatFaulkner, fatCarter, avg) {
-
-        const setValue = (id, value) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-
-            if (Number.isFinite(value)) {
-                el.value = value.toFixed(1);
-            } else {
-                el.value = "";
-            }
-        };
-
-        setValue("fat_dw_input", fatDW);
-        setValue("fat_faulkner_input", fatFaulkner);
-        setValue("fat_carter_input", fatCarter);
-        setValue("fat_average_input", avg);
-    }
-
-    /* =====================================================
-       PER RIJ: % VERSCHIL + 3E METING
-    ===================================================== */
-
-    function updateRow(row) {
-        const v1 = num(row.querySelector(".m1").value);
-        const v2 = num(row.querySelector(".m2").value);
-
-        const diffCell = row.querySelector(".percent-diff");
-        const thirdCell = row.querySelector(".third-measure");
-
-        if (v1 === null || v2 === null) {
-            diffCell.textContent = "—";
-            thirdCell.textContent = "—";
-            thirdCell.style.color = "";
-            return;
-        }
-
-        const pct = Math.abs(v1 - v2) / mean(v1, v2) * 100;
-        diffCell.textContent = pct.toFixed(2) + "%";
-
-        if (pct > THRESHOLD) {
-            thirdCell.textContent = "Yes";
-            thirdCell.style.color = "#e30613";
-        } else {
-            thirdCell.textContent = "No";
-            thirdCell.style.color = "#2ecc71";
-        }
-    }
-
-    /* =====================================================
-       SOM SKINFOLDS
-    ===================================================== */
-
-    function calculateSkinfoldSum() {
-        let sum = 0;
-
-        document.querySelectorAll(".skinfold-row").forEach(row => {
-            const m1 = num(row.querySelector(".m1").value);
-            const m2 = num(row.querySelector(".m2").value);
-            const m3 = num(row.querySelector(".m3").value);
-
-            let value = null;
-
-            if (m1 !== null && m2 !== null) value = mean(m1, m2);
-            if (m3 !== null) value = m3;
-
-            if (value !== null) sum += value;
-        });
-
-        document.getElementById("skinfold-total").textContent = sum.toFixed(1);
-        return sum;
-    }
-
-    /* =====================================================
-       VETPERCENTAGE
-    ===================================================== */
-
-    function updateBodyFat() {
-
-        const getSite = name =>
-            num(document.querySelector(`[data-site="${name}"]`)?.value);
-
-        let fatDW = 0, fatFaulkner = 0, fatCarter = 0;
-
-        // Durnin–Womersley
-        const dwSites = [
-            "Triceps SF",
-            "Biceps SF",
-            "Subscapular SF",
-            "Iliac crest SF"
-        ];
-
-        const dwValues = dwSites.map(getSite);
-
-        if (dwValues.every(v => v !== null)) {
-            const sumDW = dwValues.reduce((a, b) => a + b, 0);
-            const density = 1.1631 - (0.0632 * Math.log10(sumDW));
-            fatDW = ((4.95 / density) - 4.5) * 100;
-        }
-
-        // Faulkner
-        const faulknerSites = [
-            "Triceps SF",
-            "Subscapular SF",
-            "Supraspinale SF",
-            "Abdominale SF"
-        ];
-
-        const fValues = faulknerSites.map(getSite);
-
-        if (fValues.every(v => v !== null)) {
-            fatFaulkner = 5.783 + 0.153 * fValues.reduce((a, b) => a + b, 0);
-        }
-
-        // Carter
-        const sumSF = calculateSkinfoldSum();
-        if (sumSF > 0) fatCarter = 2.585 + 0.1051 * sumSF;
-
-        const methods = [fatDW, fatFaulkner, fatCarter].filter(v => v > 0);
-        const avg = methods.length
-            ? methods.reduce((a, b) => a + b, 0) / methods.length
-            : 0;
-
-        document.getElementById("fat-dw").textContent = fatDW.toFixed(1);
-        document.getElementById("fat-faulkner").textContent = fatFaulkner.toFixed(1);
-        document.getElementById("fat-carter").textContent = fatCarter.toFixed(1);
-        document.getElementById("fat-average").textContent = avg.toFixed(1);
-
-        // 🔑 NIEUW: opslaan in hidden inputs
-        updateFatInputs(fatDW, fatFaulkner, fatCarter, avg);
-    }
-
-    /* =====================================================
-       📈 SKINFOLD TREND CHART
-    ===================================================== */
-
-    const ctx = document.getElementById("skinfoldTrendChart");
-
-    if (ctx && window.Chart) {
-        new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: ["2024-09-01", "2024-09-15", "2024-10-01", "2024-10-15"],
-                datasets: [{
-                    label: "Som huidplooien (mm)",
-                    data: [62, 58, 55, 52],
-                    borderColor: "#e30613",
-                    backgroundColor: "rgba(227,6,19,0.1)",
-                    fill: true,
-                    tension: 0.3,
-                    pointRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
-
-    /* =====================================================
-       EVENTS
-    ===================================================== */
-
-    document.querySelectorAll(".skinfold-row").forEach(row => {
-        row.querySelectorAll("input").forEach(input => {
-            input.addEventListener("input", () => {
-                updateRow(row);
-                updateBodyFat();
-            });
-        });
-    });
-
-});
-</script>
-
-
-
-<style>
-
 /* =========================
-   PAGE TOGGLE (VOEDING / HUIDPLOOIEN)
-   Zelfde stijl als Training/Wedstrijd knoppen
+   WEDSTRIJDVOEDING INFOGRAFIC
 ========================= */
-
-.page-toggle {
-    display: flex;
-    justify-content: center;
-    gap: 14px;
-    margin: 30px 0;
+.match-infographic {
+    margin: 10px 0 40px 0;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 22px 24px 30px;
+    box-shadow: 0 8px 28px rgba(31, 42, 68, 0.08);
+    border: 1px solid rgba(31, 42, 68, 0.06);
 }
 
-/* Basis knop */
-.page-toggle .toggle-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+.info-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
 
-    padding: 12px 26px;
-    border-radius: 999px; /* pill shape */
+.info-head h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1f2a44;
+}
+
+.info-sub {
+    color: #5f6b82;
     font-weight: 600;
     font-size: 0.95rem;
-
-    text-decoration: none;
-    color: #1f2a44;
-    background: #ffffff;
-
-    box-shadow: 0 6px 18px rgba(31, 42, 68, 0.12);
-    transition:
-        background 0.25s ease,
-        color 0.25s ease,
-        transform 0.15s ease,
-        box-shadow 0.15s ease;
 }
 
-/* Hover (niet actief) */
-.page-toggle .toggle-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 26px rgba(31, 42, 68, 0.18);
+.info-stage {
+    position: relative;
+    padding: 18px 10px 10px;
 }
 
-/* Actieve knop */
-.page-toggle .toggle-btn.active {
-    background: linear-gradient(135deg, #1f2a44, #182036);
-    color: #ffffff;
-
-    box-shadow: 0 10px 30px rgba(31, 42, 68, 0.35);
+.time-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
 }
 
-/* Hover op actieve knop */
-.page-toggle .toggle-btn.active:hover {
-    transform: none;
-    box-shadow: 0 12px 34px rgba(31, 42, 68, 0.4);
+.time-item {
+    background: #f9fbff;
+    border: 1px solid rgba(31, 42, 68, 0.08);
+    border-radius: 14px;
+    padding: 12px 12px 10px;
+    box-shadow: 0 4px 14px rgba(31, 42, 68, 0.06);
 }
 
-
-/* =========================================================
-   SKINFOLDS – WILLEM II PERFORMANCE STYLING
-========================================================= */
-
-.skinfold-section {
-    margin-top: 30px;
-    font-family: "Poppins", sans-serif;
+.time-item.center {
+    border-top: 3px solid #e74c3c;
 }
 
-/* TITELS */
-.skinfold-section h3 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #1f2a44;
+.time-label {
+    font-weight: 800;
+    color: #e74c3c;
+    font-size: 0.95rem;
     margin-bottom: 6px;
 }
 
-.skinfold-section .subtext {
-    font-size: 0.95rem;
-    color: #5f6b82;
-    margin-bottom: 25px;
-}
-
-/* ---------------------------------------------------------
-   CARDS
---------------------------------------------------------- */
-.skinfold-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 22px 24px;
-    margin-bottom: 22px;
-    box-shadow: 0 8px 28px rgba(31, 42, 68, 0.08);
-}
-
-.skinfold-card h4 {
-    font-size: 1.05rem;
-    font-weight: 600;
+.time-title {
+    font-weight: 800;
     color: #1f2a44;
-    margin-bottom: 18px;
-    border-left: 4px solid #e30613; /* Willem II rood */
-    padding-left: 10px;
-}
-
-/* ---------------------------------------------------------
-   META GRID (ALGEMENE GEGEVENS)
---------------------------------------------------------- */
-.skinfold-meta-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 18px;
-}
-
-.skinfold-meta-grid label {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #5f6b82;
     margin-bottom: 4px;
-    display: block;
 }
 
-.skinfold-meta-grid input,
-.skinfold-meta-grid select {
+.time-note {
+    color: #5f6b82;
+    font-size: 0.88rem;
+    margin-bottom: 8px;
+}
+
+.time-icons {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.time-icons img {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 10px rgba(31, 42, 68, 0.18));
+}
+
+.time-line {
+    position: relative;
+    height: 46px;
+    margin-top: 12px;
+}
+
+.time-line::before {
+    content: "";
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: 50%;
+    height: 6px;
+    background: linear-gradient(90deg, #e74c3c, #f1c40f, #2ecc71);
+    border-radius: 999px;
+    transform: translateY(-50%);
+}
+
+.time-dot {
+    position: absolute;
+    left: var(--pos);
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: #1f2a44;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    border-radius: 999px;
+    box-shadow: 0 6px 14px rgba(31, 42, 68, 0.2);
+}
+
+@media (max-width: 1000px) {
+    .time-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .time-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .time-line {
+        display: none;
+    }
+}
+
+
+
+  /* =========================
+   ALGEMEEN
+========================= */
+.player-section {
+    margin-top: 30px;
+}
+
+.player-section h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2a44;
+    margin-bottom: 14px;
+}
+
+/* =========================
+   GEWICHTEN TABEL
+========================= */
+.player-table-wrapper {
+    overflow-x: auto;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.table-players {
     width: 100%;
-    padding: 10px 12px;
+    border-collapse: collapse;
     font-size: 0.95rem;
+    background-color: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.table-players thead th {
+    background-color: #1f2a44;
+    color: #ffffff;
+    text-align: left;
+    padding: 14px 16px;
+    font-weight: 600;
+    font-size: 0.93rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.table-players .meetdate-cell {
+    min-width: 160px;
+}
+.table-players .meetdate-input {
+    width: 150px;
+    max-width: 100%;
     border-radius: 10px;
     border: 1.5px solid #d3d9e4;
+    padding: 6px 10px;
     background: #fafbfc;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-
-.skinfold-meta-grid input:focus,
-.skinfold-meta-grid select:focus {
+.table-players .meetdate-input:focus {
     outline: none;
     border-color: #1f2a44;
-    background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(31, 42, 68, 0.12);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(31, 42, 68, 0.12);
 }
 
-/* ---------------------------------------------------------
-   TABLES
---------------------------------------------------------- */
-.skinfold-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 0.9rem;
+.table-players tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e6e9ef;
+    vertical-align: middle;
+    transition: background-color 0.2s ease;
 }
 
-.skinfold-table thead th {
-    background: linear-gradient(180deg, #1f2a44, #182036);
-    color: #ffffff;
-    font-weight: 600;
-    padding: 14px 12px;
+.table-players tbody tr:nth-child(even) {
+    background-color: #f8f9fb;
+}
+
+.table-players tbody tr:hover {
+    background-color: #eef2f8;
+}
+
+.table-players td,
+.table-players th {
     text-align: left;
 }
 
-.skinfold-table thead th:first-child {
-    border-top-left-radius: 12px;
-}
-
-.skinfold-table thead th:last-child {
-    border-top-right-radius: 12px;
-}
-
-.skinfold-table tbody tr:nth-child(even) {
-    background-color: #f7f9fc;
-}
-
-.skinfold-table tbody tr:hover {
-    background-color: #eef2f7;
-}
-
-.skinfold-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #e5e9f2;
-    vertical-align: middle;
-}
-
-/* LOCATIE CEL */
-.skinfold-table td:first-child {
+.weight-player-name {
+    font-size: 0.95rem;
     font-weight: 600;
     color: #1f2a44;
-    width: 180px;
+    letter-spacing: 0.2px;
 }
 
-/* INPUTS IN TABEL */
-.skinfold-table input {
-    width: 100%;
-    padding: 8px 10px;
-    border-radius: 8px;
-    border: 1.5px solid #d3d9e4;
-    background: #fafbfc;
+.weight-pdf-btn {
+    position: static;
+    background: #1f2a44;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-weight: 700;
+}
+.weight-pdf-btn:hover {
+    background: #182036;
+}
+.weights-actions{
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+}
+
+.weight-row {
+    cursor: pointer;
+}
+.weight-row:hover {
+    background-color: #eef2f8;
+}
+.weight-chart-wrap {
+    margin-top: 16px;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid rgba(31, 42, 68, 0.08);
+    box-shadow: 0 4px 12px rgba(31, 42, 68, 0.06);
+}
+.weight-chart-title {
+    margin: 0 0 6px 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1f2a44;
+}
+.weight-chart-sub {
+    margin: 0 0 10px 0;
+    color: #6c757d;
     font-size: 0.9rem;
 }
 
-.skinfold-table input:focus {
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(3px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+}
+.close {
+    float: right;
+    font-size: 1.4rem;
+    cursor: pointer;
+    color: #333;
+    position: relative;
+    z-index: 1;
+}
+.close:hover { color: #b60000; }
+
+/* =========================
+   FORM SELECT (speler)
+========================= */
+.player-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #1f2a44;
+    font-weight: 600;
+}
+
+.player-form .form-select {
+    max-width: 360px;
+    border-radius: 10px;
+    border: 1.5px solid #d3d9e4;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(31, 42, 68, 0.06);
+}
+
+.player-form .form-select:focus {
     outline: none;
     border-color: #1f2a44;
+    box-shadow: 0 0 0 4px rgba(31, 42, 68, 0.12);
+}
+
+/* =========================
+   KAARTEN (speler + intake)
+========================= */
+.player-card,
+.focus-card {
     background: #ffffff;
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 8px 26px rgba(31, 42, 68, 0.08);
+    border: 1px solid rgba(31, 42, 68, 0.06);
+    margin-bottom: 18px;
 }
 
-/* ---------------------------------------------------------
-   3RD MEASURE & % DIFF
---------------------------------------------------------- */
-.third-measure,
-.percent-diff {
-    font-weight: 600;
-    text-align: center;
-    color: #5f6b82;
-}
-
-/* ---------------------------------------------------------
-   SOM SKINFOLDS
---------------------------------------------------------- */
-.skinfold-sum {
-    margin-top: 18px;
-    padding: 14px 18px;
-    background: linear-gradient(135deg, #f7f9fc, #eef2f7);
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #1f2a44;
-    border-left: 5px solid #e30613;
-}
-
-/* ---------------------------------------------------------
-   FAT RESULTS
---------------------------------------------------------- */
-.fat-results {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 10px 0;
-}
-
-.fat-results li {
-    padding: 6px 0;
-    font-size: 0.95rem;
-    color: #1f2a44;
-}
-
-/* ---------------------------------------------------------
-   OPSLAAN KNOP – WILLEM II SIGNATURE
---------------------------------------------------------- */
-.form-actions {
-    margin-top: 30px;
+.player-card-top {
     display: flex;
-    justify-content: flex-end;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
-.skinfold-save-btn {
-    background: linear-gradient(135deg, #0b1f3b, #08162b);
-    color: #ffffff;
-    border: none;
-    padding: 14px 30px;
-    font-size: 1rem;
+.player-name {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #e74c3c;
+}
+
+.player-subtitle {
+    color: #6b7280;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+/* =========================
+   INTAKE TEKST
+========================= */
+.focus-card h4 {
+    margin-bottom: 6px;
+    font-size: 1.1rem;
     font-weight: 700;
-    border-radius: 14px;
-
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-
-    cursor: pointer;
-    box-shadow: 0 10px 30px rgba(11, 31, 59, 0.35);
-
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease;
+    color: #1f2a44;
 }
 
-.skinfold-save-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 38px rgba(11, 31, 59, 0.5);
+.intake-subtext {
+    margin: 0 0 14px 0;
+    color: #6b7280;
+    font-size: 0.93rem;
 }
 
-.skinfold-save-btn:active {
+/* =========================
+   INTAKE LAYOUT
+========================= */
+.intake-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.intake-field {
+    margin-top: 10px;
+}
+
+.intake-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #1f2a44;
+    font-weight: 700;
+    font-size: 0.92rem;
+}
+
+.intake-divider {
+    margin: 18px 0;
+    border: none;
+    border-top: 1px solid #e6eaf2;
+}
+
+.intake-section-title {
+    margin: 0 0 8px 0;
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: #1f2a44;
+}
+
+/* =========================
+   INPUTS / TEXTAREA
+========================= */
+.focus-card .form-control,
+.focus-card .form-select {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+
+    border-radius: 12px;
+    border: 1.5px solid #d3d9e4;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    background-color: #fafbfc;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.focus-card .form-control:focus,
+.focus-card .form-select:focus {
+    outline: none;
+    border-color: #1f2a44;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(31, 42, 68, 0.12);
+}
+
+/* Placeholder */
+.focus-card .form-control::placeholder {
+    color: #9aa4b2;
+}
+
+/* =========================
+   OPSLAAN KNOP
+========================= */
+.intake-save-btn,
+.focus-card .btn.btn-primary {
+    background: linear-gradient(135deg, #1f2a44, #182036);
+    border: none;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-weight: 800;
+    color: #ffffff; /* ← tekst wit */
+    box-shadow: 0 8px 18px rgba(31, 42, 68, 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
+}
+
+.intake-save-btn:hover,
+.focus-card .btn.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(31, 42, 68, 0.3);
+    color: #ffffff; /* ← tekst wit houden bij hover */
+}
+
+.intake-save-btn:active,
+.focus-card .btn.btn-primary:active {
     transform: translateY(0);
-    box-shadow: 0 6px 18px rgba(11, 31, 59, 0.3);
+    box-shadow: 0 6px 14px rgba(31, 42, 68, 0.22);
+    color: #ffffff; /* ← tekst wit houden bij click */
 }
 
-
-/* ---------------------------------------------------------
+/* =========================
    RESPONSIVE
---------------------------------------------------------- */
+========================= */
 @media (max-width: 768px) {
-    .skinfold-table thead {
-        display: none;
+    .intake-grid {
+        grid-template-columns: 1fr;
     }
 
-    .skinfold-table tr {
-        display: block;
-        margin-bottom: 16px;
-        background: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 6px 18px rgba(31, 42, 68, 0.1);
+    .player-form .form-select {
+        max-width: 100%;
+        width: 100%;
     }
 
-    .skinfold-table td {
-        display: block;
-        padding: 10px 14px;
-        border: none;
+    .player-card,
+    .focus-card {
+        padding: 16px;
     }
 
-    .skinfold-table td:first-child {
-        background: linear-gradient(180deg, #1f2a44, #182036);
-        color: #ffffff;
-        border-radius: 12px 12px 0 0;
+    /* Inputs op mobiel weer lekker breed */
+    .focus-card .form-control,
+    .focus-card .form-select {
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
     }
-
-}.form-select {
-    height: 38px;
-    line-height: 38px;
 }
+
+/* =========================
+   PLAYER HEADER
+========================= */
+.player-header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+
+.player-title{
+  margin:0;
+  font-size:1.25rem;
+  font-weight:800;
+  color:#1f2a44;
+}
+
+.player-label{
+  display:block;
+  margin-bottom:8px;
+  font-weight:700;
+  color:#1f2a44;
+}
+
+/* =========================
+   CARD STRUCTURE
+========================= */
+.card-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.card-title{ margin:0; }
+
+.card-subtitle{
+  margin:6px 0 0 0;
+  color:#6b7280;
+  font-size:0.93rem;
+}
+
+/* =========================
+   META INFO
+========================= */
+.player-meta{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-top:6px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:0.82rem;
+  font-weight:800;
+  color:#1f2a44;
+  background:#eef2f7;
+  border:1px solid rgba(31,42,68,0.08);
+}
+
+.meta-text{
+  color:#6b7280;
+  font-size:0.88rem;
+  font-weight:600;
+}
+
+/* =========================
+   SECTIONS
+========================= */
+.section{
+  padding:14px 0;
+  border-top:1px solid #eef1f6;
+}
+
+.section:first-child{
+  border-top:none;
+  padding-top:0;
+}
+
+.section-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+.section-title{
+  margin:0;
+  font-size:1.05rem;
+  font-weight:900;
+  color:#1f2a44;
+}
+
+.section-hint{
+  color:#9aa4b2;
+  font-size:0.85rem;
+  font-weight:700;
+}
+
+/* =========================
+   GRID LAYOUT
+========================= */
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px 16px;
+  width:100%;
+}
+
+/* =========================
+   FIELDS
+========================= */
+.field{
+  margin-top:10px;
+  width:100%;
+}
+
+.field:first-child{
+  margin-top:0;
+}
+
+.field-label{
+  display:block;
+  margin-bottom:6px;
+  color:#1f2a44;
+  font-weight:800;
+  font-size:0.9rem;
+}
+
+/* =========================
+   INPUT FIXES
+========================= */
+.focus-card .form-control{
+  height:44px;
+  border-radius:12px;
+  border:1.5px solid #d3d9e4;
+  padding:10px 12px;
+  background:#fbfcfe;
+}
+
+.focus-card textarea.form-control{
+  height:auto;
+  min-height:110px;
+}
+
+/* =========================
+   SAVE BAR
+========================= */
+.savebar{
+  position:sticky;
+  bottom:12px;
+  margin-top:16px;
+  display:flex;
+  justify-content:flex-end;
+  background:rgba(255,255,255,0.88);
+  backdrop-filter: blur(8px);
+  border:1px solid rgba(31,42,68,0.08);
+  border-radius:14px;
+  padding:10px;
+}
+
+/* =========================
+   MOBILE GRID
+========================= */
+@media (max-width: 768px){
+  .grid-2{
+    grid-template-columns:1fr;
+  }
+}
+
 
 </style>
+{% endif %}
 
-
-{% endblock %}
 
 {% endblock %}

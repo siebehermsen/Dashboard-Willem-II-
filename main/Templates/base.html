@@ -5,112 +5,197 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Willem II Dashboard{% endblock %}</title>
 
-    <style>
-        /* ALGEMEEN */
-        body {
-            font-family: "Poppins", Arial, sans-serif;
-            background-color: #f7f9fc;
-            margin: 0;
-            padding: 0;
-            color: #1f2a44;
-        }
+<style>
+    /* =========================
+       ALGEMEEN
+    ========================= */
+    body {
+        font-family: "Poppins", Arial, sans-serif;
+        background-color: #f7f9fc;
+        margin: 0;
+        padding: 0;
+        color: #1f2a44;
+    }
 
-        header {
-            background-color: #1f2a44;
-            color: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-        }
+    /* =========================
+       HEADER
+    ========================= */
+    header {
+        background-color: #1f2a44;
+        color: #ffffff;
+        padding: 20px 40px;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 26px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
 
-        .header-left img {
-            height: 55px;
-        }
+    .header-left img {
+        height: 72px;
+    }
 
-        .dashboard-title {
-            font-weight: 700;
-            font-size: 1.4rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+    /* =========================
+       NAVIGATIE
+    ========================= */
+    nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+    }
 
-        /* NAVIGATIE */
+    nav a {
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 7px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        transition: all 0.2s ease;
+    }
+
+    nav a:hover,
+    nav a.active {
+        border-color: rgba(255, 255, 255, 0.65);
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    }
+
+    nav a.active {
+        border-color: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 0 1px rgba(231, 76, 60, 0.75) inset;
+    }
+
+    .nav-logout-btn {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 7px 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .nav-logout-btn:hover {
+        border-color: rgba(255, 255, 255, 0.65);
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    }
+
+    @media (max-width: 1700px) {
         nav {
-            display: flex;
-            align-items: center;
-            gap: 25px;
+            gap: 10px;
         }
+        nav a,
+        .nav-logout-btn {
+            font-size: 0.86rem;
+            padding: 6px 9px;
+        }
+    }
 
-        nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            padding-bottom: 4px;
-            transition: all 0.2s ease;
-            border-bottom: 2px solid transparent;
+    @media (max-width: 1450px) {
+        header {
+            gap: 16px;
+            padding: 16px 24px;
         }
+        .header-left img {
+            height: 62px;
+        }
+        nav {
+            gap: 8px;
+        }
+        nav a,
+        .nav-logout-btn {
+            font-size: 0.82rem;
+            padding: 5px 8px;
+        }
+    }
 
-        nav a:hover {
-            border-bottom: 2px solid #e74c3c;
-        }
+    /* =========================
+       PAGINA-INHOUD
+    ========================= */
+    .container {
+        max-width: 1100px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
 
-        nav a.active {
-            border-bottom: 2px solid #e74c3c;
-        }
+    /* =========================
+       FOOTER
+    ========================= */
+    footer {
+        text-align: center;
+        padding: 20px;
+        background: #f1f1f1;
+        margin-top: 50px;
+        color: #666;
+        font-size: 0.9rem;
+    }
 
-        /* PAGINA-INHOUD */
-        .container {
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
+    footer span {
+        color: #e74c3c;
+        font-weight: 600;
+    }
 
-        /* FOOTER */
-        footer {
-            text-align: center;
-            padding: 20px;
-            background: #f1f1f1;
-            margin-top: 50px;
-            color: #666;
-            font-size: 0.9rem;
-        }
+    /* =========================
+       PDF MODE (ALGEMEEN)
+    ========================= */
+    .pdf-mode header,
+    .pdf-mode nav,
+    .pdf-mode footer {
+        display: none !important;
+    }
 
-        footer span {
-            color: #e74c3c;
-            font-weight: 600;
-        }
-    </style>
+    .pdf-mode .container {
+        margin: 20px auto;
+        max-width: 1000px;
+    }
+</style>
+
+{# 🔽 PAGINA-SPECIFIEKE CSS (zoals huidplooimeting) #}
+{% block extra_head %}{% endblock extra_head %}
 </head>
 
-<body>
+
+<body class="{% if request.GET.pdf %}pdf-mode{% endif %}">    
 <header>
     <div class="header-left">
         <img src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg" alt="Willem II logo">
-        <span class="dashboard-title">Willem II Dashboard</span>
     </div>
 
     <nav>
         <a href="{% url 'dashboard' %}" class="{% if 'dashboard' in request.path %}active{% endif %}">Home</a>
-        <a href="{% url 'nutrition' %}" class="{% if 'nutrition' in request.path %}active{% endif %}">Voeding</a>
+        <a href="{% url 'nutrition' %}" class="{% if 'nutrition' in request.path or 'huidplooimeting' in request.path %}active{% endif %}">Voeding</a>
         <a href="{% url 'training' %}" class="{% if 'training' in request.path %}active{% endif %}">Training</a>
         <a href="{% url 'testdata' %}" class="{% if 'testdata' in request.path %}active{% endif %}">Testdata</a>
-        <a href="{% url 'revalidatie_gym' %}" class="{% if 'revalidatie-gym' in request.path %}active{% endif %}">Revalidatie Gym</a>
         <a href="{% url 'revalidatie' %}" class="{% if 'revalidatie' in request.path %}active{% endif %}">Revalidatie</a>
         <a href="{% url 'individuele_programmas' %}" class="{% if 'individuele_programmas' in request.path %}active{% endif %}">Individuele Programma's</a>
-        <a href="{% url 'rpe' %}">rpe</a>
+        <a href="{% url 'rpe' %}">RPE</a>
         <a href="{% url 'wellness' %}" class="{% if 'wellness' in request.path %}active{% endif %}">Wellness</a>
         <a href="{% url 'hit' %}" class="{% if 'hit' in request.path %}active{% endif %}">HIT</a>
         <a href="{% url 'aanwezigheden' %}" class="{% if 'aanwezigheden' in request.path %}active{% endif %}">Aanwezigheden</a>
+        <a href="{% url 'beweeganalyse' %}" class="{% if 'beweeganalyse' in request.path %}active{% endif %}">Beweeganalyse</a>
         <a href="{% url 'overig' %}">Overig</a>
+        <form method="post" action="{% url 'logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="nav-logout-btn">Uitloggen</button>
+        </form>
+        
 
 
     </nav>
@@ -126,3 +211,4 @@
 </footer>
 </body>
 </html>
+{% block scripts %}{% endblock scripts %}

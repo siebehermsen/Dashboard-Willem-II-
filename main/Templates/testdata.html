@@ -1,14 +1,14 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Testdata{% endblock %}
 
 {% block content %}
 <main style="max-width:1600px;margin:auto;padding:20px">
 
 <!-- ============================================ -->
-<!-- SPELERSELECTIE – MOOIE KAART                 -->
+<!-- SPELERSELECTIE â€“ MOOIE KAART                 -->
 <!-- ============================================ -->
 <section class="player-select-card">
-    <h2 class="card-title">🧪 Testdata Analyse</h2>
+    <h2 class="card-title">Testdata Analyse</h2>
     <p class="card-description">
         Selecteer een speler om zijn fysieke testresultaten te bekijken.
     </p>
@@ -46,7 +46,7 @@
     <!-- ========== RECHTERKOLOM (Donuts + Kwadrant) ========== -->
     <div class="metrics-row">
 
-        <!-- 2×2 DONUTS -->
+        <!-- 2Ã—2 DONUTS -->
         <div class="metrics-left">
             <div class="small-donuts">
 
@@ -107,7 +107,7 @@
             </div>
         </div>
 
-    </div> <!-- 🔥 ENIGE CORRECTE SLUITING VAN metrics-row -->
+    </div> <!-- ðŸ”¥ ENIGE CORRECTE SLUITING VAN metrics-row -->
 
 </section> <!-- sluit player-profile-layout -->
 
@@ -115,13 +115,13 @@
 <!--  ANTHROPOMETRIE TRENDGRAFIEK   -->
 <!-- =============================== -->
 <div class="anthro-card">
-    <h3 class="anthro-title">Gewicht & Huidplooien – Trend</h3>
+    <h3 class="anthro-title">Gewicht & Huidplooien â€“ Trend</h3>
 
     <div class="anthro-chart-container">
         <canvas id="anthroChart"></canvas>
     </div>
 
-</div> <!-- ✅ deze was vergeten -->
+</div> <!-- âœ… deze was vergeten -->
 
 <!-- =============================== -->
 <!--  JSON DATA VIA DJANGO          -->
@@ -132,7 +132,7 @@
 
 
 <!-- =============================== -->
-<!--  CHART.JS LADEN (ÉÉN KEER!)    -->
+<!--  CHART.JS LADEN (Ã‰Ã‰N KEER!)    -->
 <!-- =============================== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -197,114 +197,274 @@ document.addEventListener("DOMContentLoaded", () => {
 
  <!-- ===================================== -->
 <!-- NIEUWE TESTDATA INVOER (MOOIE LAYOUT) -->
-<!-- ===================================== -->
 {% if not selected_player %}
+<!-- ===================================== -->
 <section class="input-card">
 
-    <h3 class="input-title">📝 Nieuwe testdata invoeren</h3>
+    <div class="input-hero">
+        <h3 class="input-title">Nieuwe testdata invoeren</h3>
+        <p class="input-subtitle">Vul hieronder direct de basis en testresultaten in als een vloeiende invoer.</p>
+    </div>
 
     <form method="post" class="input-form">
         {% csrf_token %}
 
-        <!-- ====================== -->
-        <!-- DATUM METING (NIEUW) -->
-        <!-- ====================== -->
-        <h4 class="category-title">📅 Datum van de meting</h4>
+        {% now "Y-m-d" as today_date %}
+        <div class="form-step flow-section">
+        <h4 class="category-title">Testblokken</h4>
+        <p class="test-helper-text">Klik op een blok en vul alleen die test in. Je kunt tussen tabs wisselen.</p>
 
-        <div class="form-row">
-            <label for="test_date">Datum meting</label>
-            <input id="test_date" type="date" name="test_date" required>
+        <div class="test-tab-nav" role="tablist" aria-label="Testblokken">
+            <button type="button" class="test-tab-btn is-active" data-tab="tab-sprint" role="tab" aria-selected="true">
+                <span class="tab-title">Sprint</span>
+                <span class="tab-sub">10m + 30m</span>
+            </button>
+            <button type="button" class="test-tab-btn" data-tab="tab-uithouding" role="tab" aria-selected="false">
+                <span class="tab-title">Uithouding</span>
+                <span class="tab-sub">Submax</span>
+            </button>
+            <button type="button" class="test-tab-btn" data-tab="tab-isrt" role="tab" aria-selected="false">
+                <span class="tab-title">ISRT</span>
+                <span class="tab-sub">Looptest</span>
+            </button>
+            <button type="button" class="test-tab-btn" data-tab="tab-sprong" role="tab" aria-selected="false">
+                <span class="tab-title">Sprong</span>
+                <span class="tab-sub">CMJ</span>
+            </button>
+            <button type="button" class="test-tab-btn" data-tab="tab-gewicht" role="tab" aria-selected="false">
+                <span class="tab-title">Gewicht</span>
+                <span class="tab-sub">Body mass</span>
+            </button>
+            <button type="button" class="test-tab-btn" data-tab="tab-anthro" role="tab" aria-selected="false">
+                <span class="tab-title">Anthro</span>
+                <span class="tab-sub">Lengte + huidplooien</span>
+            </button>
         </div>
 
-        <!-- ====================== -->
-        <!-- SPELERSELECTIE -->
-        <!-- ====================== -->
-        <h4 class="category-title">👤 Speler</h4>
+        <div class="test-tab-panels">
+            <section class="test-tab-panel is-active" id="tab-sprint" role="tabpanel">
+                <h5 class="panel-title">Sprint</h5>
+                <div class="form-row panel-meta-row">
+                    <label for="player_id_sprint">Naam speler</label>
+                    <select id="player_id_sprint" class="js-panel-meta" data-meta="player_id" name="player_id" required>
+                        <option value="">-- Kies een speler --</option>
+                        {% for p in players %}
+                        <option value="{{ p.id }}" {% if selected_player and selected_player.id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row panel-meta-row">
+                    <label for="test_date_sprint">Datum meting</label>
+                    <input id="test_date_sprint" class="js-panel-meta" data-meta="test_date" type="date" name="test_date" value="{{ today_date }}" required>
+                </div>
+                <div class="form-row">
+                    <label for="s10">10m sprint (s)</label>
+                    <input id="s10" class="js-test-field" type="number" step="0.01" name="sprint_10" placeholder="Bijv. 1.72">
+                </div>
+                <div class="form-row">
+                    <label for="s30">30m sprint (s)</label>
+                    <input id="s30" class="js-test-field" type="number" step="0.01" name="sprint_30" placeholder="Bijv. 4.35">
+                </div>
+            </section>
 
-        <div class="form-row">
-            <label for="player_id">Speler</label>
-            <select name="player_id" id="player_id" required>
-                <option value="">-- Kies een speler --</option>
-                {% for p in players %}
-                <option value="{{ p.id }}">{{ p.name }}</option>
-                {% endfor %}
-            </select>
+            <section class="test-tab-panel" id="tab-uithouding" role="tabpanel" hidden>
+                <h5 class="panel-title">Uithouding</h5>
+                <div class="form-row panel-meta-row">
+                    <label for="player_id_uithouding">Naam speler</label>
+                    <select id="player_id_uithouding" class="js-panel-meta" data-meta="player_id" name="player_id" required>
+                        <option value="">-- Kies een speler --</option>
+                        {% for p in players %}
+                        <option value="{{ p.id }}" {% if selected_player and selected_player.id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row panel-meta-row">
+                    <label for="test_date_uithouding">Datum meting</label>
+                    <input id="test_date_uithouding" class="js-panel-meta" data-meta="test_date" type="date" name="test_date" value="{{ today_date }}" required>
+                </div>
+                <div class="form-row">
+                    <label for="submax">Submaximaal test (%HRmax)</label>
+                    <input id="submax" class="js-test-field" type="number" step="0.1" name="submax" placeholder="Bijv. 87.5">
+                </div>
+            </section>
+
+            <section class="test-tab-panel" id="tab-isrt" role="tabpanel" hidden>
+                <h5 class="panel-title">ISRT</h5>
+                <div class="form-row panel-meta-row">
+                    <label for="player_id_isrt">Naam speler</label>
+                    <select id="player_id_isrt" class="js-panel-meta" data-meta="player_id" name="player_id" required>
+                        <option value="">-- Kies een speler --</option>
+                        {% for p in players %}
+                        <option value="{{ p.id }}" {% if selected_player and selected_player.id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row panel-meta-row">
+                    <label for="test_date_isrt">Datum meting</label>
+                    <input id="test_date_isrt" class="js-panel-meta" data-meta="test_date" type="date" name="test_date" value="{{ today_date }}" required>
+                </div>
+                <div class="form-row">
+                    <label for="isrt">ISRT (m)</label>
+                    <input id="isrt" class="js-test-field" type="number" name="isrt" placeholder="Bijv. 1780">
+                </div>
+            </section>
+
+            <section class="test-tab-panel" id="tab-sprong" role="tabpanel" hidden>
+                <h5 class="panel-title">Sprong</h5>
+                <div class="form-row panel-meta-row">
+                    <label for="player_id_sprong">Naam speler</label>
+                    <select id="player_id_sprong" class="js-panel-meta" data-meta="player_id" name="player_id" required>
+                        <option value="">-- Kies een speler --</option>
+                        {% for p in players %}
+                        <option value="{{ p.id }}" {% if selected_player and selected_player.id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row panel-meta-row">
+                    <label for="test_date_sprong">Datum meting</label>
+                    <input id="test_date_sprong" class="js-panel-meta" data-meta="test_date" type="date" name="test_date" value="{{ today_date }}" required>
+                </div>
+                <div class="form-row">
+                    <label for="cmj">CMJ (cm)</label>
+                    <input id="cmj" class="js-test-field" type="number" step="0.1" name="cmj" placeholder="Bijv. 41.2">
+                </div>
+            </section>
+
+            <section class="test-tab-panel" id="tab-gewicht" role="tabpanel" hidden>
+                <h5 class="panel-title">Gewicht</h5>
+                <div class="form-row panel-meta-row">
+                    <label for="player_id_gewicht">Naam speler</label>
+                    <select id="player_id_gewicht" class="js-panel-meta" data-meta="player_id" name="player_id" required>
+                        <option value="">-- Kies een speler --</option>
+                        {% for p in players %}
+                        <option value="{{ p.id }}" {% if selected_player and selected_player.id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row panel-meta-row">
+                    <label for="test_date_gewicht">Datum meting</label>
+                    <input id="test_date_gewicht" class="js-panel-meta" data-meta="test_date" type="date" name="test_date" value="{{ today_date }}" required>
+                </div>
+                <div class="form-row">
+                    <label for="weight">Gewicht (kg)</label>
+                    <input id="weight" class="js-test-field" type="number" step="0.1" name="curr_weight" placeholder="Bijv. 72.5">
+                </div>
+            </section>
+
+            <section class="test-tab-panel" id="tab-anthro" role="tabpanel" hidden>
+                <h5 class="panel-title">Anthropometrie</h5>
+                <div class="form-row panel-meta-row">
+                    <label for="player_id_anthro">Naam speler</label>
+                    <select id="player_id_anthro" class="js-panel-meta" data-meta="player_id" name="player_id" required>
+                        <option value="">-- Kies een speler --</option>
+                        {% for p in players %}
+                        <option value="{{ p.id }}" {% if selected_player and selected_player.id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row panel-meta-row">
+                    <label for="test_date_anthro">Datum meting</label>
+                    <input id="test_date_anthro" class="js-panel-meta" data-meta="test_date" type="date" name="test_date" value="{{ today_date }}" required>
+                </div>
+                <div class="form-row">
+                    <label for="length">Lengte (cm)</label>
+                    <input id="length" class="js-test-field" type="number" step="0.1" name="length" placeholder="Bijv. 180">
+                </div>
+                <div class="form-row">
+                    <label for="skinfolds">Som huidplooien (mm)</label>
+                    <input id="skinfolds" class="js-test-field" type="number" step="0.1" name="sum_skinfolds" placeholder="Bijv. 42.0">
+                </div>
+            </section>
         </div>
-
-        <!-- ====================== -->
-        <!-- SPRINT -->
-        <!-- ====================== -->
-        <h4 class="category-title">⚡ Sprint</h4>
-
-        <div class="form-row">
-            <label for="s10">10m sprint (s)</label>
-            <input id="s10" type="number" step="0.01" name="sprint_10" placeholder="Bijv. 1.72">
-        </div>
-
-        <div class="form-row">
-            <label for="s30">30m sprint (s)</label>
-            <input id="s30" type="number" step="0.01" name="sprint_30" placeholder="Bijv. 4.35">
-        </div>
-
-        <!-- ====================== -->
-        <!-- SPRONGKRACHT -->
-        <!-- ====================== -->
-        <h4 class="category-title">🦘 Sprongkracht</h4>
-
-        <div class="form-row">
-            <label for="cmj">CMJ (cm)</label>
-            <input id="cmj" type="number" step="0.1" name="cmj" placeholder="Bijv. 41.2">
-        </div>
-
-        <!-- ====================== -->
-        <!-- UITHOUDINGSVERMOGEN -->
-        <!-- ====================== -->
-        <h4 class="category-title">💨 Uithoudingsvermogen</h4>
-
-        <div class="form-row">
-            <label for="isrt">ISRT (m)</label>
-            <input id="isrt" type="number" name="isrt" placeholder="Bijv. 1780">
-        </div>
-
-        <div class="form-row">
-            <label for="submax">Submaximaal test (%HRmax)</label>
-            <input id="submax" type="number" step="0.1" name="submax" placeholder="Bijv. 87.5">
-        </div>
-
-        <!-- ====================== -->
-        <!-- ANTROPOMETRIE -->
-        <!-- ====================== -->
-        <h4 class="category-title">📏 Antropometrie</h4>
-
-        <div class="form-row">
-            <label for="weight">Gewicht (kg)</label>
-            <input id="weight" type="number" step="0.1" name="curr_weight" placeholder="Bijv. 72.5">
-        </div>
-
-        <div class="form-row">
-            <label for="length">Lengte (cm)</label>
-            <input id="length" type="number" step="0.1" name="length" placeholder="Bijv. 180">
-        </div>
-
-        <div class="form-row">
-            <label for="skinfolds">Som huidplooien (mm)</label>
-            <input id="skinfolds" type="number" step="0.1" name="sum_skinfolds" placeholder="Bijv. 42.0">
         </div>
 
         <!-- ====================== -->
         <!-- OPSLAAN BUTTON -->
         <!-- ====================== -->
         <div class="button-container">
-            <button type="submit" class="save-btn">💾 Opslaan</button>
+            <button type="submit" class="save-btn">Opslaan</button>
         </div>
 
     </form>
 </section>
 {% endif %}
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tabButtons = document.querySelectorAll(".test-tab-btn");
+    const tabPanels = document.querySelectorAll(".test-tab-panel");
+    const formEl = document.querySelector(".input-form");
+    const testFields = document.querySelectorAll(".js-test-field");
+    const metaFields = document.querySelectorAll(".js-panel-meta");
+
+    function openTab(targetId) {
+        tabButtons.forEach((btn) => {
+            const active = btn.dataset.tab === targetId;
+            btn.classList.toggle("is-active", active);
+            btn.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        tabPanels.forEach((panel) => {
+            const active = panel.id === targetId;
+            panel.classList.toggle("is-active", active);
+            panel.hidden = !active;
+            panel.querySelectorAll(".js-panel-meta").forEach((field) => {
+                field.disabled = !active;
+                field.required = active;
+            });
+        });
+    }
+
+    function syncMetaValues(changedField) {
+        const key = changedField.dataset.meta;
+        if (!key) return;
+        const value = changedField.value;
+        metaFields.forEach((field) => {
+            if (field === changedField) return;
+            if (field.dataset.meta === key) {
+                field.value = value;
+            }
+        });
+    }
+
+    tabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            openTab(button.dataset.tab);
+        });
+    });
+
+    metaFields.forEach((field) => {
+        const eventName = field.tagName === "SELECT" ? "change" : "input";
+        field.addEventListener(eventName, () => syncMetaValues(field));
+    });
+
+    if (formEl) {
+        formEl.addEventListener("submit", (event) => {
+            const hasAnyValue = Array.from(testFields).some((field) => String(field.value || "").trim() !== "");
+            if (!hasAnyValue) {
+                event.preventDefault();
+                alert("Vul minimaal één testwaarde in voordat je opslaat.");
+            }
+        });
+    }
+
+    openTab("tab-sprint");
+    const firstDateInput = document.querySelector('.js-panel-meta[data-meta="test_date"]');
+    if (firstDateInput && !firstDateInput.value) {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, "0");
+        const d = String(now.getDate()).padStart(2, "0");
+        firstDateInput.value = `${y}-${m}-${d}`;
+        syncMetaValues(firstDateInput);
+    }
+});
+</script>
+
 
 <script>
-const quadrantCtx = document.getElementById("quadrantChart").getContext("2d");
+const quadrantCanvas = document.getElementById("quadrantChart");
+if (quadrantCanvas) {
+const quadrantCtx = quadrantCanvas.getContext("2d");
 
 new Chart(quadrantCtx, {
     type: "scatter",
@@ -369,10 +529,7 @@ new Chart(quadrantCtx, {
         }
     }
 });
-</script>
-
-
-
+}
 </script>
 
 <!-- ==================================================== -->
@@ -408,6 +565,7 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
 
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap');
 
 /* ================================ */
 /* KAART STYLING                    */
@@ -513,7 +671,7 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
 }
 
 /* ======================================= */
-/* DONUT GRID – iets verder naar links     */
+/* DONUT GRID â€“ iets verder naar links     */
 /* ======================================= */
 
 .small-donuts {
@@ -524,12 +682,12 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
     justify-content: start;      /* donuts links uitlijnen */
     align-items: start;
 
-    margin-left: -20px;          /* 🔥 sterkere linkerschuiving */
+    margin-left: -20px;          /* ðŸ”¥ sterkere linkerschuiving */
 }
 
 
 /* ======================================= */
-/* DONUT CARD – strak & clean              */
+/* DONUT CARD â€“ strak & clean              */
 /* ======================================= */
 
 .donut-card {
@@ -576,7 +734,7 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
     left: 50%;
 
     transform: translate(-50%, -54%);  
-    /* -48% = minder correctie → tekst komt hoger uit, visueel midden */
+    /* -48% = minder correctie â†’ tekst komt hoger uit, visueel midden */
 
     font-size: 1.25rem;
     font-weight: 800;
@@ -648,20 +806,40 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
 /* INVOER KAART                                   */
 /* ============================================= */
 .input-card {
-    background: #ffffff;
-    padding: 28px;
-    border-radius: 14px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    background:
+        radial-gradient(1200px 280px at -10% -40%, rgba(182, 0, 0, 0.08), transparent 60%),
+        radial-gradient(1000px 300px at 120% -60%, rgba(31, 42, 68, 0.10), transparent 60%),
+        #ffffff;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(31, 42, 68, 0.10);
     margin-top: 40px;
     margin-bottom: 50px;
     border-left: 5px solid #B60000; /* Willem II rood */
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: "Manrope", sans-serif;
+}
+
+.input-hero {
+    margin-bottom: 14px;
 }
 
 .input-title {
-    font-size: 1.4rem;
-    font-weight: 700;
+    font-size: 2rem;
+    line-height: 1.1;
+    font-weight: 800;
+    font-family: "Space Grotesk", sans-serif;
     color: #1F2A44;
-    margin-bottom: 20px;
+    margin: 0 0 6px;
+}
+
+.input-subtitle {
+    margin: 0;
+    color: #5b6577;
+    font-size: 1rem;
+    max-width: 760px;
 }
 
 /* ============================================= */
@@ -670,12 +848,69 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
 .input-form {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 8px;
+}
+
+.form-step {
+    padding: 8px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    position: relative;
+}
+
+.flow-section + .flow-section {
+    margin-top: 10px;
+    padding-top: 16px;
+    border-top: 1px dashed #d7dfee;
+}
+
+.base-inline {
+    display: grid;
+    grid-template-columns: 90px 1fr 1fr;
+    gap: 10px 12px;
+    align-items: center;
+    padding-bottom: 6px;
+}
+
+.base-inline .category-title {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #50617f;
+    font-weight: 700;
+}
+
+.base-inline .form-row {
+    grid-template-columns: 95px minmax(220px, 1fr);
+    margin: 0;
+}
+
+.base-inline .form-row label {
+    font-size: 0.9rem;
+    color: #5b6a84;
+}
+
+.step-header-inline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.selected-counter {
+    font-size: 0.88rem;
+    color: #1f2a44;
+    background: #f0f4ff;
+    border: 1px solid #c7d5f3;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-weight: 600;
 }
 
 .form-row {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(200px, 260px) minmax(280px, 1fr);
+    gap: 14px;
     align-items: center;
 }
 
@@ -687,12 +922,11 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
 
 .form-row input,
 .form-row select {
-    flex: 1.2;
-    padding: 10px 12px;
-    border-radius: 8px;
+    padding: 11px 12px;
+    border-radius: 10px;
     border: 1px solid #c7cbd3;
-    font-size: 0.95rem;
-    background: #f7f8fa;
+    font-size: 0.98rem;
+    background: #f9fbff;
     transition: 0.2s ease;
 }
 
@@ -708,28 +942,207 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
     margin-top: 10px;
     text-align: right;
 }
-
-.save-btn {
-    background: #1F2A44;
-    color: white;
-    padding: 10px 22px;
-    border-radius: 10px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-.save-btn:hover {
-    background: #B60000;
-    transform: translateY(-2px);
-}
 .category-title {
     font-size: 1.1rem;
     font-weight: 700;
     color: #1F2A44;
-    margin-top: 25px;
+    margin-top: 2px;
     margin-bottom: 6px;
+}
+
+.test-helper-text {
+    margin: 6px 0 8px;
+    font-size: 0.98rem;
+    color: #4f5b72;
+}
+
+.result-fields {
+    display: grid;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.test-tab-nav {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.test-tab-btn {
+    border: 1px solid #c9d4ea;
+    background: linear-gradient(180deg, #ffffff, #f4f7ff);
+    color: #1f2a44;
+    border-radius: 16px;
+    padding: 22px 18px 20px;
+    min-height: 132px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 8px 18px rgba(31, 42, 68, 0.08);
+}
+
+.test-tab-btn .tab-title {
+    font-size: 1.34rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.test-tab-btn .tab-sub {
+    font-size: 1rem;
+    color: #5f6d86;
+    line-height: 1.2;
+}
+
+.test-tab-btn:hover {
+    border-color: #9fb4db;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(31, 42, 68, 0.15);
+}
+
+.test-tab-btn.is-active {
+    color: #fff;
+    border-color: #1f2a44;
+    background: linear-gradient(135deg, #1f2a44, #3a4f80);
+    box-shadow: 0 8px 20px rgba(31, 42, 68, 0.24);
+}
+
+.test-tab-btn.is-active .tab-sub {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.test-tab-panels {
+    margin-top: 16px;
+}
+
+.test-tab-panel {
+    border: 1px solid #d8e2f2;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    padding: 18px;
+    box-shadow: 0 8px 20px rgba(31, 42, 68, 0.06);
+}
+
+.panel-title {
+    margin: 0 0 14px;
+    font-size: 1.24rem;
+    font-weight: 800;
+    color: #1f2a44;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e6edf8;
+}
+
+.test-tab-panel .form-row {
+    grid-template-columns: minmax(180px, 230px) minmax(300px, 1fr);
+    background: #ffffff;
+    border: 1px solid #e0e8f5;
+    border-radius: 12px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 3px 8px rgba(31, 42, 68, 0.04);
+}
+
+.test-tab-panel .form-row:last-child {
+    margin-bottom: 0;
+}
+
+.test-tab-panel .form-row label {
+    font-weight: 700;
+    color: #1f2a44;
+    font-size: 0.96rem;
+    letter-spacing: 0.01em;
+    padding-left: 2px;
+}
+
+.test-tab-panel .form-row input,
+.test-tab-panel .form-row select {
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid #cfd8ea;
+    background: #fbfdff;
+    font-size: 0.98rem;
+    padding: 7px 10px;
+}
+
+.test-tab-panel .form-row input::placeholder {
+    color: #8a95ab;
+}
+
+.test-tab-panel .form-row input:focus,
+.test-tab-panel .form-row select:focus {
+    border-color: #8ea6d6;
+    box-shadow: 0 0 0 3px rgba(88, 120, 184, 0.18);
+}
+
+.test-tab-panel .panel-meta-row {
+    background: linear-gradient(180deg, #f9fbff, #f3f7ff);
+    border-color: #d5e0f4;
+}
+
+.save-btn {
+    background: linear-gradient(135deg, #1F2A44, #2a467a);
+    color: white;
+    padding: 11px 24px;
+    border-radius: 11px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    box-shadow: 0 8px 20px rgba(31, 42, 68, 0.22);
+}
+
+.save-btn:hover {
+    background: linear-gradient(135deg, #B60000, #d01414);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(182, 0, 0, 0.24);
+}
+
+@media (max-width: 900px) {
+    .input-title {
+        font-size: 1.6rem;
+    }
+
+    .step-header-inline {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .test-tab-panel .form-row {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+
+    .base-inline {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .base-inline .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .test-tab-nav {
+        grid-template-columns: repeat(2, minmax(150px, 1fr));
+    }
+
+    .button-container {
+        text-align: left;
+    }
+}
+
+@media (max-width: 560px) {
+    .test-tab-nav {
+        grid-template-columns: 1fr;
+    }
 }
 .player-metrics-column {
     width: 100%;
@@ -816,7 +1229,7 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
 .anthro-card {
     background: #ffffff;
     border-radius: 20px;
-    padding: 10px 0 20px 0;  /* 🔥 LINKS/RECHTS GEEN PADDING MEER */
+    padding: 10px 0 20px 0;  /* ðŸ”¥ LINKS/RECHTS GEEN PADDING MEER */
     box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     margin-top: 25px;
     width: 100%;
@@ -838,7 +1251,7 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
     height: 450px;
     position: relative;
 
-    padding: 0 !important;   /* 🔥 GEEN INTERNE RUIMTE */
+    padding: 0 !important;   /* ðŸ”¥ GEEN INTERNE RUIMTE */
     margin: 0 !important;
 }
 
@@ -848,7 +1261,7 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
     height: 100% !important;
 
     display: block !important;
-    padding: 0 !important;   /* 🔥 VERZEKERT GEEN WITRUIMTE */
+    padding: 0 !important;   /* ðŸ”¥ VERZEKERT GEEN WITRUIMTE */
     margin: 0 !important;
 }
 
@@ -857,3 +1270,6 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
 
 
 {% endblock %}
+
+
+

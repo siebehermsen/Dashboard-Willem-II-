@@ -20,7 +20,7 @@
              src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg"
              alt="Willem II logo">
         <div class="header-text">
-            <h1>🏋️ Trainings- & Wedstrijdanalyse</h1>
+            <h1>Trainings- & Wedstrijdanalyse</h1>
             <p>Inzicht in belasting, afstand en intensiteit op team- en individueel niveau.</p>
         </div>
     </div>
@@ -34,12 +34,12 @@
 <div class="data-tabs-container">
     <a href="{% url 'training' %}"
        class="data-tab {% if active_page == 'training' %}active{% endif %}">
-        📊 Trainingdata
+        Trainingdata
     </a>
 
     <a href="{% url 'wedstrijddata' %}"
        class="data-tab {% if active_page == 'wedstrijd' %}active{% endif %}">
-        ⚽ Wedstrijddata
+        Wedstrijddata
     </a>
 </div>
 
@@ -48,7 +48,7 @@
 
 <!-- UPLOADFORMULIER -->
 <section class="card fade-in" style="margin-bottom: 25px;">
-    <h3>📁 Upload StatsSports CSV-bestand</h3>
+    <h3>Upload StatsSports CSV-bestand</h3>
 
     {% if active_page == "wedstrijd" %}
         <!-- WEDSTRIJD UPLOAD -->
@@ -75,6 +75,7 @@
  {% if active_page == "training" %}
 <section class="selection-section">
     <form method="get" action="" class="player-form">
+        <input type="hidden" name="metric" value="{{ selected_metric|default:'load' }}">
         <label for="player"><strong>Selecteer speler:</strong></label>
         <select name="player" id="player" onchange="this.form.submit()">
             <option value="">-- Teamniveau (geen speler) --</option>
@@ -90,9 +91,9 @@
 
 <!-- TITEL -->
 {% if selected_player %}
-    <h2 class="section-heading">📊 Trainingsbelasting van {{ selected_player.name }}</h2>
+    <h2 class="section-heading">Trainingsbelasting van {{ selected_player.name }}</h2>
 {% else %}
-    <h2 class="section-heading">📈 Gemiddelde trainingsbelasting team</h2>
+    <h2 class="section-heading">Gemiddelde trainingsbelasting team</h2>
     <p class="subtext">Overzicht van de gemiddelde trainingsbelasting, ACWR en wedstrijdbelasting.</p>
 {% endif %}
 
@@ -119,31 +120,55 @@
     </div>
 </section>
 
-<!-- 📊 Vergelijking tussen spelers -->
+<!-- Vergelijking tussen spelers -->
 <section class="card chart-card fade-in">
-    <h3>📊 Vergelijking tussen spelers</h3>
+    <div class="chart-header">
+        <h3>Vergelijking tussen spelers</h3>
+        <div class="metric-buttons">
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
+        </div>
+    </div>
     <p class="subtext">Totale load, afstand en sprints per speler.</p>
-    <canvas id="playerComparisonChart"></canvas>
+    <div class="chart-area">
+        <canvas id="playerComparisonChart"></canvas>
+    </div>
 </section>
 
 <!-- EWMA -->
-<section class="card chart-card fade-in">
+<section class="card chart-card fade-in chart-card-ewma">
     <div class="chart-header">
-        <h3>📉 Acute vs. Chronische Load (EWMA)</h3>
+        <h3>Acute vs. Chronische Load (EWMA)</h3>
 
         <div class="metric-buttons">
-            <a href="?metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
-            <a href="?metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
-            <a href="?metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D20+</a>
-            <a href="?metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
         </div>
     </div>
 
     <p class="subtext">Exponential moving average van de wekelijkse trainingsload.</p>
-    <canvas id="ewmaChart"></canvas>
+    <div class="chart-area chart-area-small">
+        <canvas id="ewmaChart"></canvas>
+    </div>
 </section>
 
-<!-- 📈 GRAFIEKEN -->
+<!-- GRAFIEKEN -->
+{{ training_data_json|json_script:"training_data_json" }}
+{{ training_daily_data_json|json_script:"training_daily_data_json" }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
@@ -151,53 +176,361 @@
 const playerLabels = {{ chart_labels|safe }};
 const playerLoad = {{ chart_loads|safe }};
 const playerDistance = {{ chart_distances|safe }};
+const playerHsd = {{ chart_hsd|safe }};
 const playerSprints = {{ chart_sprints|safe }};
+const playerMaxSpeed = {{ chart_max_speed|safe }};
+const playerD20 = {{ chart_d20|safe }};
+const playerD25 = {{ chart_d25|safe }};
+const playerAcc = {{ chart_acc|safe }};
+const playerDec = {{ chart_dec|safe }};
+const hasSignal = (arr) => Array.isArray(arr) && arr.some((v) => Number(v || 0) > 0);
+const hasLoadSignal = hasSignal(playerLoad);
+const effectivePlayerLoadData = hasLoadSignal ? playerLoad : playerDistance;
+const effectivePlayerLoadLabel = hasLoadSignal ? "Totale Load" : "Totale Afstand (m)";
+const effectivePlayerLoadUnit = hasLoadSignal ? "" : " m";
+const initialSelectedMetric = "{{ selected_metric|default:'load'|escapejs }}";
+let selectedMetricState = initialSelectedMetric;
+let playerComparisonChart = null;
+const nlNumber = (value, maxFractions = 0) => new Intl.NumberFormat("nl-NL", {
+    maximumFractionDigits: maxFractions
+}).format(value ?? 0);
 
-new Chart(document.getElementById('playerComparisonChart'), {
-    type: 'bar',
-    data: {
-        labels: playerLabels,
-        datasets: [
-            {
-                label: 'Totale Load',
-                data: playerLoad,
-                backgroundColor: 'rgba(52,152,219,0.8)',
-                borderRadius: 8
-            },
-            {
-                label: 'Totale Afstand (m)',
-                data: playerDistance,
-                backgroundColor: 'rgba(231,76,60,0.8)',
-                borderRadius: 8
-            },
-            {
-                label: 'Totale Sprints',
-                data: playerSprints,
-                backgroundColor: 'rgba(46,204,113,0.8)',
-                borderRadius: 8
-            }
-        ]
+const baseChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+        mode: "index",
+        intersect: false
     },
-    options: {
-        responsive: true,
-        plugins: { 
-            legend: { position: 'bottom' } 
-        },
-        scales: {
-            y: { 
-                beginAtZero: true,
-                title: { display: true, text: 'Waarde' } 
-            },
-            x: {
-                ticks: { 
-                    autoSkip: false,
-                    maxRotation: 90,
-                    minRotation: 45
-                }
+    plugins: {
+        legend: {
+            position: "bottom",
+            labels: {
+                boxWidth: 14,
+                boxHeight: 14,
+                usePointStyle: true,
+                pointStyle: "circle",
+                padding: 18
             }
         }
     }
+};
+const metricBlue = "rgba(22, 54, 105, 0.88)";
+const metricBlueSoft = "rgba(22, 54, 105, 0.78)";
+
+const comparisonDatasets = {
+    load: [
+        {
+            label: effectivePlayerLoadLabel,
+            data: effectivePlayerLoadData,
+            backgroundColor: metricBlue,
+            borderRadius: 8,
+            yAxisID: "y",
+            unit: effectivePlayerLoadUnit
+        }
+    ],
+    total_distance: [
+        {
+            label: "Totale Afstand (m)",
+            data: playerDistance,
+            backgroundColor: metricBlue,
+            borderRadius: 8,
+            yAxisID: "y",
+            unit: " m"
+        }
+    ],
+    hsd: [
+        {
+            label: "D15 / HSD (m)",
+            data: playerHsd,
+            backgroundColor: metricBlue,
+            borderRadius: 8,
+            yAxisID: "y",
+            unit: " m"
+        }
+    ],
+    d20: [
+        {
+            label: "D20 (m)",
+            data: playerD20,
+            backgroundColor: metricBlue,
+            borderRadius: 8,
+            yAxisID: "y",
+            unit: " m"
+        }
+    ],
+    d25: [
+        {
+            label: "D25 (m)",
+            data: playerD25,
+            backgroundColor: metricBlue,
+            borderRadius: 8,
+            yAxisID: "y",
+            unit: " m"
+        }
+    ],
+    sprints: [
+        {
+            label: "Totale Sprints",
+            data: playerSprints,
+            backgroundColor: metricBlue,
+            borderRadius: 8,
+            yAxisID: "y2",
+            unit: "x"
+        }
+    ],
+    acc: [
+        {
+            label: "Acceleraties",
+            data: playerAcc,
+            backgroundColor: metricBlue,
+            borderRadius: 8,
+            yAxisID: "y",
+            unit: "x"
+        }
+    ],
+    dec: [
+        {
+            label: "Deceleraties",
+            data: playerDec,
+            backgroundColor: metricBlue,
+            borderRadius: 8,
+            yAxisID: "y",
+            unit: "x"
+        }
+    ],
+    max_speed: [
+        {
+            label: "Max Speed (km/u)",
+            data: playerMaxSpeed,
+            backgroundColor: metricBlue,
+            borderRadius: 8,
+            yAxisID: "y",
+            unit: " km/u"
+        }
+    ]
+};
+
+const metricAxisTitle = {
+    load: hasLoadSignal ? "Load" : "Afstand (m)",
+    total_distance: "Afstand (m)",
+    hsd: "D15 / HSD (m)",
+    d20: "D20 (m)",
+    d25: "D25 (m)",
+    sprints: "Sprints (aantal)",
+    acc: "Acceleraties (aantal)",
+    dec: "Deceleraties (aantal)",
+    max_speed: "Max speed (km/u)"
+};
+let weeklyTrainingChart = null;
+
+const weeklyRowsNode = document.getElementById("training_daily_data_json");
+const parsedWeeklyRows = weeklyRowsNode ? JSON.parse(weeklyRowsNode.textContent) : [];
+const weeklyRows = Array.isArray(parsedWeeklyRows) ? parsedWeeklyRows : [];
+const weeklyLabels = weeklyRows.map((row) => row.day_label);
+const hasDailyLoadSignal = weeklyRows.some((row) => Number(row.load || 0) > 0);
+
+const weeklyMetricMeta = {
+    load: {
+        key: hasDailyLoadSignal ? "load" : "total_distance",
+        pointsKey: hasDailyLoadSignal ? "points_load" : "points_total_distance",
+        label: hasDailyLoadSignal ? "Load" : "TD",
+        color: metricBlueSoft,
+        unit: hasDailyLoadSignal ? "" : " m",
+        axis: hasDailyLoadSignal ? "Load" : "Afstand (m)"
+    },
+    total_distance: { key: "total_distance", pointsKey: "points_total_distance", label: "TD", color: metricBlueSoft, unit: " m", axis: "Afstand (m)" },
+    hsd: { key: "hsd", pointsKey: "points_hsd", label: "D15", color: metricBlueSoft, unit: " m", axis: "D15 / HSD (m)" },
+    d20: { key: "hsd", pointsKey: "points_d20", label: "D20", color: metricBlueSoft, unit: " m", axis: "D20 (m)" },
+    d25: { key: "d25", pointsKey: "points_d25", label: "D25", color: metricBlueSoft, unit: " m", axis: "D25 (m)" },
+    acc: { key: "acc", pointsKey: "points_acc", label: "Acc", color: metricBlueSoft, unit: "x", axis: "Acceleraties (aantal)" },
+    dec: { key: "dec", pointsKey: "points_dec", label: "Dec", color: metricBlueSoft, unit: "x", axis: "Deceleraties (aantal)" },
+    max_speed: { key: "max_speed", pointsKey: "points_max_speed", label: "Max Speed", color: metricBlueSoft, unit: " km/u", axis: "Max speed (km/u)" },
+    sprints: { key: "sprints", pointsKey: "points_sprints", label: "Sprints", color: metricBlueSoft, unit: "x", axis: "Sprints (aantal)" }
+};
+const weeklySeries = {
+    load: weeklyRows.map((row) => Number(row.load || 0)),
+    total_distance: weeklyRows.map((row) => Number(row.total_distance || 0)),
+    hsd: weeklyRows.map((row) => Number(row.hsd || 0)),
+    sprints: weeklyRows.map((row) => Number(row.sprints || 0)),
+    d25: weeklyRows.map((row) => Number(row.d25 || 0)),
+    acc: weeklyRows.map((row) => Number(row.acc || 0)),
+    dec: weeklyRows.map((row) => Number(row.dec || 0)),
+    max_speed: weeklyRows.map((row) => Number(row.max_speed || 0))
+};
+
+const buildScatterPoints = (pointsKey) => {
+    const points = [];
+    weeklyRows.forEach((row, idx) => {
+        const dayPoints = Array.isArray(row[pointsKey]) ? row[pointsKey] : [];
+        dayPoints.forEach((value) => {
+            points.push({ x: weeklyLabels[idx], y: Number(value || 0) });
+        });
+    });
+    return points;
+};
+
+const average = (arr) => {
+    if (!arr.length) return 0;
+    return arr.reduce((sum, value) => sum + Number(value || 0), 0) / arr.length;
+};
+
+// ACWR-formule: acute 7-daags gemiddelde / chronic 28-daags gemiddelde
+const computeAcwrSeries = (values) => values.map((_, idx) => {
+    const acuteWindow = values.slice(Math.max(0, idx - 6), idx + 1);
+    const chronicWindow = values.slice(Math.max(0, idx - 27), idx + 1);
+    const acuteAvg = average(acuteWindow);
+    const chronicAvg = average(chronicWindow);
+    if (!chronicAvg || Number.isNaN(chronicAvg)) {
+        return null;
+    }
+    return Number((acuteAvg / chronicAvg).toFixed(2));
 });
+
+const getAcwrAxisBounds = (series) => {
+    const valid = series.filter((v) => typeof v === "number" && !Number.isNaN(v));
+    if (!valid.length) {
+        return { min: 0, max: 2 };
+    }
+    const maxVal = Math.max(...valid);
+    return { min: 0, max: Math.max(2, Math.ceil(maxVal * 1.2 * 10) / 10) };
+};
+
+const renderWeeklyMetricChart = (metric) => {
+    if (!weeklyTrainingChart || weeklyLabels.length === 0) {
+        return;
+    }
+    const config = weeklyMetricMeta[metric] ?? weeklyMetricMeta.load;
+    const metricValues = weeklySeries[config.key] ?? weeklySeries.load;
+    weeklyTrainingChart.data.datasets[0].label = config.label;
+    weeklyTrainingChart.data.datasets[0].data = metricValues;
+    weeklyTrainingChart.data.datasets[0].backgroundColor = config.color;
+    weeklyTrainingChart.data.datasets[0].unit = config.unit;
+    weeklyTrainingChart.data.datasets[1].data = buildScatterPoints(config.pointsKey);
+    weeklyTrainingChart.data.datasets[1].unit = config.unit;
+    const acwrSeries = computeAcwrSeries(metricValues);
+    const acwrBounds = getAcwrAxisBounds(acwrSeries);
+    weeklyTrainingChart.data.datasets[2].data = acwrSeries;
+    weeklyTrainingChart.options.scales.y2.min = acwrBounds.min;
+    weeklyTrainingChart.options.scales.y2.max = acwrBounds.max;
+    weeklyTrainingChart.options.scales.y.title.text = config.axis;
+    weeklyTrainingChart.update();
+};
+
+const setMetricButtonsActive = (metric) => {
+    document.querySelectorAll('.metric-btn[href*="metric="]').forEach((button) => {
+        const url = new URL(button.getAttribute("href"), window.location.origin);
+        const buttonMetric = url.searchParams.get("metric");
+        button.classList.toggle("active", buttonMetric === metric);
+    });
+};
+
+const syncMetricInForms = (metric) => {
+    document.querySelectorAll('input[type="hidden"][name="metric"]').forEach((input) => {
+        input.value = metric;
+    });
+};
+
+const updateMetricInUrl = (metric) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("metric", metric);
+    window.history.replaceState({}, "", `${url.pathname}?${url.searchParams.toString()}`);
+};
+
+const setComparisonMetric = (metric, pushUrl = true) => {
+    selectedMetricState = metric;
+    const activeComparisonDatasets = comparisonDatasets[metric] ?? comparisonDatasets.load;
+    if (playerComparisonChart) {
+        playerComparisonChart.data.datasets = activeComparisonDatasets;
+        const axisId = activeComparisonDatasets[0]?.yAxisID || "y";
+        if (axisId === "y2") {
+            playerComparisonChart.options.scales.y.title.text = "Load / Afstand (m)";
+            playerComparisonChart.options.scales.y2.title.text = metricAxisTitle[metric] || "Sprints (aantal)";
+        } else {
+            playerComparisonChart.options.scales.y.title.text = metricAxisTitle[metric] || "Load / Afstand (m)";
+            playerComparisonChart.options.scales.y2.title.text = "Sprints (aantal)";
+        }
+        playerComparisonChart.update();
+    }
+    renderWeeklyMetricChart(metric);
+    setMetricButtonsActive(metric);
+    syncMetricInForms(metric);
+    if (pushUrl) {
+        updateMetricInUrl(metric);
+    }
+};
+
+if (playerLabels.length > 0) {
+    const activeComparisonDatasets = comparisonDatasets[selectedMetricState] ?? comparisonDatasets.load;
+
+    playerComparisonChart = new Chart(document.getElementById("playerComparisonChart"), {
+        type: "bar",
+        data: {
+            labels: playerLabels,
+            datasets: activeComparisonDatasets
+        },
+        options: {
+            ...baseChartOptions,
+            plugins: {
+                ...baseChartOptions.plugins,
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => {
+                            const unit = ctx.dataset.unit ?? "";
+                            const decimals = unit === " km/u" ? 1 : 0;
+                            return `${ctx.dataset.label}: ${nlNumber(ctx.raw, decimals)}${unit}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 45,
+                        minRotation: 20
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: "Load / Afstand (m)" },
+                    ticks: {
+                        callback: (value) => nlNumber(value)
+                    },
+                    grid: {
+                        color: "rgba(31, 42, 68, 0.08)"
+                    }
+                },
+                y2: {
+                    beginAtZero: true,
+                    position: "right",
+                    grid: { drawOnChartArea: false },
+                    title: { display: true, text: "Sprints (aantal)" },
+                    ticks: {
+                        callback: (value) => nlNumber(value)
+                    }
+                }
+            }
+        }
+    });
+}
+
+document.addEventListener("click", (event) => {
+    const button = event.target.closest('.metric-btn[href*="metric="]');
+    if (!button) {
+        return;
+    }
+    const url = new URL(button.getAttribute("href"), window.location.origin);
+    const metric = url.searchParams.get("metric");
+    if (!metric) {
+        return;
+    }
+    event.preventDefault();
+    setComparisonMetric(metric, true);
+});
+
+setComparisonMetric(selectedMetricState, false);
 </script>
 
 
@@ -209,10 +542,14 @@ const ewmaWeeks   = {{ weeks|safe }};
 const ewmaAcute   = {{ acute_values|safe }};
 const ewmaChronic = {{ chronic_values|safe }};
 
-// Stop als er geen data is
-if (ewmaWeeks.length > 0) {
+// Stop als er geen data is of chart verborgen is
+const ewmaCanvas = document.getElementById('ewmaChart');
+if (ewmaCanvas && ewmaWeeks.length > 0) {
+    const ewmaValues = [...ewmaAcute, ...ewmaChronic].filter(v => typeof v === "number" && !Number.isNaN(v));
+    const ewmaMin = ewmaValues.length ? Math.min(...ewmaValues) : 0;
+    const ewmaMax = ewmaValues.length ? Math.max(...ewmaValues) : 100;
 
-    new Chart(document.getElementById('ewmaChart'), {
+    new Chart(ewmaCanvas, {
         type: 'line',
         data: {
             labels: ewmaWeeks.map(w => "Week " + w),
@@ -240,16 +577,30 @@ if (ewmaWeeks.length > 0) {
             ]
         },
         options: {
-            responsive: true,
+            ...baseChartOptions,
             plugins: {
-                legend: { position: 'bottom' }
+                ...baseChartOptions.plugins,
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.dataset.label}: ${nlNumber(ctx.raw, 1)}`
+                    }
+                }
             },
             scales: {
                 y: {
                     beginAtZero: false,
-                    suggestedMin: Math.min(...ewmaAcute, ...ewmaChronic) * 0.9,
-                    suggestedMax: Math.max(...ewmaAcute, ...ewmaChronic) * 1.1,
-                    title: { display: true, text: 'Load' }
+                    suggestedMin: ewmaMin * 0.9,
+                    suggestedMax: ewmaMax * 1.1,
+                    title: { display: true, text: 'Load' },
+                    ticks: {
+                        callback: (value) => nlNumber(value, 1)
+                    },
+                    grid: {
+                        color: "rgba(31, 42, 68, 0.08)"
+                    }
+                },
+                x: {
+                    grid: { display: false }
                 }
             }
         }
@@ -257,51 +608,190 @@ if (ewmaWeeks.length > 0) {
 }
 </script>
 
+<script>
+const initWeeklyTrainingChart = () => {
+    const weeklyChartCanvas = document.getElementById("weeklyTrainingChart");
+    if (!weeklyChartCanvas || weeklyLabels.length === 0) {
+        return;
+    }
+    const initialWeeklyMetric = weeklyMetricMeta[selectedMetricState] ?? weeklyMetricMeta.load;
+    const initialWeeklyValues = weeklySeries[initialWeeklyMetric.key] ?? weeklySeries.load;
+    const initialScatter = buildScatterPoints(initialWeeklyMetric.pointsKey);
+    const initialAcwrSeries = computeAcwrSeries(initialWeeklyValues);
+    const initialAcwrBounds = getAcwrAxisBounds(initialAcwrSeries);
 
-<!-- 🧮 Trainingsdata per week -->
+    weeklyTrainingChart = new Chart(weeklyChartCanvas, {
+        type: "bar",
+        data: {
+            labels: weeklyLabels,
+            datasets: [
+                {
+                    type: "bar",
+                    label: initialWeeklyMetric.label,
+                    data: initialWeeklyValues,
+                    backgroundColor: initialWeeklyMetric.color,
+                    borderRadius: 2,
+                    barPercentage: 0.84,
+                    categoryPercentage: 0.92,
+                    unit: initialWeeklyMetric.unit,
+                    yAxisID: "y"
+                },
+                {
+                    type: "scatter",
+                    label: "Sessiepunten",
+                    data: initialScatter,
+                    pointRadius: 2.5,
+                    pointHoverRadius: 4,
+                    showLine: false,
+                    borderWidth: 0,
+                    backgroundColor: metricBlue,
+                    unit: initialWeeklyMetric.unit,
+                    yAxisID: "y"
+                },
+                {
+                    type: "line",
+                    label: "ACWR",
+                    data: initialAcwrSeries,
+                    yAxisID: "y2",
+                    borderColor: "rgba(214, 48, 49, 0.95)",
+                    backgroundColor: "rgba(214, 48, 49, 0.18)",
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointHoverRadius: 5,
+                    tension: 0.35,
+                    pointBackgroundColor: (ctx) => {
+                        const v = ctx.parsed?.y;
+                        if (v == null) return "rgba(214, 48, 49, 0.95)";
+                        return "rgba(214, 48, 49, 0.95)";
+                    }
+                }
+            ]
+        },
+        options: {
+            ...baseChartOptions,
+            plugins: {
+                ...baseChartOptions.plugins,
+                legend: {
+                    position: "top",
+                    labels: {
+                        boxWidth: 24,
+                        usePointStyle: false,
+                        padding: 14
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => {
+                            if (ctx.dataset.label === "ACWR") {
+                                return `ACWR: ${nlNumber(ctx.raw, 2)}`;
+                            }
+                            if (ctx.dataset.label === "Sessiepunten") {
+                                const unitPt = ctx.dataset.unit ?? "";
+                                const decPt = unitPt === " km/u" ? 1 : 0;
+                                return `Sessie: ${nlNumber(ctx.raw.y, decPt)}${unitPt}`;
+                            }
+                            const unit = ctx.dataset.unit ?? "";
+                            const decimals = unit === " km/u" ? 1 : 0;
+                            return `${ctx.dataset.label}: ${nlNumber(ctx.raw, decimals)}${unit}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 38,
+                        minRotation: 38
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: initialWeeklyMetric.axis },
+                    ticks: {
+                        callback: (value) => nlNumber(value)
+                    },
+                    grid: {
+                        color: "rgba(31, 42, 68, 0.08)"
+                    }
+                },
+                y2: {
+                    position: "right",
+                    beginAtZero: true,
+                    min: initialAcwrBounds.min,
+                    max: initialAcwrBounds.max,
+                    title: { display: true, text: "ACWR" },
+                    ticks: {
+                        callback: (value) => nlNumber(value, 1)
+                    },
+                    grid: { drawOnChartArea: false }
+                }
+            }
+        }
+    });
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initWeeklyTrainingChart);
+} else {
+    initWeeklyTrainingChart();
+}
+</script>
+
+
+<!-- Trainingsdata per week -->
 <section class="card fade-in">
-    <h3>🏃 Trainingsdata per week</h3>
-    <p class="subtext">Ruwe data van alle geregistreerde sessies (weekniveau).</p>
-
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Week</th>
-                <th>Speler</th>
-                <th>Totale afstand (m)</th>
-                <th>High-speed (m)</th>
-                <th>Sprints</th>
-                <th>Load</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for t in all_training_data %}
-                <tr>
-                    <td>{{ t.week }}</td>
-                    <td>{{ t.player__name }}</td>
-                    <td>{{ t.total_distance|floatformat:0 }}</td>
-                    <td>{{ t.hsd|floatformat:0 }}</td>
-                    <td>{{ t.sprints }}</td>
-                    <td><strong>{{ t.load|floatformat:0 }}</strong></td>
-                </tr>
-            {% empty %}
-                <tr><td colspan="6">Geen trainingsdata beschikbaar.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="chart-header">
+        <h3>Trainingsdata per maand</h3>
+        <div class="metric-buttons">
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
+        </div>
+    </div>
+    <p class="subtext">Maandanalyse (30 dagen met data): {{ training_daily_range_label }}. Staaf = dagtotaal, blauw = sessiepunten, lijn = ACWR.</p>
+    <div class="chart-area chart-area-month">
+        <canvas id="weeklyTrainingChart"></canvas>
+    </div>
 </section>
 
 <!-- GRID -->
 <div class="grid-layout">
     <!-- TRAININGSDATA TABEL -->
     <section class="card fade-in">
-        <h3>🏃 Trainingsdata</h3>
-        <table class="data-table">
+        <div class="chart-header">
+            <h3>Trainingsdata per week</h3>
+            <div class="metric-buttons">
+                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
+                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
+                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
+                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
+                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
+                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
+                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
+            </div>
+        </div>
+        <div class="table-scroll">
+    <table class="data-table">
             <thead>
                 <tr>
                     <th>Week</th>
-                    <th>Totale afstand (m)</th>
-                    <th>High-speed (m)</th>
+                    <th>TD (m)</th>
+                    <th>D15 (m)</th>
+                    <th>D20 (m)</th>
+                    <th>D25 (m)</th>
+                    <th>Acc</th>
+                    <th>Dec</th>
+                    <th>Max Speed (km/u)</th>
                     <th>Sprints</th>
                     <th>Load</th>
                     <th>ACWR</th>
@@ -313,6 +803,11 @@ if (ewmaWeeks.length > 0) {
                         <td>{{ week.week }}</td>
                         <td>{{ week.total_distance }}</td>
                         <td>{{ week.hsd }}</td>
+                        <td>{{ week.d20|default:"0" }}</td>
+                        <td>{{ week.d25|default:"0" }}</td>
+                        <td>{{ week.acc|default:"0" }}</td>
+                        <td>{{ week.dec|default:"0" }}</td>
+                        <td>{{ week.max_speed|default:"0" }}</td>
                         <td>{{ week.sprints }}</td>
                         <td><strong>{{ week.load }}</strong></td>
                         <td class="{% if week.acwr and week.acwr > 1.5 %}risk-high
@@ -322,10 +817,11 @@ if (ewmaWeeks.length > 0) {
                         </td>
                     </tr>
                 {% empty %}
-                    <tr><td colspan="6">Geen trainingsdata beschikbaar.</td></tr>
+                    <tr><td colspan="11">Geen trainingsdata beschikbaar.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
     </section>
 </div>
 
@@ -340,6 +836,7 @@ if (ewmaWeeks.length > 0) {
 <!-- SPELERSELECTIE -->
 <section class="selection-section">
     <form method="get" class="player-form">
+        <input type="hidden" name="metric" value="{{ selected_metric|default:'load' }}">
         <label><strong>Selecteer speler:</strong></label>
         <select name="player" onchange="this.form.submit()">
             <option value="">-- Teamniveau (laatste 5 wedstrijden) --</option>
@@ -355,9 +852,9 @@ if (ewmaWeeks.length > 0) {
 
 <!-- TITEL -->
 <h2 class="section-heading">
-    ⚽ Wedstrijdbelasting – 
+    Wedstrijdbelasting - 
     {% if selected_player %}
-        {{ selected_player.name }} ({{ selected_player.position }})
+        {{ selected_player.name }} ({% if selected_player.position_ref %}{{ selected_player.position_ref.name }}{% else %}-{% endif %})
     {% else %}
         Team Gemiddelde
     {% endif %}
@@ -366,7 +863,7 @@ if (ewmaWeeks.length > 0) {
 <!-- TARGETS BLOK -->
 {% if selected_player %}
 <section class="card fade-in target-card">
-    <h3 class="target-title">🎯 Doelwaarden voor positie: <strong>{{ selected_player.position }}</strong></h3>
+    <h3 class="target-title">Doelwaarden voor positie: <strong>{% if selected_player.position_ref %}{{ selected_player.position_ref.name }}{% else %}-{% endif %}</strong></h3>
 
     {% if targets %}
     <div class="target-grid">
@@ -399,8 +896,22 @@ if (ewmaWeeks.length > 0) {
 
 <!-- GEMIDDELD & TOPWAARDEN -->
 <section class="card fade-in" style="margin-top: 20px;">
-    <h3>📊 Laatste 5 wedstrijden – Overzicht</h3>
+    <div class="chart-header">
+        <h3>Laatste 5 wedstrijden - Overzicht</h3>
+        <div class="metric-buttons">
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
+        </div>
+    </div>
 
+    <div class="table-scroll">
     <table class="data-table">
         <thead>
             <tr>
@@ -429,43 +940,57 @@ if (ewmaWeeks.length > 0) {
             </tr>
         </tbody>
     </table>
+    </div>
 </section>
 
 <!-- RAW MATCH DATA -->
 <section class="card fade-in">
-    <h3>📅 Laatste 5 wedstrijden – Ruwe data</h3>
-
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Speler</th>
-                <th>Week</th>
-                <th>KM</th>
-                <th>HIR</th>
-                <th>HIS</th>
-                <th>A+D</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for m in last_5_matches %}
-            <tr>
-                <td>{{ m.player.name }}</td>
-                <td>{{ m.week }}</td>
-                <td>{{ m.total_distance|floatformat:0 }}</td>
-                <td>{{ m.hsd|floatformat:0 }}</td>
-                <td>{{ m.sprints }}</td>
-                <td>{{ m.load }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="6">Geen wedstrijden beschikbaar.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="chart-header">
+        <h3>Laatste 5 wedstrijden - Ruwe data (grafiek)</h3>
+        <div class="metric-buttons">
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
+        </div>
+    </div>
+    <p class="subtext">Ruwe wedstrijdwaarden per gespeelde wedstrijd, met dezelfde metric-switch als training.</p>
+    {{ match_labels|json_script:"match_labels" }}
+    {{ match_load|json_script:"match_load" }}
+    {{ match_km|json_script:"match_km" }}
+    {{ match_hir|json_script:"match_hir" }}
+    {{ match_sprints|json_script:"match_sprints" }}
+    {{ match_d20|json_script:"match_d20" }}
+    {{ match_d25|json_script:"match_d25" }}
+    {{ match_acc|json_script:"match_acc" }}
+    {{ match_dec|json_script:"match_dec" }}
+    {{ match_max_speed|json_script:"match_max_speed" }}
+    <div class="chart-area chart-area-small">
+        <canvas id="rawMatchChart"></canvas>
+    </div>
 </section>
 
-<!-- 📊 Vergelijking tussen spelers (wedstrijddata) -->
+<!-- Vergelijking tussen spelers (wedstrijddata) -->
 <section class="card chart-card fade-in">
-    <h3>📊 Teamoverzicht – Laatste wedstrijd</h3>
+    <div class="chart-header">
+        <h3>Teamoverzicht - Laatste wedstrijd</h3>
+        <div class="metric-buttons">
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
+        </div>
+    </div>
     <p class="subtext">Totale afstand, high-intensity running en sprints per speler in kilometers.</p>
 
     <!-- DATA INLADEN VIA DJANGO -->
@@ -474,6 +999,12 @@ if (ewmaWeeks.length > 0) {
     {{ team_hsd|json_script:"team_hsd" }}
     {{ team_sprints|json_script:"team_sprints" }}
     {{ team_his|json_script:"team_his" }}
+    {{ team_load|json_script:"team_load" }}
+    {{ team_acc|json_script:"team_acc" }}
+    {{ team_dec|json_script:"team_dec" }}
+    {{ team_d20|json_script:"team_d20" }}
+    {{ team_d25|json_script:"team_d25" }}
+    {{ team_max_speed|json_script:"team_max_speed" }}
 
 
     <div class="chart-scroll-wrapper">
@@ -481,110 +1012,338 @@ if (ewmaWeeks.length > 0) {
 </div>
 </section>
 
-<!-- 📈 CHART.JS -->
+<!-- CHART.JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 // -------------------------
 // DATA INLADEN (DJANGO)
 // -------------------------
+const matchLabelsRaw = JSON.parse(document.getElementById("match_labels").textContent);
+const matchLoad = JSON.parse(document.getElementById("match_load").textContent);
+const matchTD = JSON.parse(document.getElementById("match_km").textContent);
+const matchD15 = JSON.parse(document.getElementById("match_hir").textContent);
+const matchSprints = JSON.parse(document.getElementById("match_sprints").textContent);
+const matchD20 = JSON.parse(document.getElementById("match_d20").textContent);
+const matchD25 = JSON.parse(document.getElementById("match_d25").textContent);
+const matchAcc = JSON.parse(document.getElementById("match_acc").textContent);
+const matchDec = JSON.parse(document.getElementById("match_dec").textContent);
+const matchMaxSpeed = JSON.parse(document.getElementById("match_max_speed").textContent);
+
 const teamLabels   = JSON.parse(document.getElementById("team_labels").textContent);
 const teamDistance = JSON.parse(document.getElementById("team_distance").textContent);
 const teamHIR      = JSON.parse(document.getElementById("team_hsd").textContent);
 const teamSprints  = JSON.parse(document.getElementById("team_sprints").textContent);
 const teamHIS      = JSON.parse(document.getElementById("team_his").textContent);
+const teamLoad     = JSON.parse(document.getElementById("team_load").textContent);
+const teamAcc      = JSON.parse(document.getElementById("team_acc").textContent);
+const teamDec      = JSON.parse(document.getElementById("team_dec").textContent);
+const teamD20      = JSON.parse(document.getElementById("team_d20").textContent);
+const teamD25      = JSON.parse(document.getElementById("team_d25").textContent);
+const teamMaxSpeed = JSON.parse(document.getElementById("team_max_speed").textContent);
+const selectedMetricMatch = "{{ selected_metric|default:'load'|escapejs }}";
+const metricBlue = "rgba(22, 54, 105, 0.88)";
+const nlNumberMatch = (value, maxFractions = 0) => new Intl.NumberFormat("nl-NL", {
+    maximumFractionDigits: maxFractions
+}).format(value ?? 0);
 
 // -------------------------
-// Meter → Kilometer conversie
+// Meter -> Kilometer conversie
 // -------------------------
 const teamDistanceKM = teamDistance.map(v => v / 1000);
 const teamHIR_KM     = teamHIR.map(v => v / 1000);
-// Sprints blijven aantallen!
+const teamD20KM      = teamD20.map(v => v / 1000);
+const teamD25KM      = teamD25.map(v => v / 1000);
 
-// -------------------------
-// GRAFIEK – GROUPED BAR CHART
-// -------------------------
-new Chart(document.getElementById('teamComparisonChart'), {
-    type: 'bar',
-    data: {
-        labels: teamLabels,
-        datasets: [
-            {
-                label: 'Totale Afstand (km)',
-                data: teamDistanceKM,
-                backgroundColor: 'rgba(231,76,60,0.85)',
-                borderRadius: 6,
-                yAxisID: 'y'
-            },
-            {
-                label: 'High Intensity Running (km)',
-                data: teamHIR_KM,
-                backgroundColor: 'rgba(52,152,219,0.85)',
-                borderRadius: 6,
-                yAxisID: 'y'
-            },
-            {
-                label: 'Sprints (aantal)',
-                data: teamSprints,
-                backgroundColor: 'rgba(46,204,113,0.85)',
-                borderRadius: 6,
-                yAxisID: 'y2'
-            },
-            {
-                label: 'HIS (meters)',
-                data: teamHIS,
-                backgroundColor: 'rgba(241,196,15,0.85)',
-                borderRadius: 6,
-                yAxisID: 'y2'
-            }
-        ]
+const rawMatchDatasets = {
+    load: {
+        label: "Load",
+        data: matchLoad,
+        unit: "",
+        axisTitle: "Load",
+        backgroundColor: metricBlue
     },
+    total_distance: {
+        label: "Totale Afstand (m)",
+        data: matchTD,
+        unit: " m",
+        axisTitle: "Afstand (m)",
+        backgroundColor: metricBlue
+    },
+    hsd: {
+        label: "D15 / HSD (m)",
+        data: matchD15,
+        unit: " m",
+        axisTitle: "D15 / HSD (m)",
+        backgroundColor: metricBlue
+    },
+    d20: {
+        label: "D20 (m)",
+        data: matchD20,
+        unit: " m",
+        axisTitle: "D20 (m)",
+        backgroundColor: metricBlue
+    },
+    d25: {
+        label: "D25 (m)",
+        data: matchD25,
+        unit: " m",
+        axisTitle: "D25 (m)",
+        backgroundColor: metricBlue
+    },
+    sprints: {
+        label: "Sprints (aantal)",
+        data: matchSprints,
+        unit: "x",
+        axisTitle: "Sprints (aantal)",
+        backgroundColor: metricBlue
+    },
+    acc: {
+        label: "Acceleraties",
+        data: matchAcc,
+        unit: "x",
+        axisTitle: "Acceleraties (aantal)",
+        backgroundColor: metricBlue
+    },
+    dec: {
+        label: "Deceleraties",
+        data: matchDec,
+        unit: "x",
+        axisTitle: "Deceleraties (aantal)",
+        backgroundColor: metricBlue
+    },
+    max_speed: {
+        label: "Max Speed (km/u)",
+        data: matchMaxSpeed,
+        unit: " km/u",
+        axisTitle: "Max speed (km/u)",
+        backgroundColor: metricBlue
+    }
+};
 
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
+const teamMatchDatasets = {
+    load: {
+        label: "Load",
+        data: teamLoad,
+        unit: "",
+        axisTitle: "Load",
+        backgroundColor: metricBlue
+    },
+    total_distance: {
+        label: "Totale Afstand (km)",
+        data: teamDistanceKM,
+        unit: " km",
+        axisTitle: "Afstand (km)",
+        backgroundColor: metricBlue
+    },
+    hsd: {
+        label: "D15 / HSD (km)",
+        data: teamHIR_KM,
+        unit: " km",
+        axisTitle: "D15 / HSD (km)",
+        backgroundColor: metricBlue
+    },
+    d20: {
+        label: "D20 (km)",
+        data: teamD20KM,
+        unit: " km",
+        axisTitle: "D20 (km)",
+        backgroundColor: metricBlue
+    },
+    d25: {
+        label: "D25 (km)",
+        data: teamD25KM,
+        unit: " km",
+        axisTitle: "D25 (km)",
+        backgroundColor: metricBlue
+    },
+    sprints: {
+        label: "Sprints (aantal)",
+        data: teamSprints,
+        unit: "x",
+        axisTitle: "Sprints (aantal)",
+        backgroundColor: metricBlue
+    },
+    acc: {
+        label: "Acceleraties",
+        data: teamAcc,
+        unit: "x",
+        axisTitle: "Acceleraties (aantal)",
+        backgroundColor: metricBlue
+    },
+    dec: {
+        label: "Deceleraties",
+        data: teamDec,
+        unit: "x",
+        axisTitle: "Deceleraties (aantal)",
+        backgroundColor: metricBlue
+    },
+    max_speed: {
+        label: "Max Speed (km/u)",
+        data: teamMaxSpeed,
+        unit: " km/u",
+        axisTitle: "Max speed (km/u)",
+        backgroundColor: metricBlue
+    }
+};
 
-        plugins: {
-            legend: { position: 'bottom' },
-            tooltip: {
-                callbacks: {
-                    label: ctx => {
-                        // Sprints
-                        if (ctx.dataset.label.includes("aantal")) {
-                            return ctx.raw + "x";
-                        }
-                        // HIS (meters)
-                        if (ctx.dataset.label.includes("HIS")) {
-                            return ctx.raw.toFixed(0) + " m";
-                        }
-                        // KM
-                        return ctx.raw.toFixed(2).replace(".", ",") + " km";
-                    }
-                }
+let selectedMetricMatchState = selectedMetricMatch;
+let rawMatchChart = null;
+let teamComparisonChart = null;
+
+const buildBarChartOptions = (datasetConfig) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+        mode: "index",
+        intersect: false
+    },
+    plugins: {
+        legend: {
+            position: "bottom",
+            labels: {
+                boxWidth: 14,
+                boxHeight: 14,
+                usePointStyle: true,
+                pointStyle: "circle",
+                padding: 18
             }
         },
-
-        scales: {
-            y: {
-                beginAtZero: true,
-                position: 'left',
-                title: { display: true, text: 'Afstand (km)' }
-            },
-            y2: {
-                beginAtZero: true,
-                position: 'right',
-                grid: { drawOnChartArea: false },
-                title: { display: true, text: 'Sprints / HIS (meters)' }
-            },
-            x: {
-                ticks: {
-                    autoSkip: false,
-                    maxRotation: 45
+        tooltip: {
+            callbacks: {
+                label: (ctx) => {
+                    const unit = ctx.dataset.unit ?? "";
+                    const decimals = unit.includes("km/u") ? 1 : (unit.includes("km") ? 2 : 0);
+                    return `${ctx.dataset.label}: ${nlNumberMatch(ctx.raw, decimals)}${unit}`;
                 }
+            }
+        }
+    },
+    scales: {
+        y: {
+            beginAtZero: true,
+            position: "left",
+            title: { display: true, text: datasetConfig.axisTitle },
+            ticks: {
+                callback: (value) => {
+                    if (datasetConfig.unit.includes("km/u")) return nlNumberMatch(value, 1);
+                    if (datasetConfig.unit.includes("km")) return nlNumberMatch(value, 2);
+                    return nlNumberMatch(value);
+                }
+            },
+            grid: {
+                color: "rgba(31, 42, 68, 0.08)"
+            }
+        },
+        y2: { display: false },
+        x: {
+            grid: { display: false },
+            ticks: {
+                autoSkip: false,
+                maxRotation: 45
             }
         }
     }
 });
+
+const setMatchMetricButtonsActive = (metric) => {
+    document.querySelectorAll('.metric-btn[href*="metric="]').forEach((button) => {
+        const url = new URL(button.getAttribute("href"), window.location.origin);
+        const buttonMetric = url.searchParams.get("metric");
+        button.classList.toggle("active", buttonMetric === metric);
+    });
+};
+
+const syncMatchMetricInForms = (metric) => {
+    document.querySelectorAll('input[type="hidden"][name="metric"]').forEach((input) => {
+        input.value = metric;
+    });
+};
+
+const updateMatchMetricInUrl = (metric) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("metric", metric);
+    window.history.replaceState({}, "", `${url.pathname}?${url.searchParams.toString()}`);
+};
+
+const setMatchMetric = (metric, pushUrl = true) => {
+    selectedMetricMatchState = metric;
+    const rawCfg = rawMatchDatasets[metric] || rawMatchDatasets.load;
+    const teamCfg = teamMatchDatasets[metric] || teamMatchDatasets.load;
+
+    if (rawMatchChart) {
+        rawMatchChart.data.datasets[0].label = rawCfg.label;
+        rawMatchChart.data.datasets[0].data = rawCfg.data;
+        rawMatchChart.data.datasets[0].backgroundColor = rawCfg.backgroundColor;
+        rawMatchChart.data.datasets[0].unit = rawCfg.unit;
+        rawMatchChart.options.scales.y.title.text = rawCfg.axisTitle;
+        rawMatchChart.update();
+    }
+
+    if (teamComparisonChart) {
+        teamComparisonChart.data.datasets[0].label = teamCfg.label;
+        teamComparisonChart.data.datasets[0].data = teamCfg.data;
+        teamComparisonChart.data.datasets[0].backgroundColor = teamCfg.backgroundColor;
+        teamComparisonChart.data.datasets[0].unit = teamCfg.unit;
+        teamComparisonChart.options.scales.y.title.text = teamCfg.axisTitle;
+        teamComparisonChart.update();
+    }
+
+    setMatchMetricButtonsActive(metric);
+    syncMatchMetricInForms(metric);
+    if (pushUrl) updateMatchMetricInUrl(metric);
+};
+
+const initialRawCfg = rawMatchDatasets[selectedMetricMatchState] || rawMatchDatasets.load;
+const initialTeamCfg = teamMatchDatasets[selectedMetricMatchState] || teamMatchDatasets.load;
+
+const rawMatchCanvas = document.getElementById("rawMatchChart");
+if (rawMatchCanvas) {
+    rawMatchChart = new Chart(rawMatchCanvas, {
+        type: "bar",
+        data: {
+            labels: matchLabelsRaw,
+            datasets: [{
+                label: initialRawCfg.label,
+                data: initialRawCfg.data,
+                backgroundColor: initialRawCfg.backgroundColor,
+                borderRadius: 6,
+                unit: initialRawCfg.unit
+            }]
+        },
+        options: buildBarChartOptions(initialRawCfg)
+    });
+}
+
+const teamComparisonCanvas = document.getElementById("teamComparisonChart");
+if (teamComparisonCanvas) {
+    teamComparisonChart = new Chart(teamComparisonCanvas, {
+        type: "bar",
+        data: {
+            labels: teamLabels,
+            datasets: [{
+                label: initialTeamCfg.label,
+                data: initialTeamCfg.data,
+                backgroundColor: initialTeamCfg.backgroundColor,
+                borderRadius: 6,
+                unit: initialTeamCfg.unit
+            }]
+        },
+        options: buildBarChartOptions(initialTeamCfg)
+    });
+}
+
+document.addEventListener("click", (event) => {
+    const button = event.target.closest('.metric-btn[href*="metric="]');
+    if (!button) return;
+    const url = new URL(button.getAttribute("href"), window.location.origin);
+    const metric = url.searchParams.get("metric");
+    if (!metric) return;
+    event.preventDefault();
+    setMatchMetric(metric, true);
+});
+
+setMatchMetric(selectedMetricMatchState, false);
 </script>
 
 
@@ -670,6 +1429,22 @@ main.container {
     padding: 10px 5px 0 5px;
 }
 
+.chart-area {
+    height: 420px;
+}
+
+.chart-area-small {
+    height: 360px;
+}
+
+.chart-area-month {
+    height: 560px;
+}
+
+.chart-card-ewma {
+    display: none;
+}
+
 .subtext {
     margin-top: -4px;
     margin-bottom: 15px;
@@ -752,23 +1527,56 @@ main.container {
 .data-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 760px;
     margin-top: 12px;
     font-size: 0.95rem;
+    background: #fff;
 }
 
 .data-table th {
     background-color: #1f2a44;
     color: white;
-    padding: 12px;
+    padding: 13px 12px;
     font-weight: 600;
     font-size: 0.9rem;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
 .data-table td {
-    background: #ffffff;
     border: 1px solid #e3e6ed;
-    padding: 10px;
+    padding: 11px 12px;
     text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.data-table tbody tr:nth-child(even) td {
+    background: #f8fafd;
+}
+
+.data-table tbody tr:hover td {
+    background: #eef4ff;
+}
+
+.table-scroll {
+    overflow-x: auto;
+    border: 1px solid #e3e6ed;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.65);
+}
+
+.table-scroll .data-table {
+    margin-top: 0;
+}
+
+.table-scroll::-webkit-scrollbar {
+    height: 10px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+    background: #c5cedd;
+    border-radius: 999px;
 }
 
 /* =======================================================================
@@ -792,7 +1600,7 @@ main.container {
 }
 
 /* --------------------------
-   TABS – TRAINING / WEDSTRIJD
+   TABS - TRAINING / WEDSTRIJD
 --------------------------- */
 
 .data-tabs-container {
@@ -916,8 +1724,32 @@ canvas {
     height: 350px !important;
     max-height: 450px;
 }
+
+@media (max-width: 900px) {
+    .chart-area {
+        height: 340px;
+    }
+
+    .chart-area-small {
+        height: 300px;
+    }
+
+    .chart-area-month {
+        height: 420px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .card,
+    .chart-card {
+        padding: 18px;
+    }
+}
 </style>
 
 {% endblock %}
 
- 

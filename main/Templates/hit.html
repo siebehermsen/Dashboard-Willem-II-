@@ -101,13 +101,13 @@
 
 <div class="jeugd-section">
 
-    <h3 class="jeugd-title">HIT – High Intensity Training</h3>
+    <h3 class="jeugd-title">HIT - High Intensity Training</h3>
     <p class="jeugd-subtitle">Tools, protocollen en loopvormen voor intensieve running sessies.</p>
 
     <div class="jeugd-divider"></div>
 
     <h4 class="jeugd-block-title">
-        <span class="jeugd-icon">🏃‍♂️</span>HIT Calculator
+        <span class="jeugd-icon">Run</span>HIT Calculator
     </h4>
 
     <div class="calculator-box">
@@ -123,6 +123,9 @@
 
         <label>Aantal keerpunten: <span id="keerpuntenLabel">0</span></label>
         <input type="range" id="keerpunten" min="0" max="10" value="0">
+
+        <label>Aantal herhalingen: <span id="herhalingenLabel">8</span></label>
+        <input type="range" id="herhalingen" min="1" max="30" value="8">
 
         <!-- Correctieblok -->
         <div class="correction-box">
@@ -148,7 +151,7 @@
 <div id="hitTypeBox" class="hit-box" style="display:none;">
 
     <div class="hit-header">
-        <h4 class="hit-title">🎯 HIT Type: <span id="hitTypeResult"></span></h4>
+        <h4 class="hit-title">HIT Type: <span id="hitTypeResult"></span></h4>
         <p id="hitTypeDescription" class="hit-subtitle"></p>
     </div>
 
@@ -263,101 +266,524 @@
 </style>
 
 
-<!-- WEEKPLANNING -->
+<style>
+.asr-box {
+    --asr-navy: #1f2a44;
+    --asr-ink: #162033;
+    --asr-border: #dbe2ea;
+    --asr-soft: #f6f8fb;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+    border-radius: 18px;
+    border: 1px solid var(--asr-border);
+    padding: 18px;
+    box-shadow: 0 12px 28px rgba(12, 22, 44, 0.08);
+    margin-top: 18px;
+}
+.asr-meta {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.asr-card {
+    background: var(--asr-soft);
+    border: 1px solid var(--asr-border);
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+.asr-card strong { color: var(--asr-navy); }
+.asr-formula { font-family: Consolas, monospace; font-size: .83rem; color: #516072; margin-top: 6px; }
+.asr-card-title {
+    font-weight: 800;
+    color: var(--asr-ink);
+    letter-spacing: -.01em;
+}
+.asr-speed-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #e8eefc;
+    color: #162c63;
+    font-weight: 800;
+}
+.asr-control-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+.asr-control-label {
+    font-weight: 700;
+    color: var(--asr-ink);
+}
+.asr-percent-input {
+    width: 92px;
+    border: 1px solid #c8d2e0;
+    border-radius: 10px;
+    padding: 7px 10px;
+    font-weight: 700;
+    background: #fff;
+}
+.asr-percent-input:focus,
+.asr-table input:focus,
+.asr-table select:focus {
+    outline: none;
+    border-color: #4f7cff;
+    box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.12);
+}
+.asr-help-list {
+    margin: 8px 0 0 0;
+    padding-left: 16px;
+}
+.asr-help-list li {
+    color: #5f6d7f;
+    margin: 4px 0;
+}
+.asr-table-wrap {
+    border: 1px solid var(--asr-border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+}
+.asr-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+.asr-table th {
+    background: linear-gradient(180deg, #243356 0%, #1f2a44 100%);
+    color: #fff;
+    padding: 11px 10px;
+    font-weight: 700;
+    text-align: left;
+    font-size: .88rem;
+    letter-spacing: .01em;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.asr-table td {
+    border-bottom: 1px solid #edf0f3;
+    padding: 8px 10px;
+    font-size: .92rem;
+    vertical-align: middle;
+}
+.asr-table tbody tr:nth-child(even) { background: #fbfcff; }
+.asr-table tbody tr:hover { background: #f3f7ff; }
+.asr-table tbody tr:last-child td { border-bottom: none; }
+.asr-table input,
+.asr-table select {
+    width: 100%;
+    border: 1px solid #cfd6de;
+    border-radius: 10px;
+    padding: 7px 9px;
+    background:#fff;
+    min-height: 38px;
+}
+.asr-table input[type="number"] {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.asr-target-cell,
+.asr-pct-mas,
+.asr-asr-kmh,
+.asr-pct-asr {
+    font-variant-numeric: tabular-nums;
+    color: #1f2a44;
+}
+.asr-target-cell,
+.asr-asr-kmh { font-weight: 600; }
+.asr-table td:nth-child(4),
+.asr-table td:nth-child(5),
+.asr-table td:nth-child(6),
+.asr-table td:nth-child(7),
+.asr-table td:nth-child(8) {
+    text-align: center;
+}
+.asr-table th:nth-child(1) { width: 22%; }
+.asr-table th:nth-child(2),
+.asr-table th:nth-child(3) { width: 17%; }
+.asr-table th:nth-child(4) { width: 12%; }
+.asr-table th:nth-child(5),
+.asr-table th:nth-child(6),
+.asr-table th:nth-child(7),
+.asr-table th:nth-child(8) { width: 8%; }
+.asr-muted { color: #6b7280; font-size: .85rem; }
+.asr-chip { display:inline-block; padding:4px 8px; border-radius:999px; font-size:.78rem; font-weight:700; background:#eef1f4; color:#1f2a44; }
+.asr-chip.high { background:#fde68a; color:#7c2d12; }
+.asr-chip.very-high { background:#fecaca; color:#991b1b; }
+.asr-chip.low { background:#dbeafe; color:#1e3a8a; }
+.asr-chip.ok { background:#dcfce7; color:#166534; }
+.asr-toolbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--asr-border);
+}
+.asr-date-group {
+    display: flex;
+    align-items: end;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.asr-date-item {
+    display: grid;
+    gap: 6px;
+}
+.asr-date-item .asr-control-label {
+    font-size: 0.88rem;
+}
+.asr-date-item .asr-percent-input {
+    width: 180px;
+}
+.asr-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.asr-save-btn {
+    border: none;
+    cursor: pointer;
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: .88rem;
+    font-weight: 800;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.asr-save-btn:hover {
+    transform: translateY(-1px);
+}
+.asr-save-btn.tests {
+    background: #dcfce7;
+    color: #166534;
+    box-shadow: 0 6px 16px rgba(22, 101, 52, .18);
+}
+.asr-save-btn.plan {
+    background: #fde68a;
+    color: #7c2d12;
+    box-shadow: 0 6px 16px rgba(124, 45, 18, .16);
+}
+.asr-toolbar-note {
+    width: 100%;
+    color: #6b7280;
+    font-size: .84rem;
+    text-align: right;
+    margin-top: 2px;
+}
+.asr-history {
+    margin-top: 16px;
+    display: grid;
+    gap: 12px;
+}
+.asr-history-card {
+    border: 1px solid var(--asr-border);
+    border-radius: 14px;
+    background: #fff;
+    overflow: hidden;
+}
+.asr-history-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #f7f9fc;
+    border-bottom: 1px solid var(--asr-border);
+}
+.asr-history-title { font-weight: 700; color: var(--asr-ink); }
+.asr-history-meta { display:flex; gap:8px; flex-wrap:wrap; }
+.asr-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+}
+.asr-history-table th,
+.asr-history-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eef2f6;
+    text-align: left;
+}
+.asr-history-table th {
+    color: #4b5a70;
+    font-weight: 600;
+    background: #fcfdff;
+}
+.asr-history-table tr:last-child td { border-bottom: none; }
+.asr-history-empty {
+    border: 1px dashed var(--asr-border);
+    border-radius: 12px;
+    padding: 14px;
+    color: #5f6d80;
+    background: #fbfcff;
+}
+@media (max-width: 900px) {
+  .asr-toolbar { grid-template-columns: 1fr; align-items: stretch; }
+  .asr-actions { justify-content: flex-start; }
+  .asr-toolbar-note { text-align: left; }
+  .asr-meta { grid-template-columns: 1fr; }
+  .asr-table-wrap { overflow-x: auto; }
+  .asr-table { min-width: 980px; }
+  .asr-history-card { overflow-x: auto; }
+  .asr-history-table { min-width: 760px; }
+}
+</style>
+
+<!-- MAS / ASR INDIVIDUALISERING -->
 <h4 class="jeugd-block-title">
-    <span class="jeugd-icon">📆</span>Weekplanning HIT Running
+    <span class="jeugd-icon">ASR</span> ASR / MAS Individualisering
 </h4>
+<p class="jeugd-subtitle" style="margin-bottom:12px;">
+    Gebruik dezelfde voorgeschreven snelheid uit de HIT calculator en vergelijk spelers op basis van MAS en ASR (MSS - MAS).
+    Zo zie je wie relatief dichter bij zijn plafond werkt bij dezelfde opdracht.
+</p>
 
-<form method="POST">
-    {% csrf_token %}
+<div class="asr-box">
+    <form method="post" id="asrSaveForm" style="margin-bottom:10px;">
+        {% csrf_token %}
+        <input type="hidden" name="asr_reference_speed_kmh" id="asrReferenceSpeedInput" value="20.0">
+        <div class="asr-toolbar">
+            <div class="asr-date-group">
+                <div class="asr-date-item">
+                    <label class="asr-control-label" for="asrTestDate">Testdatum</label>
+                    <input id="asrTestDate" type="date" name="asr_test_date" value="{{ asr_test_date }}" class="asr-percent-input">
+                </div>
+                <div class="asr-date-item">
+                    <label class="asr-control-label" for="asrPlanDate">Plandatum</label>
+                    <input id="asrPlanDate" type="date" name="asr_plan_date" value="{{ asr_plan_date }}" class="asr-percent-input">
+                </div>
+            </div>
+            <div class="asr-actions">
+                <button type="submit" name="asr_form_action" value="save_asr_tests" class="asr-save-btn tests">
+                    MSS/MAS opslaan in SQL
+                </button>
+                <button type="submit" name="asr_form_action" value="save_asr_plan" class="asr-save-btn plan">
+                    ASR planning opslaan
+                </button>
+                <div class="asr-toolbar-note">Slaat per speler en testdatum op.</div>
+            </div>
+        </div>
+    <div class="asr-meta">
+        <div class="asr-card">
+            <div style="margin-bottom:8px;">
+                <span class="asr-card-title">Referentie snelheid (HIT calculator)</span>
+                <span class="asr-speed-pill"><span id="asrTargetSpeed">20.0</span> km/u</span>
+            </div>
+            <div class="asr-control-row">
+                <label class="asr-control-label" for="asrMasPercent">Intensiteit (% van MAS)</label>
+                <input id="asrMasPercent" name="asr_mas_percent" class="asr-percent-input" type="number" step="0.1" min="0" value="110">
+                <span class="asr-muted">Bijv. 110 = trainen op 110% van MAS</span>
+            </div>
+            <div class="asr-muted" style="margin-top:6px;">Doelsnelheid per speler wordt berekend uit deze intensiteit (niet uit de referentiesnelheid hierboven).</div>
+            <div class="asr-formula">%ASR = ((doelsnelheid - MAS) / (MSS - MAS)) * 100</div>
+        </div>
+        <div class="asr-card">
+            <div class="asr-card-title">Interpretatie (globaal)</div>
+            <ul class="asr-help-list">
+                <li>Negatief %ASR = onder MAS</li>
+                <li>Hoge %ASR = hogere relatieve belasting bij gelijke opdracht</li>
+                <li>>100% ASR = doelsnelheid boven gemeten MSS (check invoer/opdracht)</li>
+            </ul>
+        </div>
+    </div>
 
-    <table class="week-table">
-        <tr><th>Dag</th><th>HIT Loopvorm / Opdracht</th></tr>
-
-        <tr>
-            <td>Maandag</td>
-            <td>
-                <input type="text" name="maandag"
-                       value="{{ weekplanning.monday }}"
-                       placeholder="Bijv. 6×60m @ 95%">
-            </td>
-        </tr>
-
-        <tr>
-            <td>Dinsdag</td>
-            <td>
-                <input type="text" name="dinsdag"
-                       value="{{ weekplanning.tuesday }}"
-                       placeholder="Bijv. RSA 8×30m">
-            </td>
-        </tr>
-
-        <tr>
-            <td>Woensdag</td>
-            <td>
-                <input type="text" name="woensdag"
-                       value="{{ weekplanning.wednesday }}"
-                       placeholder="Bijv. 10″ on / 20″ off × 12">
-            </td>
-        </tr>
-
-        <tr>
-            <td>Donderdag</td>
-            <td>
-                <input type="text" name="donderdag"
-                       value="{{ weekplanning.thursday }}"
-                       placeholder="Bijv. Sprints 5–20m">
-            </td>
-        </tr>
-
-        <tr>
-            <td>Vrijdag</td>
-            <td>
-                <input type="text" name="vrijdag"
-                       value="{{ weekplanning.friday }}"
-                       placeholder="Bijv. HIT herhalingen op 90–95%">
-            </td>
-        </tr>
-
-        <tr>
-            <td>Zaterdag</td>
-            <td>
-                <input type="text" name="zaterdag"
-                       value="{{ weekplanning.saturday }}"
-                       placeholder="Wedstrijdbelasting">
-            </td>
-        </tr>
-
-        <tr>
-            <td>Zondag</td>
-            <td>
-                <input type="text" name="zondag"
-                       value="{{ weekplanning.sunday }}"
-                       placeholder="Herstel of geen HIT">
-            </td>
-        </tr>
+    <div class="asr-table-wrap">
+    <table class="asr-table" id="asrTable">
+        <thead>
+            <tr>
+                <th>Speler</th>
+                <th>MSS max sprint (km/u)</th>
+                <th>MAS (km/u)</th>
+                <th>Doelsnelheid (uit intensiteit)</th>
+                <th>%MAS</th>
+                <th>ASR (km/u)</th>
+                <th>%ASR</th>
+                <th>Indicatie</th>
+            </tr>
+        </thead>
+        <tbody id="asrTableBody">
+            {% for _ in "12345678" %}
+            <tr>
+                <td>
+                    <select class="asr-player" name="asr_player_id[]">
+                        <option value="">Kies speler</option>
+                        {% for player in players %}
+                        <option value="{{ player.id }}">{{ player.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><input type="number" step="0.1" min="0" class="asr-mss" name="asr_mss[]" placeholder="31.5"></td>
+                <td><input type="number" step="0.1" min="0" class="asr-mas" name="asr_mas[]" placeholder="17.8"></td>
+                <td><span class="asr-target-cell">-</span></td>
+                <td><strong class="asr-pct-mas">-</strong></td>
+                <td><span class="asr-asr-kmh">-</span></td>
+                <td><strong class="asr-pct-asr">-</strong></td>
+                <td><span class="asr-chip">-</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
-
-    <!-- OPSLAAN KNOP -->
-    <button type="submit"
-            style="
-                margin-top: 18px;
-                padding: 12px 22px;
-                font-weight: 700;
-                font-size: 1rem;
-                background-color: #1f2a44;
-                border: none;
-                border-radius: 12px;
-                color: white;
-                cursor: pointer;
-                transition: 0.2s ease;
-            "
-            onmouseover="this.style.opacity='0.85'"
-            onmouseout="this.style.opacity='1'">
-        💾 Opslaan
-    </button>
-
+    </div>
 </form>
+</div>
+
+<div class="asr-history">
+    <h5 class="jeugd-block-title" style="font-size:1.05rem; margin:6px 0 0;">
+        <span class="jeugd-icon">SQL</span>Recent opgeslagen ASR-planningen
+    </h5>
+    {% if recent_asr_plans %}
+        {% for plan in recent_asr_plans %}
+        <div class="asr-history-card">
+            <div class="asr-history-head">
+                <div class="asr-history-title">Plandatum {{ plan.session_date }}</div>
+                <div class="asr-history-meta">
+                    <span class="asr-chip ok">{{ plan.mas_percent }}% MAS</span>
+                    {% if plan.reference_speed_kmh %}
+                    <span class="asr-chip">{{ plan.reference_speed_kmh }} km/u ref</span>
+                    {% endif %}
+                    <span class="asr-chip">{{ plan.entries.count }} spelers</span>
+                </div>
+            </div>
+            <table class="asr-history-table">
+                <thead>
+                    <tr>
+                        <th>Speler</th>
+                        <th>MSS</th>
+                        <th>MAS</th>
+                        <th>Doelsnelheid</th>
+                        <th>%ASR</th>
+                        <th>Indicatie</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in plan.entries.all %}
+                    <tr>
+                        <td>{{ entry.player.name }}</td>
+                        <td>{{ entry.mss_kmh }}</td>
+                        <td>{{ entry.mas_kmh }}</td>
+                        <td>{{ entry.target_speed_kmh }}</td>
+                        <td>{% if entry.pct_asr != None %}{{ entry.pct_asr }}%{% else %}-{% endif %}</td>
+                        <td>{{ entry.indication|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="asr-history-empty">Nog geen ASR-planningen opgeslagen in SQL.</div>
+    {% endif %}
+</div>
+
+{{ asr_latest_map|json_script:"asrLatestData" }}
+<script>
+function asrZoneLabel(pctAsr) {
+    if (!Number.isFinite(pctAsr)) return { label: '-', cls: '' };
+    if (pctAsr < 0) return { label: 'Onder MAS', cls: 'low' };
+    if (pctAsr < 30) return { label: 'Laag', cls: 'ok' };
+    if (pctAsr < 60) return { label: 'Midden', cls: 'ok' };
+    if (pctAsr < 80) return { label: 'Hoog', cls: 'high' };
+    if (pctAsr <= 100) return { label: 'Zeer hoog', cls: 'very-high' };
+    return { label: 'Boven MSS', cls: 'very-high' };
+}
+
+function updateASRTable() {
+    const speedEl = document.getElementById('snelheid');
+    if (!speedEl) return;
+    const targetSpeed = parseFloat(speedEl.value || '0');
+    const targetLabel = document.getElementById('asrTargetSpeed');
+    if (targetLabel && Number.isFinite(targetSpeed)) targetLabel.innerText = targetSpeed.toFixed(1);
+    const targetInput = document.getElementById('asrReferenceSpeedInput');
+    if (targetInput && Number.isFinite(targetSpeed)) targetInput.value = targetSpeed.toFixed(2);
+
+    document.querySelectorAll('#asrTableBody tr').forEach((row) => {
+        const mss = parseFloat(row.querySelector('.asr-mss').value);
+        const mas = parseFloat(row.querySelector('.asr-mas').value);
+        const masPercentInput = document.getElementById('asrMasPercent');
+        const masPercent = parseFloat(masPercentInput ? masPercentInput.value : '110');
+
+        const pctMasEl = row.querySelector('.asr-pct-mas');
+        const asrKmhEl = row.querySelector('.asr-asr-kmh');
+        const pctAsrEl = row.querySelector('.asr-pct-asr');
+        const chipEl = row.querySelector('.asr-chip');
+        const targetCellEl = row.querySelector('.asr-target-cell');
+
+        if (!Number.isFinite(mss) || !Number.isFinite(mas) || mss <= 0 || mas <= 0 || !Number.isFinite(masPercent) || masPercent <= 0) {
+            targetCellEl.innerText = '-';
+            pctMasEl.innerText = '-';
+            asrKmhEl.innerText = '-';
+            pctAsrEl.innerText = '-';
+            chipEl.innerText = '-';
+            chipEl.className = 'asr-chip';
+            return;
+        }
+
+        const asr = mss - mas;
+        const playerTargetSpeed = mas * (masPercent / 100);
+        targetCellEl.innerText = `${playerTargetSpeed.toFixed(1)} km/u`;
+        pctMasEl.innerText = `${masPercent.toFixed(1)}%`;
+        asrKmhEl.innerText = `${asr.toFixed(1)}`;
+
+        if (asr <= 0) {
+            pctAsrEl.innerText = 'ongeldig';
+            chipEl.innerText = 'MSS <= MAS';
+            chipEl.className = 'asr-chip very-high';
+            return;
+        }
+
+        const pctAsr = ((playerTargetSpeed - mas) / asr) * 100;
+        pctAsrEl.innerText = `${pctAsr.toFixed(1)}%`;
+        const zone = asrZoneLabel(pctAsr);
+        chipEl.innerText = zone.label;
+        chipEl.className = `asr-chip ${zone.cls}`.trim();
+    });
+}
+
+function hydrateASRRowFromSavedData(row) {
+    const mapEl = document.getElementById('asrLatestData');
+    if (!mapEl) return;
+    let latestMap = {};
+    try {
+        latestMap = JSON.parse(mapEl.textContent || '{}');
+    } catch (e) {
+        latestMap = {};
+    }
+    const playerSelect = row.querySelector('.asr-player');
+    const mssInput = row.querySelector('.asr-mss');
+    const masInput = row.querySelector('.asr-mas');
+    if (!playerSelect || !mssInput || !masInput) return;
+    const data = latestMap[playerSelect.value];
+    if (!data) return;
+    if (!mssInput.value) mssInput.value = data.mss;
+    if (!masInput.value) masInput.value = data.mas;
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+    ['afstand','tijd','snelheid','keerpunten','herhalingen'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateASRTable);
+    });
+    const asrMasPercentInput = document.getElementById('asrMasPercent');
+    if (asrMasPercentInput) asrMasPercentInput.addEventListener('input', updateASRTable);
+    document.querySelectorAll('#asrTableBody input').forEach((el) => el.addEventListener('input', updateASRTable));
+    document.querySelectorAll('#asrTableBody .asr-player').forEach((el) => {
+        el.addEventListener('change', function () {
+            hydrateASRRowFromSavedData(this.closest('tr'));
+            updateASRTable();
+        });
+    });
+    updateASRTable();
+});
+</script>
 
 
 <script>
@@ -367,6 +793,7 @@ function updateValues(changed) {
     let tijd = parseFloat(document.getElementById('tijd').value);
     let snelheid = parseFloat(document.getElementById('snelheid').value);
     let keerpunten = parseFloat(document.getElementById('keerpunten').value);
+    let herhalingen = parseFloat(document.getElementById('herhalingen').value);
 
     let totaleAfstand = afstand + (keerpunten * 2);
     let correctie = document.querySelector('input[name="correctie"]:checked').value;
@@ -385,9 +812,10 @@ function updateValues(changed) {
     document.getElementById('tijdLabel').innerText = tijd.toFixed(1);
     document.getElementById('snelheidLabel').innerText = snelheid.toFixed(1);
     document.getElementById('keerpuntenLabel').innerText = keerpunten;
+    document.getElementById('herhalingenLabel').innerText = herhalingen;
 }
 
-["afstand","tijd","snelheid","keerpunten"].forEach(id => {
+["afstand","tijd","snelheid","keerpunten","herhalingen"].forEach(id => {
     document.getElementById(id).addEventListener("input", () => updateValues(id));
 });
 
@@ -404,6 +832,7 @@ function classifyHIT() {
     let tijd = parseFloat(document.getElementById('tijd').value);
     let snelheid = parseFloat(document.getElementById('snelheid').value);
     let keerpunten = parseFloat(document.getElementById('keerpunten').value);
+    let herhalingen = parseFloat(document.getElementById('herhalingen').value);
 
     // labels updaten
     document.getElementById("tijdLabel").innerText = tijd.toFixed(1);
@@ -413,11 +842,12 @@ function classifyHIT() {
     const maxSpeed = 35; // geschatte MSS voor schaalverhouding
     let intensity = snelheid / maxSpeed;  // 0-1 schaal
     let durationFactor = Math.min(tijd / 30, 1); // 0-1 (lange intervallen = aerobe bias)
+    let volumeFactor = Math.min(herhalingen / 20, 1); // 0-1 (meer herhalingen = meer totale belasting)
 
     // Basisverdeling
-    let aero = (1 - intensity) * 70 + durationFactor * 30;
-    let anaero = intensity * 70 + (1 - durationFactor) * 20;
-    let neuro = intensity * 40 + keerpunten * 10;
+    let aero = (1 - intensity) * 60 + durationFactor * 25 + volumeFactor * 25;
+    let anaero = intensity * 65 + (1 - durationFactor) * 20 + volumeFactor * 15;
+    let neuro = intensity * 35 + keerpunten * 10 + volumeFactor * 25;
 
     // Normaliseren naar max 100
     aero = Math.min(aero, 100);
@@ -428,17 +858,23 @@ function classifyHIT() {
     let type = "";
     let desc = "";
 
-    const aerobic = tijd > 15;
+    const highVolume = herhalingen >= 8;
+    const veryHighVolume = herhalingen >= 15;
+    const aerobic = tijd > 15 || (tijd >= 12 && highVolume);
     const neuromuscular = snelheid > 24 || keerpunten > 0;
     const anaerobic = tijd <= 15;
 
-    if (aerobic && !neuromuscular) {
+    if (tijd <= 8 && neuromuscular && veryHighVolume) {
+        type = "Type 5";
+        desc = "Maximale neuromusculaire stimulus (sprint, kracht, speed development).";
+    }
+    else if (aerobic && !neuromuscular) {
         type = "Type 1";
-        desc = "Aerobe metabole belasting (O₂-systeem), lage neuromusculaire stress.";
+        desc = "Aerobe metabole belasting (O2-systeem), lage neuromusculaire stress.";
     }
     else if (aerobic && neuromuscular) {
         type = "Type 2";
-        desc = "Aerobe + neuromusculaire belasting. Typisch 15–25 sec intervallen.";
+        desc = "Aerobe + neuromusculaire belasting. Typisch 15-25 sec intervallen.";
     }
     else if (anaerobic && !neuromuscular) {
         type = "Type 3";
@@ -448,10 +884,7 @@ function classifyHIT() {
         type = "Type 4";
         desc = "Zeer hoge anaerobe + neuromusculaire belasting. Explosief intervalwerk.";
     }
-    else if (tijd <= 8) {
-        type = "Type 5";
-        desc = "Maximale neuromusculaire stimulus (sprint, kracht, speed development).";
-    }
+    desc = desc + " Herhalingen: " + herhalingen + ".";
 
     // tonen in DOM
     document.getElementById("hitTypeBox").style.display = "block";
@@ -464,7 +897,7 @@ function classifyHIT() {
 }
 
 // sliders luisteren
-["afstand","tijd","snelheid","keerpunten"].forEach(id => {
+["afstand","tijd","snelheid","keerpunten","herhalingen"].forEach(id => {
     document.getElementById(id).addEventListener("input", classifyHIT);
 });
 

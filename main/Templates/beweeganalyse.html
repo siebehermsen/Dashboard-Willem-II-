@@ -1,0 +1,538 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Beweeganalyse{% endblock %}
+
+{% block content %}
+<div class="beweeganalyse-page">
+    <h1>Beweeganalyse</h1>
+    <p>Beoordelingsformulier per speler en datum.</p>
+
+    <form method="get" class="ba-toolbar">
+        <div class="ba-field">
+            <label for="player_id">Speler</label>
+            <select id="player_id" name="player_id" required>
+                {% for player in players %}
+                    <option value="{{ player.id }}" {% if selected_player and player.id == selected_player.id %}selected{% endif %}>
+                        {{ player.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="ba-field">
+            <label for="analysis_date">Datum</label>
+            <input id="analysis_date" name="analysis_date" type="date" value="{{ selected_date|date:'Y-m-d' }}" required>
+        </div>
+
+        <div class="ba-actions">
+            <button type="submit" class="btn-light">Laden</button>
+        </div>
+    </form>
+
+    <form method="post" enctype="multipart/form-data" class="ba-form">
+        {% csrf_token %}
+        <input type="hidden" name="player_id" value="{% if selected_player %}{{ selected_player.id }}{% endif %}">
+        <input type="hidden" name="analysis_date" value="{{ selected_date|date:'Y-m-d' }}">
+
+        <div class="score-legend-card">
+            <h3>Score-uitleg</h3>
+            <div class="score-legend-list">
+                <div class="score-legend-item"><span class="score-pill">4</span><span>Perfect, foutloos</span></div>
+                <div class="score-legend-item"><span class="score-pill">3</span><span>Goede uitvoering, kleine technische fouten/compensaties</span></div>
+                <div class="score-legend-item"><span class="score-pill">2</span><span>Oké uitvoering, meerdere key points missen</span></div>
+                <div class="score-legend-item"><span class="score-pill">1</span><span>Totaal uit balans, coordinatie ontbreekt, meeste technische onderdelen missen</span></div>
+            </div>
+        </div>
+
+        <div class="ba-video-card">
+            <div class="ba-video-toolbar">
+                <div class="ba-field ba-video-field">
+                    <label for="video_file">Video uploaden</label>
+                    <input id="video_file" name="video_file" type="file" accept="video/*">
+                </div>
+                <div class="ba-actions">
+                    <button type="submit" name="action" value="upload_video">Upload video</button>
+                    <button type="submit" name="action" value="delete_video" class="btn-danger">Verwijder video</button>
+                </div>
+            </div>
+
+            {% if selected_sessie and selected_sessie.video_file %}
+                <div class="ba-video-player-wrap">
+                    <h3>Compilatievideo (normaal -> 0.5x)</h3>
+                    <video controls preload="metadata" class="ba-video-player">
+                        <source src="{{ selected_sessie.video_file.url }}">
+                        Je browser ondersteunt geen video playback.
+                    </video>
+                    <a class="ba-video-link" href="{{ selected_sessie.video_file.url }}" target="_blank" rel="noopener">Open video in nieuw tabblad</a>
+                </div>
+            {% else %}
+                <div class="ba-video-empty">Nog geen video geupload voor deze speler en datum.</div>
+            {% endif %}
+        </div>
+
+        <div class="ba-table-wrap">
+            <table class="ba-table">
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>Punt</th>
+                        <th>Score</th>
+                        <th>!</th>
+                        <th>Cues / Focus</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for section in sections %}
+                        {% for row in section.rows %}
+                            <tr class="{% if row.existing and row.existing.priority_flag %}priority-row{% endif %}">
+                                {% if forloop.first %}
+                                    <td class="test-cell" rowspan="{{ section.rows|length }}">{{ section.onderdeel.name }}</td>
+                                {% endif %}
+                                <td>
+                                    <strong>{{ row.punt.title }}</strong>
+                                    {% if row.punt.focus_text %}
+                                        <div class="subtext">{{ row.punt.focus_text }}</div>
+                                    {% endif %}
+                                    <button
+                                        type="button"
+                                        class="exercise-toggle"
+                                        data-point-id="{{ row.punt.id }}"
+                                    >
+                                        Bekijk oefeningen
+                                    </button>
+                                    <div class="exercise-panel" id="exercise-panel-{{ row.punt.id }}">
+                                        {% if row.exercise_suggestions %}
+                                            <ul class="exercise-list">
+                                                {% for ex in row.exercise_suggestions %}
+                                                    <li>{{ ex }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <div class="exercise-empty">
+                                                Nog geen oefeningen gekoppeld voor dit punt.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="score-group">
+                                        {% for n in "1234" %}
+                                            <label class="score-option">
+                                                <input
+                                                    type="radio"
+                                                    name="score_{{ row.punt.id }}"
+                                                    value="{{ n }}"
+                                                    {% if row.existing and row.existing.score|stringformat:"s" == n %}checked{% endif %}
+                                                >
+                                                <span>{{ n }}</span>
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td class="priority-cell">
+                                    <label class="priority-label" title="Markeer als belangrijkste aandachtspunt">
+                                        <input
+                                            type="checkbox"
+                                            name="priority_{{ row.punt.id }}"
+                                            class="priority-checkbox"
+                                            value="1"
+                                            {% if row.existing and row.existing.priority_flag %}checked{% endif %}
+                                        >
+                                        <span>!</span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <textarea
+                                        name="comment_{{ row.punt.id }}"
+                                        rows="2"
+                                        placeholder="Bijv. cues / focuspunten..."
+                                    >{% if row.existing %}{{ row.existing.comment }}{% endif %}</textarea>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">Er zijn nog geen beoordelingspunten geconfigureerd.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="ba-actions ba-actions-bottom">
+            <button type="submit" name="action" value="save_scores">Opslaan scores</button>
+        </div>
+    </form>
+</div>
+
+<style>
+.beweeganalyse-page {
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.beweeganalyse-page h1 {
+    font-size: 2rem;
+    color: #1f2a44;
+    margin-bottom: 8px;
+}
+
+.beweeganalyse-page p {
+    margin-top: 0;
+    color: #3f4d69;
+}
+
+.ba-form {
+    margin-top: 10px;
+}
+
+.score-legend-card {
+    background: #ffffff;
+    border: 1px solid #dbe2ef;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+}
+
+.score-legend-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+    color: #1f2a44;
+}
+
+.score-legend-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.score-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #24324f;
+    font-size: 0.9rem;
+}
+
+.score-pill {
+    min-width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef2fa;
+    border: 1px solid #c8d2e6;
+    color: #1f2a44;
+    font-weight: 700;
+}
+
+.ba-video-card {
+    background: #ffffff;
+    border: 1px solid #dbe2ef;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+}
+
+.ba-video-toolbar {
+    display: flex;
+    gap: 14px;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.ba-video-field {
+    min-width: 360px;
+}
+
+.ba-video-player-wrap {
+    margin-top: 12px;
+}
+
+.ba-video-player {
+    width: 100%;
+    max-height: 520px;
+    background: #0d111b;
+    border-radius: 8px;
+}
+
+.ba-video-link {
+    display: inline-block;
+    margin-top: 8px;
+    font-weight: 600;
+}
+
+.ba-video-empty {
+    margin-top: 12px;
+    color: #586581;
+}
+
+.ba-toolbar {
+    display: flex;
+    align-items: end;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: #ffffff;
+    border: 1px solid #dbe2ef;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.ba-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 220px;
+    gap: 6px;
+}
+
+.ba-field label {
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.ba-field select,
+.ba-field input[type="date"] {
+    height: 38px;
+    border: 1px solid #c7cfde;
+    border-radius: 8px;
+    padding: 0 10px;
+    font-size: 0.95rem;
+}
+
+.ba-field input[type="file"] {
+    border: 1px solid #c7cfde;
+    border-radius: 8px;
+    padding: 6px 8px;
+    background: #fff;
+}
+
+.ba-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ba-actions-top {
+    margin-bottom: 10px;
+}
+
+.ba-actions-bottom {
+    margin-top: 10px;
+    justify-content: flex-end;
+}
+
+.ba-actions button {
+    height: 38px;
+    border: 0;
+    border-radius: 8px;
+    background: #1f2a44;
+    color: #fff;
+    padding: 0 18px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ba-actions .btn-light {
+    background: #eef2fa;
+    color: #1f2a44;
+    border: 1px solid #c8d2e6;
+}
+
+.ba-actions .btn-danger {
+    background: #c53649;
+}
+
+.ba-table-wrap {
+    background: #fff;
+    border: 1px solid #dbe2ef;
+    border-radius: 10px;
+    overflow: auto;
+}
+
+.ba-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1040px;
+}
+
+.ba-table th,
+.ba-table td {
+    border-bottom: 1px solid #e7ebf4;
+    border-right: 1px solid #eef2f9;
+    padding: 10px;
+    vertical-align: top;
+}
+
+.ba-table th {
+    background: #f5f7fc;
+    text-align: left;
+    color: #1f2a44;
+}
+
+.ba-table th:last-child,
+.ba-table td:last-child {
+    border-right: 0;
+}
+
+.test-cell {
+    font-weight: 700;
+    color: #0f1b35;
+    min-width: 250px;
+}
+
+.subtext {
+    margin-top: 4px;
+    color: #586581;
+    font-size: 0.86rem;
+}
+
+.exercise-toggle {
+    margin-top: 8px;
+    border: 1px solid #c8d2e6;
+    background: #eef2fa;
+    color: #1f2a44;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.exercise-panel {
+    display: none;
+    margin-top: 8px;
+    border: 1px solid #dbe2ef;
+    border-radius: 8px;
+    background: #f9fbff;
+    padding: 8px 10px;
+}
+
+.exercise-panel.open {
+    display: block;
+}
+
+.exercise-list {
+    margin: 0;
+    padding-left: 16px;
+}
+
+.exercise-list li {
+    margin: 3px 0;
+    color: #24324f;
+    font-size: 0.9rem;
+}
+
+.exercise-empty {
+    color: #586581;
+    font-size: 0.88rem;
+}
+
+.score-group {
+    display: grid;
+    grid-template-columns: repeat(4, 44px);
+    gap: 8px;
+    align-items: center;
+    justify-content: start;
+}
+
+.score-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 44px;
+    height: 30px;
+    border: 1px solid #ccd5e7;
+    border-radius: 15px;
+    padding: 0;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.score-option input {
+    margin: 0;
+}
+
+.priority-cell {
+    width: 62px;
+    text-align: center;
+}
+
+.priority-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 34px;
+    border: 1px solid #e4b8bf;
+    border-radius: 50%;
+    background: #fff6f7;
+    color: #c53649;
+    font-weight: 800;
+    cursor: pointer;
+    user-select: none;
+    gap: 6px;
+    padding: 0 10px;
+}
+
+.priority-checkbox {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #c53649;
+    cursor: pointer;
+}
+
+.priority-checkbox:checked + span {
+    text-shadow: 0 0 6px rgba(197, 54, 73, 0.35);
+}
+
+.priority-row {
+    background: #fff8f9;
+}
+
+.ba-table textarea {
+    width: 100%;
+    min-width: 200px;
+    min-height: 68px;
+    border: 1px solid #f0aab4;
+    border-radius: 8px;
+    padding: 8px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 0.92rem;
+    box-sizing: border-box;
+}
+ </style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    function openPanel(pointId) {
+        var panel = document.getElementById("exercise-panel-" + pointId);
+        if (panel) {
+            panel.classList.add("open");
+        }
+    }
+
+    document.querySelectorAll(".exercise-toggle").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var pointId = btn.getAttribute("data-point-id");
+            var panel = document.getElementById("exercise-panel-" + pointId);
+            if (panel) {
+                panel.classList.toggle("open");
+            }
+        });
+    });
+
+    document.querySelectorAll("input[type='radio'][name^='score_']").forEach(function (radio) {
+        radio.addEventListener("change", function () {
+            var parts = radio.name.split("_");
+            if (parts.length === 2) {
+                openPanel(parts[1]);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

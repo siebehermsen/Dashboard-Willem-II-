@@ -1,51 +1,175 @@
-from django.http import HttpResponse
+﻿from django.http import HttpResponse
 import csv
-from .models import Player, Injury, TrainingData, DayProgram, PlayerTest, Oefening
+from .models import Player, DayProgramEntry, Oefening
 from django.db.models import Avg, Sum
 from django.http import JsonResponse
 from .models import Player, WellnessEntry
 from django.utils import timezone
-from .models import Player, Aanwezigheid
 from django.shortcuts import render, redirect
-from .models import Overig
-from .models import Player, Overig, Staff
-from .models import WedstrijdData, Player
+from .models import (
+    Player,
+    OverigNote,
+    Staff,
+    BirthdayRecord,
+    BirthdayProfile,
+    YouthGuestWeek,
+    YouthGuestProfile,
+    VakantieProgrammaEntry,
+    VakantiePlanning,
+    GrowthProfile,
+    GrowthMeasurement,
+)
 from django.db.models import Avg, Min, Max
 from django.utils import timezone
-from .models import Match
+from .models import Match, Team
 
 # ---------- IMPORTS ----------
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.db.models import Avg
 from django import forms
 from datetime import datetime, timedelta
+from types import SimpleNamespace
 from django.conf import settings
+from django.urls import reverse
+from django.core.files.storage import default_storage
+import os
+import uuid
+import shutil
+import subprocess
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    sync_playwright = None
+from django.utils.dateparse import parse_date
+from .models import (
+    InjuryCase,
+    InjuryType,
+    InjuryPhase,
+    InjuryStatus,
+    RPEEntry,
+    HitWeekPlan,
+    HitWeekPlanEntry,
+    BeweeganalysePunt,
+    BeweeganalyseSessie,
+    BeweeganalyseBeoordeling,
+    PlayerMonitoringProfile,
+)
+from .performance_3nf import fetch_performance_rows, mean, upsert_performance_session_metrics
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("login")
 
 
 
 # ---------- INLINE FORM (GEEN forms.py NODIG) ----------
 class WeekProgramForm(forms.ModelForm):
     class Meta:
-        model = DayProgram
+        model = DayProgramEntry
         fields = ["date", "activities", "notes"]
+
+
+def _resolve_player_by_name(name):
+    if not name:
+        return None
+    return Player.objects.filter(name=name).first()
+
+
+def _get_or_create_monitoring_profile(player):
+    profile, _ = PlayerMonitoringProfile.objects.get_or_create(player=player)
+    return profile
+
+
+def _injury_duration_days(injury):
+    if injury.started_on and injury.expected_return_on:
+        return (injury.expected_return_on - injury.started_on).days
+    return None
+
+
+def _injury_to_ui(injury):
+    phase_code = injury.phase_ref.code if injury.phase_ref else ""
+    phase_label_map = {
+        "early": "Vroege fase",
+        "mid": "Middenfase",
+        "final": "Laatste fase",
+    }
+    return SimpleNamespace(
+        id=injury.id,
+        name=injury.player.name if injury.player else "",
+        injury_type=injury.injury_type_ref.name if injury.injury_type_ref else "-",
+        start_date=injury.started_on,
+        duration=_injury_duration_days(injury),
+        phase=phase_code,
+        phase_label=phase_label_map.get(phase_code, "Laatste fase"),
+        status=injury.status_ref.code if injury.status_ref else "",
+    )
+
+
+def _upsert_injury_case(*, player, injury_type, start_date_value, duration_value, phase, instance=None):
+    started_on = parse_date(start_date_value) if isinstance(start_date_value, str) else start_date_value
+
+    duration_days = None
+    if duration_value not in (None, ""):
+        try:
+            duration_days = int(duration_value)
+        except (TypeError, ValueError):
+            duration_days = None
+
+    expected_return_on = None
+    if started_on and duration_days is not None:
+        expected_return_on = started_on + timedelta(days=duration_days)
+
+    injury_type_obj = None
+    if injury_type:
+        injury_type_obj, _ = InjuryType.objects.get_or_create(name=injury_type.strip())
+
+    phase_code = (phase or "").strip().lower()
+    phase_defaults = {
+        "early": "Vroege fase",
+        "mid": "Middenfase",
+        "final": "Laatste fase",
+    }
+    phase_obj = None
+    if phase_code:
+        phase_obj, _ = InjuryPhase.objects.get_or_create(
+            code=phase_code,
+            defaults={"label": phase_defaults.get(phase_code, phase_code.title())},
+        )
+
+    status_obj, _ = InjuryStatus.objects.get_or_create(
+        code="active",
+        defaults={"label": "Actief"},
+    )
+
+    injury = instance if instance is not None else InjuryCase(player=player)
+    injury.player = player
+    injury.injury_type_ref = injury_type_obj
+    injury.phase_ref = phase_obj
+    injury.started_on = started_on
+    injury.expected_return_on = expected_return_on
+    injury.status_ref = status_obj
+    injury.save()
+    return injury
 
 
 # ---------- HOME / TEST ----------
 def home(request):
-    return HttpResponse("✅ Django werkt correct!")
+    return HttpResponse("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Django werkt correct!")
 
 
 # ---------- DASHBOARD ----------
 def dashboard(request):
 
     # ---------- BASIS ----------
-    players = Player.objects.all().order_by("name")
-    dayprograms = DayProgram.objects.all().order_by("date")
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    dayprograms = DayProgramEntry.objects.all().order_by("date")
     weekform = WeekProgramForm()
 
-    # ---------- CLUBLOGO’S ----------
+    # ---------- CLUBLOGOÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢S ----------
     logos = {
         "Willem II": "https://www.willem2.net/wp-content/uploads/willemii/Willem-II_logo_2022_2023.jpg",
         "Jong PSV": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/9983.png",
@@ -61,7 +185,7 @@ def dashboard(request):
         "Jong Ajax": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Logo_AFC_Ajax_%281928-1991%2C_2025-%29.png/330px-Logo_AFC_Ajax_%281928-1991%2C_2025-%29.png",
         "RKC Waalwijk": "https://upload.wikimedia.org/wikipedia/en/6/67/RKC_Waalwijk_logo.svg",
         "Jong FC Utrecht": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Logo_FC_Utrecht.svg",
-        "Vitesse": "https://upload.wikimedia.org/wikipedia/en/c/c8/SBV_Vitesse_logo.svg/987px-ADO_Den_Haag_logo.svg.png",
+        "Vitesse": "https://upload.wikimedia.org/wikipedia/en/thumb/c/c8/SBV_Vitesse_logo.svg/960px-SBV_Vitesse_logo.svg.png",
         "MVV": "https://upload.wikimedia.org/wikipedia/it/9/92/MVV_Maastricht_logo.png",
         "De Graafschap": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOTZu6Zb8Ktkgj-RommON0Kw5tGAXD2mmwvw&s",
         "Jong AZ": "https://upload.wikimedia.org/wikipedia/en/6/6b/Jong_AZ_logo.png",
@@ -74,7 +198,7 @@ def dashboard(request):
     # ---------- FORM HANDLING (WEEKPROGRAMMA + SEIZOENSIMPORT) ----------
     if request.method == "POST":
 
-        # ✅ SEIZOENSPLANNING IMPORTEREN (harde reset)
+        # ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ SEIZOENSPLANNING IMPORTEREN (harde reset)
         if request.POST.get("form_type") == "seed_matches":
 
             # Harde reset: verwijder alles (zo voorkom je oude foute wedstrijden zoals Eindhoven)
@@ -116,20 +240,29 @@ def dashboard(request):
                 if timezone.is_naive(kickoff):
                     kickoff = timezone.make_aware(kickoff)
 
+                home_team, _ = Team.objects.get_or_create(
+                    name=m["home"],
+                    defaults={"code": m["home"][:20].upper()},
+                )
+                away_team, _ = Team.objects.get_or_create(
+                    name=m["away"],
+                    defaults={"code": m["away"][:20].upper()},
+                )
+
                 Match.objects.create(
                     kickoff=kickoff,
-                    home=m["home"],
-                    away=m["away"],
+                    home_team=home_team,
+                    away_team=away_team,
                 )
                 created_count += 1
 
             messages.success(
                 request,
-                f"Seizoensplanning geïmporteerd. Nieuw: {created_count}, geüpdatet: {updated_count}, verwijderd: alles opnieuw opgebouwd.",
+                f"Seizoensplanning geÃƒÆ’Ã‚Â¯mporteerd. Nieuw: {created_count}, geÃƒÆ’Ã‚Â¼pdatet: {updated_count}, verwijderd: alles opnieuw opgebouwd.",
             )
             return redirect("dashboard")
 
-        # ✅ Weekplanning opslaan
+        # ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Weekplanning opslaan
         if request.POST.get("form_type") == "add_weekday":
             weekform = WeekProgramForm(request.POST)
             if weekform.is_valid():
@@ -138,17 +271,117 @@ def dashboard(request):
                 return redirect("dashboard")
 
     # ---------- REVALIDATIES ----------
-    rehab_players = Injury.objects.all().order_by("-start_date")
+    rehab_players_qs = InjuryCase.objects.select_related(
+        "player", "injury_type_ref", "phase_ref", "status_ref"
+    ).order_by("-started_on")
+    rehab_players = [_injury_to_ui(injury) for injury in rehab_players_qs]
 
     # ---------- GEMIDDELDE VETPERCENTAGE ----------
     avg_fat = None
 
     # ---------- KOMENDE WEDSTRIJD (UIT DATABASE) ----------
     now = timezone.now()
-    upcoming_match = Match.objects.filter(kickoff__gte=now).order_by("kickoff").first()
+    upcoming_match = (
+        Match.objects.select_related("home_team", "away_team")
+        .filter(kickoff__gte=now)
+        .order_by("kickoff")
+        .first()
+    )
 
-    home_logo = logos.get(upcoming_match.home, "") if upcoming_match else ""
-    away_logo = logos.get(upcoming_match.away, "") if upcoming_match else ""
+    if upcoming_match:
+        home_name = getattr(getattr(upcoming_match, "home_team", None), "name", "") or getattr(upcoming_match, "home", "")
+        away_name = getattr(getattr(upcoming_match, "away_team", None), "name", "") or getattr(upcoming_match, "away", "")
+    else:
+        home_name = ""
+        away_name = ""
+
+    home_logo = logos.get(home_name, "") if upcoming_match else ""
+    away_logo = logos.get(away_name, "") if upcoming_match else ""
+
+    # ---------- MEETRAINERS JEUGD ----------
+    youth_guests = YouthGuestWeek.objects.select_related("profile", "profile__team_ref").all().order_by("-week_of", "profile__name")
+
+    # ---------- VERJAARDAGEN ----------
+    birthdays = BirthdayRecord.objects.select_related("profile").all().order_by("date", "profile__name")
+
+    # ---------- DASHBOARD ALERTS (WELLNESS + BELASTINGSRISICO) ----------
+    today = timezone.now().date()
+    week_start = today - timedelta(days=6)
+    prev_start = today - timedelta(days=27)
+    prev_end = today - timedelta(days=7)
+
+    wellness_alerts = []
+    today_wellness = WellnessEntry.objects.select_related("player").filter(date=today).order_by("player__name")
+    for entry in today_wellness:
+        reasons = []
+        if entry.sleep is not None and entry.sleep <= 2:
+            reasons.append(f"slaap laag ({entry.sleep}/5)")
+        if entry.mood is not None and entry.mood <= 2:
+            reasons.append(f"gevoel laag ({entry.mood}/5)")
+        if entry.fitness is not None and entry.fitness <= 2:
+            reasons.append(f"fitheid laag ({entry.fitness}/5)")
+        if entry.soreness is not None and entry.soreness >= 4:
+            reasons.append(f"spierpijn hoog ({entry.soreness}/5)")
+        if entry.comment and entry.comment.strip():
+            reasons.append("opmerking ingevuld")
+
+        if reasons:
+            wellness_alerts.append(
+                {
+                    "player_name": entry.player.name if entry.player else "-",
+                    "reason": ", ".join(reasons),
+                }
+            )
+
+    load_alerts = []
+    recent_entries = (
+        RPEEntry.objects.select_related("player")
+        .filter(date__gte=prev_start, date__lte=today)
+        .order_by("player__name", "date")
+    )
+    loads_by_player = {}
+    for entry in recent_entries:
+        if not entry.player_id:
+            continue
+        player_bucket = loads_by_player.setdefault(
+            entry.player_id,
+            {
+                "name": entry.player.name if entry.player else "-",
+                "current": [],
+                "previous": [],
+            },
+        )
+        # Prefer session load; fallback to simple rpe*100 proxy when load is empty.
+        load_value = entry.session_load if entry.session_load is not None else (entry.rpe * 100 if entry.rpe is not None else None)
+        if load_value is None:
+            continue
+        if entry.date >= week_start:
+            player_bucket["current"].append(float(load_value))
+        elif prev_start <= entry.date <= prev_end:
+            player_bucket["previous"].append(float(load_value))
+
+    for bucket in loads_by_player.values():
+        current_vals = bucket["current"]
+        prev_vals = bucket["previous"]
+        if len(current_vals) < 2 or len(prev_vals) < 2:
+            continue
+        current_avg = sum(current_vals) / len(current_vals)
+        prev_avg = sum(prev_vals) / len(prev_vals)
+        if prev_avg <= 0:
+            continue
+        ratio = current_avg / prev_avg
+        if ratio >= 1.35:
+            load_alerts.append(
+                {
+                    "player_name": bucket["name"],
+                    "current_avg": round(current_avg, 1),
+                    "prev_avg": round(prev_avg, 1),
+                    "ratio": round(ratio, 2),
+                }
+            )
+
+    load_alerts = sorted(load_alerts, key=lambda item: item["ratio"], reverse=True)[:8]
+    wellness_alerts = wellness_alerts[:8]
 
     # ---------- CONTEXT ----------
     context = {
@@ -161,6 +394,12 @@ def dashboard(request):
         "upcoming_match": upcoming_match,
         "home_logo": home_logo,
         "away_logo": away_logo,
+        "home_name": home_name,
+        "away_name": away_name,
+        "youth_guests": youth_guests,
+        "birthdays": birthdays,
+        "wellness_alerts": wellness_alerts,
+        "load_alerts": load_alerts,
     }
 
     return render(request, "Load_dashboard.html", context)
@@ -170,7 +409,7 @@ def dashboard(request):
 
 # ---------- WEEKPROGRAMMA BEWERKEN ----------
 def edit_weekday(request, pk):
-    day = get_object_or_404(DayProgram, pk=pk)
+    day = get_object_or_404(DayProgramEntry, pk=pk)
 
     if request.method == "POST":
         form = WeekProgramForm(request.POST, instance=day)
@@ -184,7 +423,7 @@ def edit_weekday(request, pk):
 
 # ---------- WEEKPROGRAMMA VERWIJDEREN ----------
 def delete_weekday(request, pk):
-    day = get_object_or_404(DayProgram, pk=pk)
+    day = get_object_or_404(DayProgramEntry, pk=pk)
     day.delete()
     messages.success(request, "Trainingsdag succesvol verwijderd.")
     return redirect("dashboard")
@@ -218,18 +457,89 @@ def add_rehab(request):
             messages.error(request, "Alle velden zijn verplicht.")
             return redirect("dashboard")
 
-        # Blessure opslaan
-        Injury.objects.create(
-            name=name,
+        player_obj = _resolve_player_by_name(name)
+        if player_obj is None:
+            messages.error(request, "Speler niet gevonden. Voeg eerst de speler toe.")
+            return redirect("dashboard")
+
+        _upsert_injury_case(
+            player=player_obj,
             injury_type=injury_type,
-            start_date=start_date,
-            duration=duration,
+            start_date_value=start_date,
+            duration_value=duration,
             phase=phase,
         )
 
-        messages.success(request, f"Blessure van {name} succesvol toegevoegd.")
+        messages.success(request, f"Blessure van {player_obj.name} succesvol toegevoegd.")
 
     # Altijd terug naar dashboard
+    return redirect("dashboard")
+
+
+# ---------- VERJAARDAG TOEVOEGEN ----------
+def add_birthday(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        role = request.POST.get("role") or None
+        date = request.POST.get("date")
+
+        if not name or not date:
+            messages.error(request, "Naam en datum zijn verplicht.")
+            return redirect("dashboard")
+
+        profile, _ = BirthdayProfile.objects.get_or_create(name=name, role=role)
+        BirthdayRecord.objects.get_or_create(
+            profile=profile,
+            date=date,
+        )
+        messages.success(request, f"Verjaardag van {name} toegevoegd.")
+
+    return redirect("dashboard")
+
+
+# ---------- VERJAARDAG VERWIJDEREN ----------
+def delete_birthday(request, pk):
+    if request.method == "POST":
+        birthday = get_object_or_404(BirthdayRecord, pk=pk)
+        birthday.delete()
+        messages.success(request, "Verjaardag verwijderd.")
+
+    return redirect("dashboard")
+
+
+# ---------- MEETRAINER JEUGD TOEVOEGEN ----------
+def add_youth_guest(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        team = request.POST.get("team") or None
+        week_of = request.POST.get("week_of") or None
+
+        if not name:
+            messages.error(request, "Naam is verplicht.")
+            return redirect("dashboard")
+
+        profile = YouthGuestProfile(name=name)
+        profile.team = team
+        profile, _ = YouthGuestProfile.objects.get_or_create(
+            name=name,
+            team_ref=profile.team_ref,
+        )
+        YouthGuestWeek.objects.get_or_create(
+            profile=profile,
+            week_of=week_of,
+        )
+        messages.success(request, f"Meetrainer {name} toegevoegd.")
+
+    return redirect("dashboard")
+
+
+# ---------- MEETRAINER JEUGD VERWIJDEREN ----------
+def delete_youth_guest(request, pk):
+    if request.method == "POST":
+        guest = get_object_or_404(YouthGuestWeek, pk=pk)
+        guest.delete()
+        messages.success(request, "Meetrainer verwijderd.")
+
     return redirect("dashboard")
 
 
@@ -251,89 +561,243 @@ def seed_data(request):
     return HttpResponse("Spelers toegevoegd.")
 
 
-# ---------- BLESSURE TOEVOEGEN ----------
-def add_rehab(request):
-    if request.method == "POST":
-        Injury.objects.create(
-            name=request.POST.get("name"),
-            injury_type=request.POST.get("injury_type"),
-            start_date=request.POST.get("start_date"),
-            duration=request.POST.get("duration"),
-            phase=request.POST.get("phase"),
-        )
-    return redirect("dashboard")
-
-
-
 from datetime import datetime
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 
-from .models import Player, NutritionDay
+from .models import (
+    Player,
+    NutritionDay,
+    WeightEntry,
+    NutritionIntakeSession,
+    NutritionIntakeItem,
+)
+
 
 
 def nutrition_view(request):
     """
     Voedingsdashboard:
-    - Weekvoedingsplanning
-    - Spelerselectie + aandachtspunt
+    - Weekvoedingsplanning (TEAM-wide)
+    - Spelerselectie
+    - Intake formulier (per speler)
     """
 
-    days = [
-        "Maandag", "Dinsdag", "Woensdag",
-        "Donderdag", "Vrijdag", "Zaterdag", "Zondag"
-    ]
+    # -----------------------------
+    # Dagen + huidige dag
+    # -----------------------------
+    days = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"]
     current_day = days[datetime.now().weekday()]
 
-    players = Player.objects.all().order_by("name")
-    selected_player = None
+    # -----------------------------
+    # Spelers + geselecteerde speler
+    # -----------------------------
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
 
     player_id = request.GET.get("player_id")
-    if player_id:
-        selected_player = get_object_or_404(Player, id=player_id)
+    selected_player = None
+    intake = None
 
-    # ======================
-    # POST
-    # ======================
+    if player_id:
+        selected_player = get_object_or_404(Player.objects.select_related("monitoring_profile"), id=player_id)
+        latest_session = (
+            NutritionIntakeSession.objects
+            .filter(player=selected_player)
+            .prefetch_related("items")
+            .order_by("-date", "-updated_at", "-id")
+            .first()
+        )
+        if latest_session:
+            item_map = {item.meal_key: item.value for item in latest_session.items.all()}
+            intake = SimpleNamespace(
+                date=latest_session.date,
+                goal=latest_session.goal,
+                breakfast=item_map.get("breakfast", ""),
+                snack1=item_map.get("snack1", ""),
+                lunch=item_map.get("lunch", ""),
+                snack2=item_map.get("snack2", ""),
+                dinner=item_map.get("dinner", ""),
+                snack3=item_map.get("snack3", ""),
+                supplements=item_map.get("supplements", ""),
+                next_meeting_goal=latest_session.next_meeting_goal,
+            )
+        else:
+            intake = None
+
+    # -----------------------------
+    # Zorg dat alle NutritionDay records bestaan
+    # -----------------------------
+    for d in days:
+        NutritionDay.objects.get_or_create(day=d)
+
+    # -----------------------------
+    # POST afhandeling
+    # -----------------------------
     if request.method == "POST":
 
-        # Speler-aandachtspunt
-        if "nutrition_focus" in request.POST:
-            player_id = request.POST.get("player_id")
-            selected_player = get_object_or_404(Player, id=player_id)
+        # =============================
+        # 1) WEEKVOEDINGSSCHEMA SAVE
+        # =============================
+        if request.POST.get("nutrition_day") == "1":
+            for d in days:
+                meal = request.POST.get(f"meal_{d}", "").strip()
+                color = request.POST.get(f"color_{d}", "").strip() or None
 
-            selected_player.nutrition_focus = request.POST.get("nutrition_focus")
-            selected_player.save()
-
-            messages.success(
-                request,
-                f"Aandachtspunt voor {selected_player.name} is opgeslagen."
-            )
-            return redirect(f"/nutrition/?player_id={player_id}")
-
-        # Weekvoedingsschema
-        if "nutrition_day" in request.POST:
-            for day in days:
-                meal = request.POST.get(f"meal_{day}")
-                color = request.POST.get(f"color_{day}")
-
-                if meal:
-                    NutritionDay.objects.update_or_create(
-                        day=day,
-                        defaults={
-                            "meal": meal,
-                            "color": color or "green",
-                        }
-                    )
+                NutritionDay.objects.update_or_create(
+                    day=d,
+                    defaults={"meal": meal, "color": color}
+                )
 
             messages.success(request, "Weekvoedingsschema is opgeslagen.")
+            if player_id:
+                return redirect(f"/nutrition/?player_id={player_id}")
             return redirect("/nutrition/")
 
-    nutrition_days = {
-        day: NutritionDay.objects.filter(day=day).first()
-        for day in days
-    }
+        # =============================
+        # 1b) SPELERGEWICHTEN OPSLAAN
+        # =============================
+        if request.POST.get("form_type") == "weights":
+            updated = 0
+            raw_date = request.POST.get("weight_date") or ""
+            if raw_date:
+                try:
+                    weight_date = datetime.strptime(raw_date, "%Y-%m-%d").date()
+                except ValueError:
+                    weight_date = datetime.now().date()
+            else:
+                weight_date = datetime.now().date()
+            for player in players:
+                raw_weight = request.POST.get(f"weight_{player.id}", "").strip()
+                if raw_weight == "":
+                    continue
+                try:
+                    weight_val = float(raw_weight.replace(",", "."))
+                except ValueError:
+                    continue
+
+                if weight_date == datetime.now().date():
+                    profile = _get_or_create_monitoring_profile(player)
+                    if profile.curr_weight is not None:
+                        profile.prev_weight = profile.curr_weight
+                    profile.curr_weight = weight_val
+                    profile.save(update_fields=["prev_weight", "curr_weight", "updated_at"])
+
+                WeightEntry.objects.update_or_create(
+                    player=player,
+                    date=weight_date,
+                    defaults={"weight": weight_val}
+                )
+                updated += 1
+
+            if updated > 0:
+                messages.success(request, f"Gewichten opgeslagen voor {updated} speler(s).")
+            else:
+                messages.warning(request, "Geen geldige gewichten om op te slaan.")
+
+            if player_id:
+                return redirect(f"/nutrition/?player_id={player_id}")
+            return redirect("/nutrition/")
+
+        # =============================
+        # 2) PLAYER INTAKE SAVE
+        # =============================
+        post_player_id = request.POST.get("player_id")
+        if post_player_id:
+            p = get_object_or_404(Player, id=post_player_id)
+
+            # Datum (input type="date") komt binnen als 'YYYY-MM-DD'
+            raw_date = request.POST.get("date") or None
+            parsed_date = None
+            if raw_date:
+                try:
+                    parsed_date = datetime.strptime(raw_date, "%Y-%m-%d").date()
+                except ValueError:
+                    parsed_date = None
+                    messages.warning(request, "Datum kon niet worden gelezen. Gebruik het datumveld (YYYY-MM-DD).")
+
+            session = NutritionIntakeSession.objects.create(
+                player=p,
+                date=parsed_date,
+                goal=request.POST.get("goal", "").strip(),
+                next_meeting_goal=request.POST.get("next_meeting_goal", "").strip(),
+            )
+            meal_values = {
+                "breakfast": request.POST.get("breakfast", "").strip(),
+                "snack1": request.POST.get("snack1", "").strip(),
+                "lunch": request.POST.get("lunch", "").strip(),
+                "snack2": request.POST.get("snack2", "").strip(),
+                "dinner": request.POST.get("dinner", "").strip(),
+                "snack3": request.POST.get("snack3", "").strip(),
+                "supplements": request.POST.get("supplements", "").strip(),
+            }
+            for meal_key, value in meal_values.items():
+                NutritionIntakeItem.objects.create(
+                    session=session,
+                    meal_key=meal_key,
+                    value=value,
+                )
+
+            # Optioneel: nutrition_focus op Player model
+            if "nutrition_focus" in request.POST:
+                profile = _get_or_create_monitoring_profile(p)
+                profile.nutrition_focus = request.POST.get("nutrition_focus", "").strip()
+                profile.save(update_fields=["nutrition_focus", "updated_at"])
+
+            messages.success(request, f"Intake voor {p.name} is opgeslagen.")
+            return redirect(f"/nutrition/?player_id={p.id}")
+
+        # Als POST wel komt maar geen herkenbare payload had:
+        messages.warning(request, "Niets opgeslagen: ontbrekende POST-velden (player_id of nutrition_day).")
+        if player_id:
+            return redirect(f"/nutrition/?player_id={player_id}")
+        return redirect("/nutrition/")
+
+    for p_obj in players:
+        profile = getattr(p_obj, "monitoring_profile", None)
+        p_obj.monitor_prev_weight = profile.prev_weight if profile else None
+        p_obj.monitor_curr_weight = profile.curr_weight if profile else None
+        p_obj.monitor_sum_skinfolds = profile.sum_skinfolds if profile else None
+        p_obj.monitor_nutrition_focus = profile.nutrition_focus if profile else ""
+        if profile and profile.prev_weight is not None and profile.curr_weight is not None:
+            p_obj.monitor_weight_diff = round(profile.curr_weight - profile.prev_weight, 1)
+        else:
+            p_obj.monitor_weight_diff = None
+
+    if selected_player:
+        selected_profile = getattr(selected_player, "monitoring_profile", None)
+        selected_player.monitor_nutrition_focus = selected_profile.nutrition_focus if selected_profile else ""
+
+    # -----------------------------
+    # Data voor weekvoedingsschema
+    # -----------------------------
+    nutrition_days = {d: NutritionDay.objects.get(day=d) for d in days}
+
+    # Refresh intake
+    if selected_player:
+        latest_session = (
+            NutritionIntakeSession.objects
+            .filter(player=selected_player)
+            .prefetch_related("items")
+            .order_by("-date", "-updated_at", "-id")
+            .first()
+        )
+        if latest_session:
+            item_map = {item.meal_key: item.value for item in latest_session.items.all()}
+            intake = SimpleNamespace(
+                date=latest_session.date,
+                goal=latest_session.goal,
+                breakfast=item_map.get("breakfast", ""),
+                snack1=item_map.get("snack1", ""),
+                lunch=item_map.get("lunch", ""),
+                snack2=item_map.get("snack2", ""),
+                dinner=item_map.get("dinner", ""),
+                snack3=item_map.get("snack3", ""),
+                supplements=item_map.get("supplements", ""),
+                next_meeting_goal=latest_session.next_meeting_goal,
+            )
+        else:
+            intake = None
 
     context = {
         "active_page": "nutrition",
@@ -342,8 +806,8 @@ def nutrition_view(request):
         "players": players,
         "selected_player": selected_player,
         "nutrition_days": nutrition_days,
+        "intake": intake,
     }
-
     return render(request, "nutrition.html", context)
 
 
@@ -351,14 +815,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils.text import slugify
 
-from .models import Antropometry
+from .models import AnthropometrySession, AnthropometryMeasurement
 
 
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.utils.text import slugify
-from .models import Player, Antropometry
+from .models import Player, AnthropometrySession, AnthropometryMeasurement
 
 def skinfold_view(request):
     """
@@ -366,13 +830,14 @@ def skinfold_view(request):
     - Skinfolds
     - Girths
     - Algemene gegevens
-    - Berekende vetpercentages (JS → hidden inputs)
+    - Berekende vetpercentages (JS ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ hidden inputs)
+    - Trend som skinfolds per speler (Chart.js)
     """
 
     # ======================
     # BASIS DATA
     # ======================
-    players = Player.objects.all().order_by("name")
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
 
     skinfold_sites = [
         "Triceps SF",
@@ -419,17 +884,62 @@ def skinfold_view(request):
         "Calf girth": "calf_girth",
     }
 
+    def sync_anthropometry_v2(player_obj, measurement_date_raw, data_dict):
+        measurement_date = parse_date(measurement_date_raw) if isinstance(measurement_date_raw, str) else measurement_date_raw
+        if measurement_date is None:
+            return
+
+        session, _ = AnthropometrySession.objects.update_or_create(
+            player=player_obj,
+            date=measurement_date,
+            defaults={
+                "body_mass": data_dict.get("body_mass"),
+                "length": data_dict.get("length"),
+                "fat_dw": data_dict.get("fat_dw"),
+                "fat_faulkner": data_dict.get("fat_faulkner"),
+                "fat_carter": data_dict.get("fat_carter"),
+                "fat_average": data_dict.get("fat_average"),
+            },
+        )
+
+        AnthropometryMeasurement.objects.filter(session=session).delete()
+
+        def push_measurement(category, site_code, value, repetition):
+            if value in (None, ""):
+                return
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError):
+                return
+
+            AnthropometryMeasurement.objects.create(
+                session=session,
+                category=category,
+                site_code=site_code,
+                repetition=repetition,
+                value=numeric,
+            )
+
+        for _site_label, field in skinfold_field_map.items():
+            push_measurement("skinfold", field, data_dict.get(f"{field}_m1"), 1)
+            push_measurement("skinfold", field, data_dict.get(f"{field}_m2"), 2)
+            push_measurement("skinfold", field, data_dict.get(f"{field}_m3"), 3)
+
+        for _site_label, field in girth_field_map.items():
+            push_measurement("girth", field, data_dict.get(f"{field}_m1"), 1)
+            push_measurement("girth", field, data_dict.get(f"{field}_m2"), 2)
+            push_measurement("girth", field, data_dict.get(f"{field}_m3"), 3)
+
     # ======================
-    # POST → OPSLAAN
+    # POST ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ OPSLAAN
     # ======================
     if request.method == "POST":
-
         player_id = request.POST.get("player_id")
         measurement_date = request.POST.get("measurement_date")
 
         if not player_id or not measurement_date:
             messages.error(request, "Speler en datum zijn verplicht.")
-            return redirect("/nutrition/huidplooien/")
+            return redirect("huidplooimeting")
 
         player = get_object_or_404(Player, id=player_id)
 
@@ -458,21 +968,13 @@ def skinfold_view(request):
         data["fat_carter"] = request.POST.get("fat_carter") or None
         data["fat_average"] = request.POST.get("fat_average") or None
 
-        Antropometry.objects.update_or_create(
-            player=player,
-            date=measurement_date,
-            defaults=data,
-        )
+        sync_anthropometry_v2(player, measurement_date, data)
 
-        messages.success(
-            request,
-            f"Antropometrische metingen voor {player.name} zijn opgeslagen."
-        )
-
-        return redirect(f"/nutrition/huidplooien/?player={player.id}")
+        messages.success(request, f"Antropometrische metingen voor {player.name} zijn opgeslagen.")
+        return redirect(f"{reverse('huidplooimeting')}?player={player.id}")
 
     # ======================
-    # GET → DATA LADEN
+    # GET ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ DATA LADEN
     # ======================
     selected_player = None
     antropometry = None
@@ -481,48 +983,193 @@ def skinfold_view(request):
     girth_values = {}
     fat_values = {}
 
+    # chart data voor de grafiek
+    chart_labels = []
+    chart_values = []
+
+    # vergelijking: laatste vs vorige meting (8 sites)
+    compare_labels = []
+    compare_prev = []
+    compare_last = []
+    compare_prev_label = ""
+    compare_last_label = ""
+
+    # vergelijking laatste vs vorige meting (per site)
+    compare_labels = []
+    compare_prev = []
+    compare_last = []
+    compare_prev_label = ""
+    compare_last_label = ""
+
+    # helper: zelfde logica als je JS
+    def sf_value(m1, m2, m3):
+        if m3 is not None:
+            return float(m3)
+        if m1 is not None and m2 is not None:
+            return (float(m1) + float(m2)) / 2
+        if m1 is not None:
+            return float(m1)
+        if m2 is not None:
+            return float(m2)
+        return None
+
+    def sum_skinfolds(a) -> float:
+        total = 0.0
+        for site in skinfold_sites:
+            field = skinfold_field_map[site]
+            v = sf_value(
+                getattr(a, f"{field}_m1", None),
+                getattr(a, f"{field}_m2", None),
+                getattr(a, f"{field}_m3", None),
+            )
+            if v is not None:
+                total += v
+        return round(total, 1)
+
+    def calculate_fat_values(a) -> dict:
+        import math
+
+        def site(site_name: str):
+            field = skinfold_field_map[site_name]
+            return sf_value(
+                getattr(a, f"{field}_m1", None),
+                getattr(a, f"{field}_m2", None),
+                getattr(a, f"{field}_m3", None),
+            )
+
+        fat_dw = 0.0
+        fat_faulkner = 0.0
+        fat_carter = 0.0
+
+        dw_sites = ["Triceps SF", "Biceps SF", "Subscapular SF", "Iliac crest SF"]
+        dw_values = [site(s) for s in dw_sites]
+        if all(v is not None and v > 0 for v in dw_values):
+            sum_dw = sum(dw_values)
+            density = 1.1631 - (0.0632 * math.log10(sum_dw))
+            fat_dw = ((4.95 / density) - 4.5) * 100
+
+        faulkner_sites = ["Triceps SF", "Subscapular SF", "Supraspinale SF", "Abdominale SF"]
+        f_values = [site(s) for s in faulkner_sites]
+        if all(v is not None and v > 0 for v in f_values):
+            fat_faulkner = 5.783 + 0.153 * sum(f_values)
+
+        sum_sf = sum_skinfolds(a)
+        if sum_sf > 0:
+            fat_carter = 2.585 + 0.1051 * sum_sf
+
+        methods = [v for v in [fat_dw, fat_faulkner, fat_carter] if v > 0]
+        fat_average = (sum(methods) / len(methods)) if methods else 0.0
+
+        return {
+            "dw": round(fat_dw, 1),
+            "faulkner": round(fat_faulkner, 1),
+            "carter": round(fat_carter, 1),
+            "average": round(fat_average, 1),
+        }
+
+    def session_to_snapshot(session):
+        values = {
+            "date": session.date,
+            "body_mass": session.body_mass,
+            "length": session.length,
+            "fat_dw": session.fat_dw,
+            "fat_faulkner": session.fat_faulkner,
+            "fat_carter": session.fat_carter,
+            "fat_average": session.fat_average,
+        }
+        for m in session.measurements.all():
+            values[f"{m.site_code}_m{m.repetition}"] = m.value
+        return SimpleNamespace(**values)
+
     player_id = request.GET.get("player")
 
     if player_id:
         selected_player = Player.objects.filter(id=player_id).first()
 
         if selected_player:
-            antropometry = (
-                Antropometry.objects
+            session_qs = (
+                AnthropometrySession.objects
                 .filter(player=selected_player)
-                .order_by("-date")
-                .first()
+                .prefetch_related("measurements")
+                .order_by("date")
             )
+            snapshots = [session_to_snapshot(s) for s in session_qs]
 
-            if antropometry:
-                # ---- Skinfold rows (⬅️ MINI AANPASSING)
+            if snapshots:
+                antropometry = snapshots[-1]
+
+            for snap in snapshots:
+                chart_labels.append(snap.date.strftime("%Y-%m-%d"))
+                chart_values.append(sum_skinfolds(snap))
+
+            last_two = list(reversed(snapshots[-2:]))
+            if len(last_two) >= 1:
+                last_m = last_two[0]
+                compare_last_label = last_m.date.strftime("%Y-%m-%d")
+            if len(last_two) == 2:
+                prev_m = last_two[1]
+                compare_prev_label = prev_m.date.strftime("%Y-%m-%d")
+
+            site_short = {
+                "Triceps SF": "Triceps",
+                "Subscapular SF": "Subscap",
+                "Biceps SF": "Biceps",
+                "Iliac crest SF": "Iliac",
+                "Supraspinale SF": "Supra",
+                "Abdominale SF": "Abdom",
+                "Thigh SF": "Thigh",
+                "Calf SF": "Calf",
+            }
+
+            if len(last_two) >= 1:
                 for site in skinfold_sites:
                     field = skinfold_field_map[site]
+                    compare_labels.append(site_short.get(site, site))
+                    last_val = sf_value(
+                        getattr(last_m, f"{field}_m1", None),
+                        getattr(last_m, f"{field}_m2", None),
+                        getattr(last_m, f"{field}_m3", None),
+                    )
+                    prev_val = None
+                    if len(last_two) == 2:
+                        prev_val = sf_value(
+                            getattr(prev_m, f"{field}_m1", None),
+                            getattr(prev_m, f"{field}_m2", None),
+                            getattr(prev_m, f"{field}_m3", None),
+                        )
+                    compare_last.append(last_val if last_val is not None else None)
+                    compare_prev.append(prev_val if prev_val is not None else None)
 
-                    skinfold_rows.append({
-                        "site": site,
-                        "key": slugify(site),
-                        "m1": getattr(antropometry, f"{field}_m1"),
-                        "m2": getattr(antropometry, f"{field}_m2"),
-                        "m3": getattr(antropometry, f"{field}_m3"),
-                    })
+    # ---- Skinfold rows (ALTIJD opbouwen zodat je altijd kunt invullen)
+    for site in skinfold_sites:
+        field = skinfold_field_map[site]
 
-                # ---- Girths
-                for site, field in girth_field_map.items():
-                    key = slugify(site)
-                    girth_values[key] = {
-                        "m1": getattr(antropometry, f"{field}_m1"),
-                        "m2": getattr(antropometry, f"{field}_m2"),
-                        "m3": getattr(antropometry, f"{field}_m3"),
-                    }
+        skinfold_rows.append({
+            "site": site,
+            "key": slugify(site),
+            "m1": getattr(antropometry, f"{field}_m1", None) if antropometry else None,
+            "m2": getattr(antropometry, f"{field}_m2", None) if antropometry else None,
+            "m3": getattr(antropometry, f"{field}_m3", None) if antropometry else None,
+        })
 
-                # ---- Vetpercentages
-                fat_values = {
-                    "dw": antropometry.fat_dw,
-                    "faulkner": antropometry.fat_faulkner,
-                    "carter": antropometry.fat_carter,
-                    "average": antropometry.fat_average,
-                }
+    # ---- Girths & vetpercentages (alleen als data bestaat)
+    if antropometry:
+        calculated_fat_values = calculate_fat_values(antropometry)
+
+        for site, field in girth_field_map.items():
+            key = slugify(site)
+            girth_values[key] = {
+                "m1": getattr(antropometry, f"{field}_m1", None),
+                "m2": getattr(antropometry, f"{field}_m2", None),
+                "m3": getattr(antropometry, f"{field}_m3", None),
+            }
+
+        fat_values = {
+            "dw": antropometry.fat_dw if antropometry.fat_dw is not None else calculated_fat_values["dw"],
+            "faulkner": antropometry.fat_faulkner if antropometry.fat_faulkner is not None else calculated_fat_values["faulkner"],
+            "carter": antropometry.fat_carter if antropometry.fat_carter is not None else calculated_fat_values["carter"],
+            "average": antropometry.fat_average if antropometry.fat_average is not None else calculated_fat_values["average"],
+        }
 
     # ======================
     # CONTEXT
@@ -538,18 +1185,79 @@ def skinfold_view(request):
         "selected_player": selected_player,
         "antropometry": antropometry,
 
-        # ⬇️ BELANGRIJK
         "skinfold_rows": skinfold_rows,
         "girth_values": girth_values,
         "fat_values": fat_values,
+
+        # ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Ëœ voor de grafiek
+        "chart_labels": chart_labels,
+        "chart_values": chart_values,
+        "compare_labels": compare_labels,
+        "compare_prev": compare_prev,
+        "compare_last": compare_last,
+        "compare_prev_label": compare_prev_label,
+        "compare_last_label": compare_last_label,
+        "pdf_mode": request.GET.get("pdf") == "1",
     }
 
-    return render(request, "nutrition.html", context)
+    return render(request, "huidplooimeting.html", context)
 
 
+def huidplooimeting_pdf(request):
+    if sync_playwright is None:
+        return HttpResponse(
+            "PDF-export is niet beschikbaar: installeer 'playwright' en voer 'playwright install' uit.",
+            status=503,
+        )
 
+    player_id = request.GET.get("player")
+    if not player_id:
+        return HttpResponse("Geen speler geselecteerd", status=400)
 
+    # ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Open dezelfde pagina maar in "pdf-mode"
+    base_url = reverse("huidplooimeting")
+    url = request.build_absolute_uri(f"{base_url}?player={player_id}&pdf=1")
 
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+
+        # Ga naar je bestaande pagina
+        page.goto(url, wait_until="networkidle")
+
+        # ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Wacht tot canvassen bestaan
+        page.wait_for_selector("#skinfoldTrendChart", timeout=8000)
+        page.wait_for_selector("#skinfoldCompareChart", timeout=8000)
+
+        # ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Wacht tot Chart.js klaar is gerenderd + vetpercentage berekend
+        page.wait_for_function("window.__skinfoldChartsDone === true", timeout=8000)
+        page.wait_for_function("window.__fatReady === true", timeout=8000)
+
+        # Extra zekerheid: event-loop even tijd geven
+        page.wait_for_timeout(600)
+
+        pdf_bytes = page.pdf(
+            format="A4",
+            print_background=True,
+            margin={
+                "top": "15mm",
+                "bottom": "15mm",
+                "left": "15mm",
+                "right": "15mm",
+            },
+            prefer_css_page_size=True,
+        )
+
+        browser.close()
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+
+    # ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ATTACHMENT = echte download
+    response["Content-Disposition"] = (
+        f'attachment; filename="huidplooimeting_{player_id}.pdf"'
+    )
+
+    return response
 
 
 from django.db.models import Avg
@@ -559,153 +1267,252 @@ from django.db.models import Avg
 from django.db.models import Avg, Sum
 
 def training(request):
-    """
-    Pagina voor trainingsanalyse — toont vergelijking tussen spelers (load, afstand, sprints)
-    én een individuele trendgrafiek per speler.
-    """
     import json
     import math
-    from django.db.models import Sum, Avg
-    from .models import TrainingData, Player
 
-    # 📋 Metric selectie (default = load)
+    metric_field_map = {
+        "load": "load",
+        "total_distance": "total_distance",
+        "hsd": "hsd",
+        "d20": "hsd",
+        "sprints": "sprints",
+        "max_speed": None,
+        "d25": None,
+        "acc": None,
+        "dec": None,
+    }
     selected_metric = request.GET.get("metric", "load")
+    if selected_metric not in metric_field_map:
+        selected_metric = "load"
+    selected_metric_field = metric_field_map[selected_metric]
 
-    # 📋 Alle spelers
-    players = Player.objects.all().order_by("name")
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    rows = fetch_performance_rows("training")
 
-    # 📊 Samenvatting per speler
-    player_summary = (
-        TrainingData.objects.values("player__name")
-        .annotate(
-            total_distance=Sum("total_distance"),
-            total_sprints=Sum("sprints"),
-            total_load=Sum("load"),
-            avg_load=Avg("load"),
+    by_player = {}
+    for row in rows:
+        player_name = row["player_name"]
+        agg = by_player.setdefault(
+            player_name,
+            {
+                "player__name": player_name,
+                "total_distance": 0.0,
+                "total_hsd": 0.0,
+                "total_sprints": 0.0,
+                "total_load": 0.0,
+                "loads": [],
+            },
         )
-        .order_by("-total_load")
-    )
+        agg["total_distance"] += float(row.get("total_distance") or 0)
+        agg["total_hsd"] += float(row.get("hsd") or 0)
+        agg["total_sprints"] += float(row.get("sprints") or 0)
+        cur_load = float(row.get("load") or 0)
+        agg["total_load"] += cur_load
+        agg["loads"].append(cur_load)
 
-    # 📈 Data voor groepsgrafiek
+    player_summary = []
+    for data in by_player.values():
+        data["avg_load"] = mean(data["loads"])
+        player_summary.append(data)
+    player_summary.sort(key=lambda x: x["total_load"], reverse=True)
+
     chart_labels = [p["player__name"] for p in player_summary]
     chart_loads = [float(p["total_load"] or 0) for p in player_summary]
     chart_distances = [float(p["total_distance"] or 0) for p in player_summary]
+    chart_hsd = [float(p["total_hsd"] or 0) for p in player_summary]
     chart_sprints = [float(p["total_sprints"] or 0) for p in player_summary]
+    chart_d20 = chart_hsd[:]
+    chart_d25 = [0.0 for _ in chart_labels]
+    chart_acc = [0.0 for _ in chart_labels]
+    chart_dec = [0.0 for _ in chart_labels]
+    chart_max_speed = [0.0 for _ in chart_labels]
 
-    # 📉 Gemiddelden
-    avg_load = sum(chart_loads) / len(chart_loads) if chart_loads else 0
-    avg_distance = sum(chart_distances) / len(chart_distances) if chart_distances else 0
-    avg_sprints = sum(chart_sprints) / len(chart_sprints) if chart_sprints else 0
+    avg_load = mean(chart_loads)
+    avg_distance = mean(chart_distances)
+    avg_sprints = mean(chart_sprints)
 
-    # 📋 Alle ruwe training data (voor tabel 1)
-    all_training_data = (
-        TrainingData.objects.values(
-            "week", "player__name", "total_distance", "hsd", "sprints", "load"
-        ).order_by("week", "player__name")
-    )
+    all_training_data = [
+        {
+            "week": row.get("week"),
+            "player__name": row["player_name"],
+            "total_distance": float(row.get("total_distance") or 0),
+            "hsd": float(row.get("hsd") or 0),
+            "sprints": float(row.get("sprints") or 0),
+            "load": float(row.get("load") or 0),
+        }
+        for row in sorted(rows, key=lambda r: (r.get("week") or 0, r["player_name"]))
+    ]
 
-    # 🧍‍♂️ Individuele spelertrend
     selected_player_name = request.GET.get("player")
-    selected_player = None
+    selected_player = Player.objects.filter(name=selected_player_name).first() if selected_player_name else None
     trend_labels, trend_loads, trend_sprints = [], [], []
+    if selected_player:
+        week_group = {}
+        for row in rows:
+            if row["player_id"] != selected_player.id:
+                continue
+            week = row.get("week")
+            if week is None:
+                continue
+            agg = week_group.setdefault(week, {"loads": [], "sprints": []})
+            agg["loads"].append(float(row.get("load") or 0))
+            agg["sprints"].append(float(row.get("sprints") or 0))
+        for week in sorted(week_group.keys()):
+            trend_labels.append(f"Wk {week}")
+            trend_loads.append(mean(week_group[week]["loads"]))
+            trend_sprints.append(mean(week_group[week]["sprints"]))
 
-    if selected_player_name:
-        selected_player = Player.objects.filter(name=selected_player_name).first()
-        if selected_player:
-            trend_data = (
-                TrainingData.objects.filter(player=selected_player)
-                .values("week")
-                .annotate(
-                    avg_load=Avg("load"),
-                    avg_sprints=Avg("sprints"),
-                )
-                .order_by("week")
-            )
-            trend_labels = [f"Wk {d['week']}" for d in trend_data]
-            trend_loads = [float(d["avg_load"] or 0) for d in trend_data]
-            trend_sprints = [float(d["avg_sprints"] or 0) for d in trend_data]
-
-    # -------------------------------------------------------------
-    # ⭐ EWMA BEREKENING
-    # -------------------------------------------------------------
     def compute_ewma(values, lambda_val):
         result_list = []
         for i in range(len(values)):
-            total = 0
+            total = 0.0
             for j in range(i + 1):
                 days_since = i - j
                 weight = math.pow(1 - lambda_val, days_since)
-                val = values[j] if values[j] is not None else 0
-                total += weight * val * lambda_val
+                total += weight * float(values[j] or 0) * lambda_val
             result_list.append(total)
         return result_list
 
-    lambda_acute = 2 / 8     # EWMA-7
-    lambda_chronic = 2 / 29  # EWMA-28
+    lambda_acute = 2 / 8
+    lambda_chronic = 2 / 29
 
-    # 📌 Dynamische metric: load, total_distance, hsd, sprints, etc.
-    weekly_data = (
-        TrainingData.objects.values("week")
-        .annotate(value=Avg(selected_metric))
-        .order_by("week")
-    )
+    week_values = {}
+    for row in rows:
+        week = row.get("week")
+        if week is None:
+            continue
+        values = week_values.setdefault(week, [])
+        values.append(float(row.get(selected_metric_field) or 0) if selected_metric_field else 0.0)
 
-    weeks = [d["week"] for d in weekly_data]
-    metric_values = [float(d["value"] or 0) for d in weekly_data]
+    weeks = sorted(week_values.keys())
+    metric_values = [mean(week_values[w]) for w in weeks]
 
     acute_values = compute_ewma(metric_values, lambda_acute)
     chronic_values = compute_ewma(metric_values, lambda_chronic)
 
-    # -------------------------------------------------------------
-    # ⭐ NIEUW: TRAININGDATA PER WEEK (voor jouw tabel)
-    # -------------------------------------------------------------
-    training_data = (
-        TrainingData.objects.values("week")
-        .annotate(
-            total_distance=Sum("total_distance"),
-            hsd=Sum("hsd"),
-            sprints=Sum("sprints"),
-            load=Sum("load"),
+    training_data = []
+    for week in weeks:
+        week_rows = [r for r in rows if r.get("week") == week]
+        training_data.append(
+            {
+                "week": week,
+                "total_distance": sum(float(r.get("total_distance") or 0) for r in week_rows),
+                "hsd": sum(float(r.get("hsd") or 0) for r in week_rows),
+                "sprints": sum(float(r.get("sprints") or 0) for r in week_rows),
+                "load": sum(float(r.get("load") or 0) for r in week_rows),
+            }
         )
-        .order_by("week")
-    )
 
-    # ACWR (simple ratio week / vorige week)
-    training_data = list(training_data)
     for i in range(len(training_data)):
+        training_data[i]["d20"] = float(training_data[i]["hsd"] or 0)
+        training_data[i]["d25"] = 0.0
+        training_data[i]["acc"] = 0.0
+        training_data[i]["dec"] = 0.0
+        training_data[i]["max_speed"] = 0.0
         if i == 0:
             training_data[i]["acwr"] = None
         else:
             prev = training_data[i - 1]["load"] or 1
             training_data[i]["acwr"] = round(training_data[i]["load"] / prev, 2)
 
-    # -------------------------------------------------------------
-    # 📦 Context
-    # -------------------------------------------------------------
+    daily_source = rows
+    if selected_player:
+        daily_source = [r for r in rows if r["player_id"] == selected_player.id]
+
+    latest_session_date = max((r["session_date"] for r in daily_source), default=None)
+    end_date = latest_session_date or timezone.localdate()
+    start_date = end_date - timedelta(days=29)
+
+    month_rows = {}
+    points_by_date = {}
+    for row in daily_source:
+        session_date = row["session_date"]
+        if session_date < start_date or session_date > end_date:
+            continue
+
+        agg = month_rows.setdefault(session_date, {"load": 0.0, "total_distance": 0.0, "hsd": 0.0, "sprints": 0.0})
+        load_val = float(row.get("load") or 0)
+        dist_val = float(row.get("total_distance") or 0)
+        hsd_val = float(row.get("hsd") or 0)
+        sprints_val = float(row.get("sprints") or 0)
+
+        agg["load"] += load_val
+        agg["total_distance"] += dist_val
+        agg["hsd"] += hsd_val
+        agg["sprints"] += sprints_val
+
+        points = points_by_date.setdefault(
+            session_date,
+            {"points_load": [], "points_total_distance": [], "points_hsd": [], "points_sprints": []},
+        )
+        points["points_load"].append(load_val)
+        points["points_total_distance"].append(dist_val)
+        points["points_hsd"].append(hsd_val)
+        points["points_sprints"].append(sprints_val)
+
+    day_name_short = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"]
+    day_buckets = []
+    for offset in range(30):
+        current_date = start_date + timedelta(days=offset)
+        row = month_rows.get(current_date, {})
+        points = points_by_date.get(current_date, {})
+        day_buckets.append(
+            {
+                "day_label": f"{day_name_short[current_date.weekday()]} {current_date.strftime('%d-%m')}",
+                "load": float(row.get("load") or 0),
+                "total_distance": float(row.get("total_distance") or 0),
+                "hsd": float(row.get("hsd") or 0),
+                "sprints": float(row.get("sprints") or 0),
+                "d20": float(row.get("hsd") or 0),
+                "d25": 0.0,
+                "acc": 0.0,
+                "dec": 0.0,
+                "max_speed": 0.0,
+                "points_load": points.get("points_load", []),
+                "points_total_distance": points.get("points_total_distance", []),
+                "points_hsd": points.get("points_hsd", []),
+                "points_d20": points.get("points_hsd", []),
+                "points_sprints": points.get("points_sprints", []),
+                "points_d25": [],
+                "points_acc": [],
+                "points_dec": [],
+                "points_max_speed": [],
+            }
+        )
+
     context = {
         "players": players,
         "player_summary": player_summary,
         "chart_labels": json.dumps(chart_labels),
         "chart_loads": json.dumps(chart_loads),
         "chart_distances": json.dumps(chart_distances),
+        "chart_hsd": json.dumps(chart_hsd),
+        "chart_d20": json.dumps(chart_d20),
+        "chart_d25": json.dumps(chart_d25),
+        "chart_acc": json.dumps(chart_acc),
+        "chart_dec": json.dumps(chart_dec),
+        "chart_max_speed": json.dumps(chart_max_speed),
         "chart_sprints": json.dumps(chart_sprints),
-        "avg_load": round(avg_load, 1),
-        "avg_distance": round(avg_distance, 1),
-        "avg_sprints": round(avg_sprints, 1),
 
-        "selected_player": selected_player,
+        "avg_load": round(avg_load, 2),
+        "avg_distance": round(avg_distance, 2),
+        "avg_sprints": round(avg_sprints, 2),
+
         "trend_labels": json.dumps(trend_labels),
         "trend_loads": json.dumps(trend_loads),
         "trend_sprints": json.dumps(trend_sprints),
+        "selected_player": selected_player,
 
         "weeks": json.dumps(weeks),
         "acute_values": json.dumps(acute_values),
         "chronic_values": json.dumps(chronic_values),
         "selected_metric": selected_metric,
 
-        # ⭐ Tabellen data
-        "all_training_data": all_training_data,   # ruwe data per sessie
-        "training_data": training_data,           # geaggregeerde weekdata + ACWR
+        "all_training_data": all_training_data,
+        "training_data": training_data,
+        "training_data_json": training_data,
+        "training_daily_data_json": day_buckets,
+        "training_daily_range_label": f"{start_date.strftime('%d-%m-%Y')} t/m {end_date.strftime('%d-%m-%Y')}",
 
         "active_page": "training",
     }
@@ -715,10 +1522,22 @@ def training(request):
 
 def wedstrijddata(request):
     import json
-    from django.db.models import Max, Sum
-    from .models import WedstrijdData, Player
 
-    # ---------- TARGET WAARDEN PER POSITIE ----------
+    metric_field_map = {
+        "load": "load",
+        "total_distance": "total_distance",
+        "hsd": "hsd",
+        "d20": "hsd",
+        "sprints": "sprints",
+        "d25": "his",
+        "acc": "accelerations",
+        "dec": "decelerations",
+        "max_speed": None,
+    }
+    selected_metric = request.GET.get("metric", "load")
+    if selected_metric not in metric_field_map:
+        selected_metric = "load"
+
     POSITION_TARGETS = {
         "Spits": {"km": 11.5, "hir": 950, "his": 200, "a_d": 180},
         "Targetman": {"km": 11, "hir": 500, "his": 75, "a_d": 160},
@@ -729,87 +1548,100 @@ def wedstrijddata(request):
         "Vleugelverdediger": {"km": 11, "hir": 1000, "his": 250, "a_d": 190},
     }
 
-    # ---------- SPELER SELECTIE ----------
-    players = Player.objects.all().order_by("name")
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
     selected_player_name = request.GET.get("player")
-    selected_player = (
-        Player.objects.filter(name=selected_player_name).first()
-        if selected_player_name else None
-    )
+    selected_player = Player.objects.filter(name=selected_player_name).first() if selected_player_name else None
 
-    # ---------- LAATSTE 5 WEDSTRIJDEN ----------
-    match_queryset = WedstrijdData.objects.all().order_by("-week")
-    if selected_player:
-        match_queryset = match_queryset.filter(player=selected_player)
+    all_rows = fetch_performance_rows("match")
+    match_rows = [r for r in all_rows if (not selected_player or r["player_id"] == selected_player.id)]
+    match_rows.sort(key=lambda r: ((r.get("week") or 0), r["session_date"]), reverse=True)
 
-    last_5_matches = list(match_queryset[:5][::-1])  # reversed ascending
+    last_5_rows = list(reversed(match_rows[:5]))
+    last_5_matches = [
+        SimpleNamespace(
+            week=row.get("week"),
+            total_distance=float(row.get("total_distance") or 0),
+            hsd=float(row.get("hsd") or 0),
+            sprints=float(row.get("sprints") or 0),
+            load=float(row.get("load") or 0),
+            his=float(row.get("his") or 0),
+            accelerations=float(row.get("accelerations") or 0),
+            decelerations=float(row.get("decelerations") or 0),
+        )
+        for row in last_5_rows
+    ]
 
-    # ---------- STATISTIEKEN ----------
     if last_5_matches:
         avg_stats = {
-            "avg_distance": sum(m.total_distance for m in last_5_matches) / len(last_5_matches),
-            "avg_hsd":      sum(m.hsd for m in last_5_matches) / len(last_5_matches),
-            "avg_sprints":  sum(m.sprints for m in last_5_matches) / len(last_5_matches),
-            "avg_load":     sum(m.load for m in last_5_matches) / len(last_5_matches),
+            "avg_distance": mean(m.total_distance for m in last_5_matches),
+            "avg_hsd": mean(m.hsd for m in last_5_matches),
+            "avg_sprints": mean(m.sprints for m in last_5_matches),
+            "avg_load": mean(m.load for m in last_5_matches),
         }
         top_stats = {
             "top_distance": max(m.total_distance for m in last_5_matches),
-            "top_hsd":      max(m.hsd for m in last_5_matches),
-            "top_sprints":  max(m.sprints for m in last_5_matches),
-            "top_load":     max(m.load for m in last_5_matches),
+            "top_hsd": max(m.hsd for m in last_5_matches),
+            "top_sprints": max(m.sprints for m in last_5_matches),
+            "top_load": max(m.load for m in last_5_matches),
         }
     else:
         avg_stats, top_stats = {}, {}
 
-    # ---------- POSITION TARGETS ----------
-    position_targets = (
-        POSITION_TARGETS.get(selected_player.position)
-        if selected_player else None
+    selected_position_name = (
+        selected_player.position_ref.name
+        if selected_player and selected_player.position_ref
+        else None
     )
+    position_targets = POSITION_TARGETS.get(selected_position_name) if selected_position_name else None
 
-    # ---------- MATCH GRAFIEKEN ----------
-    match_labels = [f"WK {m.week}" for m in last_5_matches]
-    match_km      = [float(m.total_distance or 0) for m in last_5_matches]
-    match_hir     = [float(m.hsd or 0) for m in last_5_matches]
-    match_his     = [float(m.sprints or 0) for m in last_5_matches]
-    match_load    = [float(m.load or 0) for m in last_5_matches]
+    match_labels = [f"WK {m.week}" if m.week else "-" for m in last_5_matches]
+    match_km = [float(m.total_distance or 0) for m in last_5_matches]
+    match_hir = [float(m.hsd or 0) for m in last_5_matches]
+    match_sprints = [float(m.sprints or 0) for m in last_5_matches]
+    match_load = [float(m.load or 0) for m in last_5_matches]
+    match_d20 = [float(m.hsd or 0) for m in last_5_matches]
+    match_d25 = [float(m.his or 0) for m in last_5_matches]
+    match_acc = [float(m.accelerations or 0) for m in last_5_matches]
+    match_dec = [float(m.decelerations or 0) for m in last_5_matches]
+    match_max_speed = [0.0 for _ in last_5_matches]
 
-    # =======================================================================
-    # ⭐ TEAMVERGELIJKING — UNIEKE SPELERS ⭐
-    # =======================================================================
+    weeks = [r.get("week") for r in all_rows if r.get("week") is not None]
+    last_week = max(weeks) if weeks else None
+    team_rows = [r for r in all_rows if last_week is not None and r.get("week") == last_week]
 
-        # --- LAATSTE WEEK OPHALEN ---
-    result = WedstrijdData.objects.aggregate(max_week=Max("week"))
-    last_week = result["max_week"]
-
-    # Als er geen week beschikbaar is → lege grafiek
-    if not last_week:
-        last_team_rows = []
-    else:
-        last_team_rows = (
-            WedstrijdData.objects
-                .filter(week=last_week)
-                .values("player__name")
-                .annotate(
-                    km=Sum("total_distance"),   # totale afstand (meters)
-                    hir=Sum("hsd"),             # high-intensity running (meters)
-                    sprints=Sum("sprints"),     # aantal sprints
-                    his=Sum("his"),             # high-intensity sprint distance (meters)
-                )
-                .order_by("player__name")
+    grouped = {}
+    for row in team_rows:
+        name = row["player_name"]
+        agg = grouped.setdefault(
+            name,
+            {"player__name": name, "km": 0.0, "hir": 0.0, "sprints": 0.0, "his": 0.0, "load": 0.0, "acc": 0.0, "dec": 0.0},
         )
+        agg["km"] += float(row.get("total_distance") or 0)
+        agg["hir"] += float(row.get("hsd") or 0)
+        agg["sprints"] += float(row.get("sprints") or 0)
+        agg["his"] += float(row.get("his") or 0)
+        agg["load"] += float(row.get("load") or 0)
+        agg["acc"] += float(row.get("accelerations") or 0)
+        agg["dec"] += float(row.get("decelerations") or 0)
 
- # TEAM DATA ARRAYS
-    team_labels   = [row["player__name"] for row in last_team_rows]
+    last_team_rows = [grouped[k] for k in sorted(grouped.keys())]
+
+    team_labels = [row["player__name"] for row in last_team_rows]
     team_distance = [float(row["km"] or 0) for row in last_team_rows]
-    team_hsd      = [float(row["hir"] or 0) for row in last_team_rows]
-    team_sprints  = [float(row["sprints"] or 0) for row in last_team_rows]
-    team_his      = [float(row["his"] or 0) for row in last_team_rows]
+    team_hsd = [float(row["hir"] or 0) for row in last_team_rows]
+    team_sprints = [float(row["sprints"] or 0) for row in last_team_rows]
+    team_his = [float(row["his"] or 0) for row in last_team_rows]
+    team_load = [float(row["load"] or 0) for row in last_team_rows]
+    team_acc = [float(row["acc"] or 0) for row in last_team_rows]
+    team_dec = [float(row["dec"] or 0) for row in last_team_rows]
+    team_d20 = team_hsd[:]
+    team_d25 = team_his[:]
+    team_max_speed = [0.0 for _ in last_team_rows]
 
-    # ---------- CONTEXT ----------
     context = {
         "players": players,
         "selected_player": selected_player,
+        "selected_metric": selected_metric,
         "last_5_matches": last_5_matches,
         "avg_stats": avg_stats,
         "top_stats": top_stats,
@@ -818,14 +1650,26 @@ def wedstrijddata(request):
         "match_labels": match_labels,
         "match_km": match_km,
         "match_hir": match_hir,
-        "match_his": match_his,
+        "match_his": match_d25,
+        "match_sprints": match_sprints,
         "match_load": match_load,
+        "match_d20": match_d20,
+        "match_d25": match_d25,
+        "match_acc": match_acc,
+        "match_dec": match_dec,
+        "match_max_speed": match_max_speed,
 
         "team_labels": team_labels,
         "team_distance": team_distance,
         "team_hsd": team_hsd,
         "team_sprints": team_sprints,
         "team_his": team_his,
+        "team_load": team_load,
+        "team_acc": team_acc,
+        "team_dec": team_dec,
+        "team_d20": team_d20,
+        "team_d25": team_d25,
+        "team_max_speed": team_max_speed,
 
         "active_page": "wedstrijd",
     }
@@ -834,174 +1678,155 @@ def wedstrijddata(request):
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Avg, Min, Max
-from .models import Player, PlayerTest
 
 
 def testdata(request):
 
-    # ----------------------------------------------------------
-    # Percentiel functie
-    # ----------------------------------------------------------
     def calculate_percentile(value, min_val, max_val, reverse=False):
-        """Bereken percentiel t.o.v. team. reverse=True = lager is beter (sprint)."""
         if value is None or min_val is None or max_val is None:
             return None
         if min_val == max_val:
-            return 50  # fallback wanneer er weinig data is
-
+            return 50
         if reverse:
-            # Sprint → lager = beter
             return round(100 * (max_val - value) / (max_val - min_val))
-        else:
-            # CMJ / ISRT / submax → hoger = beter
-            return round(100 * (value - min_val) / (max_val - min_val))
+        return round(100 * (value - min_val) / (max_val - min_val))
 
-    # ============================================
-    # 1. Teamdata ophalen (voor teamgrafiek + percentielen)
-    # ============================================
-    players = Player.objects.all().order_by("name")
-    test_data = PlayerTest.objects.select_related("player").all()
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    test_rows = fetch_performance_rows("test")
 
-    team_min = test_data.aggregate(
-        sprint10_min=Min("sprint_10"),
-        sprint30_min=Min("sprint_30"),
-        cmj_min=Min("cmj"),
-        isrt_min=Min("isrt"),
-        submax_min=Min("submax"),
-    )
+    test_data = [
+        SimpleNamespace(
+            player=row["player_obj"],
+            test_date=row["session_date"],
+            sprint_10=row.get("sprint_10"),
+            sprint_30=row.get("sprint_30"),
+            cmj=row.get("cmj"),
+            isrt=row.get("isrt"),
+            submax=row.get("submax"),
+            curr_weight=row.get("curr_weight"),
+            length=row.get("length"),
+            sum_skinfolds=row.get("sum_skinfolds"),
+        )
+        for row in test_rows
+    ]
 
-    team_max = test_data.aggregate(
-        sprint10_max=Max("sprint_10"),
-        sprint30_max=Max("sprint_30"),
-        cmj_max=Max("cmj"),
-        isrt_max=Max("isrt"),
-        submax_max=Max("submax"),
-    )
+    def metric_values(code):
+        vals = []
+        for row in test_rows:
+            raw = row.get(code)
+            if raw is not None:
+                vals.append(float(raw))
+        return vals
 
-    # ============================================
-    # 2. Spelerselectie + percentielen
-    # ============================================
+    sprint10_vals = metric_values("sprint_10")
+    sprint30_vals = metric_values("sprint_30")
+    cmj_vals = metric_values("cmj")
+    isrt_vals = metric_values("isrt")
+    submax_vals = metric_values("submax")
+
+    team_min = {
+        "sprint10_min": min(sprint10_vals) if sprint10_vals else None,
+        "sprint30_min": min(sprint30_vals) if sprint30_vals else None,
+        "cmj_min": min(cmj_vals) if cmj_vals else None,
+        "isrt_min": min(isrt_vals) if isrt_vals else None,
+        "submax_min": min(submax_vals) if submax_vals else None,
+    }
+    team_max = {
+        "sprint10_max": max(sprint10_vals) if sprint10_vals else None,
+        "sprint30_max": max(sprint30_vals) if sprint30_vals else None,
+        "cmj_max": max(cmj_vals) if cmj_vals else None,
+        "isrt_max": max(isrt_vals) if isrt_vals else None,
+        "submax_max": max(submax_vals) if submax_vals else None,
+    }
+
     player_id = request.GET.get("player_id")
     selected_player = None
     percentiles = {}
 
     if player_id:
-        selected_player = get_object_or_404(Player, id=player_id)
+        selected_player = get_object_or_404(Player.objects.select_related("monitoring_profile"), id=player_id)
+        player_rows = [r for r in test_rows if r["player_id"] == selected_player.id]
+        player_rows.sort(key=lambda r: r["session_date"], reverse=True)
+        latest = player_rows[0] if player_rows else None
+        selected_player.latest_test = SimpleNamespace(**latest) if latest else None
 
-        # Haal nieuwste test op obv test_date
-        latest_test = (
-            PlayerTest.objects
-            .filter(player=selected_player)
-            .order_by("-test_date")
-            .first()
-        )
-        selected_player.latest_test = latest_test
-
-        if latest_test:
+        if latest:
             percentiles = {
-                "sprint_10": calculate_percentile(
-                    latest_test.sprint_10,
-                    team_min["sprint10_min"],
-                    team_max["sprint10_max"],
-                    reverse=True
-                ),
-                "sprint_30": calculate_percentile(
-                    latest_test.sprint_30,
-                    team_min["sprint30_min"],
-                    team_max["sprint30_max"],
-                    reverse=True
-                ),
-                "cmj": calculate_percentile(
-                    latest_test.cmj,
-                    team_min["cmj_min"],
-                    team_max["cmj_max"]
-                ),
-                "isrt": calculate_percentile(
-                    latest_test.isrt,
-                    team_min["isrt_min"],
-                    team_max["isrt_max"]
-                ),
-                "submax": calculate_percentile(
-                    latest_test.submax,
-                    team_min["submax_min"],
-                    team_max["submax_max"]
-                ),
+                "sprint_10": calculate_percentile(latest.get("sprint_10"), team_min["sprint10_min"], team_max["sprint10_max"], reverse=True),
+                "sprint_30": calculate_percentile(latest.get("sprint_30"), team_min["sprint30_min"], team_max["sprint30_max"], reverse=True),
+                "cmj": calculate_percentile(latest.get("cmj"), team_min["cmj_min"], team_max["cmj_max"]),
+                "isrt": calculate_percentile(latest.get("isrt"), team_min["isrt_min"], team_max["isrt_max"]),
+                "submax": calculate_percentile(latest.get("submax"), team_min["submax_min"], team_max["submax_max"]),
             }
 
-    # ============================================
-    # 2b. Trendgrafiek data (sorted op test_date)
-    # ============================================
     if player_id:
-        tests = PlayerTest.objects.filter(player=selected_player).order_by("test_date")
+        tests = [r for r in test_rows if r["player_id"] == selected_player.id]
+        tests.sort(key=lambda r: r["session_date"])
+        anthropometry_dates = [t["session_date"].strftime("%d-%m-%Y") for t in tests]
 
-        anthropometry_dates = [t.test_date.strftime("%d-%m-%Y") for t in tests]
-
-        # FORWARD FILL – Gewicht
         anthropometry_weights = []
         last_weight = None
         for t in tests:
-            if t.curr_weight is not None:
-                last_weight = t.curr_weight
+            if t.get("curr_weight") is not None:
+                last_weight = t.get("curr_weight")
             anthropometry_weights.append(last_weight)
 
-        # FORWARD FILL – Skinfolds
         anthropometry_skinfolds = []
         last_skin = None
         for t in tests:
-            if t.sum_skinfolds is not None:
-                last_skin = t.sum_skinfolds
+            if t.get("sum_skinfolds") is not None:
+                last_skin = t.get("sum_skinfolds")
             anthropometry_skinfolds.append(last_skin)
 
-    # ============================================
-    # 3. Teamgemiddelden
-    # ============================================
     team_avg = {
-        "sprint_10": round(test_data.aggregate(Avg("sprint_10"))["sprint_10__avg"] or 0, 2),
-        "sprint_30": round(test_data.aggregate(Avg("sprint_30"))["sprint_30__avg"] or 0, 2),
-        "cmj": round(test_data.aggregate(Avg("cmj"))["cmj__avg"] or 0, 2),
-        "isrt": round(test_data.aggregate(Avg("isrt"))["isrt__avg"] or 0, 2),
-        "submax": round(test_data.aggregate(Avg("submax"))["submax__avg"] or 0, 2),
+        "sprint_10": round(mean(sprint10_vals), 2),
+        "sprint_30": round(mean(sprint30_vals), 2),
+        "cmj": round(mean(cmj_vals), 2),
+        "isrt": round(mean(isrt_vals), 2),
+        "submax": round(mean(submax_vals), 2),
     }
 
-    # ============================================
-    # 4. Nieuwe testdata opslaan (POST)
-    # ============================================
     if request.method == "POST":
         player_obj = get_object_or_404(Player, id=request.POST.get("player_id"))
-        test_date = request.POST.get("test_date")  # komt uit formulier (input type="date")
+        test_date = request.POST.get("test_date")
+        if not test_date:
+            return redirect("testdata")
 
-        PlayerTest.objects.create(
+        parsed_date = datetime.strptime(test_date, "%Y-%m-%d").date()
+        upsert_performance_session_metrics(
             player=player_obj,
-            test_date=test_date,
-            sprint_10=request.POST.get("sprint_10") or None,
-            sprint_30=request.POST.get("sprint_30") or None,
-            cmj=request.POST.get("cmj") or None,
-            isrt=request.POST.get("isrt") or None,
-            submax=request.POST.get("submax") or None,
-            curr_weight=request.POST.get("curr_weight") or None,
-            length=request.POST.get("length") or None,
-            sum_skinfolds=request.POST.get("sum_skinfolds") or None,
+            session_kind="test",
+            session_date=parsed_date,
+            metrics={
+                "sprint_10": request.POST.get("sprint_10"),
+                "sprint_30": request.POST.get("sprint_30"),
+                "cmj": request.POST.get("cmj"),
+                "isrt": request.POST.get("isrt"),
+                "submax": request.POST.get("submax"),
+                "curr_weight": request.POST.get("curr_weight"),
+                "length": request.POST.get("length"),
+                "sum_skinfolds": request.POST.get("sum_skinfolds"),
+            },
+            source_tag="main_manual_test",
         )
-
         return redirect("testdata")
 
-    # ============================================
-    # 5. Context bouwen (incl. test_data voor teamgrafiek)
-    # ============================================
     context = {
         "players": players,
         "selected_player": selected_player,
-        "test_data": test_data,          # 🔥 deze wordt gebruikt in je verborgen tabel #hiddenData
+        "test_data": test_data,
         "team_avg": team_avg,
         "percentiles": percentiles,
     }
 
     if player_id:
-        context.update({
-            "anthropometry_dates": anthropometry_dates,
-            "anthropometry_weights": anthropometry_weights,
-            "anthropometry_skinfolds": anthropometry_skinfolds,
-        })
+        context.update(
+            {
+                "anthropometry_dates": anthropometry_dates,
+                "anthropometry_weights": anthropometry_weights,
+                "anthropometry_skinfolds": anthropometry_skinfolds,
+            }
+        )
 
     return render(request, "testdata.html", context)
 
@@ -1009,7 +1834,7 @@ def testdata(request):
 # ---------- PAGINA: HERSTEL ----------
 def recovery(request):
     """Pagina voor herstel- en testanalyse per speler."""
-    players = Player.objects.all().order_by("name")
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
     selected_player_name = request.GET.get("player")
     selected_player, recovery_data, chart_labels, chart_values = None, [], [], []
 
@@ -1036,29 +1861,210 @@ def recovery(request):
 
 
 from django.shortcuts import render, redirect
-from .models import Injury, Player, FieldRehabSession
+from django.db.models import Sum
+from datetime import timedelta
+import json
+from .models import (
+    InjuryCase,
+    Player,
+    FieldRehabSession,
+    FieldRehabPhase,
+    FieldRehabComponent,
+    FieldRehabMetric,
+    FieldRehabMetricType,
+)
+
 
 def revalidatie(request):
     """Pagina voor overzicht van geblesseerde spelers + invoer van veldrevalidatie."""
-    injuries = Injury.objects.all().order_by("start_date")
-    players = Player.objects.all().order_by("name")
+    injuries = InjuryCase.objects.select_related(
+        "player", "injury_type_ref", "phase_ref", "status_ref"
+    ).order_by("started_on")
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
 
+    selected_player_id = request.GET.get("player_id")
     selected_player_name = request.GET.get("player")
     selected_player = None
 
-    if selected_player_name:
+    if selected_player_id:
+        selected_player = Player.objects.filter(id=selected_player_id).first()
+    elif selected_player_name:
+        # Backward compatibility voor bestaande links op naam.
         selected_player = Player.objects.filter(name=selected_player_name).first()
-        if selected_player:
-            injuries = Injury.objects.filter(name=selected_player.name).order_by("start_date")
-        else:
-            injuries = []
 
-    # 👇 Nieuw deel – formulierverwerking
+    if selected_player:
+        injuries = InjuryCase.objects.select_related(
+            "player", "injury_type_ref", "phase_ref", "status_ref"
+        ).filter(player=selected_player).order_by("started_on")
+    elif selected_player_id or selected_player_name:
+        injuries = []
+
+    # Default duur voor opbouwplanner (in dagen), afgeleid uit blessureduur indien mogelijk.
+    rehab_duration_default_days = 28
+    if selected_player:
+        latest_with_duration = None
+        for injury_item in injuries.order_by("-started_on"):
+            if _injury_duration_days(injury_item) is not None:
+                latest_with_duration = injury_item
+                break
+        if latest_with_duration and _injury_duration_days(latest_with_duration) is not None:
+            try:
+                duration_days = int(_injury_duration_days(latest_with_duration))
+                rehab_duration_default_days = max(7, min(168, duration_days))
+            except (TypeError, ValueError):
+                rehab_duration_default_days = 28
+
+    # Laatste 30 dagen trainingsdata voor geselecteerde speler (overzicht + ACWR)
+    rehab_month_data = []
+    rehab_month_labels = []
+    rehab_month_loads = []
+    rehab_month_distances = []
+    rehab_month_hsd = []
+    rehab_month_d20 = []
+    rehab_month_d25 = []
+    rehab_month_acc = []
+    rehab_month_dec = []
+    rehab_month_max_speed = []
+    rehab_month_sprints = []
+    rehab_month_acwr = []
+    rehab_month_range_label = "-"
+
+    if selected_player:
+        player_training_rows = [
+            r for r in fetch_performance_rows("training") if r["player_id"] == selected_player.id
+        ]
+        end_date = timezone.localdate()
+        start_date = end_date - timedelta(days=29)
+        rehab_month_range_label = f"{start_date.strftime('%d-%m-%Y')} t/m {end_date.strftime('%d-%m-%Y')}"
+
+        daily_map = {}
+        for row in player_training_rows:
+            current_date = row["session_date"]
+            if current_date < start_date or current_date > end_date:
+                continue
+            agg = daily_map.setdefault(
+                current_date,
+                {"load": 0.0, "total_distance": 0.0, "hsd": 0.0, "sprints": 0.0},
+            )
+            agg["load"] += float(row.get("load") or 0)
+            agg["total_distance"] += float(row.get("total_distance") or 0)
+            agg["hsd"] += float(row.get("hsd") or 0)
+            agg["sprints"] += float(row.get("sprints") or 0)
+        day_name_short = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"]
+        daily_load_values = []
+
+        for day_offset in range(30):
+            current_date = start_date + timedelta(days=day_offset)
+            row = daily_map.get(current_date, {})
+
+            day_load = float(row.get("load") or 0)
+            day_total_distance = float(row.get("total_distance") or 0)
+            day_hsd = float(row.get("hsd") or 0)
+            day_sprints = float(row.get("sprints") or 0)
+
+            rehab_month_labels.append(
+                f"{day_name_short[current_date.weekday()]} {current_date.strftime('%d-%m')}"
+            )
+            rehab_month_loads.append(day_load)
+            rehab_month_distances.append(day_total_distance)
+            rehab_month_hsd.append(day_hsd)
+            rehab_month_d20.append(day_hsd)   # alias in trainingsdata
+            rehab_month_d25.append(0.0)       # niet beschikbaar in TrainingData
+            rehab_month_acc.append(0.0)       # niet beschikbaar in TrainingData
+            rehab_month_dec.append(0.0)       # niet beschikbaar in TrainingData
+            rehab_month_max_speed.append(0.0) # niet beschikbaar in TrainingData
+            rehab_month_sprints.append(day_sprints)
+            daily_load_values.append(day_load)
+            rehab_month_data.append(
+                {
+                    "date_label": current_date.strftime("%d-%m-%Y"),
+                    "load": round(day_load, 1),
+                    "total_distance": round(day_total_distance, 1),
+                    "hsd": round(day_hsd, 1),
+                    "d20": round(day_hsd, 1),   # alias in trainingsdata
+                    "d25": 0.0,                 # niet beschikbaar in TrainingData
+                    "acc": 0.0,                 # niet beschikbaar in TrainingData
+                    "dec": 0.0,                 # niet beschikbaar in TrainingData
+                    "max_speed": 0.0,           # niet beschikbaar in TrainingData
+                    "sprints": round(day_sprints, 1),
+                    "acwr": None,
+                }
+            )
+
+        # EWMA-7 / EWMA-28 en ACWR op dagbasis
+        lambda_acute = 2 / 8
+        lambda_chronic = 2 / 29
+        acute_ewma = []
+        chronic_ewma = []
+
+        for idx, val in enumerate(daily_load_values):
+            if idx == 0:
+                acute_val = val
+                chronic_val = val
+            else:
+                acute_val = (lambda_acute * val) + ((1 - lambda_acute) * acute_ewma[idx - 1])
+                chronic_val = (lambda_chronic * val) + ((1 - lambda_chronic) * chronic_ewma[idx - 1])
+            acute_ewma.append(acute_val)
+            chronic_ewma.append(chronic_val)
+
+        for idx in range(len(daily_load_values)):
+            chronic_val = chronic_ewma[idx]
+            acwr_val = round(acute_ewma[idx] / chronic_val, 2) if chronic_val > 0 else None
+            rehab_month_acwr.append(acwr_val)
+            rehab_month_data[idx]["acwr"] = acwr_val
+
+    if request.GET.get("ajax") == "1":
+        injuries_payload = []
+        for injury in injuries:
+            phase = injury.phase_ref.code if injury.phase_ref else ""
+            if phase == "early":
+                phase_label = "Vroege fase"
+            elif phase == "mid":
+                phase_label = "Middenfase"
+            else:
+                phase_label = "Laatste fase"
+
+            injuries_payload.append(
+                {
+                    "name": injury.player.name,
+                    "injury_type": injury.injury_type_ref.name if injury.injury_type_ref else "-",
+                    "start_date": injury.started_on.strftime("%d-%m-%Y") if injury.started_on else "-",
+                    "duration": _injury_duration_days(injury) or "-",
+                    "phase": phase,
+                    "phase_label": phase_label,
+                }
+            )
+
+        return JsonResponse(
+            {
+                "selected_player": {
+                    "id": selected_player.id if selected_player else None,
+                    "name": selected_player.name if selected_player else "",
+                },
+                "injuries": injuries_payload,
+                "rehab_month_range_label": rehab_month_range_label,
+                "rehab_month_data": rehab_month_data,
+                "rehab_month_labels": rehab_month_labels,
+                "rehab_month_loads": rehab_month_loads,
+                "rehab_month_distances": rehab_month_distances,
+                "rehab_month_hsd": rehab_month_hsd,
+                "rehab_month_d20": rehab_month_d20,
+                "rehab_month_d25": rehab_month_d25,
+                "rehab_month_acc": rehab_month_acc,
+                "rehab_month_dec": rehab_month_dec,
+                "rehab_month_max_speed": rehab_month_max_speed,
+                "rehab_month_sprints": rehab_month_sprints,
+                "rehab_month_acwr": rehab_month_acwr,
+                "rehab_duration_default_days": rehab_duration_default_days,
+                "rehab_duration_default_weeks": max(1, min(24, (rehab_duration_default_days + 6) // 7)),
+            }
+        )
+
+    # Formulierverwerking
     if request.method == "POST":
         player_id = request.POST.get("player")
         phase = request.POST.get("phase")
 
-        # ✅ Haal lijsten op (door de [] in de HTML)
         onderdelen = request.POST.getlist("onderdeel[]")
         duuren = request.POST.getlist("duur[]")
         rpes = request.POST.getlist("rpe[]")
@@ -1071,60 +2077,173 @@ def revalidatie(request):
 
         try:
             player = Player.objects.get(id=player_id)
-
-            # ✅ Doorloop alle rijen in de tabel
             for i in range(len(onderdelen)):
                 onderdeel = onderdelen[i].strip() if onderdelen[i] else None
                 if not onderdeel:
-                    continue  # sla lege rijen over
+                    continue
 
-                FieldRehabSession.objects.create(
+                phase_obj = None
+                if phase:
+                    phase_obj, _ = FieldRehabPhase.objects.get_or_create(name=phase.strip())
+
+                onderdeel_obj, _ = FieldRehabComponent.objects.get_or_create(name=onderdeel)
+
+                session = FieldRehabSession(
                     player=player,
-                    phase=phase,
-                    onderdeel=onderdeel,
+                    phase_ref=phase_obj,
+                    onderdeel_ref=onderdeel_obj,
                     afgevinkt=True if i < len(afgevinkts) and afgevinkts[i] == "on" else False,
-                    duur=duuren[i] if i < len(duuren) and duuren[i] else None,
-                    rpe=rpes[i] if i < len(rpes) and rpes[i] else None,
-                    totale_afstand=totale_afstanden[i] if i < len(totale_afstanden) and totale_afstanden[i] else None,
-                    afstand_20=afstand_20s[i] if i < len(afstand_20s) and afstand_20s[i] else None,
-                    afstand_25=afstand_25s[i] if i < len(afstand_25s) and afstand_25s[i] else None,
-                    acceleraties=acceleraties[i] if i < len(acceleraties) and acceleraties[i] else None,
-                    deceleraties=deceleraties[i] if i < len(deceleraties) and deceleraties[i] else None,
                 )
+                session.save()
 
+                metric_inputs = {
+                    "duur": duuren[i] if i < len(duuren) else None,
+                    "rpe": rpes[i] if i < len(rpes) else None,
+                    "totale_afstand": totale_afstanden[i] if i < len(totale_afstanden) else None,
+                    "afstand_20": afstand_20s[i] if i < len(afstand_20s) else None,
+                    "afstand_25": afstand_25s[i] if i < len(afstand_25s) else None,
+                    "acceleraties": acceleraties[i] if i < len(acceleraties) else None,
+                    "deceleraties": deceleraties[i] if i < len(deceleraties) else None,
+                }
+                for code, raw_value in metric_inputs.items():
+                    if raw_value in (None, ""):
+                        continue
+                    try:
+                        metric_value = int(float(str(raw_value).replace(",", ".")))
+                    except (TypeError, ValueError):
+                        continue
+                    metric_type, _ = FieldRehabMetricType.objects.get_or_create(
+                        code=code,
+                        defaults={"name": code.replace("_", " ").title()},
+                    )
+                    FieldRehabMetric.objects.update_or_create(
+                        session=session,
+                        metric_type=metric_type,
+                        defaults={"value": metric_value},
+                    )
         except Player.DoesNotExist:
-            print("⚠️ Ongeldige speler geselecteerd")
+            print("Ongeldige speler geselecteerd")
 
+        if player_id:
+            return redirect(f"/revalidatie/?player_id={player_id}")
+        if selected_player:
+            return redirect(f"/revalidatie/?player_id={selected_player.id}")
         return redirect("revalidatie")
 
-    # 👇 Context teruggeven aan template
     context = {
-        "injuries": injuries,
+        "injuries": [_injury_to_ui(injury) for injury in injuries],
         "players": players,
         "selected_player": selected_player,
+        "rehab_month_data": rehab_month_data,
+        "rehab_month_range_label": rehab_month_range_label,
+        "rehab_month_labels_json": json.dumps(rehab_month_labels),
+        "rehab_month_data_json": json.dumps(rehab_month_data),
+        "rehab_month_loads_json": json.dumps(rehab_month_loads),
+        "rehab_month_distances_json": json.dumps(rehab_month_distances),
+        "rehab_month_hsd_json": json.dumps(rehab_month_hsd),
+        "rehab_month_d20_json": json.dumps(rehab_month_d20),
+        "rehab_month_d25_json": json.dumps(rehab_month_d25),
+        "rehab_month_acc_json": json.dumps(rehab_month_acc),
+        "rehab_month_dec_json": json.dumps(rehab_month_dec),
+        "rehab_month_max_speed_json": json.dumps(rehab_month_max_speed),
+        "rehab_month_sprints_json": json.dumps(rehab_month_sprints),
+        "rehab_month_acwr_json": json.dumps(rehab_month_acwr),
+        "rehab_duration_default_days": rehab_duration_default_days,
+        "rehab_duration_default_weeks": max(1, min(24, (rehab_duration_default_days + 6) // 7)),
     }
 
     return render(request, "revalidatie.html", context)
-
 def revalidatie_gym(request):
     """Pagina voor oefeningen en voortgang in de revalidatiegym."""
+    kracht_label = "Krachtprogramma"
+    offfeet_label = "Conditionering off-feet"
     if request.method == "POST":
+        if request.POST.get("form_type") == "add_injury_gym":
+            name = request.POST.get("name")
+            injury_type = request.POST.get("injury_type")
+            start_date = request.POST.get("start_date")
+            duration = request.POST.get("duration")
+            phase = request.POST.get("phase")
+
+            if not name or not injury_type or not start_date or not duration or not phase:
+                messages.error(request, "Alle velden voor blessure zijn verplicht.")
+                return redirect("revalidatie_gym")
+
+            player_obj = _resolve_player_by_name(name)
+            if player_obj is None:
+                messages.error(request, "Speler niet gevonden. Voeg eerst de speler toe.")
+                return redirect("revalidatie_gym")
+
+            _upsert_injury_case(
+                player=player_obj,
+                injury_type=injury_type,
+                start_date_value=start_date,
+                duration_value=duration,
+                phase=phase,
+            )
+
+            messages.success(request, f"Blessure van {player_obj.name} toegevoegd.")
+            return redirect("revalidatie_gym")
+
+        if request.POST.get("form_type") == "edit_injury_gym":
+            injury_id = request.POST.get("injury_id")
+            injury = get_object_or_404(InjuryCase, id=injury_id)
+
+            name = request.POST.get("name")
+            injury_type = request.POST.get("injury_type")
+            start_date = request.POST.get("start_date")
+            duration = request.POST.get("duration")
+            phase = request.POST.get("phase")
+
+            if not name or not injury_type or not start_date or not duration or not phase:
+                messages.error(request, "Alle velden voor blessure bewerken zijn verplicht.")
+                return redirect("revalidatie_gym")
+
+            player_obj = _resolve_player_by_name(name)
+            if player_obj is None:
+                messages.error(request, "Speler niet gevonden. Voeg eerst de speler toe.")
+                return redirect("revalidatie_gym")
+
+            _upsert_injury_case(
+                player=player_obj,
+                injury_type=injury_type,
+                start_date_value=start_date,
+                duration_value=duration,
+                phase=phase,
+                instance=injury,
+            )
+
+            messages.success(request, "Blessure aangepast.")
+            return redirect("revalidatie_gym")
+
         player = request.POST.get("player")
+        program_type = request.POST.get("program_type", "").strip()
         phase = request.POST.get("phase")
+        focus_point = request.POST.get("focus_point")
         exercise = request.POST.get("exercise")
         description = request.POST.get("description")
         sets_reps = request.POST.get("sets_reps")
 
-        # ✅ Eerst proberen de juiste speler op te halen
+        if not player or not phase or not exercise:
+            messages.error(request, "Speler, fase en oefening zijn verplicht.")
+            return redirect("revalidatie_gym")
+
+        if program_type not in {kracht_label, offfeet_label}:
+            program_type = kracht_label
+
+        full_phase = f"{program_type} | {phase}"
+
+        # Eerst proberen de juiste speler op te halen op basis van ID
         try:
-            player_obj = Player.objects.get(name=player)
-        except Player.DoesNotExist:
+            player_obj = Player.objects.get(id=int(player))
+        except (Player.DoesNotExist, ValueError, TypeError):
             player_obj = None
 
-        # ✅ Dan de oefening aanmaken met de juiste ForeignKey
+        # Dan de oefening aanmaken met de juiste ForeignKey
         Oefening.objects.create(
             player=player_obj,
-            phase=phase,
+            phase=full_phase,
+            focus_point=focus_point,
             exercise=exercise,
             description=description,
             sets_reps=sets_reps
@@ -1132,14 +2251,27 @@ def revalidatie_gym(request):
 
         return redirect("revalidatie_gym")
 
-    # ✅ Deze code moet BUITEN de if staan, zodat ze ook bij GET uitgevoerd wordt
-    oefeningen = Oefening.objects.all().order_by("-created_at")
-    spelers = Player.objects.all().order_by("name")  # <--- deze regel ontbrak!
+    oefeningen = Oefening.objects.select_related(
+        "player", "program_type_ref", "phase_ref", "focus_point_ref"
+    ).order_by("-created_at")
+    oefeningen_kracht = oefeningen.filter(program_type_ref__name=kracht_label)
+    oefeningen_offfeet = oefeningen.filter(program_type_ref__name=offfeet_label)
+    spelers = Player.objects.all().order_by("name")
+    blessures = InjuryCase.objects.select_related(
+        "player", "injury_type_ref", "phase_ref", "status_ref"
+    ).order_by("-started_on")
 
-    # ✅ Geef beide variabelen door aan de template
+    today = date.today()
+
     return render(request, "revalidatie_gym.html", {
         "oefeningen": oefeningen,
+        "oefeningen_kracht": oefeningen_kracht,
+        "oefeningen_offfeet": oefeningen_offfeet,
+        "kracht_label": kracht_label,
+        "offfeet_label": offfeet_label,
         "spelers": spelers,
+        "blessures": [_injury_to_ui(injury) for injury in blessures],
+        "today": today,
     })
 
 
@@ -1147,7 +2279,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from datetime import date
 
-from .models import Player, Programma, ProgrammaOefening, DailyProgram, RPEEntry
+from .models import (
+    AttendanceRecord,
+    AttendanceStatus,
+    IndividualDayPlan,
+    IndividualDayPlanNote,
+    IndividualDayPlanNoteType,
+    Player,
+    Programma,
+    ProgrammaOefening,
+    RPEEntry,
+)
 
 # -------------------------------------
 # PAGINA: individuele_programmas
@@ -1160,7 +2302,7 @@ def individuele_programmas(request):
     - laatste individuele programma + oefeningen worden getoond
     """
 
-    players = Player.objects.all().order_by("name")
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
 
     # Haal geselecteerde speler uit URL parameters
     player_id = request.GET.get("player_id")
@@ -1170,25 +2312,37 @@ def individuele_programmas(request):
     day_program = None
 
     if player_id:
-        selected_player = get_object_or_404(Player, id=player_id)
+        selected_player = get_object_or_404(Player.objects.select_related("monitoring_profile"), id=player_id)
 
-        # Dagprogramma ophalen of aanmaken
-        day_program, created = DailyProgram.objects.get_or_create(
+        # Dagprogramma ophalen of aanmaken (3NF: plan + note)
+        plan, _ = IndividualDayPlan.objects.get_or_create(
             player=selected_player,
-            date=date.today()
+            date=date.today(),
         )
+        note_type_obj, _ = IndividualDayPlanNoteType.objects.get_or_create(
+            code="program_text",
+            defaults={"label": "Programma tekst"},
+        )
+        note, _ = IndividualDayPlanNote.objects.get_or_create(
+            plan=plan,
+            note_type_ref=note_type_obj,
+            defaults={"content": ""},
+        )
+        day_program = SimpleNamespace(date=plan.date, program_text=note.content)
 
         # Laatste individuele programma ophalen
         programma = Programma.objects.filter(player=selected_player).order_by("-created_at").first()
 
         if programma:
-            oefeningen = ProgrammaOefening.objects.filter(programma=programma)
+            oefeningen = ProgrammaOefening.objects.select_related(
+                "naam_ref", "frequentie_ref", "duur_unit_ref"
+            ).filter(programma=programma)
 
         # Opslaan dagprogramma
         if request.method == "POST":
             new_text = request.POST.get("program_text", "")
-            day_program.program_text = new_text
-            day_program.save()
+            note.content = new_text
+            note.save(update_fields=["content", "updated_at"])
             messages.success(request, "Dagprogramma opgeslagen!")
             return redirect(f"/individuele_programmas/?player_id={player_id}")
 
@@ -1230,14 +2384,29 @@ def individueel_programma_opslaan(request, player_id):
 
         for name, duur, rpe, freq, notes in exercises:
             if name.strip():
-                ProgrammaOefening.objects.create(
+                oef = ProgrammaOefening.objects.create(
                     programma=programma,
-                    naam=name,
-                    duur=duur,
-                    rpe=rpe,
-                    frequentie=freq,
                     opmerkingen=notes
                 )
+                oef.naam = name
+                oef.duur = duur
+                oef.rpe = rpe
+                oef.frequentie = freq
+                update_fields = []
+                if oef.naam_ref_id:
+                    update_fields.append("naam_ref")
+                if oef.duur_value is not None:
+                    update_fields.append("duur_value")
+                if oef.duur_unit_ref_id:
+                    update_fields.append("duur_unit_ref")
+                if oef.duur_text_override:
+                    update_fields.append("duur_text_override")
+                if oef.rpe_value is not None:
+                    update_fields.append("rpe_value")
+                if oef.frequentie_ref_id:
+                    update_fields.append("frequentie_ref")
+                if update_fields:
+                    oef.save(update_fields=update_fields)
 
         messages.success(request, f"Programma voor {player.name} succesvol opgeslagen!")
         return redirect(f"/individuele_programmas/?player_id={player.id}")
@@ -1247,17 +2416,17 @@ def individueel_programma_opslaan(request, player_id):
 def rpe_view(request):
     """
     RPE-pagina met dezelfde structuur als Wellness:
-    → toont 'niet ingevuld' en 'wel ingevuld' voor vandaag.
+    ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ toont 'niet ingevuld' en 'wel ingevuld' voor vandaag.
     """
 
     # --- Alle spelers ---
-    players = Player.objects.all().order_by("name")
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
 
     # --- Datum filter (vandaag) ---
     today = timezone.now().date()
 
-    # --- Alle ingevulde RPE’s van vandaag ---
-    todays_rpe = RPEEntry.objects.filter(date=today)
+    # --- Alle ingevulde RPEÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢s van vandaag ---
+    todays_rpe = RPEEntry.objects.select_related("player", "training_type_ref").filter(date=today)
 
     # --- Lijsten voor UI ---
     players_with_rpe = {entry.player.id for entry in todays_rpe}  # set van player IDs
@@ -1265,18 +2434,21 @@ def rpe_view(request):
     not_filled = [p for p in players if p.id not in players_with_rpe]
     filled = todays_rpe.order_by("player__name")
 
-    # --- POST → RPE opslaan ---
+    # --- POST ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ RPE opslaan ---
     if request.method == "POST":
         player_id = request.POST.get("player_id")
         rpe_value = request.POST.get("rpe")
         training_type = request.POST.get("training_type")
-        date_value = request.POST.get("date")
+        date_value_raw = request.POST.get("date")
 
         player = get_object_or_404(Player, id=player_id)
 
-        # Geen datum → vandaag
-        if not date_value:
+        # Geen datum ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ vandaag
+        if not date_value_raw:
             date_value = today
+        else:
+            parsed_date = parse_date(date_value_raw)
+            date_value = parsed_date or today
 
         # Bestaat er al een rpe entry voor die speler vandaag?
         existing = RPEEntry.objects.filter(player=player, date=date_value).first()
@@ -1309,7 +2481,7 @@ def rpe_view(request):
 def wellness(request):
     """Wellness dashboard met onderscheid tussen ingevuld en niet ingevuld."""
 
-    # 1️⃣ Datum ophalen & converteren naar date-object
+    # 1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Datum ophalen & converteren naar date-object
     selected_date = request.GET.get("date")
 
     if selected_date:
@@ -1318,19 +2490,19 @@ def wellness(request):
     else:
         date = timezone.now().date()
 
-    # 2️⃣ Spelers ophalen
-    players = Player.objects.all().order_by("name")
+    # 2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Spelers ophalen
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
 
-    # 3️⃣ Entries van deze datum ophalen
+    # 3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Entries van deze datum ophalen
     existing_entries = WellnessEntry.objects.filter(date=date)
 
     filled_player_ids = set(existing_entries.values_list("player_id", flat=True))
 
-    # 4️⃣ Verdeling in ingevuld / niet ingevuld
+    # 4ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Verdeling in ingevuld / niet ingevuld
     players_filled = [p for p in players if p.id in filled_player_ids]
     players_not_filled = [p for p in players if p.id not in filled_player_ids]
 
-    # 5️⃣ POST: wellness opslaan
+    # 5ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ POST: wellness opslaan
     if request.method == "POST":
         player_id = request.POST.get("player_id")
         sleep = request.POST.get("sleep")
@@ -1360,7 +2532,7 @@ def wellness(request):
         # Refresh pagina zodat speler naar 'wel ingevuld' gaat
         return redirect(f"/wellness/?date={date_obj}")
 
-    # 6️⃣ Context + render
+    # 6ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Context + render
     return render(request, "wellness.html", {
     "date": date.strftime("%Y-%m-%d"),
     "players_filled": players_filled,
@@ -1376,37 +2548,172 @@ def wellness(request):
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import HitWeekPlanning
+from .models import Player, PlayerSpeedTest, HitAsrPlanSession, HitAsrPlanEntry
 
 
 def hit_page(request):
-    """
-    HIT pagina: toont tools + slaat weekplanning op wanneer een POST-request binnenkomt.
-    """
+    """HIT pagina: calculator + individualiserings-tools."""
+    action = request.POST.get("asr_form_action") if request.method == "POST" else None
 
-    # Pak het algemene record (ID=1), of maak deze automatisch aan
-    weekplanning, created = HitWeekPlanning.objects.get_or_create(id=1)
+    if request.method == "POST" and action == "save_asr_tests":
+        test_date_raw = (request.POST.get("asr_test_date") or "").strip()
+        try:
+            test_date = datetime.strptime(test_date_raw, "%Y-%m-%d").date() if test_date_raw else datetime.today().date()
+        except ValueError:
+            test_date = datetime.today().date()
 
-    if request.method == "POST":
+        player_ids = request.POST.getlist("asr_player_id[]")
+        mss_values = request.POST.getlist("asr_mss[]")
+        mas_values = request.POST.getlist("asr_mas[]")
 
-        # Velden ophalen en opslaan
-        weekplanning.monday = request.POST.get("maandag", "")
-        weekplanning.tuesday = request.POST.get("dinsdag", "")
-        weekplanning.wednesday = request.POST.get("woensdag", "")
-        weekplanning.thursday = request.POST.get("donderdag", "")
-        weekplanning.friday = request.POST.get("vrijdag", "")
-        weekplanning.saturday = request.POST.get("zaterdag", "")
-        weekplanning.sunday = request.POST.get("zondag", "")
+        saved = 0
+        for i, player_id in enumerate(player_ids):
+            player_id = (player_id or "").strip()
+            if not player_id:
+                continue
+            mss_raw = (mss_values[i] if i < len(mss_values) else "").strip()
+            mas_raw = (mas_values[i] if i < len(mas_values) else "").strip()
+            if not mss_raw or not mas_raw:
+                continue
+            try:
+                player = Player.objects.get(id=player_id)
+                mss = float(mss_raw.replace(",", "."))
+                mas = float(mas_raw.replace(",", "."))
+            except (Player.DoesNotExist, ValueError):
+                continue
+            if mss <= 0 or mas <= 0:
+                continue
+            PlayerSpeedTest.objects.update_or_create(
+                player=player,
+                test_date=test_date,
+                defaults={"mss_kmh": mss, "mas_kmh": mas},
+            )
+            saved += 1
 
-        weekplanning.save()
+        if saved:
+            messages.success(request, f"{saved} MSS/MAS testwaarden opgeslagen voor {test_date}.")
+        else:
+            messages.warning(request, "Geen geldige MSS/MAS testwaarden opgeslagen.")
+        return redirect("/hit/")
 
-        messages.success(request, "HIT-weekplanning opgeslagen ✔️")
+    if request.method == "POST" and action == "save_asr_plan":
+        plan_date_raw = (request.POST.get("asr_plan_date") or "").strip()
+        try:
+            plan_date = datetime.strptime(plan_date_raw, "%Y-%m-%d").date() if plan_date_raw else datetime.today().date()
+        except ValueError:
+            plan_date = datetime.today().date()
 
-        # voorkomt dubbel-submit bij refresh
-        return redirect("hit_page")
+        try:
+            mas_percent = float((request.POST.get("asr_mas_percent") or "0").replace(",", "."))
+        except ValueError:
+            mas_percent = 0.0
+        try:
+            reference_speed = float((request.POST.get("asr_reference_speed_kmh") or "0").replace(",", "."))
+        except ValueError:
+            reference_speed = 0.0
 
-    # GET → render pagina + huidige planning values
-    return render(request, "hit.html", {"weekplanning": weekplanning})
+        if mas_percent <= 0:
+            messages.warning(request, "Ongeldige intensiteit (%MAS).")
+            return redirect("/hit/")
+
+        player_ids = request.POST.getlist("asr_player_id[]")
+        mss_values = request.POST.getlist("asr_mss[]")
+        mas_values = request.POST.getlist("asr_mas[]")
+
+        rows = []
+        for i, player_id in enumerate(player_ids):
+            player_id = (player_id or "").strip()
+            if not player_id:
+                continue
+            try:
+                mss = float((mss_values[i] if i < len(mss_values) else "").replace(",", "."))
+                mas = float((mas_values[i] if i < len(mas_values) else "").replace(",", "."))
+            except ValueError:
+                continue
+            if mss <= 0 or mas <= 0:
+                continue
+            try:
+                player = Player.objects.get(id=player_id)
+            except Player.DoesNotExist:
+                continue
+
+            target_speed = mas * (mas_percent / 100.0)
+            asr = mss - mas
+            pct_asr = None
+            indication = None
+            if asr <= 0:
+                indication = "MSS <= MAS"
+            else:
+                pct_asr = ((target_speed - mas) / asr) * 100.0
+                if pct_asr < 0:
+                    indication = "Onder MAS"
+                elif pct_asr < 30:
+                    indication = "Laag"
+                elif pct_asr < 60:
+                    indication = "Midden"
+                elif pct_asr < 80:
+                    indication = "Hoog"
+                elif pct_asr <= 100:
+                    indication = "Zeer hoog"
+                else:
+                    indication = "Boven MSS"
+
+            rows.append(
+                {
+                    "player": player,
+                    "mss_kmh": round(mss, 2),
+                    "mas_kmh": round(mas, 2),
+                    "target_speed_kmh": round(target_speed, 2),
+                    "asr_kmh": round(asr, 2),
+                    "pct_mas": round(mas_percent, 2),
+                    "pct_asr": round(pct_asr, 2) if pct_asr is not None else None,
+                    "indication": indication,
+                }
+            )
+
+        if not rows:
+            messages.warning(request, "Geen geldige spelersregels om ASR-planning op te slaan.")
+            return redirect("/hit/")
+
+        plan = HitAsrPlanSession.objects.create(
+            session_date=plan_date,
+            mas_percent=round(mas_percent, 2),
+            reference_speed_kmh=round(reference_speed, 2) if reference_speed > 0 else None,
+        )
+        HitAsrPlanEntry.objects.bulk_create(
+            [
+                HitAsrPlanEntry(session=plan, **row)
+                for row in rows
+            ]
+        )
+        messages.success(request, f"ASR-planning opgeslagen ({len(rows)} spelers) voor {plan_date}.")
+        return redirect("/hit/")
+
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    latest_by_player = {}
+    latest_tests = PlayerSpeedTest.objects.select_related("player").order_by("player_id", "-test_date", "-updated_at", "-id")
+    for test in latest_tests:
+        if test.player_id in latest_by_player:
+            continue
+        latest_by_player[test.player_id] = {
+            "mss": float(test.mss_kmh),
+            "mas": float(test.mas_kmh),
+            "test_date": test.test_date.isoformat(),
+        }
+
+    recent_asr_plans = (
+        HitAsrPlanSession.objects.prefetch_related("entries__player")
+        .all()[:5]
+    )
+
+    context = {
+        "players": players,
+        "asr_latest_map": latest_by_player,
+        "asr_test_date": datetime.today().date().isoformat(),
+        "asr_plan_date": datetime.today().date().isoformat(),
+        "recent_asr_plans": recent_asr_plans,
+    }
+    return render(request, "hit.html", context)
 
 
 
@@ -1425,17 +2732,29 @@ def aanwezigheden_pagina(request):
         chosen_date = datetime.today().date()
 
     # 2. Spelers ophalen
-    players = Player.objects.all().order_by("name")
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
 
-    # 3. Voor elke speler een Aanwezigheid entry ophalen of automatisch aanmaken
+    status_qs = AttendanceStatus.objects.filter(is_active=True).order_by("sort_order", "label")
+    status_choices = [(status.code, status.label) for status in status_qs]
+    default_status = status_qs.filter(code="overig").first() or status_qs.first()
+
+    # 3. Voor elke speler een AttendanceRecord entry ophalen of automatisch aanmaken
     records = []
     for player in players:
-        aanwezigheid, created = Aanwezigheid.objects.get_or_create(
+        aanwezigheid, created = AttendanceRecord.objects.get_or_create(
             player=player,
             date=chosen_date,
-            defaults={"status": "overig", "completed": False}
+            defaults={"status": default_status, "completed": False},
         )
-        records.append(aanwezigheid)
+        records.append(
+            SimpleNamespace(
+                id=aanwezigheid.id,
+                player=aanwezigheid.player,
+                status=aanwezigheid.status.code if aanwezigheid.status else "overig",
+                completed=aanwezigheid.completed,
+                date=aanwezigheid.date,
+            )
+        )
 
     # 4. Navigatie (vorige dag / volgende dag)
     previous_day = chosen_date - timedelta(days=1)
@@ -1447,7 +2766,7 @@ def aanwezigheden_pagina(request):
         "chosen_date": chosen_date,
         "previous_day": previous_day,
         "next_day": next_day,
-        "status_choices": Aanwezigheid.STATUS_OPTIES,
+        "status_choices": status_choices,
     }
 
     return render(request, "aanwezigheden.html", context)
@@ -1457,17 +2776,19 @@ def aanwezigheden_pagina(request):
 # AANWEZIGHEDEN UPDATE
 # -------------------------------------
 def aanwezigheden_update(request, record_id):
-    """Update één aanwezigheidsrecord (dropdown + checkmark)."""
+    """Update ÃƒÆ’Ã‚Â©ÃƒÆ’Ã‚Â©n aanwezigheidsrecord (dropdown + checkmark)."""
 
-    aanwezigheid = get_object_or_404(Aanwezigheid, id=record_id)
+    aanwezigheid = get_object_or_404(AttendanceRecord, id=record_id)
 
     if request.method == "POST":
-        new_status = request.POST.get("status")
+        new_status_code = request.POST.get("status")
         completed = request.POST.get("completed") == "on"
-
-        aanwezigheid.status = new_status
+        status = AttendanceStatus.objects.filter(code=new_status_code, is_active=True).first()
+        if status is None:
+            status = AttendanceStatus.objects.filter(code="overig").first()
+        aanwezigheid.status = status
         aanwezigheid.completed = completed
-        aanwezigheid.save()
+        aanwezigheid.save(update_fields=["status", "completed", "updated_at"])
 
         messages.success(
             request,
@@ -1483,16 +2804,30 @@ def overig(request):
     staff_members = Staff.objects.all().order_by('name')
     players = Player.objects.all().order_by('name')
 
+    def section_text(page_key: str, section_key: str) -> str:
+        item = (
+            OverigNote.objects
+            .filter(note_type="section", page_key=page_key, section_key=section_key)
+            .order_by("-created_at")
+            .first()
+        )
+        return (item.text or "") if item else ""
+
     # ======================================
     # NOTITIES
     # ======================================
     if page == "notities":
         if request.method == 'POST':
             text = request.POST.get('text')
-            Overig.objects.create(text=text)
+            if text:
+                OverigNote.objects.create(
+                    note_type="note",
+                    page_key="notities",
+                    text=text.strip(),
+                )
             return redirect('/overig/?page=notities')
 
-        items = Overig.objects.all().order_by('-created_at')
+        items = OverigNote.objects.filter(note_type="note").order_by('-created_at')
         return render(request, 'overig.html', {
             'page': 'notities',
             'items': items,
@@ -1514,24 +2849,444 @@ def overig(request):
     # HIGH POTENTIALS
     # ======================================
     if page == "hp":
+        if request.method == "POST":
+            section = request.POST.get("section")
+            text = request.POST.get("text", "")
+            if section:
+                OverigNote.objects.create(
+                    note_type="section",
+                    page_key="hp",
+                    section_key=section,
+                    text=text.strip(),
+                )
+            return redirect("/overig/?page=hp")
+
         return render(request, 'overig.html', {
             'page': 'hp',
             'players': players,
             'staff': staff_members,
+            "hp_texts": {
+                "focus": section_text("hp", "focus"),
+                "kaders": section_text("hp", "kaders"),
+                "monitoring": section_text("hp", "monitoring"),
+            },
         })
 
     # ======================================
     # JEUGD WILLEM II
     # ======================================
     if page == "jeugd":
+        if request.method == "POST":
+            section = request.POST.get("section")
+            text = request.POST.get("text", "")
+            if section:
+                OverigNote.objects.create(
+                    note_type="section",
+                    page_key="jeugd",
+                    section_key=section,
+                    text=text.strip(),
+                )
+            return redirect("/overig/?page=jeugd")
+
         return render(request, 'overig.html', {
             'page': 'jeugd',
             'players': players,
             'staff': staff_members,
+            "jeugd_texts": {
+                "leerlijn": section_text("jeugd", "leerlijn"),
+                "individueel": section_text("jeugd", "individueel"),
+                "processen": section_text("jeugd", "processen"),
+                "toekomst": section_text("jeugd", "toekomst"),
+            },
         })
 
     # ======================================
-    # DEFAULT → MENU
+    # GROEI & DISPENSATIE JEUGD
+    # ======================================
+    if page == "groei":
+        groei_tab = (request.GET.get("tab") or "groei").strip().lower()
+        if groei_tab not in {"groei", "dispensaties", "bio-leeftijd", "geboortemaandeffect", "verjaardagen"}:
+            groei_tab = "groei"
+
+        selected_player_id = request.GET.get("player_id")
+        if not selected_player_id:
+            first_player = players.first()
+            selected_player_id = str(first_player.id) if first_player else ""
+
+        def parse_float(value):
+            try:
+                if value is None or value == "":
+                    return None
+                return float(value)
+            except (TypeError, ValueError):
+                return None
+
+        def compute_maturity_offset(age, height, sitting_height, weight):
+            if None in (age, height, sitting_height, weight) or height <= 0:
+                return None
+            leg_length = height - sitting_height
+            return (
+                -9.236
+                + (0.0002708 * (leg_length * sitting_height))
+                - (0.001663 * (age * leg_length))
+                + (0.007216 * (age * sitting_height))
+                + (0.02292 * ((weight / height) * 100))
+            )
+
+        if request.method == "POST":
+            form_type = request.POST.get("form_type", "").strip()
+
+            if form_type in {"growth_profile_save", "growth_measurement_add", "growth_measurement_delete"}:
+                player_id = request.POST.get("player_id") or selected_player_id
+                player = get_object_or_404(Player, id=player_id)
+                profile, _ = GrowthProfile.objects.get_or_create(player=player)
+
+                if form_type == "growth_profile_save":
+                    profile.age = parse_float(request.POST.get("age"))
+                    profile.height = parse_float(request.POST.get("height"))
+                    profile.sitting_height = parse_float(request.POST.get("sitting_height"))
+                    profile.weight = parse_float(request.POST.get("weight"))
+                    profile.growth_complaints = request.POST.get("growth_complaints") == "on"
+                    profile.action = (request.POST.get("action") or "").strip()
+                    profile.maturity_offset = compute_maturity_offset(
+                        profile.age, profile.height, profile.sitting_height, profile.weight
+                    )
+                    profile.save()
+                    messages.success(request, "Groeiprofiel opgeslagen.")
+
+                if form_type == "growth_measurement_add":
+                    raw_date = request.POST.get("measurement_date") or ""
+                    raw_height = request.POST.get("measurement_height")
+                    measurement_height = parse_float(raw_height)
+
+                    try:
+                        measurement_date = datetime.strptime(raw_date, "%Y-%m-%d").date()
+                    except ValueError:
+                        measurement_date = None
+
+                    if measurement_date and measurement_height is not None:
+                        GrowthMeasurement.objects.update_or_create(
+                            profile=profile,
+                            date=measurement_date,
+                            defaults={"height_cm": measurement_height},
+                        )
+                        messages.success(request, "Meetpunt opgeslagen.")
+                    else:
+                        messages.error(request, "Vul een geldige datum en lengte in.")
+
+                if form_type == "growth_measurement_delete":
+                    measurement_id = request.POST.get("measurement_id")
+                    measurement = get_object_or_404(GrowthMeasurement, id=measurement_id, profile=profile)
+                    measurement.delete()
+                    messages.success(request, "Meetpunt verwijderd.")
+
+                return redirect(f"/overig/?page=groei&tab={groei_tab}&player_id={player.id}")
+
+            section = request.POST.get("section")
+            text = request.POST.get("text", "")
+            if section:
+                OverigNote.objects.create(
+                    note_type="section",
+                    page_key="groei",
+                    section_key=section,
+                    text=text.strip(),
+                )
+            return redirect(f"/overig/?page=groei&tab={groei_tab}&player_id={selected_player_id}")
+
+        selected_player = Player.objects.filter(id=selected_player_id).first()
+        growth_profile = None
+        growth_measurements = []
+        growth_rate = None
+
+        if selected_player:
+            growth_profile = GrowthProfile.objects.filter(player=selected_player).first()
+            if growth_profile:
+                growth_measurements = list(growth_profile.measurements.all().order_by("date", "id"))
+                if len(growth_measurements) >= 2:
+                    first = growth_measurements[0]
+                    last = growth_measurements[-1]
+                    day_diff = (last.date - first.date).days
+                    if day_diff > 0:
+                        growth_rate = ((last.height_cm - first.height_cm) / day_diff) * 365.25
+
+        return render(request, 'overig.html', {
+            'page': 'groei',
+            'groei_tab': groei_tab,
+            'selected_player_id': selected_player.id if selected_player else None,
+            'growth_profile': growth_profile,
+            'growth_measurements': growth_measurements,
+            'growth_rate': growth_rate,
+            'players': players,
+            'staff': staff_members,
+            "groei_texts": {
+                "beleid": section_text("groei", "beleid"),
+                "casussen": section_text("groei", "casussen"),
+                "afspraken": section_text("groei", "afspraken"),
+            },
+        })
+
+    # ======================================
+    # BEGELEIDING STAGIAIR(E)
+    # ======================================
+    if page == "stagiair":
+        if request.method == "POST":
+            section = request.POST.get("section")
+            text = request.POST.get("text", "")
+            if section:
+                OverigNote.objects.create(
+                    note_type="section",
+                    page_key="stagiair",
+                    section_key=section,
+                    text=text.strip(),
+                )
+            return redirect("/overig/?page=stagiair")
+
+        return render(request, 'overig.html', {
+            'page': 'stagiair',
+            'players': players,
+            'staff': staff_members,
+            "stagiair_texts": {
+                "doelen": section_text("stagiair", "doelen"),
+                "actie": section_text("stagiair", "actie"),
+                "afspraken": section_text("stagiair", "afspraken"),
+                "ambitie": section_text("stagiair", "ambitie"),
+            },
+        })
+
+    # ======================================
+    # VAKANTIEPROGRAMMA
+    # ======================================
+    if page == "vakantie":
+        edit_id = request.GET.get("edit_id")
+        if request.method == "POST":
+            form_type = request.POST.get("form_type", "")
+
+            if form_type == "vakantie_entry":
+                player_id = request.POST.get("player_id")
+                raw_date = request.POST.get("date") or ""
+                loopvorm = request.POST.get("loopvorm", "").strip()
+                kracht = request.POST.get("kracht", "").strip()
+                completed = request.POST.get("completed") == "on"
+
+                if not player_id or not raw_date:
+                    messages.error(request, "Speler en datum zijn verplicht.")
+                    return redirect("/overig/?page=vakantie")
+
+                try:
+                    entry_date = datetime.strptime(raw_date, "%Y-%m-%d").date()
+                except ValueError:
+                    messages.error(request, "Ongeldige datum. Gebruik het datumveld.")
+                    return redirect("/overig/?page=vakantie")
+
+                created_count = 0
+                skipped_count = 0
+
+                if player_id == "all":
+                    players_qs = Player.objects.all()
+                else:
+                    players_qs = [get_object_or_404(Player, id=player_id)]
+
+                for player in players_qs:
+                    exists = VakantieProgrammaEntry.objects.filter(
+                        player=player,
+                        date=entry_date,
+                        loopvorm=loopvorm,
+                        kracht=kracht,
+                    ).exists()
+                    if exists:
+                        skipped_count += 1
+                        continue
+
+                    VakantieProgrammaEntry.objects.create(
+                        player=player,
+                        date=entry_date,
+                        loopvorm=loopvorm,
+                        kracht=kracht,
+                        completed=completed,
+                    )
+                    created_count += 1
+
+                if created_count:
+                    messages.success(request, f"Vakantieprogramma toegevoegd ({created_count} item(s)).")
+                if skipped_count:
+                    messages.warning(request, f"{skipped_count} item(s) bestonden al en zijn overgeslagen.")
+                return redirect("/overig/?page=vakantie")
+
+            if form_type == "vakantie_toggle":
+                entry_id = request.POST.get("entry_id")
+                entry = get_object_or_404(VakantieProgrammaEntry, id=entry_id)
+                entry.completed = request.POST.get("completed") == "on"
+                entry.save(update_fields=["completed"])
+                return redirect("/overig/?page=vakantie")
+
+            if form_type == "vakantie_update":
+                entry_id = request.POST.get("entry_id")
+                entry = get_object_or_404(VakantieProgrammaEntry, id=entry_id)
+
+                raw_date = request.POST.get("date") or ""
+                loopvorm = request.POST.get("loopvorm", "").strip()
+                kracht = request.POST.get("kracht", "").strip()
+                completed = request.POST.get("completed") == "on"
+
+                try:
+                    entry_date = datetime.strptime(raw_date, "%Y-%m-%d").date()
+                except ValueError:
+                    messages.error(request, "Ongeldige datum. Gebruik het datumveld.")
+                    return redirect("/overig/?page=vakantie")
+
+                entry.date = entry_date
+                entry.loopvorm = loopvorm
+                entry.kracht = kracht
+                entry.completed = completed
+                entry.save(update_fields=["date", "loopvorm", "kracht", "completed"])
+                messages.success(request, "Vakantieprogramma bijgewerkt.")
+                return redirect("/overig/?page=vakantie")
+
+            if form_type == "vakantie_planning_create":
+                raw_date = request.POST.get("date") or ""
+                raw_visible_from = request.POST.get("visible_from") or ""
+                loopvorm = request.POST.get("loopvorm", "").strip()
+                kracht = request.POST.get("kracht", "").strip()
+                direct_visible = request.POST.get("direct_visible") == "on"
+                player_ids = request.POST.getlist("player_ids")
+
+                if not raw_date or not raw_visible_from:
+                    messages.error(request, "Datum en zichtbaar-vanaf zijn verplicht.")
+                    return redirect("/overig/?page=vakantie")
+
+                try:
+                    plan_date = datetime.strptime(raw_date, "%Y-%m-%d").date()
+                    visible_from = datetime.strptime(raw_visible_from, "%Y-%m-%d").date()
+                except ValueError:
+                    messages.error(request, "Ongeldige datum. Gebruik het datumveld.")
+                    return redirect("/overig/?page=vakantie")
+
+                if not player_ids:
+                    messages.error(request, "Selecteer minimaal ÃƒÆ’Ã‚Â©ÃƒÆ’Ã‚Â©n speler.")
+                    return redirect("/overig/?page=vakantie")
+
+                if "all" in player_ids:
+                    players_qs = Player.objects.all()
+                else:
+                    players_qs = Player.objects.filter(id__in=player_ids)
+
+                if not players_qs.exists():
+                    messages.error(request, "Geen geldige spelers geselecteerd.")
+                    return redirect("/overig/?page=vakantie")
+
+                planning = VakantiePlanning.objects.create(
+                    date=plan_date,
+                    loopvorm=loopvorm,
+                    kracht=kracht,
+                    visible_from=visible_from,
+                    is_visible=direct_visible,
+                )
+                planning.players.set(players_qs)
+
+                created_count = 0
+                skipped_count = 0
+                if direct_visible:
+                    for player in players_qs:
+                        exists = VakantieProgrammaEntry.objects.filter(
+                            player=player,
+                            date=plan_date,
+                            loopvorm=loopvorm,
+                            kracht=kracht,
+                        ).exists()
+                        if exists:
+                            skipped_count += 1
+                            continue
+                        VakantieProgrammaEntry.objects.create(
+                            player=player,
+                            date=plan_date,
+                            loopvorm=loopvorm,
+                            kracht=kracht,
+                            completed=False,
+                        )
+                        created_count += 1
+
+                messages.success(request, "Planning toegevoegd.")
+                if direct_visible and created_count:
+                    messages.success(request, f"Zichtbaar gemaakt ({created_count} item(s)).")
+                if direct_visible and skipped_count:
+                    messages.warning(request, f"{skipped_count} item(s) bestonden al en zijn overgeslagen.")
+                return redirect("/overig/?page=vakantie")
+
+            if form_type == "vakantie_planning_publish":
+                planning_id = request.POST.get("planning_id")
+                planning = get_object_or_404(VakantiePlanning, id=planning_id)
+                players_qs = planning.players.all()
+
+                created_count = 0
+                skipped_count = 0
+                for player in players_qs:
+                    exists = VakantieProgrammaEntry.objects.filter(
+                        player=player,
+                        date=planning.date,
+                        loopvorm=planning.loopvorm or "",
+                        kracht=planning.kracht or "",
+                    ).exists()
+                    if exists:
+                        skipped_count += 1
+                        continue
+                    VakantieProgrammaEntry.objects.create(
+                        player=player,
+                        date=planning.date,
+                        loopvorm=planning.loopvorm,
+                        kracht=planning.kracht,
+                        completed=False,
+                    )
+                    created_count += 1
+
+                planning.is_visible = True
+                planning.save(update_fields=["is_visible"])
+
+                messages.success(request, "Planning zichtbaar gemaakt.")
+                if created_count:
+                    messages.success(request, f"{created_count} item(s) toegevoegd.")
+                if skipped_count:
+                    messages.warning(request, f"{skipped_count} item(s) bestonden al en zijn overgeslagen.")
+                return redirect("/overig/?page=vakantie")
+
+            section = request.POST.get("section")
+            text = request.POST.get("text", "")
+            if section:
+                OverigNote.objects.create(
+                    note_type="section",
+                    page_key="vakantie",
+                    section_key=section,
+                    text=text.strip(),
+                )
+            return redirect("/overig/?page=vakantie")
+
+        vakantie_entries = (
+            VakantieProgrammaEntry.objects
+            .select_related("player")
+            .order_by("-date", "player__name")
+        )
+        vakantie_planningen = (
+            VakantiePlanning.objects
+            .prefetch_related("players")
+            .order_by("-date", "-created_at")
+        )
+
+        return render(request, 'overig.html', {
+            'page': 'vakantie',
+            'players': players,
+            'staff': staff_members,
+            "edit_id": int(edit_id) if edit_id and edit_id.isdigit() else None,
+            "vakantie_entries": vakantie_entries,
+            "vakantie_planningen": vakantie_planningen,
+            "vakantie_texts": {
+                "doelen": section_text("vakantie", "doelen"),
+                "schema": section_text("vakantie", "schema"),
+                "afspraken": section_text("vakantie", "afspraken"),
+                "monitoring": section_text("vakantie", "monitoring"),
+            },
+        })
+
+    # ======================================
+    # DEFAULT ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ MENU
     # ======================================
     return render(request, 'overig.html', {
         'page': 'menu',
@@ -1543,38 +3298,52 @@ def overig(request):
 def player_data(request, player_id):
     """
     Geeft JSON terug met de voortgang van gewicht en huidplooien
-    voor één specifieke speler. Wordt aangeroepen als je op een speler klikt.
+    voor ??n specifieke speler. Wordt aangeroepen als je op een speler klikt.
     """
-    from .models import Player, PlayerTest
+    from .models import Player
 
     try:
         player = Player.objects.get(id=player_id)
     except Player.DoesNotExist:
         return JsonResponse({'error': 'Speler niet gevonden'}, status=404)
 
-    # 📊 Testdata ophalen (bijv. metingen uit PlayerTest)
-    tests = PlayerTest.objects.filter(name=player.name).order_by('created_at')
+    tests = [r for r in fetch_performance_rows("test") if r["player_id"] == player.id]
+    tests.sort(key=lambda r: r["session_date"])
 
-    # Als er nog geen testdata zijn → laat een eenvoudige trend zien
-    if not tests.exists():
+    if not tests:
+        profile = getattr(player, "monitoring_profile", None)
+        prev_weight = float(profile.prev_weight or 0) if profile and profile.prev_weight is not None else 0.0
+        curr_weight = float(profile.curr_weight or 0) if profile and profile.curr_weight is not None else 0.0
+        skinfold = float(profile.sum_skinfolds or 0) if profile and profile.sum_skinfolds is not None else 0.0
         data = {
             'dates': ["Week 1", "Week 2", "Week 3", "Week 4"],
             'weights': [
-                float(player.prev_weight or 0),
-                float((player.prev_weight or 0) * 0.99),
-                float(player.curr_weight or 0),
-                float((player.curr_weight or 0) * 1.01),
+                prev_weight,
+                float(prev_weight * 0.99),
+                curr_weight,
+                float(curr_weight * 1.01),
             ],
             'skinfolds': [
-                float(player.sum_skinfolds or 0),
-                float((player.sum_skinfolds or 0) * 0.98),
-                float(player.sum_skinfolds or 0),
-                float((player.sum_skinfolds or 0) * 1.02),
+                skinfold,
+                float(skinfold * 0.98),
+                skinfold,
+                float(skinfold * 1.02),
             ]
         }
         return JsonResponse(data)
 
-    # ✅ Echte data gebruiken uit PlayerTest
+    dates = [t["session_date"].strftime("%d-%m-%Y") for t in tests]
+    weights = [float(t.get("curr_weight") or 0) for t in tests]
+    skinfolds = [float(t.get("sum_skinfolds") or 0) for t in tests]
+
+    data = {
+        'dates': dates,
+        'weights': weights,
+        'skinfolds': skinfolds
+    }
+    return JsonResponse(data)
+
+    # ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Echte data gebruiken uit PlayerTest
     dates = [t.created_at.strftime("%d-%m-%Y") for t in tests]
     weights = [float(t.curr_weight or 0) for t in tests]
     skinfolds = [float(t.sum_skinfolds or 0) for t in tests]
@@ -1585,120 +3354,108 @@ def player_data(request, player_id):
         'skinfolds': skinfolds
     }
     return JsonResponse(data)
+
+
+def weight_data(request, player_id):
+    """
+    JSON met gewichtstrend voor een speler.
+    """
+    try:
+        player = Player.objects.get(id=player_id)
+    except Player.DoesNotExist:
+        return JsonResponse({'error': 'Speler niet gevonden'}, status=404)
+
+    entries = WeightEntry.objects.filter(player=player).order_by("date")
+    if not entries.exists():
+        dates = []
+        weights = []
+        profile = getattr(player, "monitoring_profile", None)
+        if profile and profile.prev_weight is not None:
+            dates.append("Vorige")
+            weights.append(float(profile.prev_weight))
+        if profile and profile.curr_weight is not None:
+            dates.append("Huidig")
+            weights.append(float(profile.curr_weight))
+        return JsonResponse({"dates": dates, "weights": weights})
+
+    dates = [e.date.strftime("%d-%m-%Y") for e in entries]
+    weights = [float(e.weight) for e in entries]
+    return JsonResponse({"dates": dates, "weights": weights})
     
 # ---------- DATA-UPLOAD (CSV) ----------
 from django.shortcuts import redirect
 from django.contrib import messages
 import csv
 from datetime import datetime
-from .models import Player, TrainingData
 
 
 def upload_file(request):
-    """Uploadt een StatsSports CSV en slaat de data correct op in TrainingData."""
+    """Uploadt een StatsSports CSV en schrijft trainingdata naar 3NF performance-tabellen."""
     if request.method == 'POST' and request.FILES.get('file'):
         csv_file = request.FILES['file']
 
         if not csv_file.name.endswith('.csv'):
-            messages.error(request, '❌ Upload een geldig CSV-bestand (.csv).')
+            messages.error(request, 'Upload een geldig CSV-bestand (.csv).')
             return redirect('training')
 
-        # CSV lezen
         decoded_file = csv_file.read().decode('utf-8').splitlines()
         reader = csv.DictReader(decoded_file)
 
-        print("📄 CSV kolommen gedetecteerd:", reader.fieldnames)
-
-        # Helpers
         def safe_float(value):
             try:
                 return float(value)
-            except:
+            except Exception:
                 return 0.0
 
         def safe_int(value):
             try:
                 return int(float(value))
-            except:
+            except Exception:
                 return 0
 
         count = 0
 
         for row in reader:
             try:
-                # -----------------------------
-                # 1. Speler zoeken op achternaam
-                # -----------------------------
-                csv_lastname = (row.get('Player Last Name') or "").replace('"', '').strip().lower()
-
+                csv_lastname = (row.get('Player Last Name') or '').replace('"', '').strip().lower()
                 if not csv_lastname:
-                    print("⚠️ Rij overgeslagen: geen achternaam gevonden")
                     continue
 
-                # Zoek speler door laatste naamdeel uit volledig naamveld te vergelijken
                 player = None
                 for p in Player.objects.all():
-                    full = p.name.lower().strip()
-                    db_lastname = full.split()[-1]  # laatste woord = achternaam
-
+                    db_lastname = p.name.lower().strip().split()[-1]
                     if db_lastname == csv_lastname:
                         player = p
                         break
 
                 if not player:
-                    print(f"⚠️ Geen speler gevonden voor achternaam: '{csv_lastname}'")
                     continue
 
-                # -----------------------------
-                # 2. Datum omzetten
-                # -----------------------------
-                date_raw = (row.get('Session Date') or "").replace('"', '').strip()
-
+                date_raw = (row.get('Session Date') or '').replace('"', '').strip()
                 try:
-                    date_obj = datetime.strptime(date_raw, "%d/%m/%Y").date()
-                except:
-                    print(f"⚠️ Ongeldig datumformaat: '{date_raw}'")
+                    date_obj = datetime.strptime(date_raw, '%d/%m/%Y').date()
+                except Exception:
                     continue
 
                 week = date_obj.isocalendar()[1]
-
-                # -----------------------------
-                # 3. Dubbele invoer voorkomen
-                # -----------------------------
-                if TrainingData.objects.filter(player=player, session_date=date_obj).exists():
-                    print(f"⏭️ Al aanwezig: {player.name} - {date_obj}")
-                    continue
-
-                # -----------------------------
-                # 4. Metrics veilig uitlezen
-                # -----------------------------
-                total_distance = safe_float(row.get('Total Distance'))
-                hsd = safe_float(row.get('HIR (M>20 KM/U)'))
-                sprints = safe_int(row.get('Sprints'))
-
-                # Geen Session Load in jouw CSV
-                load = 0
-
-                # -----------------------------
-                # 5. Opslaan in DB
-                # -----------------------------
-                TrainingData.objects.create(
+                upsert_performance_session_metrics(
                     player=player,
+                    session_kind='training',
                     session_date=date_obj,
                     week=week,
-                    total_distance=total_distance,
-                    hsd=hsd,
-                    sprints=sprints,
-                    load=load,
+                    metrics={
+                        'total_distance': safe_float(row.get('Total Distance')),
+                        'hsd': safe_float(row.get('HIR (M>20 KM/U)')),
+                        'sprints': safe_int(row.get('Sprints')),
+                        'load': 0,
+                    },
+                    source_tag='main_upload_training',
                 )
-
                 count += 1
-
-            except Exception as e:
-                print(f"❌ Fout bij verwerken rij: {e}")
+            except Exception:
                 continue
 
-        messages.success(request, f"✅ {count} trainingsregels succesvol geïmporteerd.")
+        messages.success(request, f'{count} trainingsregels succesvol geimporteerd in 3NF.')
         return redirect('training')
 
     return redirect('training')
@@ -1710,105 +3467,263 @@ def upload_wedstrijddata(request):
         csv_file = request.FILES['file']
 
         if not csv_file.name.endswith('.csv'):
-            messages.error(request, "❌ Upload een geldig CSV-bestand (.csv).")
+            messages.error(request, 'Upload een geldig CSV-bestand (.csv).')
             return redirect('training')
 
         decoded = csv_file.read().decode('utf-8').splitlines()
         reader = csv.DictReader(decoded, skipinitialspace=True)
 
-        print("📄 CSV kolommen gedetecteerd:", reader.fieldnames)
-
         def safe_float(v):
-            try: return float(v)
-            except: return 0.0
+            try:
+                return float(v)
+            except Exception:
+                return 0.0
 
         def safe_int(v):
-            try: return int(float(v))
-            except: return 0
+            try:
+                return int(float(v))
+            except Exception:
+                return 0
 
         count = 0
 
         for row in reader:
             try:
-                # -----------------------------------
-                # 1. ACHTERNAAM uit CSV
-                # -----------------------------------
-                csv_lastname = (row.get("Player Last Name") or "").strip().lower()
+                csv_lastname = (row.get('Player Last Name') or '').strip().lower()
                 if not csv_lastname:
                     continue
 
-                # Normaliseer speciale tekens zoals Č -> c
-                csv_lastname = csv_lastname.replace("č", "c").replace("ć", "c").replace("š", "s")
+                csv_lastname = csv_lastname.replace('Ã„Â', 'c').replace('Ã„â€¡', 'c').replace('Ã…Â¡', 's')
 
-                # -----------------------------------
-                # 2. MATCH SPELER OP ACHTERNAAM
-                #    → CSV-achternaam moet ergens in Player.name voorkomen
-                # -----------------------------------
                 player = None
                 for p in Player.objects.all():
-                    name_clean = p.name.lower().replace("č", "c").replace("ć", "c").replace("š", "s")
+                    name_clean = p.name.lower().replace('Ã„Â', 'c').replace('Ã„â€¡', 'c').replace('Ã…Â¡', 's')
                     if csv_lastname in name_clean:
                         player = p
                         break
 
                 if not player:
-                    print(f"⚠️ Geen speler gevonden op basis van achternaam: {csv_lastname}")
                     continue
 
-                # -----------------------------------
-                # 3. DATUM
-                # -----------------------------------
-                raw_date = (row.get("Session Date") or "").strip()
-
+                raw_date = (row.get('Session Date') or '').strip()
                 try:
-                    match_date = datetime.strptime(raw_date, "%d/%m/%Y").date()
-                except:
-                    print("⚠️ Ongeldige datum:", raw_date)
+                    match_date = datetime.strptime(raw_date, '%d/%m/%Y').date()
+                except Exception:
                     continue
 
                 week = match_date.isocalendar()[1]
-
-                # -----------------------------------
-                # 4. CHECK DUBBEL
-                # -----------------------------------
-                if WedstrijdData.objects.filter(player=player, match_date=match_date).exists():
-                    print("⏭️ Al aanwezig:", player.name, match_date)
-                    continue
-
-                # -----------------------------------
-                # 5. METRICS
-                # -----------------------------------
-                acc = safe_int(row.get("Accelerations (Absolute)"))
-                dec = safe_int(row.get("Decelerations (Absolute)"))
-                hsd = safe_float(row.get("HIR (M>20 KM/U)"))
-                his = safe_float(row.get("HIS (M>25 KM/U)"))
-                total_distance = safe_float(row.get("Total Distance"))
-                sprints = safe_int(row.get("Sprints"))
-                load = safe_float(row.get("HML Distance"))
-
-                # -----------------------------------
-                # 6. OPSLAAN
-                # -----------------------------------
-                WedstrijdData.objects.create(
+                upsert_performance_session_metrics(
                     player=player,
-                    match_date=match_date,
+                    session_kind='match',
+                    session_date=match_date,
                     week=week,
-                    accelerations=acc,
-                    decelerations=dec,
-                    hsd=hsd,
-                    his=his,
-                    total_distance=total_distance,
-                    sprints=sprints,
-                    load=load,
+                    metrics={
+                        'accelerations': safe_int(row.get('Accelerations (Absolute)')),
+                        'decelerations': safe_int(row.get('Decelerations (Absolute)')),
+                        'hsd': safe_float(row.get('HIR (M>20 KM/U)')),
+                        'his': safe_float(row.get('HIS (M>25 KM/U)')),
+                        'total_distance': safe_float(row.get('Total Distance')),
+                        'sprints': safe_int(row.get('Sprints')),
+                        'load': safe_float(row.get('HML Distance')),
+                    },
+                    source_tag='main_upload_match',
                 )
-
                 count += 1
-
-            except Exception as e:
-                print("❌ Fout:", e)
+            except Exception:
                 continue
 
-        messages.success(request, f"✅ {count} wedstrijdregels geïmporteerd.")
+        messages.success(request, f'{count} wedstrijdregels succesvol geimporteerd in 3NF.')
         return redirect('training')
 
     return redirect('training')
+
+
+def beweeganalyse(request):
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+
+    player_param = (
+        request.POST.get("player_id")
+        or request.GET.get("player_id")
+        or request.GET.get("playerid")
+    )
+    date_param = (
+        request.POST.get("analysis_date")
+        or request.GET.get("analysis_date")
+        or request.GET.get("datum")
+    )
+
+    selected_date = parse_date(date_param) if date_param else timezone.localdate()
+    if selected_date is None:
+        selected_date = timezone.localdate()
+
+    selected_player = None
+    if player_param:
+        selected_player = Player.objects.filter(id=player_param).first()
+    if selected_player is None:
+        selected_player = players.first()
+
+    punten = list(
+        BeweeganalysePunt.objects.filter(is_active=True, onderdeel__is_active=True)
+        .select_related("onderdeel")
+        .prefetch_related("oefeningen")
+        .order_by("onderdeel__sort_order", "sort_order", "id")
+    )
+
+    if request.method == "POST" and selected_player:
+        sessie, _ = BeweeganalyseSessie.objects.get_or_create(
+            player=selected_player,
+            date=selected_date,
+        )
+        action = (request.POST.get("action") or "").strip().lower()
+
+        if action == "upload_video":
+            uploaded_file = request.FILES.get("video_file")
+            if not uploaded_file:
+                messages.error(request, "Kies eerst een videobestand om te uploaden.")
+            else:
+                ffmpeg_bin = shutil.which("ffmpeg")
+                if not ffmpeg_bin:
+                    messages.error(
+                        request,
+                        "FFmpeg is niet gevonden op de server. Installatie van FFmpeg is nodig voor auto-compilatie (normaal + 0.5x).",
+                    )
+                else:
+                    ext = os.path.splitext(uploaded_file.name or "")[1].lower() or ".mp4"
+                    token = uuid.uuid4().hex[:10]
+                    tmp_rel = f"beweeganalyse_videos/tmp_{selected_player.id}_{selected_date.isoformat()}_{token}{ext}"
+                    tmp_rel = tmp_rel.replace(":", "-")
+                    tmp_abs = default_storage.path(tmp_rel)
+                    os.makedirs(os.path.dirname(tmp_abs), exist_ok=True)
+
+                    compiled_rel = f"beweeganalyse_videos/compiled_{selected_player.id}_{selected_date.isoformat()}_{token}.mp4"
+                    compiled_rel = compiled_rel.replace(":", "-")
+                    compiled_abs = default_storage.path(compiled_rel)
+                    os.makedirs(os.path.dirname(compiled_abs), exist_ok=True)
+
+                    tmp_saved = default_storage.save(tmp_rel, uploaded_file)
+                    tmp_abs = default_storage.path(tmp_saved)
+
+                    cmd = [
+                        ffmpeg_bin,
+                        "-y",
+                        "-i",
+                        tmp_abs,
+                        "-filter_complex",
+                        "[0:v]setpts=PTS-STARTPTS[v1];[0:v]setpts=2*(PTS-STARTPTS)[v2];[v1][v2]concat=n=2:v=1:a=0[v]",
+                        "-map",
+                        "[v]",
+                        "-an",
+                        "-c:v",
+                        "libx264",
+                        "-preset",
+                        "veryfast",
+                        "-crf",
+                        "23",
+                        "-pix_fmt",
+                        "yuv420p",
+                        compiled_abs,
+                    ]
+
+                    try:
+                        proc = subprocess.run(cmd, capture_output=True, text=True)
+                        if proc.returncode != 0 or (not os.path.exists(compiled_abs)):
+                            msg = (proc.stderr or proc.stdout or "").strip()
+                            short_msg = msg.splitlines()[-1] if msg else "Onbekende fout."
+                            messages.error(request, f"Compilatie maken is mislukt: {short_msg}")
+                        else:
+                            if sessie.video_file:
+                                sessie.video_file.delete(save=False)
+                            sessie.video_file.name = compiled_rel
+                            sessie.save(update_fields=["video_file", "updated_at"])
+                            messages.success(request, "Video geupload en compilatie (normaal + 0.5x) aangemaakt.")
+                    finally:
+                        if default_storage.exists(tmp_saved):
+                            default_storage.delete(tmp_saved)
+            return redirect(
+                f"{reverse('beweeganalyse')}?player_id={selected_player.id}&analysis_date={selected_date.isoformat()}"
+            )
+
+        if action == "delete_video":
+            if sessie.video_file:
+                sessie.video_file.delete(save=False)
+                sessie.video_file = None
+                sessie.save(update_fields=["video_file", "updated_at"])
+                messages.success(request, "Video verwijderd.")
+            else:
+                messages.warning(request, "Er stond geen video om te verwijderen.")
+            return redirect(
+                f"{reverse('beweeganalyse')}?player_id={selected_player.id}&analysis_date={selected_date.isoformat()}"
+            )
+
+        for punt in punten:
+            score_raw = (request.POST.get(f"score_{punt.id}") or "").strip()
+            comment_val = (request.POST.get(f"comment_{punt.id}") or "").strip()
+            priority_flag = request.POST.get(f"priority_{punt.id}") == "1"
+
+            score_val = None
+            if score_raw:
+                try:
+                    parsed_score = int(score_raw)
+                    if 1 <= parsed_score <= 4:
+                        score_val = parsed_score
+                except (TypeError, ValueError):
+                    score_val = None
+
+            BeweeganalyseBeoordeling.objects.update_or_create(
+                sessie=sessie,
+                punt=punt,
+                defaults={
+                    "score": score_val,
+                    "priority_flag": priority_flag,
+                    "comment": comment_val,
+                },
+            )
+
+        messages.success(request, "Beoordeling opgeslagen.")
+        return redirect(
+            f"{reverse('beweeganalyse')}?player_id={selected_player.id}&analysis_date={selected_date.isoformat()}"
+        )
+
+    existing_scores = {}
+    sessie = None
+    if selected_player:
+        sessie = (
+            BeweeganalyseSessie.objects.filter(player=selected_player, date=selected_date)
+            .prefetch_related("beoordelingen")
+            .first()
+        )
+        if sessie:
+            existing_scores = {b.punt_id: b for b in sessie.beoordelingen.all()}
+
+    sections = []
+    current_onderdeel_id = None
+    current_section = None
+    for punt in punten:
+        if current_onderdeel_id != punt.onderdeel_id:
+            current_onderdeel_id = punt.onderdeel_id
+            current_section = {
+                "onderdeel": punt.onderdeel,
+                "rows": [],
+            }
+            sections.append(current_section)
+        current_section["rows"].append(
+            {
+                "punt": punt,
+                "existing": existing_scores.get(punt.id),
+                "exercise_suggestions": [
+                    oef.name for oef in punt.oefeningen.all() if oef.is_active
+                ],
+            }
+        )
+
+    context = {
+        "players": players,
+        "selected_player": selected_player,
+        "selected_date": selected_date,
+        "selected_sessie": sessie,
+        "sections": sections,
+    }
+    return render(request, "beweeganalyse.html", context)
+
+
+

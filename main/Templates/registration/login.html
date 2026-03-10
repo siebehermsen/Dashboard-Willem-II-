@@ -1,0 +1,347 @@
+﻿<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inloggen - Willem II Dashboard</title>
+    <style>
+        :root {
+            --w2-navy: #1b2745;
+            --w2-red: #d2232a;
+            --w2-gold: #d7b56d;
+            --text: #152443;
+            --muted: #657392;
+            --line: #d5def0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Poppins", Arial, sans-serif;
+            color: var(--text);
+            background: #f2f5fb;
+        }
+
+        .layout {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1.2fr 0.9fr;
+        }
+
+        .photo-side {
+            position: relative;
+            background-color: #10172b;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            overflow: hidden;
+        }
+
+        .photo-side::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(16, 23, 43, 0.2) 0%, rgba(16, 23, 43, 0.65) 100%);
+            pointer-events: none;
+        }
+
+        .photo-side::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(120% 80% at 20% 80%, rgba(210, 35, 42, 0.28), transparent 60%);
+            pointer-events: none;
+        }
+
+        .club-chip {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            z-index: 2;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-radius: 12px;
+            padding: 8px 12px;
+            backdrop-filter: blur(3px);
+        }
+
+        .club-chip img {
+            width: 24px;
+            height: 24px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .club-chip span {
+            font-size: 0.78rem;
+            letter-spacing: 0.4px;
+            font-weight: 700;
+            color: var(--w2-navy);
+        }
+
+
+        .login-side {
+            display: grid;
+            place-items: center;
+            padding: 26px;
+            background:
+                radial-gradient(700px 300px at 100% -20%, rgba(27, 39, 69, 0.1), transparent 60%),
+                radial-gradient(700px 300px at 0% 120%, rgba(210, 35, 42, 0.11), transparent 60%),
+                #f7f9fd;
+        }
+
+        .card {
+            width: min(470px, 96%);
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 26px;
+            box-shadow: 0 18px 36px rgba(18, 31, 62, 0.14);
+        }
+
+        .card-head {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .logo-round {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            object-fit: contain;
+            background: #e8edf6;
+            padding: 6px;
+            box-shadow: 0 6px 16px rgba(17, 29, 57, 0.2);
+            display: inline-block;
+        }
+
+        .card-head h1 {
+            margin: 10px 0 0;
+            font-size: 1.8rem;
+            color: var(--w2-navy);
+        }
+
+        .card-head p {
+            margin: 6px 0 0;
+            color: var(--muted);
+        }
+
+        .error {
+            margin: 0 0 12px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #efb4bb;
+            background: #fff4f5;
+            color: #8f1f2d;
+            font-size: 0.9rem;
+        }
+
+        .field {
+            display: grid;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .password-wrap {
+            position: relative;
+        }
+
+        label {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--w2-navy);
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            height: 46px;
+            border: 1px solid #c6d0e4;
+            border-radius: 10px;
+            padding: 0 44px 0 12px;
+            font-size: 0.98rem;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #87a1dd;
+            box-shadow: 0 0 0 3px rgba(78, 111, 182, 0.14);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 0;
+            background: transparent;
+            color: #5f6e8f;
+            font-size: 1rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .toggle-password:hover {
+            color: var(--w2-navy);
+        }
+
+        .remember {
+            margin: 6px 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .remember input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            accent-color: var(--w2-red);
+        }
+
+        .btn {
+            width: 100%;
+            height: 46px;
+            border: 0;
+            border-radius: 11px;
+            background: linear-gradient(180deg, #ef3a43 0%, #c91923 100%);
+            color: #fff;
+            font-size: 1.04rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.2px;
+            box-shadow: 0 9px 18px rgba(201, 25, 35, 0.25);
+        }
+
+        .accent-line {
+            margin: 14px auto 0;
+            width: 66px;
+            height: 4px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--w2-gold), var(--w2-red));
+            opacity: 0.95;
+        }
+
+        @media (max-width: 980px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .photo-side {
+                min-height: 300px;
+            }
+
+            .login-side {
+                padding: 14px 14px 24px;
+                margin-top: -24px;
+                position: relative;
+                z-index: 3;
+            }
+
+            .card {
+                width: min(520px, 100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="layout">
+        <section class="photo-side" aria-hidden="true">
+            <div class="club-chip">
+                <img src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg" alt="Willem II">
+                <span>WILLEM II</span>
+            </div>
+        </section>
+
+        <section class="login-side">
+            <div class="card">
+                <div class="card-head">
+                    <img class="logo-round" src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg" alt="Willem II logo">
+                    <h1>Willem II Dashboard</h1>
+                    <p>Log in om toegang te krijgen</p>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="error">Onjuiste gebruikersnaam of wachtwoord.</div>
+                {% elif form.errors %}
+                    <div class="error">Vul alle verplichte velden correct in.</div>
+                {% endif %}
+
+                <form method="post" action="{% url 'login' %}" autocomplete="off">
+                    {% csrf_token %}
+                    <div class="field">
+                        <label for="id_username">Gebruikersnaam</label>
+                        <input id="id_username" name="username" type="text" required autofocus>
+                    </div>
+
+                    <div class="field">
+                        <label for="id_password">Wachtwoord</label>
+                        <div class="password-wrap">
+                            <input id="id_password" name="password" type="password" required>
+                            <button class="toggle-password" type="button" id="togglePassword" aria-label="Wachtwoord tonen" title="Wachtwoord tonen">👁</button>
+                        </div>
+                    </div>
+
+                    <label class="remember">
+                        <input type="checkbox" name="remember_me">
+                        <span>Onthoud mij op dit apparaat</span>
+                    </label>
+
+                    <input type="hidden" name="next" value="{{ next|default:'/dashboard/' }}">
+
+                    <button class="btn" type="submit">Inloggen</button>
+                    <div class="accent-line"></div>
+                </form>
+            </div>
+        </section>
+    </main>
+    <script>
+        (function () {
+            var images = [
+                "https://images.bd.nl/MTU0YjJkNWQyMTQ1NDk4YmNlZGEvZGlvLzI3MDU2OTY5OC9mb2N1cy1hbmQtZmlsbC8wLjYyLzAuMzQvNDgwLzM2MA/blijdschap-bij-uriel-van-aalst-na-zijn-allereerste-goal-als-prof",
+                "https://api.omroepbrabant.nl/img/f/768/432/0.5/0.15/bWVkaWEvcHJvZC80NzE1NzY1LmpwZz9zdj0yMDE5LTA3LTA3JnN0PTIwMjAtMDEtMDFUMDAlM0EwMCUzQTAwWiZzZT0yMDQwLTAxLTAxVDAwJTNBMDAlM0EwMFomc3I9YiZzcD1yJnNpZz10TlVhMEkxaUE2MzdMOFNXd0U4aXFiOW1wOXR3dUslMkJEWU1rTmtYUk5ibU0lM0Q=",
+                "https://www.willem-ii.nl/sites/default/files/styles/gallery_thumbnail/public/2025-07/20250630_WIllemII-shirt_1_Fotografie%20Jules%20van%20Iperen_06A9592.jpg.webp?itok=keS4GiXP",
+                "https://www.willem-ii.nl/sites/default/files/styles/news/public/2026-02/76704-Geert-van-Erven.jpg.webp?h=600ba69b&itok=mh_xz01H",
+                "https://www.voetbalshirts.com/media/iyvf5uep/willem-ii-3e-shirt-2025-2026.jpg?width=450&height=450&format=webp&quality=65&rnd=134024553154570000",
+                "https://www.willem-ii.nl/sites/default/files/2025-07/20250630_WIllemII-shirt_1_Fotografie%20Jules%20van%20Iperen_06A9414.jpg",
+                "https://www.willem-ii.nl/sites/default/files/styles/header/public/2026-01/72864-Jules-van-Iperen-Fotografie.jpg.webp?h=4b80616e&itok=WnaR-ugt",
+                "https://cdn.bnmedia.nl/_1098x732_crop_center-center_80_none/Copyright-ProShots-29901872.jpg",
+                "https://webp.vi.cdn.pxr.nl/news/2026/01/18/6c90742bd294a998bf73d238b03c88edaa4c2bce.jpg?width=1200&height=900",
+                "https://images.bd.nl/MGYyZDA1YTEzOGUwMzAzZmI2ZTEvZGlvLzI2NTk4MDMzMS9mb2N1cy1hbmQtZmlsbC8wLjUwLzAuNTAvNDgwLzM2MA/fc-den-bosch-willem-ii-eerder-dit-seizoen"
+            ];
+            var choice = images[Math.floor(Math.random() * images.length)];
+            var side = document.querySelector(".photo-side");
+            if (side && choice) {
+                side.style.backgroundImage = "url('" + choice + "')";
+            }
+        })();
+
+        (function () {
+            var btn = document.getElementById("togglePassword");
+            var input = document.getElementById("id_password");
+            if (!btn || !input) {
+                return;
+            }
+            btn.addEventListener("click", function () {
+                var show = input.type === "password";
+                input.type = show ? "text" : "password";
+                btn.setAttribute("aria-label", show ? "Wachtwoord verbergen" : "Wachtwoord tonen");
+                btn.setAttribute("title", show ? "Wachtwoord verbergen" : "Wachtwoord tonen");
+            });
+        })();
+    </script>
+</body>
+</html>

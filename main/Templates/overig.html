@@ -2,686 +2,2757 @@
 {% block content %}
 
 <style>
+    :root {
+        --navy-900: #0f172a;
+        --navy-800: #111b30;
+        --navy-700: #1b2540;
+        --accent-red: #e74c3c;
+        --accent-gold: #f5c542;
+        --soft-blue: #e9f1ff;
+        --card-bg: #ffffff;
+        --ink: #0f172a;
+        --muted: #5f6b82;
+    }
 
-    /* ============================
-       ALGEMENE STYLING
-    ============================= */
+    body {
+        font-family: "Manrope", "Barlow", "Montserrat", sans-serif;
+        background: radial-gradient(1200px 500px at 10% -10%, #f5f7ff 0%, #f7f9fc 55%, #f3f6fb 100%);
+    }
+
+    .container {
+        max-width: 1280px;
+    }
+
     .section-title {
         font-weight: 800;
         font-size: 2rem;
-        margin-bottom: 10px;
-        color: #1f2a44;
+        margin-bottom: 8px;
+        color: var(--ink);
     }
 
     .subtitle {
-        color: #6c757d;
-        margin-bottom: 35px;
+        color: var(--muted);
+        margin-bottom: 28px;
         font-size: 1rem;
     }
 
-    /* ============================
-       DASHBOARD-KAARTEN
-    ============================= */
-    .overig-card {
-        background: white;
+    .overig-hero {
+        background: #ffffff;
         border-radius: 18px;
-        padding: 40px 25px;
-        text-align: center;
-        border: 1px solid rgba(0,0,0,0.05);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.07);
-        transition: all 0.28s ease;
-        cursor: pointer;
-        height: 100%;
+        padding: 20px 22px;
+        border: 1px solid rgba(31, 42, 68, 0.08);
+        box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+        margin-bottom: 18px;
+        position: relative;
+        overflow: hidden;
     }
+
+    .overig-hero h2 {
+        margin: 0 0 4px 0;
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: var(--ink);
+    }
+
+    .overig-hero p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.98rem;
+    }
+
+    .overig-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(220px, 1fr));
+        gap: 18px;
+    }
+
+    @media (max-width: 1200px) {
+        .overig-grid {
+            grid-template-columns: repeat(2, minmax(220px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .overig-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .overig-grid a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .overig-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 20px 18px;
+        border: 2px solid #1f2a44;
+        box-shadow: 0 6px 18px rgba(31, 42, 68, 0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
     .overig-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 14px 28px rgba(0,0,0,0.15);
+        transform: translateY(-4px);
+        box-shadow: 0 10px 24px rgba(31, 42, 68, 0.12);
     }
 
     .overig-card h4 {
-        margin: 0;
+        margin: 0 0 8px 0;
         font-weight: 700;
-        font-size: 1.25rem;
+        font-size: 1.2rem;
         color: #1f2a44;
     }
 
     .overig-card p {
-        margin-top: 8px;
+        margin: 0;
         color: #6c757d;
         font-size: 0.95rem;
     }
 
-    /* ============================
-       TERUGKNOP & CONTENT BOX
-    ============================= */
     .back-btn {
-        border-radius: 10px;
-        padding: 7px 16px;
-        font-weight: 500;
-    }
-
-    .section-box {
-        background: white;
-        padding: 30px;
-        border-radius: 16px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    }
-
-    /* ============================
-       CALCULATOR BLOK
-    ============================= */
-    .calculator-box {
-        background: #f8f9fa;
-        padding: 25px;
-        border-radius: 16px;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-        margin-bottom: 30px;
-    }
-
-    .calculator-box label {
-        display: block;
-        margin-top: 15px;
-        font-weight: 600;
-        color: #1f2a44;
-    }
-
-    .calculator-box input[type=range] {
-        width: 100%;
-        margin-top: 8px;
-    }
-
-</style>
-
-<div class="container mt-4">
-    <h2 class="section-title">Overig</h2>
-
-<!-- ============================
-     MENU PAGINA
-============================== -->
-{% if page == "menu" %}
-    <p class="subtitle">Kies hieronder wat je wilt openen.</p>
-
-    <div class="row g-4">
-
-        <div class="col-md-3">
-            <a href="/overig/?page=pop" class="text-decoration-none text-dark">
-                <div class="overig-card">
-                    <h4>POP Gesprekken</h4>
-                    <p>Bekijk of vul POP-gesprekken in</p>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-3">
-            <a href="/overig/?page=hp" class="text-decoration-none text-dark">
-                <div class="overig-card">
-                    <h4>High Potentials</h4>
-                    <p>Overzicht van spelers met potentie</p>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-3">
-            <a href="/overig/?page=notities" class="text-decoration-none text-dark">
-                <div class="overig-card">
-                    <h4>Overige Notities</h4>
-                    <p>Schrijf en bekijk notities</p>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-3">
-            <a href="/overig/?page=jeugd" class="text-decoration-none text-dark">
-                <div class="overig-card">
-                    <h4>Jeugd Willem II</h4>
-                    <p>Materialen & info voor jeugdopleiding</p>
-                </div>
-            </a>
-        </div>
-
-{% endif %}
-
-
-
-<!-- ============================
-       NOTITIES – VERBETERDE UI
-============================== -->
-{% if page == "notities" %}
-<a href="/overig/" class="btn btn-secondary mb-3 back-btn">← Terug</a>
-
-<style>
-    .notes-wrapper {
-        background: white;
-        padding: 40px 45px;
-        border-radius: 18px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        margin-bottom: 35px;
-    }
-
-    .notes-title {
-        font-size: 1.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 8px 16px;
         font-weight: 700;
+        border: none;
+        color: #ffffff;
+        background: linear-gradient(135deg, var(--navy-800), var(--navy-700));
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.25);
+        margin-bottom: 18px;
+        text-decoration: none;
+    }
+
+    .back-btn:hover {
+        background: linear-gradient(135deg, #182036, #101726);
+        color: #ffffff;
+        text-decoration: none;
+    }
+
+    .content-box {
+        background: var(--card-bg);
+        padding: 26px;
+        border-radius: 18px;
+        border: 1px solid rgba(31, 42, 68, 0.08);
+        box-shadow: 0 14px 36px rgba(15, 23, 42, 0.12);
+        position: relative;
+    }
+
+    .block-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin: 18px 0 8px 0;
+    }
+
+    .block-text {
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+
+    .wide-input {
+        width: 100%;
+        min-height: 180px;
+        padding: 14px;
+        border-radius: 12px;
+        border: 1.5px solid #d3d9e4;
+        font-size: 1rem;
+        resize: vertical;
+        background: #fafbfc;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .wide-input:focus {
+        outline: none;
+        border-color: #1f2a44;
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(31, 42, 68, 0.12);
+    }
+
+    .save-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+
+    .hp-save-btn {
+        background: linear-gradient(135deg, #172554, #0f172a);
+        color: #ffffff;
+        border: 1px solid rgba(255,255,255,0.18);
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 900;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.30);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hp-save-btn::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
+        transform: translateX(-100%);
+        transition: transform 0.4s ease;
+        pointer-events: none;
+    }
+
+    .hp-save-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.35);
+        filter: brightness(1.03);
+    }
+
+    .hp-save-btn:hover::after {
+        transform: translateX(0%);
+    }
+
+    .hp-save-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.28);
+    }
+
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #eef2f7;
+        border: 1px solid rgba(31, 42, 68, 0.08);
         color: #1f2a44;
+        font-weight: 700;
+        font-size: 0.85rem;
+        margin-right: 6px;
+        margin-bottom: 6px;
+    }
+
+    .menu-wrap {
+        padding: 0;
+    }
+
+    .vakantie-form {
+        display: grid;
+        grid-template-columns: 170px 1.2fr 1.2fr 1fr 170px;
+        gap: 12px;
+        align-items: end;
+        margin: 18px 0 14px 0;
+        padding: 12px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f7f9ff, #ffffff);
+        border: 1px solid rgba(31, 42, 68, 0.08);
+    }
+
+    .vakantie-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+        justify-content: flex-end;
+        height: 100%;
+    }
+
+    .vakantie-form .form-control,
+    .vakantie-form .form-select {
+        border-radius: 10px;
+        border: 1.5px solid #d3d9e4;
+        padding: 10px 12px;
+        font-size: 0.95rem;
+        background: #fbfcff;
+    }
+
+    .vakantie-table-wrap {
+        overflow-x: auto;
+        border-radius: 16px;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.10);
+        margin-top: 10px;
+    }
+
+    .vakantie-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #ffffff;
+        font-size: 0.95rem;
+    }
+
+    .vakantie-table thead th {
+        background: linear-gradient(135deg, var(--navy-800), var(--navy-700));
+        color: #ffffff;
+        text-align: left;
+        padding: 12px 14px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .vakantie-table tbody td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #e6e9ef;
+        vertical-align: middle;
+    }
+
+    .vakantie-table tbody tr:nth-child(even) {
+        background-color: #f8f9fb;
+    }
+
+    .vakantie-table tbody tr:hover {
+        background-color: #eef3ff;
+    }
+
+    .vakantie-toggle-form {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+    }
+
+    .vakantie-toggle-form input[type="checkbox"] {
+        transform: scale(1.1);
+        accent-color: #1f2a44;
+    }
+
+    .vakantie-small-btn {
+        background: linear-gradient(135deg, var(--navy-800), var(--navy-700));
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.2);
+    }
+
+    .vakantie-edit-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(231, 76, 60, 0.35);
+        background: rgba(231, 76, 60, 0.08);
+        color: #b13a2f;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-decoration: none;
+    }
+
+    .vakantie-edit-btn:hover {
+        background: rgba(231, 76, 60, 0.16);
+        text-decoration: none;
+        color: #8f2d24;
+    }
+
+    .vakantie-row-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .planning-section {
+        margin-top: 18px;
+        padding-top: 10px;
+    }
+
+    .planning-form {
+        display: grid;
+        grid-template-columns:
+            minmax(130px, 0.9fr)
+            minmax(180px, 1.2fr)
+            minmax(170px, 1.2fr)
+            minmax(170px, 1fr)
+            minmax(130px, 0.9fr)
+            minmax(180px, 1fr);
+        gap: 12px;
+        align-items: end;
+        padding: 12px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f7f9ff, #ffffff);
+        border: 1px solid rgba(31, 42, 68, 0.08);
         margin-bottom: 12px;
     }
 
-    .notes-subtitle {
-        font-size: 1rem;
-        color: #6c757d;
-        margin-bottom: 25px;
+    .planning-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+        justify-content: flex-end;
+        height: 100%;
+        min-width: 0;
     }
 
-    .notes-input {
+    .planning-actions .hp-save-btn {
         width: 100%;
-        min-height: 160px;
-        padding: 18px;
-        border-radius: 14px;
-        border: 1px solid #ced4da;
-        font-size: 1.05rem;
-        background: #f8f9fa;
-        resize: vertical;
+        max-width: 190px;
     }
 
-    .notes-card {
+    .planning-form .form-control,
+    .planning-form .form-select {
+        border-radius: 10px;
+        border: 1.5px solid #d3d9e4;
+        padding: 10px 12px;
+        font-size: 0.95rem;
+        background: #fbfcff;
+    }
+
+    .planning-table-wrap {
+        overflow-x: auto;
+        border-radius: 16px;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.10);
+        margin-top: 8px;
+    }
+
+    .planning-table {
+        width: 100%;
+        border-collapse: collapse;
         background: #ffffff;
+        font-size: 0.95rem;
+    }
+
+    .planning-table thead th {
+        background: linear-gradient(135deg, var(--navy-800), var(--navy-700));
+        color: #ffffff;
+        text-align: left;
+        padding: 12px 14px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .planning-table tbody td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #e6e9ef;
+        vertical-align: middle;
+    }
+
+    .planning-table tbody tr:nth-child(even) {
+        background-color: #f8f9fb;
+    }
+
+    .planning-table tbody tr:hover {
+        background-color: #eef3ff;
+    }
+
+    .planning-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        background: #eef2f7;
+        color: #1f2a44;
+    }
+
+    .workflow-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(220px, 1fr));
+        gap: 12px;
+        margin: 16px 0 18px 0;
+    }
+
+    .workflow-step {
+        display: block;
+        background: linear-gradient(135deg, #f7f9ff, #ffffff);
+        border: 1px solid rgba(31, 42, 68, 0.14);
         border-radius: 14px;
-        padding: 22px 26px;
-        border: 1px solid #e5e7eb;
-        margin-bottom: 16px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        padding: 12px 14px;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .notes-date {
+    .workflow-step:hover {
+        text-decoration: none;
+        color: inherit;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+    }
+
+    .workflow-step-index {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #1f2a44;
+        color: #ffffff;
         font-size: 0.85rem;
-        color: #8a8a8a;
-    }
-
-    .notes-divider {
-        width: 100%;
-        height: 1px;
-        background: #e5e7eb;
-        margin: 35px 0;
-    }
-
-    .notes-card p {
-        font-size: 1.05rem;
+        font-weight: 800;
         margin-bottom: 6px;
     }
-</style>
 
-<!-- ============================
-       NIEUWE NOTITIE BLOK
-============================== -->
-<div class="notes-wrapper">
-    <h3 class="notes-title">Nieuwe notitie</h3>
-    <p class="notes-subtitle">Voeg een persoonlijke notitie toe. Dit kan over spelers, observaties of belangrijke aandachtspunten gaan.</p>
-
-    <form method="POST">
-        {% csrf_token %}
-        <textarea class="notes-input" name="text" placeholder="Schrijf hier jouw notitie..." required></textarea>
-        <button class="btn btn-primary mt-3 px-4 py-2" style="font-size:1rem;">Opslaan</button>
-    </form>
-</div>
-
-<!-- ============================
-       EERDERE NOTITIES
-============================== -->
-<div class="notes-wrapper">
-    <h3 class="notes-title">Eerdere notities</h3>
-    <p class="notes-subtitle">Jouw opgeslagen notities. De nieuwste staan bovenaan.</p>
-
-    {% for item in items %}
-        <div class="notes-card">
-            <p>{{ item.text }}</p>
-            <div class="notes-date">{{ item.created_at|date:"d-m-Y H:i" }}</div>
-        </div>
-    {% empty %}
-        <p class="text-muted">Nog geen notities.</p>
-    {% endfor %}
-</div>
-
-{% endif %}
-
-
-  <!-- ============================
-     POP PAGINA
-============================== -->
-{% if page == "pop" %}
-    <a href="/overig/" class="btn btn-secondary mb-3 back-btn">← Terug</a>
-
-    <style>
-        .pop-section {
-            background: white;
-            border-radius: 18px;
-            padding: 40px 45px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            margin-bottom: 35px;
-        }
-        .pop-divider {
-            height: 1px;
-            width: 100%;
-            background: #e5e7eb;
-            margin: 32px 0;
-        }
-        .pop-textarea {
-            width: 100% !important;
-            min-height: 180px !important;
-            padding: 16px;
-            border-radius: 12px;
-            resize: vertical;
-            margin-top: 12px;
-            margin-bottom: 22px;
-        }
-
-        /* Nieuwe styling voor 2 kolommen */
-        .pop-select-row {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-            margin-bottom: 30px;
-        }
-        .pop-select-box {
-            flex: 1;
-            min-width: 260px;
-        }
-
-        .player-select {
-            width: 100%;
-            padding: 10px;
-            font-size: 1rem;
-            border-radius: 10px;
-            margin-top: 6px;
-        }
-    </style>
-
-    <form method="POST">
-        {% csrf_token %}
-
-        <div class="pop-section">
-            <h3 class="fw-bold">POP Gesprekken</h3>
-            <p class="text-muted">Persoonlijk OntwikkelingsPlan van de speler of staflid.</p>
-
-            <!-- ============================================
-                 SPELER + STAFLID SELECTIE (NIEUWE FUNCTIE)
-            =============================================== -->
-            <div class="pop-select-row">
-
-                <!-- Speler dropdown -->
-                <div class="pop-select-box">
-                    <label for="player" class="fw-bold">Selecteer speler</label>
-                    <select name="player" id="player" class="form-select player-select">
-                        <option value="">-- Kies een speler --</option>
-                        {% for p in players %}
-                            <option value="{{ p.id }}">{{ p.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Staflid dropdown -->
-                <div class="pop-select-box">
-                    <label for="staff" class="fw-bold">Selecteer staflid</label>
-                    <select name="staff" id="staff" class="form-select player-select">
-                        <option value="">-- Kies een staflid --</option>
-                        {% for s in staff %}
-                            <option value="{{ s.id }}">{{ s.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-            </div>
-
-            <div class="pop-divider"></div>
-
-            <h4>📍 Waar sta ik nu?</h4>
-            <textarea name="waar_sta_ik_nu" class="pop-textarea"></textarea>
-
-            <div class="pop-divider"></div>
-
-            <h4>🎯 Doelen & Ontwikkelpunten</h4>
-            <textarea name="doelen" class="pop-textarea"></textarea>
-
-            <div class="pop-divider"></div>
-
-            <h4>🪞 Reflectie</h4>
-            <textarea name="reflectie" class="pop-textarea"></textarea>
-
-            <div class="pop-divider"></div>
-
-            <h4>📝 Actieplan</h4>
-            <textarea name="actieplan" class="pop-textarea"></textarea>
-
-            <button class="btn btn-primary mt-3">Opslaan</button>
-        </div>
-    </form>
-{% endif %}
-
-
-{% if page == "hp" %}
-<a href="/overig/" class="btn btn-secondary mb-3 back-btn">← Terug</a>
-
-<style>
-    .hp-section {
-        background: white;
-        padding: 40px 45px;
-        border-radius: 18px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        margin-bottom: 35px;
-    }
-    .hp-divider {
-        height: 1px;
-        background: #e5e7eb;
-        margin: 35px 0;
-    }
-    .hp-block-title {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #1f2a44;
-        margin-bottom: 8px;
-    }
-    .hp-subtitle {
-        color: #6b7280;
-        font-size: 0.95rem;
-        margin-bottom: 20px;
-    }
-    .hp-input {
-        width: 100%;
-        padding: 16px;
-        border-radius: 12px;
-        border: 1px solid #dadada;
-        min-height: 150px;
-        resize: vertical;
-        background: #fff;
-        margin-bottom: 18px;
-        font-size: 0.95rem;
-    }
-    .hp-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 18px;
-        margin-bottom: 18px;
-    }
-    .hp-card {
-        background: #f9fafb;
-        border-radius: 16px;
-        border: 1px solid #e5e7eb;
-        padding: 20px;
-    }
-    .hp-save-btn {
-        background: #1f2a44;
-        color: white;
-        border: none;
-        padding: 10px 18px;
-        border-radius: 10px;
-        font-size: 0.95rem;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-    .hp-save-btn:hover {
-        background: #e74c3c;
-    }
-</style>
-
-<div class="hp-section">
-
-    <!-- ⭐ TITEL -->
-    <h3 class="hp-block-title">High Potentials</h3>
-    <p class="hp-subtitle">Vul hieronder alles in over talentprofielen, testdata, aandachtspunten en ontwikkelplannen.</p>
-
-    <div class="hp-divider"></div>
-
-    <!-- ⭐ 1. OVERZICHT HIGH POTENTIALS -->
-    <h4 class="hp-block-title">⭐ Overzicht spelers & Sterkten</h4>
-    <p class="hp-subtitle">Beschrijf hier de spelers die jij als high potential ziet en waarom.</p>
-
-    <textarea class="hp-input" id="hp_overview" placeholder="Voorbeeld:
-- Speler X: explosief profiel, aanvallend sterk
-- Speler Y: groot loopvermogen, hoge belastbaarheid
-- Speler Z: spelintelligentie, creatief in kleine ruimtes"></textarea>
-
-    <button class="hp-save-btn">Opslaan</button>
-
-    <div class="hp-divider"></div>
-
-    <!-- ⭐ 2. TESTDATA PER SPELER -->
-    <h4 class="hp-block-title">📊 Testdata per speler</h4>
-    <p class="hp-subtitle">Noteer sprint-, kracht- en conditiemetingen.</p>
-
-    <div class="hp-card">
-        <div class="hp-grid">
-            <textarea class="hp-input" id="hp_sprint" placeholder="Sprinttijden (bijv. 5m / 10m / 30m)..."></textarea>
-            <textarea class="hp-input" id="hp_strength" placeholder="Krachtmetingen (CMJ, squat, nordic)..."></textarea>
-        </div>
-
-        <textarea class="hp-input" id="hp_condition" placeholder="Conditietesten (YoYo, HR herstel, RSA)..."></textarea>
-
-        <button class="hp-save-btn">Opslaan</button>
-    </div>
-
-    <div class="hp-divider"></div>
-
-    <!-- ⭐ 3. AANDACHTSPUNTEN IN HET VELD -->
-    <h4 class="hp-block-title">🎯 Aandachtspunten in het veld</h4>
-    <p class="hp-subtitle">Technische, tactische en fysieke ontwikkelpunten in trainingen en wedstrijden.</p>
-
-    <textarea class="hp-input" id="hp_field" placeholder="Voorbeeld:
-- Timing loopacties
-- 1v1 gedrag
-- Scanning
-- Explosiviteit eerste meters"></textarea>
-
-    <button class="hp-save-btn">Opslaan</button>
-
-    <div class="hp-divider"></div>
-
-    <!-- ⭐ 4. AANDACHTSPUNTEN BUITEN HET VELD -->
-    <h4 class="hp-block-title">🧍‍♂️ Aandachtspunten buiten het veld</h4>
-    <p class="hp-subtitle">Voeding, herstel, gedrag, mindset, professionaliteit.</p>
-
-    <textarea class="hp-input" id="hp_off_field" placeholder="Voorbeeld:
-- Consistent ontbijten
-- Beter slapen
-- Herstelroutine na training
-- Mentale weerbaarheid"></textarea>
-
-    <button class="hp-save-btn">Opslaan</button>
-
-    <div class="hp-divider"></div>
-
-    <!-- ⭐ 5. WERKPLAN PER SPELER -->
-    <h4 class="hp-block-title">📝 Werkplan per speler</h4>
-    <p class="hp-subtitle">Jouw strategie, aanpak en planning.</p>
-
-    <textarea class="hp-input" id="hp_plan" placeholder="Jouw werkplan..."></textarea>
-
-    <button class="hp-save-btn">Opslaan</button>
-
-    <div class="hp-divider"></div>
-
-    <!-- ⭐ 6. INDIVIDUELE ONTWIKKELPLANNEN -->
-    <h4 class="hp-block-title">📚 Individuele ontwikkelplannen</h4>
-    <p class="hp-subtitle">Langetermijnontwikkelingen en groeilijnen.</p>
-
-    <textarea class="hp-input" id="hp_development" placeholder="Bijv. voortgang op sprint, techniek, mindset en fysieke waarden..."></textarea>
-
-    <button class="hp-save-btn">Opslaan</button>
-
-</div>
-
-{% endif %}
-
-
-
-    <!-- ============================
-     JEUGD WILLEM II PAGINA
-============================= -->
-{% if page == "jeugd" %}
-
-<a href="/overig/" class="btn btn-secondary mb-3 back-btn">← Terug</a>
-
-<style>
-    .jeugd-section {
-        background: white;
-        padding: 40px 45px;
-        border-radius: 18px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        margin-bottom: 35px;
-    }
-
-    .jeugd-title {
-        font-weight: 800;
-        font-size: 2rem;
-        color: #1f2a44;
-        margin-bottom: 8px;
-    }
-
-    .jeugd-subtitle {
-        color: #6c757d;
+    .workflow-step-title {
+        display: block;
         font-size: 1rem;
-        margin-bottom: 30px;
+        font-weight: 800;
+        color: #1f2a44;
+        margin-bottom: 2px;
     }
 
-    .jeugd-block-title {
-        font-size: 1.35rem;
+    .workflow-step-text {
+        display: block;
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.4;
+    }
+
+    .workflow-block {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(31, 42, 68, 0.10);
+        background: #ffffff;
+    }
+
+    .workflow-block-title {
+        margin: 0 0 4px 0;
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #1f2a44;
+    }
+
+    .bio-shell {
+        margin-top: 10px;
+        border: 1px solid #d7d9df;
+        background: #f2f2f4;
+        border-radius: 10px;
+        padding: 12px;
+    }
+
+    .bio-top {
+        text-align: center;
+        border-bottom: 3px solid #d7263d;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+    }
+
+    .bio-title {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        color: #111827;
+        text-transform: uppercase;
+    }
+
+    .bio-tabs {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(120px, 1fr));
+        border: 1px solid #cdced3;
+        background: #e7e7ea;
+        margin-bottom: 12px;
+    }
+
+    .bio-tab {
+        display: block;
+        text-align: center;
+        padding: 9px 8px;
+        font-weight: 800;
+        color: #1f2937;
+        font-size: 0.86rem;
+        border-right: 1px solid #cdced3;
+        text-decoration: none;
+    }
+
+    .bio-tab:last-child {
+        border-right: none;
+    }
+
+    .bio-tab.active {
+        background: #d7263d;
+        color: #ffffff;
+    }
+
+    .bio-tab:hover {
+        text-decoration: none;
+        color: inherit;
+        background: #dadbe0;
+    }
+
+    .bio-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .bio-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 12px;
+        border-radius: 7px;
+        font-weight: 800;
+        font-size: 0.82rem;
+        background: #e5e7eb;
+        color: #111827;
+        border: 1px solid #d1d5db;
+    }
+
+    .bio-chip.warn {
+        background: #2563eb;
+        color: #ffffff;
+        border-color: #1d4ed8;
+    }
+
+    .bio-subtitle {
+        margin: 2px 0 10px 0;
+        font-size: 1.9rem;
+        font-weight: 900;
+        color: #1f2937;
+        letter-spacing: 0.2px;
+    }
+
+    .bio-player-row {
+        margin-bottom: 10px;
+        display: grid;
+        grid-template-columns: minmax(220px, 320px);
+    }
+
+    .bio-player-row label {
+        font-size: 0.82rem;
         font-weight: 700;
         color: #1f2a44;
+        margin-bottom: 4px;
+    }
+
+    .bio-player-row input {
+        border-radius: 10px;
+        border: 1.5px solid #d3d9e4;
+        padding: 9px 10px;
+        font-size: 0.94rem;
+        background: #ffffff;
+    }
+
+    .bio-player-row input:focus {
+        outline: none;
+        border-color: #1f2a44;
+        box-shadow: 0 0 0 3px rgba(31, 42, 68, 0.12);
+    }
+
+    .growth-points-wrap {
+        margin-bottom: 10px;
+        border: 1px solid rgba(31, 42, 68, 0.12);
+        border-radius: 10px;
+        padding: 8px;
+        background: #f8faff;
+    }
+
+    .growth-points-row {
+        display: grid;
+        grid-template-columns: 170px 170px auto;
+        gap: 8px;
+        align-items: end;
         margin-bottom: 8px;
-        display: flex;
+    }
+
+    .growth-points-row label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #1f2a44;
+        margin-bottom: 3px;
+        display: block;
+    }
+
+    .growth-points-input {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #cfd6e2;
+        padding: 6px 8px;
+        font-size: 0.84rem;
+        background: #ffffff;
+    }
+
+    .growth-points-btn {
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #1f2a44, #152038);
+        color: #ffffff;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        height: 34px;
+    }
+
+    .growth-points-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .growth-points-table th,
+    .growth-points-table td {
+        border: 1px solid rgba(31, 42, 68, 0.10);
+        padding: 6px 8px;
+        font-size: 0.8rem;
+        color: #1f2a44;
+        background: #ffffff;
+    }
+
+    .growth-points-table th {
+        background: #e9eff8;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .bio-table-wrap {
+        overflow-x: auto;
+        border: 1px solid #cdced3;
+    }
+
+    .bio-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 980px;
+        background: #efeff1;
+    }
+
+    .bio-table thead th {
+        border: 1px solid #d1d5db;
+        padding: 9px 10px;
+        font-weight: 900;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        color: #111827;
+        background: #e4e4e7;
+    }
+
+    .bio-table .group-header {
+        background: #dddddf;
+        color: #111827;
+        font-weight: 900;
+        text-align: center;
+    }
+
+    .bio-table .group-header.alert {
+        color: #b91c1c;
+    }
+
+    .bio-table tbody td {
+        border: 1px solid #d1d5db;
+        padding: 9px 10px;
+        font-size: 0.92rem;
+        color: #111827;
+        background: #f3f4f6;
+    }
+
+    .bio-cell-input {
+        width: 100%;
+        max-width: 130px;
+        border-radius: 8px;
+        border: 1px solid #cfd6e2;
+        padding: 7px 8px;
+        font-size: 0.9rem;
+        background: #ffffff;
+    }
+
+    .bio-cell-input:focus {
+        outline: none;
+        border-color: #1f2a44;
+        box-shadow: 0 0 0 3px rgba(31, 42, 68, 0.12);
+    }
+
+    .bio-value {
+        display: inline-block;
+        min-width: 70px;
+        font-weight: 900;
+        color: #0f172a;
+    }
+
+    .bio-complaint-toggle {
+        display: inline-flex;
         align-items: center;
+        gap: 6px;
+        font-weight: 800;
     }
 
-    .jeugd-icon {
-        font-size: 1.4rem;
-        margin-right: 8px;
+    .bio-complaint-toggle input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #b91c1c;
     }
 
-    .jeugd-text {
-        color: #6c757d;
-        line-height: 1.55;
+    .bio-formule {
+        margin-top: 10px;
+        margin-bottom: 0;
+        font-size: 0.82rem;
+        color: #4b5563;
+        line-height: 1.4;
+    }
+
+    .disp-filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        color: #111827;
+        font-weight: 800;
+    }
+
+    .disp-filter-row label {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .disp-filter-row select {
+        border: 1px solid #bfc5d2;
+        border-radius: 4px;
+        background: #ffffff;
+        padding: 4px 8px;
+        font-size: 0.9rem;
+    }
+
+    .disp-filter-btn {
+        border: 1px solid #9ca3af;
+        border-radius: 4px;
+        background: #f3f4f6;
+        padding: 4px 10px;
+        font-weight: 700;
+        font-size: 0.86rem;
+        color: #111827;
+    }
+
+    .disp-cards {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(180px, 1fr));
+        gap: 14px;
+    }
+
+    .disp-card {
+        background: #efeff1;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        padding: 12px;
+        min-height: 150px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+
+    .disp-card-team {
+        border-radius: 8px;
+        background: linear-gradient(135deg, #d7263d, #b91c2f);
+        color: #ffffff;
+        font-weight: 900;
+        font-size: 2rem;
+        text-align: center;
+        padding: 8px 6px;
+        letter-spacing: 0.5px;
         margin-bottom: 14px;
     }
 
-    .jeugd-divider {
-        height: 1px;
-        background: #e5e7eb;
-        width: 100%;
-        margin: 32px 0;
+    .disp-card-body {
+        text-align: center;
+        color: #7b8794;
+        font-size: 2rem;
+        font-weight: 500;
+        font-style: italic;
+        padding-top: 6px;
     }
 
-    .jeugd-input {
+    .bioage-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+        padding: 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #eceef1;
+    }
+
+    .bioage-pills {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .bioage-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 54px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid #bfc5d2;
+        background: #f3f4f6;
+        color: #111827;
+        font-weight: 800;
+        font-size: 0.85rem;
+    }
+
+    .bioage-pill.active {
+        background: #2f66da;
+        color: #ffffff;
+        border-color: #2454b8;
+    }
+
+    .bioage-top-title {
+        text-align: center;
+        margin: 10px 0 12px 0;
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .bioage-add-row {
+        display: grid;
+        grid-template-columns: 1.5fr 0.7fr 0.8fr 0.9fr 0.8fr auto;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .bioage-input,
+    .bioage-select {
         width: 100%;
-        min-height: 160px;
-        padding: 16px;
-        font-size: 1rem;
+        border-radius: 8px;
+        border: 1px solid #cfd6e2;
+        padding: 8px 9px;
+        font-size: 0.9rem;
+        background: #ffffff;
+    }
+
+    .bioage-input:focus,
+    .bioage-select:focus {
+        outline: none;
+        border-color: #1f2a44;
+        box-shadow: 0 0 0 3px rgba(31, 42, 68, 0.12);
+    }
+
+    .bioage-add-btn {
+        border: none;
+        border-radius: 8px;
+        background: #2f66da;
+        color: #ffffff;
+        padding: 8px 14px;
+        font-size: 0.9rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .bioage-groups {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(220px, 1fr));
+        gap: 12px;
+    }
+
+    .bioage-group-card {
+        border: 1px solid #d1d5db;
         border-radius: 12px;
-        border: 1px solid #d4d4d4;
-        resize: vertical;
-        margin-bottom: 25px;
+        overflow: hidden;
+        background: #efeff1;
+    }
+
+    .bioage-group-title {
+        margin: 0;
+        padding: 10px 12px;
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: #ffffff;
+        background: #2f66da;
+    }
+
+    .bioage-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .bioage-table th,
+    .bioage-table td {
+        border: 1px solid #d1d5db;
+        padding: 8px 9px;
+        font-size: 0.88rem;
+        color: #111827;
+        background: #f3f4f6;
+    }
+
+    .bioage-table th {
+        font-size: 0.8rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        background: #e5e7eb;
+    }
+
+    .bme-shell {
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        background: #efeff1;
+        padding: 12px;
+    }
+
+    .bme-top-controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .bme-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 58px;
+        padding: 7px 11px;
+        border-radius: 8px;
+        border: 1px solid #bfc5d2;
+        background: #f3f4f6;
+        color: #111827;
+        font-weight: 800;
+        font-size: 0.85rem;
+    }
+
+    .bme-pill.active {
+        background: #2f66da;
+        color: #ffffff;
+        border-color: #2454b8;
+    }
+
+    .bme-mode-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .bme-mode-btn {
+        border: none;
+        border-radius: 8px;
+        background: #d7263d;
+        color: #ffffff;
+        padding: 7px 12px;
+        font-size: 0.84rem;
+        font-weight: 800;
+    }
+
+    .bme-mode-btn.active {
+        background: #b91c2f;
+    }
+
+    .bme-input-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(110px, 1fr));
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .bme-input-card {
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #f7f7f8;
+        padding: 8px;
+    }
+
+    .bme-input-card label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: #374151;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+    }
+
+    .bme-input {
+        width: 100%;
+        border-radius: 7px;
+        border: 1px solid #cfd6e2;
+        padding: 6px 8px;
+        font-size: 0.9rem;
+        background: #ffffff;
+    }
+
+    .bme-input:focus {
+        outline: none;
+        border-color: #1f2a44;
+        box-shadow: 0 0 0 3px rgba(31, 42, 68, 0.12);
+    }
+
+    .bme-chart-wrap {
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #f7f7f8;
+        padding: 12px 10px;
+    }
+
+    .bme-chart {
+        height: 320px;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(42px, 1fr);
+        gap: 10px;
+        align-items: end;
+    }
+
+    .bme-bar-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .bme-bar-label-top {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #374151;
+        min-height: 18px;
+    }
+
+    .bme-bar {
+        width: 100%;
+        max-width: 70px;
+        min-height: 6px;
+        border-radius: 6px 6px 0 0;
+        background: rgba(215, 38, 61, 0.65);
+        transition: height 0.2s ease;
+    }
+
+    .bme-bar-label-bottom {
+        font-size: 0.78rem;
+        color: #4b5563;
+        text-transform: lowercase;
+    }
+
+    .bme-footnote {
+        margin-top: 10px;
+        margin-bottom: 0;
+        text-align: center;
+        color: #4b5563;
+        font-size: 0.82rem;
+    }
+
+    /* Willem II style overrides for Groei & Dispensatie tabs */
+    .bio-shell {
+        border: 1px solid rgba(31, 42, 68, 0.12);
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.10);
+        padding: 14px;
+    }
+
+    .bio-top {
+        border-bottom: 3px solid var(--accent-red);
+    }
+
+    .bio-title {
+        color: var(--ink);
+    }
+
+    .bio-tabs {
+        border: 1px solid rgba(31, 42, 68, 0.12);
+        background: #eef2f7;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .bio-tab {
+        color: #1f2a44;
+        border-right: 1px solid rgba(31, 42, 68, 0.10);
+        background: transparent;
+    }
+
+    .bio-tab.active {
+        background: linear-gradient(135deg, #d7263d, #b91c2f);
+        color: #ffffff;
+    }
+
+    .bio-tab:hover {
+        background: #e3eaf5;
+    }
+
+    .bio-chip {
+        background: #eef2f7;
+        border: 1px solid rgba(31, 42, 68, 0.12);
+        color: #1f2a44;
+        cursor: pointer;
+    }
+
+    .bio-chip.warn {
+        background: linear-gradient(135deg, #2f66da, #2454b8);
+        color: #ffffff;
+        border-color: rgba(36, 84, 184, 0.5);
+        cursor: default;
+    }
+
+    .bio-chip-team.active {
+        background: linear-gradient(135deg, #1f2a44, #152038);
+        color: #ffffff;
+        border-color: rgba(21, 32, 56, 0.5);
+    }
+
+    .bio-subtitle,
+    .bioage-top-title {
+        color: var(--ink);
+    }
+
+    .bio-table-wrap,
+    .bme-chart-wrap {
+        border: 1px solid rgba(31, 42, 68, 0.12);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .bio-table {
+        background: #ffffff;
+    }
+
+    .bio-table thead th {
+        background: #e9eff8;
+        color: #1f2a44;
+        border-color: rgba(31, 42, 68, 0.10);
+    }
+
+    .bio-table .group-header {
+        background: linear-gradient(135deg, #1f2a44, #152038);
+        color: #ffffff;
+    }
+
+    .bio-table .group-header.alert {
+        color: #ffd8dc;
+    }
+
+    .bio-table tbody td {
+        background: #f8faff;
+        border-color: rgba(31, 42, 68, 0.08);
+    }
+
+    .disp-filter-btn,
+    .bioage-add-btn,
+    .bme-mode-btn {
+        background: linear-gradient(135deg, #1f2a44, #152038);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .disp-filter-btn:hover,
+    .bioage-add-btn:hover,
+    .bme-mode-btn:hover {
+        filter: brightness(1.05);
+    }
+
+    .bme-mode-btn.active {
+        background: linear-gradient(135deg, #d7263d, #b91c2f);
+    }
+
+    .disp-card,
+    .bioage-group-card,
+    .bme-shell {
+        background: #f8faff;
+        border: 1px solid rgba(31, 42, 68, 0.12);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    .disp-card-team,
+    .bioage-group-title {
+        background: linear-gradient(135deg, #d7263d, #b91c2f);
+    }
+
+    .disp-card-body {
+        color: #5f6b82;
+    }
+
+    .bioage-toolbar {
+        border: 1px solid rgba(31, 42, 68, 0.12);
+        border-radius: 12px;
+        background: #eef2f7;
+    }
+
+    .bioage-pill,
+    .bme-pill {
+        border: 1px solid rgba(31, 42, 68, 0.12);
+        background: #ffffff;
+        color: #1f2a44;
+        cursor: pointer;
+    }
+
+    .bioage-pill.active,
+    .bme-pill.active {
+        background: linear-gradient(135deg, #2f66da, #2454b8);
+        color: #ffffff;
+        border-color: rgba(36, 84, 184, 0.5);
+    }
+
+    .bioage-table th,
+    .bioage-table td {
+        border-color: rgba(31, 42, 68, 0.10);
+    }
+
+    .bioage-table th {
+        background: #e9eff8;
+        color: #1f2a44;
+    }
+
+    .bioage-table td {
+        background: #ffffff;
+    }
+
+    .bme-input-card {
+        border: 1px solid rgba(31, 42, 68, 0.10);
+        background: #ffffff;
+    }
+
+    .bme-chart-wrap {
+        background: #ffffff;
+    }
+
+    .bme-bar {
+        background: linear-gradient(180deg, rgba(215, 38, 61, 0.90), rgba(215, 38, 61, 0.65));
+    }
+
+    /* Compact + darkblue tuning */
+    .bio-shell {
+        padding: 10px;
+    }
+
+    .bio-top {
+        padding-bottom: 6px;
+        margin-bottom: 10px;
+        border-bottom-color: #1f2a44;
+    }
+
+    .bio-title {
+        font-size: 1.45rem;
+        letter-spacing: 0.2px;
+    }
+
+    .bio-tab {
+        padding: 7px 6px;
+        font-size: 0.8rem;
+    }
+
+    .bio-tab.active {
+        background: linear-gradient(135deg, #1f2a44, #152038);
+    }
+
+    .bio-subtitle,
+    .bioage-top-title {
+        font-size: 1.45rem;
+        margin-bottom: 8px;
+    }
+
+    .bio-table thead th,
+    .bio-table tbody td,
+    .bioage-table th,
+    .bioage-table td {
+        padding: 7px 8px;
+        font-size: 0.82rem;
+    }
+
+    .disp-filter-row {
+        gap: 6px;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+
+    .disp-filter-row label {
+        font-size: 0.9rem;
+    }
+
+    .disp-filter-btn,
+    .bioage-add-btn,
+    .bme-mode-btn {
+        padding: 6px 10px;
+        border-radius: 7px;
+        font-size: 0.8rem;
+        background: linear-gradient(135deg, #1f2a44, #152038);
+    }
+
+    .disp-card {
+        min-height: 120px;
+        padding: 10px;
+    }
+
+    .disp-card-team,
+    .bioage-group-title {
+        background: linear-gradient(135deg, #1f2a44, #152038);
+    }
+
+    .disp-card-team {
+        font-size: 1.6rem;
+        margin-bottom: 10px;
+        padding: 6px;
+    }
+
+    .disp-card-body {
+        font-size: 1.05rem;
+        padding-top: 2px;
+    }
+
+    .bioage-toolbar {
+        padding: 6px;
+        margin-bottom: 10px;
+    }
+
+    .bioage-pill,
+    .bme-pill {
+        min-width: 48px;
+        padding: 5px 8px;
+        font-size: 0.78rem;
+    }
+
+    .bioage-pill.active,
+    .bme-pill.active {
+        background: linear-gradient(135deg, #1f2a44, #152038);
+        border-color: rgba(21, 32, 56, 0.5);
+    }
+
+    .bioage-add-row {
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .bioage-input,
+    .bioage-select,
+    .bio-cell-input,
+    .bme-input {
+        padding: 6px 7px;
+        font-size: 0.84rem;
+    }
+
+    .bme-shell {
+        padding: 10px;
+    }
+
+    .bme-top-controls,
+    .bme-mode-row {
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .bme-input-grid {
+        gap: 6px;
+    }
+
+    .bme-input-card {
+        padding: 7px;
+    }
+
+    .bme-chart {
+        height: 240px;
+        gap: 8px;
+    }
+
+    .bme-bar {
+        background: linear-gradient(180deg, rgba(31, 42, 68, 0.95), rgba(31, 42, 68, 0.70));
+    }
+
+    @media (max-width: 1100px) {
+        .planning-form {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 1000px) {
+        .workflow-strip {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .vakantie-form {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 980px) {
+        .bio-tabs {
+            grid-template-columns: repeat(2, minmax(120px, 1fr));
+        }
+
+        .disp-cards {
+            grid-template-columns: repeat(2, minmax(160px, 1fr));
+        }
+
+        .bioage-groups {
+            grid-template-columns: 1fr;
+        }
+
+        .bioage-add-row {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .bme-input-grid {
+            grid-template-columns: repeat(3, minmax(110px, 1fr));
+        }
+    }
+
+    @media (max-width: 640px) {
+        .bio-player-row {
+            grid-template-columns: 1fr;
+        }
+
+        .bio-title {
+            font-size: 1.45rem;
+        }
+
+        .bio-subtitle {
+            font-size: 1.45rem;
+        }
+
+        .disp-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .bme-input-grid {
+            grid-template-columns: repeat(2, minmax(110px, 1fr));
+        }
+    }
+
+    /* compact-overig-grid-overrides */
+    .overig-grid {
+        grid-template-columns: repeat(5, minmax(180px, 1fr));
+        gap: 14px;
+        align-items: stretch;
+    }
+
+    @media (max-width: 1280px) {
+        .overig-grid {
+            grid-template-columns: repeat(3, minmax(190px, 1fr));
+        }
+    }
+
+    @media (max-width: 900px) {
+        .overig-grid {
+            grid-template-columns: repeat(2, minmax(180px, 1fr));
+        }
+    }
+
+    @media (max-width: 640px) {
+        .overig-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .overig-card {
+        padding: 16px 14px;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .overig-card h4 {
+        font-size: 1.05rem;
+        line-height: 1.25;
+    }
+
+    .overig-card p {
+        font-size: 0.9rem;
+        line-height: 1.35;
+    }
+
+    .overig-card::after {
+        content: "";
+        position: absolute;
+        right: -30px;
+        top: -30px;
+        width: 120px;
+        height: 120px;
+        background: radial-gradient(circle, rgba(231, 76, 60, 0.16), transparent 70%);
+        border-radius: 50%;
+    }
+
+    .overig-card .card-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #eef2f7;
+        color: #1f2a44;
+        font-weight: 800;
+        font-size: 0.75rem;
+        margin-bottom: 8px;
+        align-self: flex-start;
+    }
+
+    .overig-card .card-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: auto;
+        padding-top: 10px;
+        font-weight: 800;
+        color: #e74c3c;
+        text-decoration: none;
+        font-size: 0.9rem;
     }
 </style>
 
-<div class="jeugd-section">
+<div class="container mt-4">
+    <div class="overig-hero">
+        <h2>Overig</h2>
+        <p>Begeleiding en voeding binnen Willem II &mdash; overzicht en werkruimte.</p>
+    </div>
 
-    <h3 class="jeugd-title">Jeugd Willem II</h3>
-    <p class="jeugd-subtitle">Informatie, werkwijze en ontwikkelstructuren voor de academie.</p>
+    {% if page == "menu" %}
+        <p class="subtitle">Kies hieronder de gewenste pagina.</p>
 
-    <div class="jeugd-divider"></div>
+        <div class="menu-wrap">
+            <div class="overig-grid">
+                <a href="/overig/?page=hp" class="text-decoration-none text-dark">
+                    <div class="overig-card">
+                        <span class="card-tag">Talent</span>
+                        <h4>Begeleiding High Potentials</h4>
+                        <p>Focus op talentontwikkeling, begeleiding en monitoring.</p>
+                        <span class="card-cta">Open pagina &rarr;</span>
+                    </div>
+                </a>
 
-    
-    <!-- ============================
-         1. WERKWIJZE ACADEMIE
-    ============================= -->
-    <h4 class="jeugd-block-title">
-        <span class="jeugd-icon">🏫</span>Werkwijze binnen de Academie
-    </h4>
-    <p class="jeugd-text">
-        Beschrijf hier de kernwaarden, ontwikkelvisie, speelwijze en dagelijkse werkwijze binnen de academie.
-    </p>
-    <textarea class="jeugd-input" placeholder="Voorbeeld:
-- Hoe trainen we binnen de academie?
-- Wat verwachten we per leeftijdscategorie?
-- Hoe ziet de speelwijze eruit?
-- Gedrag, normen & waarden..."></textarea>
+                <a href="/overig/?page=jeugd" class="text-decoration-none text-dark">
+                    <div class="overig-card">
+                        <span class="card-tag">Voeding</span>
+                        <h4>Voeding Jeugd Willem II</h4>
+                        <p>Richtlijnen en aanpak voor voeding binnen de jeugdopleiding.</p>
+                        <span class="card-cta">Open pagina &rarr;</span>
+                    </div>
+                </a>
 
+                <a href="/overig/?page=groei" class="text-decoration-none text-dark">
+                    <div class="overig-card">
+                        <span class="card-tag">Jeugd</span>
+                        <h4>Groei & dispensatie</h4>
+                        <p>Beleid, casussen en afspraken rondom groei en dispensatie binnen de academie.</p>
+                        <span class="card-cta">Open pagina &rarr;</span>
+                    </div>
+                </a>
+                <a href="/overig/?page=stagiair" class="text-decoration-none text-dark">
+                    <div class="overig-card">
+                        <span class="card-tag">Begeleiding</span>
+                        <h4>Begeleiding stagiair(e)</h4>
+                        <p>Structuur, taken en begeleiding van stagiairs binnen de academie.</p>
+                        <span class="card-cta">Open pagina &rarr;</span>
+                    </div>
+                </a>
 
-    <div class="jeugd-divider"></div>
+                <a href="/overig/?page=vakantie" class="text-decoration-none text-dark">
+                    <div class="overig-card">
+                        <span class="card-tag">Planning</span>
+                        <h4>Vakantieprogramma</h4>
+                        <p>Afspraken, planning en begeleiding rondom de vakantieperiode.</p>
+                        <span class="card-cta">Open pagina &rarr;</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    {% endif %}
 
+    {% if page == "hp" %}
+        <a href="/overig/" class="btn btn-secondary back-btn">&larr; Terug</a>
 
-    <!-- ============================
-         2. PROFPLAN ACADEMIE
-    ============================= -->
-    <h4 class="jeugd-block-title">
-        <span class="jeugd-icon">📘</span>Profplan Academie
-    </h4>
-    <p class="jeugd-text">
-        Gebruik dit gedeelte om het langere ontwikkelplan van de jeugdopleiding vast te leggen.
-    </p>
-    <textarea class="jeugd-input" placeholder="Voorbeeld:
-- Opleidingsplan per leeftijdsfase
-- Technische/tactische ontwikkellijnen
-- Langetermijnontwikkeling van spelers
-- Beleid rondom groei & selectie..."></textarea>
+        <div class="content-box">
+            <h3 class="block-title">Begeleiding High Potentials</h3>
+            <p class="block-text">
+                Deze pagina richt zich volledig op de begeleiding van high potentials binnen Willem II.
+                De focus ligt op structuur, ontwikkeling en duidelijke opvolging.
+            </p>
 
+            <div>
+                <span class="pill">Talentprofiel</span>
+                <span class="pill">Fysieke ontwikkeling</span>
+                <span class="pill">Techniek & tactiek</span>
+                <span class="pill">Mentale begeleiding</span>
+                <span class="pill">Communicatie ouders</span>
+            </div>
 
-    <div class="jeugd-divider"></div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="focus">
+                <h4 class="block-title">Focus & prioriteiten</h4>
+                <p class="block-text">Noteer hier de focuspunten en prioriteiten voor high potentials.</p>
+                <textarea class="wide-input" name="text" placeholder="Typ hier...">{{ hp_texts.focus|default_if_none:'' }}</textarea>
+                <div class="save-row">
+                    <button class="hp-save-btn" type="submit">Opslaan</button>
+                </div>
+            </form>
 
+            <div class="hp-divider"></div>
 
-    <!-- ============================
-         3. INDIVIDUELE BEGELEIDING
-    ============================= -->
-    <h4 class="jeugd-block-title">
-        <span class="jeugd-icon">🧑‍🏫</span>Individuele Begeleiding binnen de Academie
-    </h4>
-    <p class="jeugd-text">
-        Beschrijf hier de manier waarop spelers individueel begeleid worden, inclusief rollen van trainers, coördinatoren,
-        fysieke staf en mental coaches.
-    </p>
-    <textarea class="jeugd-input" placeholder="Voorbeeld:
-- Hoe zien POP-momenten eruit?
-- Rol van connection coach / individueel traject
-- Extra trainingen, techniektraining, videoanalyse
-- Communicatie met ouders..."></textarea>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="kaders">
+                <h4 class="block-title">Begeleidingskaders</h4>
+                <p class="block-text">
+                    Periodieke evaluaties, individuele ontwikkelplannen en duidelijke KPI's per speler.
+                    Afstemming met trainers, performance staf en medische begeleiding.
+                </p>
+                <textarea class="wide-input" name="text" placeholder="Typ hier...">{{ hp_texts.kaders|default_if_none:'' }}</textarea>
+                <div class="save-row">
+                    <button class="hp-save-btn" type="submit">Opslaan</button>
+                </div>
+            </form>
 
+            <div class="hp-divider"></div>
 
-    <div class="jeugd-divider"></div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="monitoring">
+                <h4 class="block-title">Monitoring & opvolging</h4>
+                <p class="block-text">
+                    Vast ritme voor testmomenten, trainingsbelasting en voortgangsgesprekken.
+                    Doel is consistente groei en tijdige bijsturing.
+                </p>
+                <textarea class="wide-input" name="text" placeholder="Typ hier...">{{ hp_texts.monitoring|default_if_none:'' }}</textarea>
+                <div class="save-row">
+                    <button class="hp-save-btn" type="submit">Opslaan</button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
 
+    {% if page == "jeugd" %}
+        <a href="/overig/" class="btn btn-secondary back-btn">&larr; Terug</a>
 
-    <!-- ============================
-         4. KORTE TERMIJN DOELEN
-    ============================= -->
-    <h4 class="jeugd-block-title">
-        <span class="jeugd-icon">🎯</span>Korte Termijn Doelen (4–8 weken)
-    </h4>
-    <p class="jeugd-text">
-        Formuleer hier concrete doelen voor de spelersgroep of individuele trajecten binnen de komende weken.
-    </p>
-    <textarea class="jeugd-input" placeholder="Voorbeeld:
-- Ontwikkelpunt X verbeteren
-- Werkpunten vanuit trainer
-- Teamdoelen komende wedstrijden
-- Afspraken voor trainingen..."></textarea>
+        <div class="content-box">
+            <h3 class="block-title">Voeding Jeugd Willem II</h3>
+            <p class="block-text">
+                Dit gedeelte is volledig gericht op voeding binnen de jeugdopleiding.
+                Focus op energiebalans, herstel, leergewoontes en wedstrijdvoorbereiding.
+            </p>
 
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="leerlijn">
+                <h4 class="block-title">1. Voedingleerlijn</h4>
+                <p class="block-text">
+                    Opbouw van basis naar wedstrijddag: ontbijt, timing van koolhydraten, hydratatie en herstel.
+                    Leerlijn per leeftijdsfase zodat spelers zelfstandig keuzes leren maken.
+                </p>
+                <ul class="block-text" style="margin-top: 6px;">
+                    <li>Focussen op nog 2 presentaties per team tot het einde van het seizoen</li>
+                    <li>Verbeteren van de huidige leerlijn / ontwikkelen van de leerlijn</li>
+                    <li>Zorgen dat we gestandaardiseerde presentaties ontwikkelen voor de toekomst</li>
+                </ul>
+                <textarea class="wide-input" name="text" placeholder="Typ hier...">{{ jeugd_texts.leerlijn|default_if_none:'' }}</textarea>
+                <div class="save-row">
+                    <button class="hp-save-btn" type="submit">Opslaan</button>
+                </div>
+            </form>
 
-    <div class="jeugd-divider"></div>
+            <div class="hp-divider"></div>
 
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="individueel">
+                <h4 class="block-title">2. Begeleiding van individuele spelers</h4>
+                <p class="block-text">
+                    Persoonlijke aandacht voor spelers met specifieke doelen of aandachtspunten.
+                    Intake, opvolging en praktische afspraken met speler en ouders.
+                </p>
+                <ul class="block-text" style="margin-top: 6px;">
+                    <li>Focus ligt op de high potentials (in overleg met Hoofd Jeugdopleiding)</li>
+                    <li>In kaart brengen welke spelers in de groeispurt zitten en die spreken</li>
+                    <li>Individuele spelers op aanvraag van speler zelf</li>
+                    <li>Bij aanvraag van trainers ondersteunen waar mogelijk van individuele spelers</li>
+                </ul>
+                <textarea class="wide-input" name="text" placeholder="Typ hier...">{{ jeugd_texts.individueel|default_if_none:'' }}</textarea>
+                <div class="save-row">
+                    <button class="hp-save-btn" type="submit">Opslaan</button>
+                </div>
+            </form>
 
-    <!-- ============================
-         5. LANGE TERMIJN DOELEN
-    ============================= -->
-    <h4 class="jeugd-block-title">
-        <span class="jeugd-icon">🚀</span>Lange Termijn Doelen (seizoen)
-    </h4>
-    <p class="jeugd-text">
-        Noteer hier de belangrijkste doelen voor de rest van het seizoen – individueel én teamgericht.
-    </p>
-    <textarea class="jeugd-input" placeholder="Voorbeeld:
-- Spelers voorbereiden op volgende leeftijdsgroep
-- Doorstroom naar O21 / 1e elftal
-- Technische, fysieke en mentale groeilijnen
-- Opleiden volgens academiefilosofie..."></textarea>
+            <div class="hp-divider"></div>
 
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="processen">
+                <h4 class="block-title">3. Verbeteren processen voeding op de club</h4>
+                <p class="block-text">
+                    Structuur in afspraken, communicatie en beschikbaarheid van voeding rondom trainingen en wedstrijden.
+                    Duidelijke rolverdeling binnen staf en korte feedbacklijnen.
+                </p>
+                <ul class="block-text" style="margin-top: 6px;">
+                    <li>Verbeteren aanbod op de club (door middel van Mr. Fridge)</li>
+                    <li>Mogelijkheid om scholen te betrekken in betere voeding</li>
+                    <li>Kijken of we het maaltijdaanbod op de club kunnen verbeteren</li>
+                </ul>
+                <textarea class="wide-input" name="text" placeholder="Typ hier...">{{ jeugd_texts.processen|default_if_none:'' }}</textarea>
+                <div class="save-row">
+                    <button class="hp-save-btn" type="submit">Opslaan</button>
+                </div>
+            </form>
 
+            <div class="hp-divider"></div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="toekomst">
+                <h4 class="block-title">4. Verbeterpunten voor de toekomst</h4>
+                <p class="block-text">
+                    Continu evalueren: wat werkt, wat niet, en waar kan het efficienter.
+                    Focus op duurzame gewoontes en betere uitvoering op clubniveau.
+                </p>
+                <ul class="block-text" style="margin-top: 6px;">
+                    <li>Standaard fruit op de club voor alle spelers</li>
+                    <li>Uitwerken van een ouderleerlijn zodat alle ouders door de academie heen goed begeleid worden om een topsportouder te zijn</li>
+                    <li>Zorgen dat er een wedstrijdvoeding structuur komt (mogelijk corvee fruit meenemen bijvoorbeeld)</li>
+                    <li>Uitwerken infographics om zichtbaarheid voeding te vergroten binnen de academie</li>
+                </ul>
+                <textarea class="wide-input" name="text" placeholder="Typ hier...">{{ jeugd_texts.toekomst|default_if_none:'' }}</textarea>
+                <div class="save-row">
+                    <button class="hp-save-btn" type="submit">Opslaan</button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if page == "groei" %}
+        <a href="/overig/" class="btn btn-secondary back-btn">&larr; Terug</a>
+
+        <div class="content-box">
+            <h3 class="block-title">Groei & dispensatie jeugd</h3>
+            <p class="block-text">
+                Schematisch overzicht voor snelle screening met de Mirwald-formule en groeiklachten-check.
+            </p>
+
+            <section class="bio-shell">
+                <div class="bio-top">
+                    <h4 class="bio-title">(Bio-)Leeftijd & dispensatie</h4>
+                </div>
+
+                <div class="bio-tabs">
+                    <a class="bio-tab {% if groei_tab == 'groei' %}active{% endif %}" href="/overig/?page=groei&tab=groei">Groei</a>
+                    <a class="bio-tab {% if groei_tab == 'dispensaties' %}active{% endif %}" href="/overig/?page=groei&tab=dispensaties">Toegekende dispensaties</a>
+                    <a class="bio-tab {% if groei_tab == 'bio-leeftijd' %}active{% endif %}" href="/overig/?page=groei&tab=bio-leeftijd">Bio-leeftijd</a>
+                    <a class="bio-tab {% if groei_tab == 'geboortemaandeffect' %}active{% endif %}" href="/overig/?page=groei&tab=geboortemaandeffect">Geboortemaandeffect</a>
+                    <a class="bio-tab {% if groei_tab == 'verjaardagen' %}active{% endif %}" href="/overig/?page=groei&tab=verjaardagen">Verjaardagen</a>
+                </div>
+
+                {% if groei_tab == "groei" %}
+                <div class="bio-chips">
+                    <span class="bio-chip warn">&#9888; Let op!</span>
+                    <button type="button" class="bio-chip bio-chip-team" data-growth-team="O12">O12</button>
+                    <button type="button" class="bio-chip bio-chip-team" data-growth-team="O13">O13</button>
+                    <button type="button" class="bio-chip bio-chip-team" data-growth-team="O14">O14</button>
+                    <button type="button" class="bio-chip bio-chip-team" data-growth-team="O15">O15</button>
+                    <button type="button" class="bio-chip bio-chip-team" data-growth-team="O16">O16</button>
+                    <button type="button" class="bio-chip bio-chip-team" data-growth-team="O17">O17</button>
+                    <button type="button" class="bio-chip bio-chip-team" data-growth-team="O19">O19</button>
+                    <button type="button" class="bio-chip bio-chip-team" data-growth-team="O21">O21</button>
+                </div>
+
+                <h4 class="bio-subtitle">&#9888; Aandachtspunten (biologische groei)</h4>
+
+                <form method="GET" class="bio-player-row" style="align-items:end;">
+                    <input type="hidden" name="page" value="groei">
+                    <input type="hidden" name="tab" value="groei">
+                    <div>
+                        <label for="growth-player-select">Speler</label>
+                        <select id="growth-player-select" name="player_id" class="bio-cell-input" style="max-width: 320px;">
+                            {% for player in players %}
+                                <option value="{{ player.id }}" {% if selected_player_id == player.id %}selected{% endif %}>{{ player.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit" class="growth-points-btn">Laden</button>
+                    </div>
+                </form>
+
+                <div class="growth-points-wrap">
+                    <form method="POST" class="growth-points-row">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="growth_measurement_add">
+                        <input type="hidden" name="player_id" value="{{ selected_player_id }}">
+                        <div>
+                            <label for="growth-point-date">Meetdatum</label>
+                            <input id="growth-point-date" name="measurement_date" class="growth-points-input" type="date" required>
+                        </div>
+                        <div>
+                            <label for="growth-point-height">Lengte (cm)</label>
+                            <input id="growth-point-height" name="measurement_height" class="growth-points-input" type="number" min="0" step="0.1" placeholder="Bijv. 168.4" required>
+                        </div>
+                        <button id="growth-point-add-btn" type="submit" class="growth-points-btn">Meetpunt toevoegen</button>
+                    </form>
+                    <table class="growth-points-table">
+                        <thead>
+                            <tr>
+                                <th>Datum</th>
+                                <th>Lengte (cm)</th>
+                                <th>Actie</th>
+                            </tr>
+                        </thead>
+                        <tbody id="growth-points-body">
+                            {% for m in growth_measurements %}
+                            <tr>
+                                <td>{{ m.date|date:"Y-m-d" }}</td>
+                                <td>{{ m.height_cm|floatformat:1 }}</td>
+                                <td>
+                                    <form method="POST" action="/overig/?page=groei&tab=groei&player_id={{ selected_player_id }}" style="margin:0;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="form_type" value="growth_measurement_delete">
+                                        <input type="hidden" name="player_id" value="{{ selected_player_id }}">
+                                        <input type="hidden" name="measurement_id" value="{{ m.id }}">
+                                        <button type="submit" class="growth-points-btn" style="height:28px; padding:4px 8px;">Verwijderen</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3">Nog geen meetpunten toegevoegd.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <form method="POST" class="bio-table-wrap">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="growth_profile_save">
+                    <input type="hidden" name="player_id" value="{{ selected_player_id }}">
+                    <table class="bio-table">
+                        <thead>
+                            <tr>
+                                <th class="group-header" colspan="4">Algemene gegevens</th>
+                                <th class="group-header alert" colspan="4">Groeifase-indicatoren</th>
+                            </tr>
+                            <tr>
+                                <th>Leeftijd</th>
+                                <th>Lengte</th>
+                                <th>Zithoogte</th>
+                                <th>Gewicht</th>
+                                <th>Maturity offset</th>
+                                <th>Groeitempo (cm/jaar)</th>
+                                <th>Groeiklachten</th>
+                                <th>Actie</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="number" id="mirwald-age" name="age" class="bio-cell-input" min="0" step="0.01" placeholder="jaren" value="{{ growth_profile.age|default_if_none:'' }}"></td>
+                                <td><input type="number" id="mirwald-height" name="height" class="bio-cell-input" min="0" step="0.1" placeholder="cm" value="{{ growth_profile.height|default_if_none:'' }}"></td>
+                                <td><input type="number" id="mirwald-sitting-height" name="sitting_height" class="bio-cell-input" min="0" step="0.1" placeholder="cm" value="{{ growth_profile.sitting_height|default_if_none:'' }}"></td>
+                                <td><input type="number" id="mirwald-weight" name="weight" class="bio-cell-input" min="0" step="0.1" placeholder="kg" value="{{ growth_profile.weight|default_if_none:'' }}"></td>
+                                <td><span id="mirwald-result" class="bio-value">{% if growth_profile and growth_profile.maturity_offset is not None %}{{ growth_profile.maturity_offset|floatformat:2 }}{% else %}-{% endif %}</span></td>
+                                <td><span id="mirwald-growth-rate" class="bio-value">{% if growth_rate is not None %}{{ growth_rate|floatformat:1 }}{% else %}-{% endif %}</span></td>
+                                <td>
+                                    <label class="bio-complaint-toggle" for="mirwald-growth-complaints">
+                                        <input type="checkbox" id="mirwald-growth-complaints" name="growth_complaints" {% if growth_profile and growth_profile.growth_complaints %}checked{% endif %}>
+                                        Ja
+                                    </label>
+                                </td>
+                                <td>
+                                    <input type="text" id="mirwald-action" name="action" class="bio-cell-input" style="max-width: 280px;" placeholder="Typ actie..." value="{{ growth_profile.action|default_if_none:'' }}">
+                                    <button type="submit" class="growth-points-btn" style="height:30px; padding:4px 10px; margin-left:6px;">Opslaan</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
+
+                <p class="bio-formule">
+                    Formule: -9.236 + 0.0002708*(beenlengte*zithoogte) - 0.001663*(leeftijd*beenlengte)
+                    + 0.007216*(leeftijd*zithoogte) + 0.02292*((gewicht/lengte)*100)
+                </p>
+                {% elif groei_tab == "dispensaties" %}
+                <div class="disp-filter-row">
+                    <label for="disp-season">Seizoen:</label>
+                    <select id="disp-season">
+                        <option>2025/2026</option>
+                        <option>2024/2025</option>
+                    </select>
+                    <label for="disp-goal">Doel:</label>
+                    <select id="disp-goal">
+                        <option>Voorjaar</option>
+                        <option>Najaar</option>
+                        <option>Heel jaar</option>
+                    </select>
+                    <button type="button" class="disp-filter-btn">Filter toepassen</button>
+                </div>
+
+                <div class="disp-cards">
+                    <div class="disp-card">
+                        <div class="disp-card-team">013</div>
+                        <div class="disp-card-body">Geen dispensaties</div>
+                    </div>
+                    <div class="disp-card">
+                        <div class="disp-card-team">014</div>
+                        <div class="disp-card-body">Geen dispensaties</div>
+                    </div>
+                    <div class="disp-card">
+                        <div class="disp-card-team">015</div>
+                        <div class="disp-card-body">Geen dispensaties</div>
+                    </div>
+                    <div class="disp-card">
+                        <div class="disp-card-team">016</div>
+                        <div class="disp-card-body">Geen dispensaties</div>
+                    </div>
+                    <div class="disp-card">
+                        <div class="disp-card-team">017</div>
+                        <div class="disp-card-body">Geen dispensaties</div>
+                    </div>
+                </div>
+                {% elif groei_tab == "bio-leeftijd" %}
+                <div class="bioage-toolbar">
+                    <div class="bioage-pills">
+                        <button type="button" class="bioage-pill bioage-team-pill active" data-bioage-team="ALL">Alle teams</button>
+                        <button type="button" class="bioage-pill bioage-team-pill" data-bioage-team="012">O12</button>
+                        <button type="button" class="bioage-pill bioage-team-pill active" data-bioage-team="013">O13</button>
+                        <button type="button" class="bioage-pill bioage-team-pill active" data-bioage-team="014">O14</button>
+                        <button type="button" class="bioage-pill bioage-team-pill" data-bioage-team="015">O15</button>
+                        <button type="button" class="bioage-pill bioage-team-pill" data-bioage-team="016">O16</button>
+                        <button type="button" class="bioage-pill bioage-team-pill" data-bioage-team="017">O17</button>
+                    </div>
+                    <div class="bioage-pills">
+                        <button type="button" class="bioage-pill">2</button>
+                        <button type="button" class="bioage-pill active">3</button>
+                        <button type="button" class="bioage-pill">4</button>
+                        <button type="button" class="bioage-pill">5</button>
+                        <button type="button" class="bioage-pill">6</button>
+                        <button type="button" class="disp-filter-btn">Toepassen</button>
+                    </div>
+                </div>
+
+                <h4 class="bio-top-title">Indeling 013, 014 in 3 groepen (BioLeeftijd)</h4>
+
+                <div class="bioage-add-row">
+                    <input id="bioage-player-name" class="bioage-input" list="bioage-player-list" type="text" placeholder="Speler">
+                    <datalist id="bioage-player-list">
+                        {% for player in players %}
+                            <option value="{{ player.name }}"></option>
+                        {% endfor %}
+                    </datalist>
+                    <select id="bioage-team" class="bioage-select">
+                        <option value="013">013</option>
+                        <option value="014">014</option>
+                        <option value="015">015</option>
+                        <option value="016">016</option>
+                        <option value="017">017</option>
+                    </select>
+                    <input id="bioage-value" class="bioage-input" type="number" step="0.01" min="0" placeholder="Bioleeftijd">
+                    <select id="bioage-position" class="bioage-select">
+                        <option value="Veld">Veld</option>
+                        <option value="Keeper">Keeper</option>
+                    </select>
+                    <select id="bioage-group" class="bioage-select">
+                        <option value="1">Groep 1</option>
+                        <option value="2">Groep 2</option>
+                        <option value="3">Groep 3</option>
+                    </select>
+                    <button id="bioage-add-btn" type="button" class="bioage-add-btn">Speler toevoegen</button>
+                </div>
+
+                <div class="bioage-groups">
+                    <div class="bioage-group-card">
+                        <h5 class="bioage-group-title">Groep 1</h5>
+                        <table class="bioage-table">
+                            <thead>
+                                <tr>
+                                    <th>Speler</th>
+                                    <th>Team</th>
+                                    <th>Bioleeftijd</th>
+                                    <th>Positie</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bioage-group-1">
+                                <tr><td colspan="4">Nog geen spelers toegevoegd.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bioage-group-card">
+                        <h5 class="bioage-group-title">Groep 2</h5>
+                        <table class="bioage-table">
+                            <thead>
+                                <tr>
+                                    <th>Speler</th>
+                                    <th>Team</th>
+                                    <th>Bioleeftijd</th>
+                                    <th>Positie</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bioage-group-2">
+                                <tr><td colspan="4">Nog geen spelers toegevoegd.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bioage-group-card">
+                        <h5 class="bioage-group-title">Groep 3</h5>
+                        <table class="bioage-table">
+                            <thead>
+                                <tr>
+                                    <th>Speler</th>
+                                    <th>Team</th>
+                                    <th>Bioleeftijd</th>
+                                    <th>Positie</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bioage-group-3">
+                                <tr><td colspan="4">Nog geen spelers toegevoegd.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% elif groei_tab == "geboortemaandeffect" %}
+                <div class="bme-shell">
+                    <div class="bme-top-controls">
+                        <button type="button" class="bme-pill bme-team-pill active" data-bme-team="ALL">Alle teams</button>
+                        <button type="button" class="bme-pill bme-team-pill" data-bme-team="O12">O12</button>
+                        <button type="button" class="bme-pill bme-team-pill" data-bme-team="O13">O13</button>
+                        <button type="button" class="bme-pill bme-team-pill" data-bme-team="O14">O14</button>
+                        <button type="button" class="bme-pill bme-team-pill" data-bme-team="O15">O15</button>
+                        <button type="button" class="bme-pill bme-team-pill" data-bme-team="O16">O16</button>
+                        <button type="button" class="bme-pill bme-team-pill" data-bme-team="O17">O17</button>
+                        <button type="button" class="bme-pill bme-team-pill" data-bme-team="O19">O19</button>
+                        <button type="button" class="bme-pill bme-team-pill" data-bme-team="O21">O21</button>
+                    </div>
+
+                    <div class="bme-mode-row">
+                        <button id="bme-mode-month" type="button" class="bme-mode-btn active">Per maand</button>
+                        <button id="bme-mode-quarter" type="button" class="bme-mode-btn">Per kwartaal</button>
+                    </div>
+
+                    <div class="bme-input-grid">
+                        <div class="bme-input-card"><label>jan</label><input class="bme-input" data-bme-month-input="jan" type="number" min="0" step="1" value="0"></div>
+                        <div class="bme-input-card"><label>feb</label><input class="bme-input" data-bme-month-input="feb" type="number" min="0" step="1" value="0"></div>
+                        <div class="bme-input-card"><label>mrt</label><input class="bme-input" data-bme-month-input="mrt" type="number" min="0" step="1" value="0"></div>
+                        <div class="bme-input-card"><label>apr</label><input class="bme-input" data-bme-month-input="apr" type="number" min="0" step="1" value="0"></div>
+                        <div class="bme-input-card"><label>mei</label><input class="bme-input" data-bme-month-input="mei" type="number" min="0" step="1" value="0"></div>
+                        <div class="bme-input-card"><label>jun</label><input class="bme-input" data-bme-month-input="jun" type="number" min="0" step="1" value="0"></div>
+                        <div class="bme-input-card"><label>jul</label><input class="bme-input" data-bme-month-input="jul" type="number" min="0" step="1" value="0"></div>
+                        <div class="bme-input-card"><label>aug</label><input class="bme-input" data-bme-month-input="aug" type="number" min="0" step="1" value="0"></div>
+                        <div class="bme-input-card"><label>sep</label><input class="bme-input" data-bme-month-input="sep" type="number" min="0" step="1" value="0"></div>
+                        <div class="bme-input-card"><label>okt</label><input class="bme-input" data-bme-month-input="okt" type="number" min="0" step="1" value="0"></div>
+                        <div class="bme-input-card"><label>nov</label><input class="bme-input" data-bme-month-input="nov" type="number" min="0" step="1" value="0"></div>
+                        <div class="bme-input-card"><label>dec</label><input class="bme-input" data-bme-month-input="dec" type="number" min="0" step="1" value="0"></div>
+                    </div>
+
+                    <div class="bme-chart-wrap">
+                        <div id="bme-chart" class="bme-chart"></div>
+                    </div>
+                    <p class="bme-footnote">Vul aantallen spelers per maand in. De percentages worden automatisch berekend.</p>
+                </div>
+                {% else %}
+                <div class="disp-card" style="min-height:120px; display:flex; align-items:center; justify-content:center;">
+                    <div class="disp-card-body" style="font-size:1.6rem;">Deze tab volgt nog.</div>
+                </div>
+                {% endif %}
+            </section>
+        </div>
+    {% endif %}
+    {% if page == "stagiair" %}
+        <a href="/overig/" class="btn btn-secondary back-btn">&larr; Terug</a>
+
+        <div class="content-box">
+            <h3 class="block-title">Begeleiding stagiair(e) seizoen 2025-2026</h3>
+            <p class="block-text">
+                Dit onderdeel richt zich op de begeleiding, doelen en structuur voor stagiairs binnen Willem II.
+                Gebruik dit als werkruimte om afspraken en leerdoelen vast te leggen.
+            </p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="doelen">
+                <h4 class="block-title">Ontwikkeldoelen</h4>
+                <p class="block-text">Noteer hier de leer- en ontwikkeldoelen van de stagiair(e).</p>
+                <textarea class="wide-input" name="text" placeholder="Typ hier...">{{ stagiair_texts.doelen|default_if_none:'' }}</textarea>
+                <div class="save-row">
+                    <button class="hp-save-btn" type="submit">Opslaan</button>
+                </div>
+            </form>
+
+            <div class="hp-divider"></div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="actie">
+                <h4 class="block-title">Korte en lange termijn actiepunten</h4>
+                <p class="block-text">Concreet overzicht van acties op korte en lange termijn.</p>
+                <textarea class="wide-input" name="text" placeholder="Typ hier...">{{ stagiair_texts.actie|default_if_none:'' }}</textarea>
+                <div class="save-row">
+                    <button class="hp-save-btn" type="submit">Opslaan</button>
+                </div>
+            </form>
+
+            <div class="hp-divider"></div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="afspraken">
+                <h4 class="block-title">Afspraken</h4>
+                <p class="block-text">Afspraken over begeleiding, feedbackmomenten en taken.</p>
+                <textarea class="wide-input" name="text" placeholder="Typ hier...">{{ stagiair_texts.afspraken|default_if_none:'' }}</textarea>
+                <div class="save-row">
+                    <button class="hp-save-btn" type="submit">Opslaan</button>
+                </div>
+            </form>
+
+            <div class="hp-divider"></div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="ambitie">
+                <h4 class="block-title">Ambitie voor de toekomst</h4>
+                <p class="block-text">Ambities en gewenste ontwikkeling richting toekomst.</p>
+                <textarea class="wide-input" name="text" placeholder="Typ hier...">{{ stagiair_texts.ambitie|default_if_none:'' }}</textarea>
+                <div class="save-row">
+                    <button class="hp-save-btn" type="submit">Opslaan</button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if page == "vakantie" %}
+        <a href="/overig/" class="btn btn-secondary back-btn">&larr; Terug</a>
+
+        <div class="content-box">
+            <h3 class="block-title">Vakantieprogramma</h3>
+            <p class="block-text">
+                Werk volgens deze flow: eerst programma maken, daarna zichtbaarheid plannen, en vervolgens uitvoering monitoren.
+            </p>
+
+            <div class="workflow-strip">
+                <a href="#vakantie-stap-1" class="workflow-step">
+                    <span class="workflow-step-index">1</span>
+                    <span class="workflow-step-title">Maak programma</span>
+                    <span class="workflow-step-text">Voer direct het trainingsprogramma in voor speler(s).</span>
+                </a>
+                <a href="#vakantie-stap-2" class="workflow-step">
+                    <span class="workflow-step-index">2</span>
+                    <span class="workflow-step-title">Plan zichtbaar vanaf</span>
+                    <span class="workflow-step-text">Leg vooruit in en bepaal wanneer spelers dit mogen zien.</span>
+                </a>
+                <a href="#vakantie-stap-3" class="workflow-step">
+                    <span class="workflow-step-index">3</span>
+                    <span class="workflow-step-title">Monitor uitvoering</span>
+                    <span class="workflow-step-text">Bekijk status, vink uitgevoerd aan en stuur bij waar nodig.</span>
+                </a>
+            </div>
+
+            <section id="vakantie-stap-1" class="workflow-block">
+                <h4 class="workflow-block-title">Stap 1 - Maak programma</h4>
+                <p class="block-text">Voeg direct een vakantieprogramma toe en markeer eventueel meteen als uitgevoerd.</p>
+                <form method="POST" class="vakantie-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="vakantie_entry">
+                    <div>
+                        <label class="block-text" style="font-weight:700;">Datum</label>
+                        <input type="date" name="date" class="form-control" required>
+                    </div>
+                    <div>
+                        <label class="block-text" style="font-weight:700;">Speler</label>
+                        <select name="player_id" class="form-select" required>
+                            <option value="all">-- Alle spelers --</option>
+                            <option value="">-- Kies speler --</option>
+                            {% for player in players %}
+                                <option value="{{ player.id }}">{{ player.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block-text" style="font-weight:700;">Loopvorm</label>
+                        <input type="text" name="loopvorm" class="form-control" placeholder="Bijv. interval 6x200m">
+                    </div>
+                    <div>
+                        <label class="block-text" style="font-weight:700;">Kracht</label>
+                        <input type="text" name="kracht" class="form-control" placeholder="Bijv. squat 4x6 + core">
+                    </div>
+                    <div class="vakantie-actions">
+                        <label style="font-weight:700;">
+                            <input type="checkbox" name="completed"> Uitgevoerd
+                        </label>
+                        <button type="submit" class="hp-save-btn">Opslaan</button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="vakantie-stap-2" class="workflow-block planning-section">
+                <h4 class="workflow-block-title">Stap 2 - Plan zichtbaar vanaf</h4>
+                <p class="block-text">Plan vooruit en bepaal wanneer het programma zichtbaar wordt voor geselecteerde spelers.</p>
+
+                <form method="POST" class="planning-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="vakantie_planning_create">
+                    <div>
+                        <label class="block-text" style="font-weight:700;">Datum</label>
+                        <input type="date" name="date" class="form-control" required>
+                    </div>
+                    <div>
+                        <label class="block-text" style="font-weight:700;">Speler(s)</label>
+                        <select name="player_ids" class="form-select" required>
+                            <option value="all">-- Alle spelers --</option>
+                            {% for player in players %}
+                                <option value="{{ player.id }}">{{ player.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block-text" style="font-weight:700;">Loopvorm</label>
+                        <input type="text" name="loopvorm" class="form-control" placeholder="Bijv. interval 6x200m">
+                    </div>
+                    <div>
+                        <label class="block-text" style="font-weight:700;">Kracht</label>
+                        <input type="text" name="kracht" class="form-control" placeholder="Bijv. squat 4x6 + core">
+                    </div>
+                    <div>
+                        <label class="block-text" style="font-weight:700;">Zichtbaar vanaf</label>
+                        <input type="date" name="visible_from" class="form-control" required>
+                    </div>
+                    <div class="planning-actions">
+                        <label style="font-weight:700; display:block;">Zichtbaar maken</label>
+                        <label style="font-weight:600;">
+                            <input type="checkbox" name="direct_visible"> Direct zichtbaar
+                        </label>
+                        <button type="submit" class="hp-save-btn">Planning opslaan</button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="vakantie-stap-3" class="workflow-block planning-section">
+                <h4 class="workflow-block-title">Stap 3 - Monitor uitvoering</h4>
+                <p class="block-text">Volg uitgevoerde sessies en publicatiestatus op, en stuur bij indien nodig.</p>
+
+                <div class="vakantie-table-wrap">
+                    <table class="vakantie-table">
+                        <thead>
+                            <tr>
+                                <th>Datum</th>
+                                <th>Speler</th>
+                                <th>Loopvorm</th>
+                                <th>Kracht</th>
+                                <th>Uitgevoerd</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in vakantie_entries %}
+                            <tr>
+                                {% if edit_id == entry.id %}
+                                <td>
+                                    <form method="POST" class="vakantie-toggle-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="form_type" value="vakantie_update">
+                                        <input type="hidden" name="entry_id" value="{{ entry.id }}">
+                                        <input type="date" name="date" class="form-control" value="{{ entry.date|date:'Y-m-d' }}">
+                                </td>
+                                <td>{{ entry.player.name }}</td>
+                                <td>
+                                    <input type="text" name="loopvorm" class="form-control" value="{{ entry.loopvorm|default_if_none:'' }}">
+                                </td>
+                                <td>
+                                    <input type="text" name="kracht" class="form-control" value="{{ entry.kracht|default_if_none:'' }}">
+                                </td>
+                                <td class="vakantie-row-actions">
+                                    <input type="checkbox" name="completed" {% if entry.completed %}checked{% endif %}>
+                                    <button type="submit" class="vakantie-small-btn">Opslaan</button>
+                                    <a href="/overig/?page=vakantie" class="vakantie-edit-btn">Annuleren</a>
+                                    </form>
+                                </td>
+                                {% else %}
+                                <td>{{ entry.date|date:"d-m-Y" }}</td>
+                                <td>{{ entry.player.name }}</td>
+                                <td>{{ entry.loopvorm|default_if_none:"-" }}</td>
+                                <td>{{ entry.kracht|default_if_none:"-" }}</td>
+                                <td class="vakantie-row-actions">
+                                    <form method="POST" class="vakantie-toggle-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="form_type" value="vakantie_toggle">
+                                        <input type="hidden" name="entry_id" value="{{ entry.id }}">
+                                        <input type="checkbox" name="completed" {% if entry.completed %}checked{% endif %} onchange="this.form.submit()">
+                                    </form>
+                                    <a href="/overig/?page=vakantie&edit_id={{ entry.id }}" class="vakantie-edit-btn" title="Bewerken">Bewerken</a>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5">Nog geen items toegevoegd.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="planning-table-wrap">
+                    <table class="planning-table">
+                        <thead>
+                            <tr>
+                                <th>Datum</th>
+                                <th>Spelers</th>
+                                <th>Loopvorm</th>
+                                <th>Kracht</th>
+                                <th>Zichtbaar vanaf</th>
+                                <th>Status</th>
+                                <th>Actie</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for plan in vakantie_planningen %}
+                            <tr>
+                                <td>{{ plan.date|date:"d-m-Y" }}</td>
+                                <td>
+                                    {% if plan.players.count == players.count %}
+                                        Alle spelers
+                                    {% else %}
+                                        {{ plan.players.all|join:", " }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ plan.loopvorm|default_if_none:"-" }}</td>
+                                <td>{{ plan.kracht|default_if_none:"-" }}</td>
+                                <td>{{ plan.visible_from|date:"d-m-Y" }}</td>
+                                <td>
+                                    {% if plan.is_visible %}
+                                        <span class="planning-badge">Zichtbaar</span>
+                                    {% else %}
+                                        <span class="planning-badge">Niet zichtbaar</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not plan.is_visible %}
+                                    <form method="POST" style="margin:0;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="form_type" value="vakantie_planning_publish">
+                                        <input type="hidden" name="planning_id" value="{{ plan.id }}">
+                                        <button type="submit" class="vakantie-small-btn">Zichtbaar maken</button>
+                                    </form>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7">Nog geen planningen toegevoegd.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    {% endif %}
 </div>
 
-{% endif %}
+<script>
+    (function () {
+        const playerSelect = document.getElementById("growth-player-select");
+        const ageInput = document.getElementById("mirwald-age");
+        const heightInput = document.getElementById("mirwald-height");
+        const sittingHeightInput = document.getElementById("mirwald-sitting-height");
+        const weightInput = document.getElementById("mirwald-weight");
+        const resultEl = document.getElementById("mirwald-result");
+
+        if (!playerSelect || !ageInput || !heightInput || !sittingHeightInput || !weightInput || !resultEl) {
+            return;
+        }
+
+        function parseValue(input) {
+            const value = parseFloat(input.value);
+            return Number.isFinite(value) ? value : null;
+        }
+
+        function calculateMirwald() {
+            const age = parseValue(ageInput);
+            const height = parseValue(heightInput);
+            const sittingHeight = parseValue(sittingHeightInput);
+            const weight = parseValue(weightInput);
+
+            if (age === null || height === null || sittingHeight === null || weight === null || height <= 0) {
+                resultEl.textContent = "-";
+                return;
+            }
+
+            const legLength = height - sittingHeight;
+            const offset =
+                -9.236 +
+                (0.0002708 * (legLength * sittingHeight)) -
+                (0.001663 * (age * legLength)) +
+                (0.007216 * (age * sittingHeight)) +
+                (0.02292 * ((weight / height) * 100));
+
+            resultEl.textContent = offset.toFixed(2);
+        }
+
+        [playerSelect, ageInput, heightInput, sittingHeightInput, weightInput].forEach(function (el) {
+            el.addEventListener("input", calculateMirwald);
+            el.addEventListener("change", calculateMirwald);
+        });
+
+        calculateMirwald();
+    })();
+
+    (function () {
+        const playerInput = document.getElementById("bioage-player-name");
+        const teamInput = document.getElementById("bioage-team");
+        const valueInput = document.getElementById("bioage-value");
+        const positionInput = document.getElementById("bioage-position");
+        const groupInput = document.getElementById("bioage-group");
+        const addBtn = document.getElementById("bioage-add-btn");
+
+        if (!playerInput || !teamInput || !valueInput || !positionInput || !groupInput || !addBtn) {
+            return;
+        }
+
+        function getGroupBody() {
+            return document.getElementById("bioage-group-" + groupInput.value);
+        }
+
+        function clearEmptyRow(groupBody) {
+            const firstRow = groupBody.querySelector("tr");
+            if (firstRow && firstRow.children.length === 1 && firstRow.textContent.indexOf("Nog geen spelers") !== -1) {
+                groupBody.innerHTML = "";
+            }
+        }
+
+        function addRow() {
+            const name = playerInput.value.trim();
+            const team = teamInput.value;
+            const bioValue = parseFloat(valueInput.value);
+            const position = positionInput.value;
+            const groupBody = getGroupBody();
+
+            if (!name || !groupBody || !Number.isFinite(bioValue)) {
+                return;
+            }
+
+            clearEmptyRow(groupBody);
+
+            const row = document.createElement("tr");
+            row.innerHTML =
+                "<td>" + name + "</td>" +
+                "<td>" + team + "</td>" +
+                "<td>" + bioValue.toFixed(2) + "</td>" +
+                "<td>" + position + "</td>";
+            groupBody.appendChild(row);
+
+            // Sorteer oplopend op bioleeftijd voor een net overzicht.
+            const rows = Array.from(groupBody.querySelectorAll("tr"));
+            rows.sort(function (a, b) {
+                const aVal = parseFloat(a.children[2].textContent);
+                const bVal = parseFloat(b.children[2].textContent);
+                return aVal - bVal;
+            });
+            rows.forEach(function (r) { groupBody.appendChild(r); });
+
+            playerInput.value = "";
+            valueInput.value = "";
+            playerInput.focus();
+        }
+
+        addBtn.addEventListener("click", addRow);
+        valueInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addRow();
+            }
+        });
+        playerInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addRow();
+            }
+        });
+    })();
+
+    (function () {
+        const chartEl = document.getElementById("bme-chart");
+        const modeMonthBtn = document.getElementById("bme-mode-month");
+        const modeQuarterBtn = document.getElementById("bme-mode-quarter");
+        const monthInputs = Array.from(document.querySelectorAll("[data-bme-month-input]"));
+
+        if (!chartEl || !modeMonthBtn || !modeQuarterBtn || monthInputs.length === 0) {
+            return;
+        }
+
+        const monthLabels = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+        let mode = "month";
+
+        function readMonthCounts() {
+            return monthInputs.map(function (input) {
+                const val = parseFloat(input.value);
+                return Number.isFinite(val) && val >= 0 ? val : 0;
+            });
+        }
+
+        function renderBars(labels, values) {
+            chartEl.innerHTML = "";
+            const total = values.reduce(function (sum, v) { return sum + v; }, 0);
+            const percentages = values.map(function (v) {
+                return total > 0 ? (v / total) * 100 : 0;
+            });
+            const maxPct = Math.max.apply(null, percentages.concat([1]));
+
+            labels.forEach(function (label, index) {
+                const pct = percentages[index];
+                const barHeight = Math.max(6, Math.round((pct / maxPct) * 220));
+
+                const col = document.createElement("div");
+                col.className = "bme-bar-col";
+
+                const top = document.createElement("div");
+                top.className = "bme-bar-label-top";
+                top.textContent = pct.toFixed(1) + "%";
+
+                const bar = document.createElement("div");
+                bar.className = "bme-bar";
+                bar.style.height = barHeight + "px";
+
+                const bottom = document.createElement("div");
+                bottom.className = "bme-bar-label-bottom";
+                bottom.textContent = label;
+
+                col.appendChild(top);
+                col.appendChild(bar);
+                col.appendChild(bottom);
+                chartEl.appendChild(col);
+            });
+        }
+
+        function render() {
+            const monthCounts = readMonthCounts();
+            if (mode === "month") {
+                renderBars(monthLabels, monthCounts);
+                return;
+            }
+
+            const quarterLabels = ["Q1", "Q2", "Q3", "Q4"];
+            const quarterValues = [
+                monthCounts[0] + monthCounts[1] + monthCounts[2],
+                monthCounts[3] + monthCounts[4] + monthCounts[5],
+                monthCounts[6] + monthCounts[7] + monthCounts[8],
+                monthCounts[9] + monthCounts[10] + monthCounts[11],
+            ];
+            renderBars(quarterLabels, quarterValues);
+        }
+
+        modeMonthBtn.addEventListener("click", function () {
+            mode = "month";
+            modeMonthBtn.classList.add("active");
+            modeQuarterBtn.classList.remove("active");
+            render();
+        });
+
+        modeQuarterBtn.addEventListener("click", function () {
+            mode = "quarter";
+            modeQuarterBtn.classList.add("active");
+            modeMonthBtn.classList.remove("active");
+            render();
+        });
+
+        monthInputs.forEach(function (input) {
+            input.addEventListener("input", render);
+        });
+
+        render();
+    })();
+
+    (function () {
+        const growthTeamButtons = Array.from(document.querySelectorAll(".bio-chip-team"));
+        const playerSelect = document.getElementById("growth-player-select");
+        const bioageTeamButtons = Array.from(document.querySelectorAll(".bioage-team-pill"));
+        const bioageBodies = [
+            document.getElementById("bioage-group-1"),
+            document.getElementById("bioage-group-2"),
+            document.getElementById("bioage-group-3"),
+        ].filter(Boolean);
+        const bmeTeamButtons = Array.from(document.querySelectorAll(".bme-team-pill"));
+
+        if (growthTeamButtons.length && playerSelect) {
+            const originalOptions = Array.from(playerSelect.options).map(function (opt) {
+                return { value: opt.value, text: opt.text, selected: opt.selected };
+            });
+
+            function refillSelect(teamLabel) {
+                const selectedValue = playerSelect.value;
+                const filtered = originalOptions.filter(function (opt) {
+                    if (!teamLabel) {
+                        return true;
+                    }
+                    return opt.text.toUpperCase().indexOf(teamLabel.toUpperCase()) !== -1;
+                });
+
+                playerSelect.innerHTML = "";
+                const useFiltered = filtered.length > 0 ? filtered : originalOptions;
+                useFiltered.forEach(function (opt) {
+                    const el = document.createElement("option");
+                    el.value = opt.value;
+                    el.textContent = opt.text;
+                    if (opt.value === selectedValue) {
+                        el.selected = true;
+                    }
+                    playerSelect.appendChild(el);
+                });
+            }
+
+            growthTeamButtons.forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    const alreadyActive = btn.classList.contains("active");
+                    growthTeamButtons.forEach(function (b) { b.classList.remove("active"); });
+                    if (alreadyActive) {
+                        refillSelect("");
+                        return;
+                    }
+                    btn.classList.add("active");
+                    refillSelect(btn.dataset.growthTeam || "");
+                });
+            });
+        }
+
+        function applyBioageTeamFilter(teamCode) {
+            bioageBodies.forEach(function (body) {
+                const rows = Array.from(body.querySelectorAll("tr"));
+                let visibleCount = 0;
+
+                rows.forEach(function (row) {
+                    if (row.children.length === 1) {
+                        row.style.display = "none";
+                        return;
+                    }
+                    const teamCellText = (row.children[1]?.textContent || "").trim();
+                    const show = teamCode === "ALL" || teamCellText === teamCode;
+                    row.style.display = show ? "" : "none";
+                    if (show) {
+                        visibleCount += 1;
+                    }
+                });
+
+                let emptyRow = body.querySelector("tr[data-empty='1']");
+                if (!emptyRow) {
+                    emptyRow = document.createElement("tr");
+                    emptyRow.setAttribute("data-empty", "1");
+                    emptyRow.innerHTML = "<td colspan='4'>Geen spelers in deze selectie.</td>";
+                    body.appendChild(emptyRow);
+                }
+                emptyRow.style.display = visibleCount === 0 ? "" : "none";
+            });
+        }
+
+        if (bioageTeamButtons.length && bioageBodies.length) {
+            bioageTeamButtons.forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    bioageTeamButtons.forEach(function (b) { b.classList.remove("active"); });
+                    btn.classList.add("active");
+                    applyBioageTeamFilter(btn.dataset.bioageTeam || "ALL");
+                });
+            });
+
+            const active = bioageTeamButtons.find(function (b) { return b.classList.contains("active"); });
+            applyBioageTeamFilter(active ? (active.dataset.bioageTeam || "ALL") : "ALL");
+        }
+
+        if (bmeTeamButtons.length) {
+            bmeTeamButtons.forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    bmeTeamButtons.forEach(function (b) { b.classList.remove("active"); });
+                    btn.classList.add("active");
+                });
+            });
+        }
+    })();
+</script>
 
 {% endblock %}

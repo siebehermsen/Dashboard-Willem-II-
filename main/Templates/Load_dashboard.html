@@ -36,6 +36,72 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 .vs { font-size: 1.8rem; font-weight: bold; color: #b60000; }
 .match-info { color: #555; font-size: 1.1rem; }
 
+/* ALERTS */
+.alerts-card .card-header {
+    border-bottom: none;
+    margin-bottom: 6px;
+}
+
+.alerts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.alert-panel {
+    background: #f8faff;
+    border: 1px solid #dce5f4;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.alert-panel h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    color: #1f2a44;
+}
+
+.alert-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    background: #ffffff;
+    border: 1px solid #e7edf8;
+    border-radius: 10px;
+    padding: 9px 10px;
+}
+
+.alert-player {
+    font-weight: 600;
+    color: #1f2a44;
+}
+
+.alert-text {
+    color: #4f5f80;
+    font-size: 0.92rem;
+    text-align: right;
+}
+
+.alert-empty {
+    color: #6c757d;
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    .alerts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* 📅 WEEKPROGRAMMA */
 .weekprogram-table { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
 .weekprogram-table th, .weekprogram-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
@@ -141,6 +207,122 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 .table-players th:first-child {
     text-align: left;
 }
+
+/* VERJAARDAGEN */
+.birthday-list {
+    margin-top: 8px;
+}
+.birthday-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.birthday-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+.birthday-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.birthday-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.birthday-item:last-child {
+    border-bottom: none;
+}
+.birthday-role {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+.birthday-date {
+    font-weight: 600;
+    color: #1f2a44;
+}
+.birthday-empty {
+    color: #6c757d;
+    margin: 0;
+}
+.birthday-cake {
+    margin-left: 8px;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+.birthday-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.birthday-form input,
+.birthday-form select {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+}
+.birthday-form .primary-btn {
+    padding: 8px 14px;
+}
+.birthday-delete-btn {
+    border: none;
+    background: #b60000;
+    color: #fff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.birthday-delete-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(182, 0, 0, 0.25);
+}
+
+/* MEETRAINERS JEUGD */
+.youth-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.youth-form input {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+}
+.youth-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.youth-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+.youth-item:last-child {
+    border-bottom: none;
+}
+.youth-meta {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+.youth-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 </style>
 
 <main class="container">
@@ -172,18 +354,18 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         <div class="teams">
             <div>
                 {% if home_logo %}
-                    <img src="{{ home_logo }}" alt="{{ upcoming_match.home }}" class="team-logo">
+                    <img src="{{ home_logo }}" alt="{{ home_name }}" class="team-logo">
                 {% endif %}
-                <p>{{ upcoming_match.home }}</p>
+                <p>{{ home_name }}</p>
             </div>
 
             <p class="vs">VS</p>
 
             <div>
                 {% if away_logo %}
-                    <img src="{{ away_logo }}" alt="{{ upcoming_match.away }}" class="team-logo">
+                    <img src="{{ away_logo }}" alt="{{ away_name }}" class="team-logo">
                 {% endif %}
-                <p>{{ upcoming_match.away }}</p>
+                <p>{{ away_name }}</p>
             </div>
         </div>
 
@@ -192,6 +374,48 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
     {% else %}
         <p>Geen wedstrijd gepland 🎉</p>
     {% endif %}
+</div>
+
+<!-- ALERTS: WELLNESS + BLESSURERISICO -->
+<div class="card alerts-card">
+    <div class="card-header">
+        <h2><i data-feather="alert-triangle"></i> Verhoogd blessurerisico</h2>
+    </div>
+    <div class="alerts-grid">
+        <div class="alert-panel">
+            <h3>Wellness bijzonderheden</h3>
+            {% if wellness_alerts %}
+                <ul class="alert-list">
+                    {% for alert in wellness_alerts %}
+                        <li class="alert-item">
+                            <span class="alert-player">{{ alert.player_name }}</span>
+                            <span class="alert-text">{{ alert.reason }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="alert-empty">Geen opvallende wellness-signalen vandaag.</p>
+            {% endif %}
+        </div>
+        <div class="alert-panel">
+            <h3>Verhoogd blessurerisico (belasting)</h3>
+            {% if load_alerts %}
+                <ul class="alert-list">
+                    {% for alert in load_alerts %}
+                        <li class="alert-item">
+                            <span class="alert-player">{{ alert.player_name }}</span>
+                            <span class="alert-text">
+                                +{{ alert.ratio }}x vs vorige weken
+                                ({{ alert.current_avg }} / {{ alert.prev_avg }})
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="alert-empty">Geen spelers met verhoogd belastingsrisico.</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 
@@ -465,6 +689,97 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
 </div>
 
 
+<!-- MEETRAINERS JEUGD DEZE WEEK -->
+<div class="card">
+    <div class="card-header">
+        <h2><i data-feather="users"></i> Meetrainers jeugd deze week</h2>
+    </div>
+
+    <form class="youth-form" method="post" action="{% url 'add_youth_guest' %}">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="Naam" required>
+        <input type="text" name="team" placeholder="Team (bijv. O17)">
+        <input type="date" name="week_of" title="Week van">
+        <button type="submit" class="primary-btn">Opslaan</button>
+    </form>
+
+    {% if youth_guests %}
+        <ul class="youth-items">
+            {% for guest in youth_guests %}
+                <li class="youth-item">
+                    <span>
+                        {{ guest.name }}
+                        {% if guest.team %}
+                            <span class="youth-meta">{{ guest.team }}</span>
+                        {% endif %}
+                    </span>
+                    <span class="youth-actions">
+                        {% if guest.week_of %}
+                            <span class="youth-meta">Week van {{ guest.week_of|date:"d-m" }}</span>
+                        {% endif %}
+                        <form method="post" action="{% url 'delete_youth_guest' guest.id %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="birthday-delete-btn">Verwijder</button>
+                        </form>
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="birthday-empty">Nog geen meetrainers toegevoegd.</p>
+    {% endif %}
+</div>
+
+<!-- VERJAARDAGEN -->
+<div class="card">
+    <div class="card-header">
+        <h2>
+            <i data-feather="gift"></i>
+            Verjaardagen
+            <span class="birthday-cake" aria-hidden="true">🎂</span>
+        </h2>
+    </div>
+
+    <div class="birthday-list">
+        <form class="birthday-form" method="post" action="{% url 'add_birthday' %}">
+            {% csrf_token %}
+            <input type="text" name="name" placeholder="Naam" required>
+            <select name="role">
+                <option value="">Rol</option>
+                <option value="Speler">Speler</option>
+                <option value="Staf">Staf</option>
+                <option value="Overig">Overig</option>
+            </select>
+            <input type="date" name="date" required>
+            <button type="submit" class="primary-btn">Opslaan</button>
+        </form>
+
+        {% if birthdays %}
+            <ul class="birthday-items">
+                {% for birthday in birthdays %}
+                    <li class="birthday-item">
+                        <span class="birthday-name">
+                            {{ birthday.name }}
+                            {% if birthday.role %}
+                                <span class="birthday-role">{{ birthday.role }}</span>
+                            {% endif %}
+                        </span>
+                        <span class="birthday-actions">
+                            <span class="birthday-date">{{ birthday.date|date:"d-m" }}</span>
+                            <form method="post" action="{% url 'delete_birthday' birthday.id %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="birthday-delete-btn">Verwijder</button>
+                            </form>
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="birthday-empty">Nog geen verjaardagen toegevoegd.</p>
+        {% endif %}
+    </div>
+</div>
+
 <!-- 🩺 MODAL: Blessure toevoegen (ENKEL EN CORRECT) -->
 <div id="rehabModal" style="
     display: none; 
@@ -639,7 +954,5 @@ window.addEventListener("click", (e) => {
     }
 });
 </script>
-
-
 
 {% endblock %}

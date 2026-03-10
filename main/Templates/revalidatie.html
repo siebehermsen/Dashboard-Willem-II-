@@ -4,10 +4,7 @@
 {% block content %}
 <style>
     .revalidatie-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
+        display: block;
         margin-bottom: 40px;
         border-bottom: 2px solid #e74c3c;
         padding-bottom: 10px;
@@ -17,6 +14,43 @@
         font-size: 2rem;
         color: #1f2a44;
         margin: 0;
+    }
+
+    .revalidatie-switch {
+        display: flex;
+        gap: 10px;
+        background: #eef2f9;
+        padding: 6px;
+        border-radius: 999px;
+        width: fit-content;
+    }
+
+    .revalidatie-switch-wrap {
+        display: flex;
+        justify-content: center;
+        margin-top: 18px;
+    }
+
+    .revalidatie-switch a {
+        text-decoration: none;
+        color: #1f2a44;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        transition: all 0.18s ease;
+    }
+
+    .revalidatie-switch a:hover {
+        background: #ffffff;
+        border-color: #d4dcea;
+    }
+
+    .revalidatie-switch a.active {
+        background: #1f2a44;
+        color: #ffffff;
+        border-color: #1f2a44;
+        box-shadow: 0 4px 12px rgba(31, 42, 68, 0.24);
     }
 
     .player-select {
@@ -130,92 +164,413 @@
         margin-top: 20px;
         max-width: 100%;
     }
+
+    .analysis-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 10px;
+        margin: 12px 0 8px;
+    }
+
+    .summary-card {
+        background: #f7f9fc;
+        border: 1px solid #d9e0ec;
+        border-radius: 10px;
+        padding: 10px 12px;
+    }
+
+    .summary-card .label {
+        display: block;
+        font-size: 0.82rem;
+        color: #5a677d;
+        margin-bottom: 4px;
+    }
+
+    .summary-card .value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1f2a44;
+    }
+
+    .analysis-controls {
+        margin-top: 8px;
+    }
+
+    .metric-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 0;
+    }
+
+    .metric-btn {
+        border: 1px solid #d0d7e2;
+        background: #ffffff;
+        color: #1f2a44;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .metric-btn.active {
+        background: #1f2a44;
+        color: #ffffff;
+        border-color: #1f2a44;
+    }
+
+    .metric-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .chart-wrap {
+        position: relative;
+        height: 360px;
+        margin-top: 10px;
+    }
+
+    .analysis-details {
+        margin-top: 12px;
+    }
+
+    .analysis-details summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: #1f2a44;
+    }
+
+    .analysis-details .analysis-table th:nth-child(8),
+    .analysis-details .analysis-table td:nth-child(8) {
+        width: 92px;
+        white-space: nowrap;
+    }
+
+    .rehab-plan-builder {
+        margin-top: 16px;
+        background: #f7f9fc;
+        border: 1px solid #d9e0ec;
+        border-radius: 12px;
+        padding: 14px;
+    }
+
+    .planner-controls {
+        display: grid;
+        grid-template-columns: minmax(210px, 280px) 1fr;
+        gap: 14px;
+        align-items: end;
+    }
+
+    .planner-field label {
+        display: block;
+        font-weight: 600;
+        color: #1f2a44;
+        margin-bottom: 6px;
+    }
+
+    .planner-field input {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid #cfd8e5;
+        font-size: 0.95rem;
+    }
+
+    .planner-note {
+        margin: 0;
+        color: #5a677d;
+        font-size: 0.9rem;
+    }
+
+    .planner-summary {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 10px;
+    }
+
+    .planner-table-wrap {
+        margin-top: 12px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #d9e0ec;
+        background: #fff;
+    }
+
+    .planner-table-wrap table {
+        margin-top: 0;
+        border-radius: 0;
+        border: none;
+    }
+
+    .planner-table-wrap th,
+    .planner-table-wrap td {
+        font-size: 0.9rem;
+        vertical-align: top;
+    }
+
+    .target-breakdown {
+        text-align: left;
+    }
+
+    .target-breakdown summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: #1f2a44;
+    }
+
+    .target-lines {
+        margin-top: 6px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(110px, 1fr));
+        gap: 6px;
+        color: #32415d;
+    }
+
+    .target-chip {
+        border: 1px solid #d7deea;
+        border-radius: 8px;
+        padding: 5px 7px;
+        background: #f8fafd;
+        font-size: 0.78rem;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .target-chip strong {
+        color: #1f2a44;
+        margin-right: 4px;
+    }
+
+    .planner-table-wrap th:nth-child(1),
+    .planner-table-wrap td:nth-child(1) {
+        width: 18%;
+    }
+
+    .planner-table-wrap th:nth-child(2),
+    .planner-table-wrap td:nth-child(2) {
+        width: 40%;
+    }
+
+    @media (max-width: 768px) {
+        .planner-controls {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .target-lines {
+            grid-template-columns: repeat(2, minmax(100px, 1fr));
+        }
+    }
 </style>
 
 <div class="revalidatie-header">
-    <h1>⚽ Revalidatie Veld-overzicht</h1>
+    <h1>Revalidatie Veld-overzicht</h1>
+    <div class="revalidatie-switch-wrap">
+        <div class="revalidatie-switch">
+            <a href="{% url 'revalidatie' %}" class="active">Revalidatie veld</a>
+            <a href="{% url 'revalidatie_gym' %}">Revalidatie gym</a>
+        </div>
+    </div>
+</div>
 
 <div class="revalidatie-container">
 
-    <!-- 🔹 Actieve blessures -->
+    <!-- Actieve blessures -->
     <section class="rehab-section">
-        <h2>Actieve blessures</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Speler</th>
-                    <th>Type blessure</th>
-                    <th>Startdatum</th>
-                    <th>Verwachte terugkeer</th>
-                    <th>Herstelstatus</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Amine Lachkar</td>
-                    <td>Hamstring</td>
-                    <td>10 oktober 2025</td>
-                    <td>25 november 2025</td>
-                    <td>
-                        <div class="progress-bar"><div class="progress-fill" style="width: 70%;"></div></div>
-                        <small>70% hersteld</small>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Niels van Berkel</td>
-                    <td>Enkelverstuiking</td>
-                    <td>22 oktober 2025</td>
-                    <td>10 november 2025</td>
-                    <td>
-                        <div class="progress-bar"><div class="progress-fill" style="width: 40%;"></div></div>
-                        <small>Fase 2: loop- en stabiliteitsoefeningen</small>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Thomas Verheydt</td>
-                    <td>Schouderblessure</td>
-                    <td>1 november 2025</td>
-                    <td>Onbekend</td>
-                    <td>
-                        <div class="progress-bar"><div class="progress-fill" style="width: 20%;"></div></div>
-                        <small>Fase 1: mobiliteit & pijnvrij bewegen</small>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <p class="note">Laatste update: 6 november 2025</p>
-    </section>
+    <h2>Actieve blessures</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Speler</th>
+                <th>Type blessure</th>
+                <th>Startdatum</th>
+                <th>Verwachte terugkeer</th>
+                <th>Herstelstatus</th>
+            </tr>
+        </thead>
+        <tbody id="injuriesTableBody">
+            {% for injury in injuries %}
+            <tr>
+                <td>{{ injury.name }}</td>
+                <td>{{ injury.injury_type }}</td>
+                <td>{% if injury.start_date %}{{ injury.start_date|date:"d-m-Y" }}{% else %}-{% endif %}</td>
+                <td>{{ injury.duration|default:"-" }}</td>
+                <td>
+                    {% if injury.phase == "early" %}
+                        <div class="progress-bar"><div class="progress-fill" style="width: 25%;"></div></div>
+                        <small>Vroege fase</small>
+                    {% elif injury.phase == "mid" %}
+                        <div class="progress-bar"><div class="progress-fill" style="width: 60%;"></div></div>
+                        <small>Middenfase</small>
+                    {% else %}
+                        <div class="progress-bar"><div class="progress-fill" style="width: 90%;"></div></div>
+                        <small>Laatste fase</small>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">Geen actieve blessures gevonden.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="note" id="injuriesNote">
+        {% if selected_player %}
+            Overzicht voor {{ selected_player.name }}
+        {% else %}
+            Teamoverzicht (selecteer speler voor gefilterde data)
+        {% endif %}
+    </p>
+</section>
 
-    <!-- 🔹 Analyse laatste 4 weken -->
+    <!-- Analyse laatste 4 weken -->
     <section class="rehab-section">
-        <h2>Analyse externe belasting – afgelopen 4 weken</h2>
-        <p>Onderstaand overzicht toont de totale externe belasting van de geselecteerde speler in de laatste vier weken. Deze data helpt bij het bepalen van de juiste instapfase in het revalidatieplan.</p>
+    <h2>Analyse externe belasting - afgelopen 30 dagen</h2>
+    <form method="GET" action="{% url 'revalidatie' %}">
+        <div class="player-select">
+            <label for="analysis_player_id">Speler:</label>
+            <select name="player_id" id="analysis_player_id" class="js-player-select">
+                <option value="">-- Selecteer speler --</option>
+                {% for p in players %}
+                    <option value="{{ p.id }}" {% if selected_player and selected_player.id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+    <p id="analysisIntro">
+        {% if selected_player %}
+            Externe belasting van {{ selected_player.name }} over {{ rehab_month_range_label }}.
+        {% else %}
+            Selecteer eerst een speler om trainingsdata van de afgelopen 30 dagen te tonen.
+        {% endif %}
+    </p>
+    <div id="analysisContent" {% if not selected_player %}style="display:none;"{% endif %}>
+        <div class="analysis-summary">
+            <div class="summary-card">
+                <span class="label" id="latestMetricLabel">Laatste Load</span>
+                <span class="value" id="latestMetricValue">-</span>
+            </div>
+            <div class="summary-card">
+                <span class="label">Laatste ACWR</span>
+                <span class="value" id="latestAcwr">-</span>
+            </div>
+            <div class="summary-card">
+                <span class="label">ACWR Status</span>
+                <span class="value" id="acwrStatus">-</span>
+            </div>
+        </div>
+        <div class="analysis-controls" id="analysisControls">
+            <div class="metric-buttons">
+                <button type="button" class="metric-btn active" data-metric="load">Load</button>
+                <button type="button" class="metric-btn" data-metric="total_distance">TD</button>
+                <button type="button" class="metric-btn" data-metric="hsd">D15</button>
+                <button type="button" class="metric-btn" data-metric="d20">D20</button>
+                <button type="button" class="metric-btn" data-metric="d25">D25</button>
+                <button type="button" class="metric-btn" data-metric="acc">Acc</button>
+                <button type="button" class="metric-btn" data-metric="dec">Dec</button>
+                <button type="button" class="metric-btn" data-metric="max_speed">Max Speed</button>
+                <button type="button" class="metric-btn" data-metric="sprints">Sprints</button>
+            </div>
+        </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Week</th>
-                    <th>Totale afstand (m)</th>
-                    <th>HIR (m)</th>
-                    <th>HIS (m)</th>
-                    <th>Acceleraties/Deceleraties</th>
-                    <th>sRPE</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>Week 41</td><td>14500</td><td>2200</td><td>400</td><td>250</td><td>290</td></tr>
-                <tr><td>Week 42</td><td>16800</td><td>2600</td><td>500</td><td>280</td><td>310</td></tr>
-                <tr><td>Week 43</td><td>18200</td><td>2900</td><td>600</td><td>310</td><td>330</td></tr>
-                <tr><td>Week 44</td><td>19500</td><td>3100</td><td>750</td><td>340</td><td>350</td></tr>
-            </tbody>
-        </table>
+        <div class="chart-wrap">
+            <canvas id="loadChart"></canvas>
+        </div>
 
-        <canvas id="loadChart"></canvas>
-    </section>
+        <div class="rehab-plan-builder" id="rehabPlanBuilder">
+            <div class="planner-controls">
+                <div class="planner-field">
+                    <label for="rehabPlanDays">Geschatte revalidatieduur (dagen)</label>
+                    <input type="number" id="rehabPlanDays" min="7" max="168" value="{{ rehab_duration_default_days|default:28 }}">
+                </div>
+                <p class="planner-note" id="rehabPlanNote">
+                    Vul het geschatte aantal dagen in. De opbouw wordt automatisch verdeeld en berekend op basis van de laatste 30 dagen belasting.
+                </p>
+            </div>
 
-<!-- 🔹 Revalidatiefases -->
+            <div class="planner-summary">
+                <div class="summary-card">
+                    <span class="label">Huidige weekload (7 dagen)</span>
+                    <span class="value" id="plannerCurrentWeekLoad">-</span>
+                </div>
+                <div class="summary-card">
+                    <span class="label">Doelprofiel</span>
+                    <span class="value" id="plannerTargetWeekLoad">-</span>
+                </div>
+                <div class="summary-card">
+                    <span class="label">Gem. groei per week</span>
+                    <span class="value" id="plannerGrowthPerWeek">-</span>
+                </div>
+            </div>
+
+            <div class="planner-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Week</th>
+                            <th>Doelprofiel per target</th>
+                            <th>Delta</th>
+                            <th>Sessies / week</th>
+                            <th>Focus</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rehabPlanTableBody">
+                        <tr>
+                            <td colspan="5">Selecteer een speler om een voorstel te tonen.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <details class="analysis-details">
+            <summary>Toon detailtabel (30 dagen)</summary>
+            <table class="analysis-table">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>TD (m)</th>
+                        <th>D15 (m)</th>
+                        <th>D20 (m)</th>
+                        <th>D25 (m)</th>
+                        <th>Acc</th>
+                        <th>Dec</th>
+                        <th>Max Speed (km/u)</th>
+                        <th>Sprints</th>
+                        <th>Load</th>
+                    </tr>
+                </thead>
+                <tbody id="analysisTableBody">
+                    {% for row in rehab_month_data %}
+                    <tr>
+                        <td>{{ row.date_label }}</td>
+                        <td>{{ row.total_distance }}</td>
+                        <td>{{ row.hsd }}</td>
+                        <td>{{ row.d20|default:"0" }}</td>
+                        <td>{{ row.d25|default:"0" }}</td>
+                        <td>{{ row.acc|default:"0" }}</td>
+                        <td>{{ row.dec|default:"0" }}</td>
+                        <td>{{ row.max_speed|default:"0" }}</td>
+                        <td>{{ row.sprints }}</td>
+                        <td>{{ row.load }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10">Geen trainingsdata gevonden voor de geselecteerde speler in de laatste 30 dagen.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </details>
+    </div>
+</section>
+
+<!-- Revalidatiefases -->
 <section class="rehab-section">
-  <h2>Veldrevalidatie – 6 Fases Plan</h2>
+  <h2>Veldrevalidatie - 6 Fases Plan</h2>
   <p>
     Onderstaand overzicht toont de opbouw van het revalidatieproces. Elke fase bevat concrete voorwaarden,
     externe belasting en ruimte voor notities, duur en RPE.
@@ -274,17 +629,17 @@
 
   <form method="GET" action="{% url 'revalidatie' %}">
   <div class="player-select">
-    <label for="player">Speler:</label>
-    <select name="player" id="player" onchange="this.form.submit()">
+    <label for="player_id">Speler:</label>
+    <select name="player_id" id="player_id" class="js-player-select">
       <option value="">-- Selecteer speler --</option>
       {% for p in players %}
-        <option value="{{ p.name }}" {% if selected_player and selected_player.name == p.name %}selected{% endif %}>{{ p.name }}</option>
+        <option value="{{ p.id }}" {% if selected_player and selected_player.id == p.id %}selected{% endif %}>{{ p.name }}</option>
       {% endfor %}
     </select>
   </div>
 </form>
 
-<!-- 🩵 Fase 1 -->
+<!-- Fase 1 -->
 <form method="POST" action="{% url 'revalidatie' %}">
   {% csrf_token %}
 
@@ -292,16 +647,16 @@
     <input type="hidden" name="player" value="{{ selected_player.id }}">
   {% endif %}
 
-  <!-- 🔹 Verborgen fasewaarde -->
+  <!-- Verborgen fasewaarde -->
   <input type="hidden" name="phase" value="Fase 1">
 
-  <div class="phase-header">Fase 1 – Loop load belasting</div>
+  <div class="phase-header">Fase 1 - Loop load belasting</div>
 
   <table class="phase-table">
     <thead>
       <tr>
         <th>Onderdeel</th>
-        <th>✓</th>
+        <th>OK</th>
         <th>Duur (min)</th>
         <th>RPE</th>
         <th>Tot. afstand (m)</th>
@@ -375,7 +730,7 @@
     </tbody>
   </table>
 
-  <!-- 🔹 Submitknop -->
+  <!-- Submitknop -->
   <button type="submit" style="
     margin-top: 10px;
     background-color: #b60000;
@@ -389,7 +744,7 @@
   </button>
 </form>
 
-<!-- 🩵 Fase 2 -->
+<!-- Fase 2 -->
 <form method="POST" action="{% url 'revalidatie' %}">
   {% csrf_token %}
 
@@ -397,16 +752,16 @@
     <input type="hidden" name="player" value="{{ selected_player.id }}">
   {% endif %}
 
-  <!-- 🔹 Verborgen fasewaarde -->
+  <!-- Verborgen fasewaarde -->
   <input type="hidden" name="phase" value="Fase 2">
 
-  <div class="phase-header">Fase 2 – Basis voetbaltechniek</div>
+  <div class="phase-header">Fase 2 - Basis voetbaltechniek</div>
 
   <table class="phase-table">
     <thead>
       <tr>
         <th>Onderdeel</th>
-        <th>✓</th>
+        <th>OK</th>
         <th>Duur (min)</th>
         <th>RPE</th>
         <th>Tot. afstand (m)</th>
@@ -420,8 +775,8 @@
     <tbody>
       <tr>
         <td>
-          Korte afstand pass (±10 m)
-          <input type="hidden" name="onderdeel[]" value="Korte afstand pass (±10 m)">
+          Korte afstand pass (+/-10 m)
+          <input type="hidden" name="onderdeel[]" value="Korte afstand pass (+/-10 m)">
         </td>
         <td><input type="checkbox" name="afgevinkt[]"></td>
         <td><input type="number" name="duur[]"></td>
@@ -435,8 +790,8 @@
 
       <tr>
         <td>
-          High intensity run (20–24 km/u lineair)
-          <input type="hidden" name="onderdeel[]" value="High intensity run (20–24 km/u lineair)">
+          High intensity run (20-24 km/u lineair)
+          <input type="hidden" name="onderdeel[]" value="High intensity run (20-24 km/u lineair)">
         </td>
         <td><input type="checkbox" name="afgevinkt[]"></td>
         <td><input type="number" name="duur[]"></td>
@@ -465,7 +820,7 @@
     </tbody>
   </table>
 
-  <!-- 🔹 Submitknop -->
+  <!-- Submitknop -->
   <button type="submit" style="
     margin-top: 10px;
     background-color: #b60000;
@@ -480,7 +835,7 @@
 </form>
 
 
- <!-- 🩵 Fase 3 -->
+ <!-- Fase 3 -->
 <form method="POST" action="{% url 'revalidatie' %}">
   {% csrf_token %}
 
@@ -488,16 +843,16 @@
     <input type="hidden" name="player" value="{{ selected_player.id }}">
   {% endif %}
 
-  <!-- 🔹 Verborgen fasewaarde -->
+  <!-- Verborgen fasewaarde -->
   <input type="hidden" name="phase" value="Fase 3">
 
-  <div class="phase-header">Fase 3 – Wenden en keren</div>
+  <div class="phase-header">Fase 3 - Wenden en keren</div>
 
   <table class="phase-table">
     <thead>
       <tr>
         <th>Onderdeel</th>
-        <th>✓</th>
+        <th>OK</th>
         <th>Duur (min)</th>
         <th>RPE</th>
         <th>Tot. afstand (m)</th>
@@ -541,8 +896,8 @@
 
       <tr>
         <td>
-          COD 0–45° hoeken (met/zonder bal)
-          <input type="hidden" name="onderdeel[]" value="COD 0–45° hoeken (met/zonder bal)">
+          COD 0-45 graden hoeken (met/zonder bal)
+          <input type="hidden" name="onderdeel[]" value="COD 0-45 graden hoeken (met/zonder bal)">
         </td>
         <td><input type="checkbox" name="afgevinkt[]"></td>
         <td><input type="number" name="duur[]"></td>
@@ -556,8 +911,8 @@
 
       <tr>
         <td>
-          COD 45–60° hoeken (met/zonder bal)
-          <input type="hidden" name="onderdeel[]" value="COD 45–60° hoeken (met/zonder bal)">
+          COD 45-60 graden hoeken (met/zonder bal)
+          <input type="hidden" name="onderdeel[]" value="COD 45-60 graden hoeken (met/zonder bal)">
         </td>
         <td><input type="checkbox" name="afgevinkt[]"></td>
         <td><input type="number" name="duur[]"></td>
@@ -571,7 +926,7 @@
     </tbody>
   </table>
 
-  <!-- 🔹 Submitknop -->
+  <!-- Submitknop -->
   <button type="submit" style="
     margin-top: 10px;
     background-color: #b60000;
@@ -585,7 +940,7 @@
   </button>
 </form>
 
-<!-- 🩵 Fase 4 -->
+<!-- Fase 4 -->
 <form method="POST" action="{% url 'revalidatie' %}">
   {% csrf_token %}
 
@@ -593,16 +948,16 @@
     <input type="hidden" name="player" value="{{ selected_player.id }}">
   {% endif %}
 
-  <!-- 🔹 Verborgen fasewaarde -->
+  <!-- Verborgen fasewaarde -->
   <input type="hidden" name="phase" value="Fase 4">
 
-  <div class="phase-header">Fase 4 – Explosieve load belasting</div>
+  <div class="phase-header">Fase 4 - Explosieve load belasting</div>
 
   <table class="phase-table">
     <thead>
       <tr>
         <th>Onderdeel</th>
-        <th>✓</th>
+        <th>OK</th>
         <th>Duur (min)</th>
         <th>RPE</th>
         <th>Tot. afstand (m)</th>
@@ -631,8 +986,8 @@
 
       <tr>
         <td>
-          Lineaire snelheid 80–100% (functioneel)
-          <input type="hidden" name="onderdeel[]" value="Lineaire snelheid 80–100% (functioneel)">
+          Lineaire snelheid 80-100% (functioneel)
+          <input type="hidden" name="onderdeel[]" value="Lineaire snelheid 80-100% (functioneel)">
         </td>
         <td><input type="checkbox" name="afgevinkt[]"></td>
         <td><input type="number" name="duur[]"></td>
@@ -661,7 +1016,7 @@
     </tbody>
   </table>
 
-  <!-- 🔹 Submitknop -->
+  <!-- Submitknop -->
   <button type="submit" style="
     margin-top: 10px;
     background-color: #b60000;
@@ -675,7 +1030,7 @@
   </button>
 </form>
 
-<!-- 🩵 Fase 5 -->
+<!-- Fase 5 -->
 <form method="POST" action="{% url 'revalidatie' %}">
   {% csrf_token %}
 
@@ -683,16 +1038,16 @@
     <input type="hidden" name="player" value="{{ selected_player.id }}">
   {% endif %}
 
-  <!-- 🔹 Verborgen fasewaarde -->
+  <!-- Verborgen fasewaarde -->
   <input type="hidden" name="phase" value="Fase 5">
 
-  <div class="phase-header">Fase 5 – Positie specifieke load</div>
+  <div class="phase-header">Fase 5 - Positie specifieke load</div>
 
   <table class="phase-table">
     <thead>
       <tr>
         <th>Onderdeel</th>
-        <th>✓</th>
+        <th>OK</th>
         <th>Duur (min)</th>
         <th>RPE</th>
         <th>Tot. afstand (m)</th>
@@ -736,7 +1091,7 @@
     </tbody>
   </table>
 
-  <!-- 🔹 Submitknop -->
+  <!-- Submitknop -->
   <button type="submit" style="
     margin-top: 10px;
     background-color: #b60000;
@@ -751,7 +1106,7 @@
 </form>
 
 
-<!-- 🩵 Fase 6 -->
+<!-- Fase 6 -->
 <form method="POST" action="{% url 'revalidatie' %}">
   {% csrf_token %}
 
@@ -759,10 +1114,10 @@
     <input type="hidden" name="player" value="{{ selected_player.id }}">
   {% endif %}
 
-  <!-- 🔹 Verborgen fasewaarde -->
+  <!-- Verborgen fasewaarde -->
   <input type="hidden" name="phase" value="Fase 6">
 
-  <div class="phase-header">Fase 6 – Return to Train & Play</div>
+  <div class="phase-header">Fase 6 - Return to Train & Play</div>
 
   <table class="phase-table">
     <thead>
@@ -815,7 +1170,7 @@
     </tbody>
   </table>
 
-  <!-- 🔹 Submitknop -->
+  <!-- Submitknop -->
   <button type="submit" style="
     margin-top: 10px;
     background-color: #b60000;
@@ -829,50 +1184,596 @@
   </button>
 </form>
 
-<!-- 🔹 Chart.js grafiek -->
+<!-- Chart.js grafiek -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const ctx = document.getElementById('loadChart').getContext('2d');
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: ['Week 41', 'Week 42', 'Week 43', 'Week 44'],
-        datasets: [
-            {
-                label: 'Totale afstand (m)',
-                data: [14500, 16800, 18200, 19500],
-                borderColor: '#e74c3c',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: false
-            },
-            {
-                label: 'HIR (m)',
-                data: [2200, 2600, 2900, 3100],
-                borderColor: '#1f2a44',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: false
-            },
-            {
-                label: 'HIS (m)',
-                data: [400, 500, 600, 750],
-                borderColor: '#b60000',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: false
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: false,
-                title: { display: true, text: 'Afstand (m)' }
-            }
+let state = {
+    labels: {{ rehab_month_labels_json|safe }},
+    monthData: {{ rehab_month_data_json|safe }},
+    loads: {{ rehab_month_loads_json|safe }},
+    distances: {{ rehab_month_distances_json|safe }},
+    hsd: {{ rehab_month_hsd_json|safe }},
+    d20: {{ rehab_month_d20_json|safe }},
+    d25: {{ rehab_month_d25_json|safe }},
+    acc: {{ rehab_month_acc_json|safe }},
+    dec: {{ rehab_month_dec_json|safe }},
+    maxSpeed: {{ rehab_month_max_speed_json|safe }},
+    sprints: {{ rehab_month_sprints_json|safe }},
+    acwr: {{ rehab_month_acwr_json|safe }}
+};
+const chartEl = document.getElementById('loadChart');
+const latestMetricLabelEl = document.getElementById('latestMetricLabel');
+const latestMetricValueEl = document.getElementById('latestMetricValue');
+const latestAcwrEl = document.getElementById('latestAcwr');
+const acwrStatusEl = document.getElementById('acwrStatus');
+const analysisIntroEl = document.getElementById('analysisIntro');
+const analysisContentEl = document.getElementById('analysisContent');
+const analysisTableBodyEl = document.getElementById('analysisTableBody');
+const injuriesTableBodyEl = document.getElementById('injuriesTableBody');
+const injuriesNoteEl = document.getElementById('injuriesNote');
+const rehabPlanDaysEl = document.getElementById('rehabPlanDays');
+const rehabPlanNoteEl = document.getElementById('rehabPlanNote');
+const rehabPlanTableBodyEl = document.getElementById('rehabPlanTableBody');
+const plannerCurrentWeekLoadEl = document.getElementById('plannerCurrentWeekLoad');
+const plannerTargetWeekLoadEl = document.getElementById('plannerTargetWeekLoad');
+const plannerGrowthPerWeekEl = document.getElementById('plannerGrowthPerWeek');
+const controls = document.getElementById('analysisControls');
+const metricButtons = controls ? controls.querySelectorAll('.metric-btn[data-metric]') : [];
+const playerSelects = document.querySelectorAll('.js-player-select');
+const postForms = document.querySelectorAll('form[method="POST"][action*="revalidatie"]');
+const plannerDefaultDays = Number('{{ rehab_duration_default_days|default:28 }}') || 28;
+let rehabChart = null;
+let currentMetric = 'load';
+
+const metricConfig = {
+    load: { label: 'Load', key: 'loads', axisTitle: 'Load', color: 'rgba(31, 42, 68, 0.85)', decimals: 0 },
+    total_distance: { label: 'TD', key: 'distances', axisTitle: 'Totale afstand (m)', color: 'rgba(38, 84, 124, 0.85)', decimals: 0 },
+    hsd: { label: 'D15', key: 'hsd', axisTitle: 'D15 / HIR (m)', color: 'rgba(47, 111, 147, 0.85)', decimals: 0 },
+    d20: { label: 'D20', key: 'd20', axisTitle: 'D20 (m)', color: 'rgba(65, 131, 166, 0.85)', decimals: 0 },
+    d25: { label: 'D25', key: 'd25', axisTitle: 'D25 (m)', color: 'rgba(77, 141, 173, 0.85)', decimals: 0 },
+    acc: { label: 'Acc', key: 'acc', axisTitle: 'Acceleraties (aantal)', color: 'rgba(87, 150, 178, 0.85)', decimals: 0 },
+    dec: { label: 'Dec', key: 'dec', axisTitle: 'Deceleraties (aantal)', color: 'rgba(100, 160, 189, 0.85)', decimals: 0 },
+    max_speed: { label: 'Max Speed', key: 'maxSpeed', axisTitle: 'Max speed (km/u)', color: 'rgba(112, 172, 199, 0.85)', decimals: 1 },
+    sprints: { label: 'Sprints', key: 'sprints', axisTitle: 'Sprints (aantal)', color: 'rgba(83, 150, 185, 0.85)', decimals: 0 }
+};
+
+function latestNumber(values) {
+    for (let i = values.length - 1; i >= 0; i--) {
+        const value = Number(values[i]);
+        if (!Number.isNaN(value)) {
+            return value;
         }
     }
-});
+    return null;
+}
+
+function movingAverage(values, windowSize) {
+    return values.map((_, index) => {
+        const start = Math.max(0, index - windowSize + 1);
+        const slice = values.slice(start, index + 1).map(Number).filter((v) => !Number.isNaN(v));
+        if (!slice.length) return null;
+        const sum = slice.reduce((acc, curr) => acc + curr, 0);
+        return +(sum / slice.length).toFixed(2);
+    });
+}
+
+function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+}
+
+function average(values) {
+    if (!values.length) return 0;
+    const sum = values.reduce((acc, curr) => acc + curr, 0);
+    return sum / values.length;
+}
+
+function numericValues(values) {
+    return (values || [])
+        .map((v) => Number(v))
+        .filter((v) => Number.isFinite(v) && v >= 0);
+}
+
+function getSelectedPlayerId() {
+    const selected = Array.from(playerSelects).find((select) => select.value);
+    return selected ? selected.value : '';
+}
+
+function getPlannerStorageKey(playerId) {
+    return `revalidatie_rehab_days_${playerId || 'none'}`;
+}
+
+function getStoredDaysForPlayer(playerId) {
+    if (!playerId) return null;
+    const raw = window.localStorage.getItem(getPlannerStorageKey(playerId));
+    if (raw) {
+        const parsed = Number(raw);
+        if (Number.isFinite(parsed)) {
+            return clamp(Math.round(parsed), 7, 168);
+        }
+    }
+
+    // Backward compatibility met eerdere opslag in weken.
+    const oldRaw = window.localStorage.getItem(`revalidatie_rehab_weeks_${playerId}`);
+    if (!oldRaw) return null;
+    const oldParsed = Number(oldRaw);
+    if (!Number.isFinite(oldParsed)) return null;
+    return clamp(Math.round(oldParsed * 7), 7, 168);
+}
+
+function storeDaysForPlayer(playerId, days) {
+    if (!playerId || !Number.isFinite(days)) return;
+    window.localStorage.setItem(getPlannerStorageKey(playerId), String(clamp(Math.round(days), 7, 168)));
+}
+
+function inferDefaultDaysFromInjuries(injuries) {
+    if (!Array.isArray(injuries)) return null;
+    for (let i = injuries.length - 1; i >= 0; i--) {
+        const asNum = Number(injuries[i]?.duration);
+        if (Number.isFinite(asNum) && asNum > 0) {
+            return clamp(Math.round(asNum), 7, 168);
+        }
+    }
+    return null;
+}
+
+function getFocusForWeek(index, totalWeeks, growthPct) {
+    if (index === 0) return 'Heractiveren, techniek, lage pieken';
+    if (index === totalWeeks - 1) return 'Wedstrijdspecifiek, check tolerantie';
+    if (growthPct > 12) return 'Opbouw met extra monitoring (RPE/klachten)';
+    if (index < Math.ceil(totalWeeks / 2)) return 'Volume gecontroleerd verhogen';
+    return 'Intensiteit en richtingsveranderingen toevoegen';
+}
+
+function renderRehabBuildPlan() {
+    if (!rehabPlanTableBodyEl || !rehabPlanDaysEl) return;
+
+    const totalDays = clamp(Math.round(Number(rehabPlanDaysEl.value) || plannerDefaultDays), 7, 168);
+    const weeks = Math.max(1, Math.ceil(totalDays / 7));
+    rehabPlanDaysEl.value = totalDays;
+
+    const loads = numericValues(state.loads);
+    if (!loads.length) {
+        rehabPlanTableBodyEl.innerHTML = '<tr><td colspan="5">Geen data beschikbaar om een opbouwvoorstel te maken.</td></tr>';
+        if (plannerCurrentWeekLoadEl) plannerCurrentWeekLoadEl.textContent = '-';
+        if (plannerTargetWeekLoadEl) plannerTargetWeekLoadEl.textContent = '-';
+        if (plannerGrowthPerWeekEl) plannerGrowthPerWeekEl.textContent = '-';
+        if (rehabPlanNoteEl) rehabPlanNoteEl.textContent = 'Geen data beschikbaar om een voorstel te berekenen.';
+        return;
+    }
+
+    const recent7 = loads.slice(-7);
+    const chronic28 = loads.slice(-28);
+    const currentWeekLoad = recent7.reduce((acc, curr) => acc + curr, 0);
+    const chronicDailyAvg = average(chronic28);
+    const chronicWeekEquivalent = chronicDailyAvg * 7;
+    const targetWeekLoad = Math.max(currentWeekLoad * 1.15, chronicWeekEquivalent * 1.05, currentWeekLoad + 120);
+    const latestAcwr = latestNumber(state.acwr);
+
+    let maxGrowth = 0.12;
+    if (latestAcwr !== null && latestAcwr > 1.3) {
+        maxGrowth = 0.08;
+    } else if (latestAcwr !== null && latestAcwr < 0.8) {
+        maxGrowth = 0.15;
+    }
+
+    let growth = 0.08;
+    if (weeks > 1 && currentWeekLoad > 0) {
+        const required = Math.pow(targetWeekLoad / currentWeekLoad, 1 / (weeks - 1)) - 1;
+        growth = clamp(required, 0.04, maxGrowth);
+    } else if (weeks === 1) {
+        growth = 0;
+    }
+
+    const rows = [];
+    const recent7Distance = numericValues(state.distances).slice(-7);
+    const recent7Hsd = numericValues(state.hsd).slice(-7);
+    const recent7D20 = numericValues(state.d20).slice(-7);
+    const recent7D25 = numericValues(state.d25).slice(-7);
+    const recent7Acc = numericValues(state.acc).slice(-7);
+    const recent7Dec = numericValues(state.dec).slice(-7);
+    const recent7MaxSpeed = numericValues(state.maxSpeed).slice(-7);
+    const recent7Sprints = numericValues(state.sprints).slice(-7);
+    const currentWeekDistance = recent7Distance.reduce((acc, curr) => acc + curr, 0);
+    const currentWeekHsd = recent7Hsd.reduce((acc, curr) => acc + curr, 0);
+    const currentWeekD20 = recent7D20.reduce((acc, curr) => acc + curr, 0);
+    const currentWeekD25 = recent7D25.reduce((acc, curr) => acc + curr, 0);
+    const currentWeekAcc = recent7Acc.reduce((acc, curr) => acc + curr, 0);
+    const currentWeekDec = recent7Dec.reduce((acc, curr) => acc + curr, 0);
+    const currentWeekMaxSpeed = recent7MaxSpeed.length ? Math.max(...recent7MaxSpeed) : 0;
+    const currentWeekSprints = recent7Sprints.reduce((acc, curr) => acc + curr, 0);
+
+    function getProfileTitle(weekIndex, totalWeeks) {
+        if (weekIndex === 0) return 'Instap en belastbaarheid';
+        if (weekIndex === totalWeeks - 1) return 'Wedstrijdgerichte afronding';
+        if (weekIndex < Math.ceil(totalWeeks / 2)) return 'Gecontroleerde volume-opbouw';
+        return 'Intensiteit en piekbelasting';
+    }
+
+    let previous = currentWeekLoad;
+    for (let week = 1; week <= weeks; week++) {
+        const dayStart = ((week - 1) * 7) + 1;
+        const dayEnd = Math.min(totalDays, week * 7);
+        const daysInWeek = Math.max(1, dayEnd - dayStart + 1);
+        const rawTarget = week === 1 ? currentWeekLoad : previous * (1 + growth);
+        const weeklyTarget = Math.round(rawTarget);
+        const deltaPct = week === 1 || previous <= 0 ? 0 : ((weeklyTarget - previous) / previous) * 100;
+        const baselineSessions = week <= 2 ? 3 : (week <= 4 ? 4 : 5);
+        const sessions = Math.max(1, Math.round((baselineSessions * daysInWeek) / 7));
+        const loadRatio = weeklyTarget / Math.max(1, currentWeekLoad);
+        const loadTargetText = `${Math.round(Math.max(0, weeklyTarget * 0.95))} - ${Math.round(weeklyTarget * 1.05)}`;
+        const distanceTarget = Math.max(0, currentWeekDistance * loadRatio);
+        const hsdTarget = Math.max(0, currentWeekHsd * loadRatio);
+        const d20Target = Math.max(0, currentWeekD20 * loadRatio);
+        const d25Target = Math.max(0, currentWeekD25 * loadRatio);
+        const accTarget = Math.max(0, currentWeekAcc * loadRatio);
+        const decTarget = Math.max(0, currentWeekDec * loadRatio);
+        const maxSpeedTarget = Math.max(0, currentWeekMaxSpeed * (1 + ((loadRatio - 1) * 0.25)));
+        const sprintsTarget = Math.max(0, currentWeekSprints * loadRatio);
+        const distanceTargetText = `${Math.round(Math.max(0, distanceTarget * 0.92))} - ${Math.round(distanceTarget * 1.08)} m`;
+        const hsdTargetText = `${Math.round(Math.max(0, hsdTarget * 0.9))} - ${Math.round(hsdTarget * 1.1)} m`;
+        const d20TargetText = `${Math.round(Math.max(0, d20Target * 0.9))} - ${Math.round(d20Target * 1.1)} m`;
+        const d25TargetText = `${Math.round(Math.max(0, d25Target * 0.9))} - ${Math.round(d25Target * 1.1)} m`;
+        const accTargetText = `${Math.max(0, Math.floor(accTarget * 0.9))} - ${Math.ceil(accTarget * 1.1)}`;
+        const decTargetText = `${Math.max(0, Math.floor(decTarget * 0.9))} - ${Math.ceil(decTarget * 1.1)}`;
+        const maxSpeedTargetText = `${Math.max(0, (maxSpeedTarget - 0.3)).toFixed(1)} - ${(maxSpeedTarget + 0.3).toFixed(1)} km/u`;
+        const sprintsTargetText = `${Math.max(0, Math.floor(sprintsTarget * 0.9))} - ${Math.ceil(sprintsTarget * 1.1)}`;
+
+        rows.push({
+            week,
+            dayStart,
+            dayEnd,
+            weeklyTarget,
+            deltaPct,
+            sessions,
+            profileTitle: getProfileTitle(week - 1, weeks),
+            loadTargetText,
+            distanceTargetText,
+            hsdTargetText,
+            d20TargetText,
+            d25TargetText,
+            accTargetText,
+            decTargetText,
+            maxSpeedTargetText,
+            sprintsTargetText,
+            focus: getFocusForWeek(week - 1, weeks, deltaPct),
+        });
+        previous = weeklyTarget;
+    }
+
+    rehabPlanTableBodyEl.innerHTML = rows.map((row) => `
+        <tr>
+            <td>Week ${row.week} (dag ${row.dayStart}-${row.dayEnd})</td>
+            <td>
+                <details class="target-breakdown">
+                    <summary>${row.profileTitle}</summary>
+                    <div class="target-lines">
+                        <div class="target-chip"><strong>Load</strong>${row.loadTargetText}</div>
+                        <div class="target-chip"><strong>TD</strong>${row.distanceTargetText}</div>
+                        <div class="target-chip"><strong>D15</strong>${row.hsdTargetText}</div>
+                        <div class="target-chip"><strong>D20</strong>${row.d20TargetText}</div>
+                        <div class="target-chip"><strong>D25</strong>${row.d25TargetText}</div>
+                        <div class="target-chip"><strong>Acc</strong>${row.accTargetText}</div>
+                        <div class="target-chip"><strong>Dec</strong>${row.decTargetText}</div>
+                        <div class="target-chip"><strong>Max Speed</strong>${row.maxSpeedTargetText}</div>
+                        <div class="target-chip"><strong>Sprints</strong>${row.sprintsTargetText}</div>
+                    </div>
+                </details>
+            </td>
+            <td>${row.deltaPct >= 0 ? '+' : ''}${row.deltaPct.toFixed(1)}%</td>
+            <td>${row.sessions}</td>
+            <td>${row.focus}</td>
+        </tr>
+    `).join('');
+
+    if (plannerCurrentWeekLoadEl) plannerCurrentWeekLoadEl.textContent = `${Math.round(currentWeekLoad)}`;
+    if (plannerTargetWeekLoadEl) plannerTargetWeekLoadEl.textContent = 'Load, TD, D15, D20, D25, Acc, Dec, Max Speed, Sprints';
+    if (plannerGrowthPerWeekEl) plannerGrowthPerWeekEl.textContent = `${(growth * 100).toFixed(1)}%`;
+
+    if (rehabPlanNoteEl) {
+        const safetyLine = latestAcwr === null
+            ? 'ACWR ontbreekt; hanteer conservatieve opbouw en monitor klachten.'
+            : (latestAcwr > 1.3
+                ? 'ACWR is hoog; voorstel is bewust vlakker opgebouwd.'
+                : (latestAcwr < 0.8
+                    ? 'ACWR is laag; opbouw mag iets sneller maar monitor respons.'
+                    : 'ACWR in zone; voorstel houdt een stabiele progressie aan.'));
+        rehabPlanNoteEl.textContent = `Voorstel naar wedstrijdbelasting over ${totalDays} dagen (ca. ${weeks} weken). ${safetyLine}`;
+    }
+}
+
+function updateSummary() {
+    const latestLoad = latestNumber(state.loads);
+    const latestAcwr = latestNumber(state.acwr);
+
+    latestMetricLabelEl.textContent = 'Laatste Load';
+    latestMetricValueEl.textContent = latestLoad !== null ? `${latestLoad.toFixed(0)}` : '-';
+    latestAcwrEl.textContent = latestAcwr !== null ? `${latestAcwr.toFixed(2)}` : '-';
+
+    if (latestAcwr === null) {
+        acwrStatusEl.textContent = '-';
+    } else if (latestAcwr < 0.8) {
+        acwrStatusEl.textContent = 'Te laag';
+    } else if (latestAcwr <= 1.3) {
+        acwrStatusEl.textContent = 'Binnen zone';
+    } else {
+        acwrStatusEl.textContent = 'Te hoog';
+    }
+}
+
+function setActiveMetric(metric) {
+    metricButtons.forEach((button) => {
+        const active = button.dataset.metric === metric;
+        button.classList.toggle('active', active);
+    });
+}
+
+function renderMetricMode(metric) {
+    const config = metricConfig[metric] || metricConfig.load;
+    const metricData = state[config.key] || [];
+    const trend = movingAverage(metricData, 7);
+
+    if (latestMetricLabelEl) {
+        latestMetricLabelEl.textContent = `Laatste ${config.label}`;
+    }
+    if (latestMetricValueEl) {
+        const latestValue = latestNumber(metricData);
+        latestMetricValueEl.textContent = latestValue !== null ? latestValue.toFixed(config.decimals || 0) : '-';
+    }
+
+    return {
+        type: 'bar',
+        data: {
+            labels: state.labels,
+            datasets: [
+                {
+                    type: 'bar',
+                    label: `${config.label} per dag`,
+                    data: metricData,
+                    backgroundColor: config.color,
+                    borderRadius: 5
+                },
+                {
+                    type: 'line',
+                    label: '7-daags gemiddelde',
+                    data: trend,
+                    borderColor: '#e74c3c',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.25
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: config.axisTitle }
+                }
+            }
+        }
+    };
+}
+
+function drawChart(metric) {
+    if (!chartEl || !state.labels.length || !analysisContentEl || analysisContentEl.style.display === 'none') return;
+    const ctx = chartEl.getContext('2d');
+    const config = renderMetricMode(metric);
+    currentMetric = metric;
+
+    if (rehabChart) {
+        rehabChart.destroy();
+    }
+    rehabChart = new Chart(ctx, config);
+    setActiveMetric(metric);
+}
+
+function renderInjuries(injuries) {
+    if (!injuriesTableBodyEl) return;
+    if (!injuries.length) {
+        injuriesTableBodyEl.innerHTML = '<tr><td colspan="5">Geen actieve blessures gevonden.</td></tr>';
+        return;
+    }
+    injuriesTableBodyEl.innerHTML = injuries.map((injury) => {
+        const width = injury.phase === 'early' ? 25 : (injury.phase === 'mid' ? 60 : 90);
+        return `
+            <tr>
+                <td>${injury.name}</td>
+                <td>${injury.injury_type}</td>
+                <td>${injury.start_date}</td>
+                <td>${injury.duration}</td>
+                <td>
+                    <div class="progress-bar"><div class="progress-fill" style="width: ${width}%;"></div></div>
+                    <small>${injury.phase_label}</small>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderAnalysisTable(rows) {
+    if (!analysisTableBodyEl) return;
+    if (!rows.length) {
+        analysisTableBodyEl.innerHTML = '<tr><td colspan="10">Geen trainingsdata gevonden voor de geselecteerde speler in de laatste 30 dagen.</td></tr>';
+        return;
+    }
+    analysisTableBodyEl.innerHTML = rows.map((row) => `
+        <tr>
+            <td>${row.date_label}</td>
+            <td>${row.total_distance}</td>
+            <td>${row.hsd}</td>
+            <td>${row.d20 ?? 0}</td>
+            <td>${row.d25 ?? 0}</td>
+            <td>${row.acc ?? 0}</td>
+            <td>${row.dec ?? 0}</td>
+            <td>${row.max_speed ?? 0}</td>
+            <td>${row.sprints}</td>
+            <td>${row.load}</td>
+        </tr>
+    `).join('');
+}
+
+function syncPlayerSelects(playerId) {
+    playerSelects.forEach((select) => {
+        select.value = playerId || '';
+    });
+}
+
+function syncHiddenPlayerInputs(playerId) {
+    postForms.forEach((form) => {
+        const existing = form.querySelector('input[name="player"]');
+        if (playerId) {
+            if (existing) {
+                existing.value = playerId;
+            } else {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'player';
+                input.value = playerId;
+                form.insertBefore(input, form.firstChild);
+            }
+        } else if (existing) {
+            existing.remove();
+        }
+    });
+}
+
+function updateUrl(playerId) {
+    const url = new URL(window.location.href);
+    if (playerId) {
+        url.searchParams.set('player_id', playerId);
+    } else {
+        url.searchParams.delete('player_id');
+    }
+    url.searchParams.delete('player');
+    history.replaceState({}, '', url.toString());
+}
+
+function applyAjaxPayload(payload) {
+    const selected = payload.selected_player || { id: null, name: '' };
+    const selectedId = selected.id ? String(selected.id) : '';
+    syncPlayerSelects(selected.id ? String(selected.id) : '');
+    syncHiddenPlayerInputs(selected.id ? String(selected.id) : '');
+    updateUrl(selectedId);
+    renderInjuries(payload.injuries || []);
+
+    if (selected.id) {
+        state.labels = payload.rehab_month_labels || [];
+        state.monthData = payload.rehab_month_data || [];
+        state.loads = payload.rehab_month_loads || [];
+        state.distances = payload.rehab_month_distances || [];
+        state.hsd = payload.rehab_month_hsd || [];
+        state.d20 = payload.rehab_month_d20 || [];
+        state.d25 = payload.rehab_month_d25 || [];
+        state.acc = payload.rehab_month_acc || [];
+        state.dec = payload.rehab_month_dec || [];
+        state.maxSpeed = payload.rehab_month_max_speed || [];
+        state.sprints = payload.rehab_month_sprints || [];
+        state.acwr = payload.rehab_month_acwr || [];
+
+        if (analysisIntroEl) {
+            analysisIntroEl.textContent = `Externe belasting van ${selected.name} over ${payload.rehab_month_range_label}.`;
+        }
+        if (injuriesNoteEl) {
+            injuriesNoteEl.textContent = `Overzicht voor ${selected.name}`;
+        }
+        if (analysisContentEl) {
+            analysisContentEl.style.display = '';
+        }
+        renderAnalysisTable(state.monthData);
+        updateSummary();
+        drawChart(currentMetric);
+
+        if (rehabPlanDaysEl) {
+            const storedDays = getStoredDaysForPlayer(selectedId);
+            const inferredDays = inferDefaultDaysFromInjuries(payload.injuries || []);
+            const payloadDefaultDays = Number(payload.rehab_duration_default_days);
+            const fallbackDays = Number.isFinite(payloadDefaultDays) && payloadDefaultDays > 0
+                ? payloadDefaultDays
+                : (inferredDays || plannerDefaultDays);
+            rehabPlanDaysEl.value = storedDays || clamp(Math.round(fallbackDays), 7, 168);
+        }
+        renderRehabBuildPlan();
+    } else {
+        if (analysisIntroEl) {
+            analysisIntroEl.textContent = 'Selecteer eerst een speler om trainingsdata van de afgelopen 30 dagen te tonen.';
+        }
+        if (injuriesNoteEl) {
+            injuriesNoteEl.textContent = 'Teamoverzicht (selecteer speler voor gefilterde data)';
+        }
+        if (analysisContentEl) {
+            analysisContentEl.style.display = 'none';
+        }
+        if (rehabChart) {
+            rehabChart.destroy();
+            rehabChart = null;
+        }
+        if (rehabPlanTableBodyEl) {
+            rehabPlanTableBodyEl.innerHTML = '<tr><td colspan="5">Selecteer een speler om een voorstel te tonen.</td></tr>';
+        }
+        if (plannerCurrentWeekLoadEl) plannerCurrentWeekLoadEl.textContent = '-';
+        if (plannerTargetWeekLoadEl) plannerTargetWeekLoadEl.textContent = '-';
+        if (plannerGrowthPerWeekEl) plannerGrowthPerWeekEl.textContent = '-';
+        if (rehabPlanNoteEl) rehabPlanNoteEl.textContent = 'Vul het geschatte aantal dagen in. De opbouw wordt automatisch berekend op basis van de laatste 30 dagen belasting.';
+    }
+}
+
+async function fetchPlayerData(playerId) {
+    const url = new URL("{% url 'revalidatie' %}", window.location.origin);
+    if (playerId) {
+        url.searchParams.set('player_id', playerId);
+    }
+    url.searchParams.set('ajax', '1');
+    const response = await fetch(url.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    if (!response.ok) return;
+    const payload = await response.json();
+    applyAjaxPayload(payload);
+}
+
+function bindPlayerSelects() {
+    playerSelects.forEach((select) => {
+        select.addEventListener('change', () => {
+            fetchPlayerData(select.value || '');
+        });
+    });
+}
+
+function bindMetricButtons() {
+    metricButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const metric = button.dataset.metric || 'load';
+            drawChart(metric);
+        });
+    });
+}
+
+bindPlayerSelects();
+bindMetricButtons();
+updateSummary();
+renderAnalysisTable(state.monthData || []);
+if (rehabPlanDaysEl) {
+    rehabPlanDaysEl.addEventListener('input', () => {
+        const selectedId = getSelectedPlayerId();
+        const days = clamp(Math.round(Number(rehabPlanDaysEl.value) || plannerDefaultDays), 7, 168);
+        rehabPlanDaysEl.value = days;
+        storeDaysForPlayer(selectedId, days);
+        renderRehabBuildPlan();
+    });
+}
+if (analysisContentEl && analysisContentEl.style.display !== 'none' && state.labels.length > 0) {
+    drawChart(currentMetric);
+    const selectedId = getSelectedPlayerId();
+    const storedDays = getStoredDaysForPlayer(selectedId);
+    if (rehabPlanDaysEl && storedDays) {
+        rehabPlanDaysEl.value = storedDays;
+    }
+    renderRehabBuildPlan();
+}
 </script>
 {% endblock %}
+
