@@ -51,6 +51,7 @@ from .models import (
     InjuryStatus,
     RPEEntry,
     RPETrainingType,
+    PlayerSpeedTest,
     HitWeekPlan,
     HitWeekPlanEntry,
     BeweeganalysePunt,
@@ -315,22 +316,35 @@ def dashboard(request):
     today_wellness = WellnessEntry.objects.select_related("player").filter(date=today).order_by("player__name")
     for entry in today_wellness:
         reasons = []
+        severity_points = 0
         if entry.sleep is not None and entry.sleep <= 2:
             reasons.append(f"slaap laag ({entry.sleep}/5)")
+            severity_points += 2
         if entry.mood is not None and entry.mood <= 2:
             reasons.append(f"gevoel laag ({entry.mood}/5)")
+            severity_points += 2
         if entry.fitness is not None and entry.fitness <= 2:
             reasons.append(f"fitheid laag ({entry.fitness}/5)")
+            severity_points += 2
         if entry.soreness is not None and entry.soreness >= 4:
             reasons.append(f"spierpijn hoog ({entry.soreness}/5)")
+            severity_points += 2
         if entry.comment and entry.comment.strip():
             reasons.append("opmerking ingevuld")
+            severity_points += 1
 
         if reasons:
+            if severity_points >= 6:
+                level = "hoog"
+            elif severity_points >= 3:
+                level = "matig"
+            else:
+                level = "laag"
             wellness_alerts.append(
                 {
                     "player_name": entry.player.name if entry.player else "-",
                     "reason": ", ".join(reasons),
+                    "level": level,
                 }
             )
 
@@ -372,17 +386,27 @@ def dashboard(request):
             continue
         ratio = current_avg / prev_avg
         if ratio >= 1.35:
+            if ratio >= 1.8:
+                level = "hoog"
+            elif ratio >= 1.5:
+                level = "matig"
+            else:
+                level = "laag"
             load_alerts.append(
                 {
                     "player_name": bucket["name"],
                     "current_avg": round(current_avg, 1),
                     "prev_avg": round(prev_avg, 1),
                     "ratio": round(ratio, 2),
+                    "level": level,
                 }
             )
 
     load_alerts = sorted(load_alerts, key=lambda item: item["ratio"], reverse=True)[:8]
     wellness_alerts = wellness_alerts[:8]
+
+    total_risk_count = len(wellness_alerts) + len(load_alerts)
+    highest_load_ratio = load_alerts[0]["ratio"] if load_alerts else None
 
     # ---------- CONTEXT ----------
     context = {
@@ -401,6 +425,8 @@ def dashboard(request):
         "birthdays": birthdays,
         "wellness_alerts": wellness_alerts,
         "load_alerts": load_alerts,
+        "total_risk_count": total_risk_count,
+        "highest_load_ratio": highest_load_ratio,
     }
 
     return render(request, "Load_dashboard.html", context)
@@ -1711,6 +1737,45 @@ def testdata(request):
         for row in test_rows
     ]
 
+    # Teamoverzicht voor tab "Testdata bekijken" zonder geselecteerde speler
+    speed_by_player = {}
+    for speed_row in PlayerSpeedTest.objects.values("player_id", "mss_kmh"):
+        player_key = speed_row["player_id"]
+        mss = speed_row.get("mss_kmh")
+        if player_key is None or mss is None:
+            continue
+        mss_float = float(mss)
+        prev = speed_by_player.get(player_key)
+        if prev is None or mss_float > prev:
+            speed_by_player[player_key] = mss_float
+
+    metrics_by_player = {}
+    for row in test_rows:
+        pid = row["player_id"]
+        bucket = metrics_by_player.setdefault(pid, {"isrt": None, "max_hr": None})
+        isrt_val = row.get("isrt")
+        max_hr_val = row.get("max_hr")
+        if isrt_val is not None:
+            isrt_f = float(isrt_val)
+            if bucket["isrt"] is None or isrt_f > bucket["isrt"]:
+                bucket["isrt"] = isrt_f
+        if max_hr_val is not None:
+            hr_f = float(max_hr_val)
+            if bucket["max_hr"] is None or hr_f > bucket["max_hr"]:
+                bucket["max_hr"] = hr_f
+
+    team_profile_rows = []
+    for p in players:
+        metric_bucket = metrics_by_player.get(p.id, {})
+        team_profile_rows.append(
+            {
+                "name": p.name,
+                "max_speed": speed_by_player.get(p.id),
+                "isrt": metric_bucket.get("isrt"),
+                "max_hr": metric_bucket.get("max_hr"),
+            }
+        )
+
     def metric_values(code):
         vals = []
         for row in test_rows:
@@ -1741,6 +1806,9 @@ def testdata(request):
     }
 
     player_id = request.GET.get("player_id")
+    tab_param = (request.GET.get("tab") or "").strip().lower()
+    if tab_param not in {"invoer", "profiel"}:
+        tab_param = "profiel" if player_id else "invoer"
     selected_player = None
     percentiles = {}
 
@@ -1791,7 +1859,7 @@ def testdata(request):
         player_obj = get_object_or_404(Player, id=request.POST.get("player_id"))
         test_date = request.POST.get("test_date")
         if not test_date:
-            return redirect("testdata")
+            return redirect("/testdata/?tab=invoer")
 
         parsed_date = datetime.strptime(test_date, "%Y-%m-%d").date()
         upsert_performance_session_metrics(
@@ -1810,7 +1878,7 @@ def testdata(request):
             },
             source_tag="main_manual_test",
         )
-        return redirect("testdata")
+        return redirect("/testdata/?tab=invoer")
 
     context = {
         "players": players,
@@ -1818,6 +1886,8 @@ def testdata(request):
         "test_data": test_data,
         "team_avg": team_avg,
         "percentiles": percentiles,
+        "active_testdata_tab": tab_param,
+        "team_profile_rows": team_profile_rows,
     }
 
     if player_id:

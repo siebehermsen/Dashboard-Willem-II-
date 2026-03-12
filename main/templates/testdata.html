@@ -4,6 +4,16 @@
 {% block content %}
 <main style="max-width:1600px;margin:auto;padding:20px">
 
+<div class="testdata-view-tabs" role="tablist" aria-label="Testdata weergave">
+    <button type="button" class="testdata-view-btn {% if active_testdata_tab == 'invoer' %}is-active{% endif %}" data-view-tab="invoer" aria-selected="{% if active_testdata_tab == 'invoer' %}true{% else %}false{% endif %}">
+        Testdata invoeren
+    </button>
+    <button type="button" class="testdata-view-btn {% if active_testdata_tab == 'profiel' %}is-active{% endif %}" data-view-tab="profiel" aria-selected="{% if active_testdata_tab == 'profiel' %}true{% else %}false{% endif %}">
+        Testdata bekijken
+    </button>
+</div>
+
+<section class="testdata-view-panel {% if active_testdata_tab == 'profiel' %}is-active{% endif %}" data-view-panel="profiel" {% if active_testdata_tab != 'profiel' %}hidden{% endif %}>
 <!-- ============================================ -->
 <!-- SPELERSELECTIE â€“ MOOIE KAART                 -->
 <!-- ============================================ -->
@@ -14,6 +24,7 @@
     </p>
 
     <form method="get" action="">
+        <input type="hidden" name="tab" value="profiel">
         <div class="select-wrapper">
             <select name="player_id" class="styled-select" onchange="this.form.submit()">
                 <option value="">-- Kies een speler --</option>
@@ -27,6 +38,41 @@
         </div>
     </form>
 </section>
+
+{% if not selected_player %}
+<section class="team-max-card">
+    <div class="team-max-head">
+        <h3>Teamoverzicht testdata</h3>
+        <p>Maximale waarden per speler op basis van beschikbare testdata.</p>
+    </div>
+    <div class="team-max-table-wrap">
+        <table class="team-max-table">
+            <thead>
+                <tr>
+                    <th>Speler</th>
+                    <th>Max snelheid (km/u)</th>
+                    <th>ISRT test (m)</th>
+                    <th>Max HR</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in team_profile_rows %}
+                <tr>
+                    <td class="player-col">{{ row.name }}</td>
+                    <td>{% if row.max_speed is not None %}{{ row.max_speed|floatformat:1 }}{% else %}-{% endif %}</td>
+                    <td>{% if row.isrt is not None %}{{ row.isrt|floatformat:0 }}{% else %}-{% endif %}</td>
+                    <td>{% if row.max_hr is not None %}{{ row.max_hr|floatformat:0 }}{% else %}-{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">Nog geen testdata gevonden.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
 
 {% if selected_player and selected_player.latest_test %}
 
@@ -53,8 +99,10 @@
                 <!-- Sprint -->
                 <div class="donut-card">
                     <h3>Sprint</h3>
-                    <canvas id="donut_sprint"></canvas>
-                    <div class="donut-value">{{ percentiles.sprint_10 }}%</div>
+                    <div class="donut-wrap">
+                        <canvas id="donut_sprint"></canvas>
+                        <div class="donut-value">{{ percentiles.sprint_10 }}%</div>
+                    </div>
                     <p class="donut-label">
                         10m: {{ selected_player.latest_test.sprint_10 }} s<br>
                         30m: {{ selected_player.latest_test.sprint_30 }} s
@@ -64,8 +112,10 @@
                 <!-- CMJ -->
                 <div class="donut-card">
                     <h3>Explosiviteit</h3>
-                    <canvas id="donut_cmj"></canvas>
-                    <div class="donut-value">{{ percentiles.cmj }}%</div>
+                    <div class="donut-wrap">
+                        <canvas id="donut_cmj"></canvas>
+                        <div class="donut-value">{{ percentiles.cmj }}%</div>
+                    </div>
                     <p class="donut-label">
                         CMJ: {{ selected_player.latest_test.cmj }} cm
                     </p>
@@ -74,8 +124,10 @@
                 <!-- ISRT -->
                 <div class="donut-card">
                     <h3>Uithoudingsvermogen</h3>
-                    <canvas id="donut_isrt"></canvas>
-                    <div class="donut-value">{{ percentiles.isrt }}%</div>
+                    <div class="donut-wrap">
+                        <canvas id="donut_isrt"></canvas>
+                        <div class="donut-value">{{ percentiles.isrt }}%</div>
+                    </div>
                     <p class="donut-label">
                         ISRT: {{ selected_player.latest_test.isrt }} m
                     </p>
@@ -84,8 +136,10 @@
                 <!-- Submax -->
                 <div class="donut-card">
                     <h3>Submaximaal</h3>
-                    <canvas id="donut_submax"></canvas>
-                    <div class="donut-value">{{ percentiles.submax }}%</div>
+                    <div class="donut-wrap">
+                        <canvas id="donut_submax"></canvas>
+                        <div class="donut-value">{{ percentiles.submax }}%</div>
+                    </div>
                     <p class="donut-label">
                         {{ selected_player.latest_test.submax }} %HRmax
                     </p>
@@ -115,7 +169,7 @@
 <!--  ANTHROPOMETRIE TRENDGRAFIEK   -->
 <!-- =============================== -->
 <div class="anthro-card">
-    <h3 class="anthro-title">Gewicht & Huidplooien â€“ Trend</h3>
+    <h3 class="anthro-title">Gewicht & Huidplooien - Trend</h3>
 
     <div class="anthro-chart-container">
         <canvas id="anthroChart"></canvas>
@@ -193,11 +247,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 {% endif %}
+</section>
 
 
  <!-- ===================================== -->
 <!-- NIEUWE TESTDATA INVOER (MOOIE LAYOUT) -->
-{% if not selected_player %}
+<section class="testdata-view-panel {% if active_testdata_tab == 'invoer' %}is-active{% endif %}" data-view-panel="invoer" {% if active_testdata_tab != 'invoer' %}hidden{% endif %}>
 <!-- ===================================== -->
 <section class="input-card">
 
@@ -387,10 +442,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
     </form>
 </section>
-{% endif %}
+</section>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    const pageTabButtons = document.querySelectorAll(".testdata-view-btn");
+    const pagePanels = document.querySelectorAll(".testdata-view-panel");
+
+    function openPageTab(tabName) {
+        pageTabButtons.forEach((btn) => {
+            const active = btn.dataset.viewTab === tabName;
+            btn.classList.toggle("is-active", active);
+            btn.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        pagePanels.forEach((panel) => {
+            const active = panel.dataset.viewPanel === tabName;
+            panel.hidden = !active;
+            panel.classList.toggle("is-active", active);
+        });
+    }
+
+    pageTabButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            openPageTab(btn.dataset.viewTab);
+            const url = new URL(window.location.href);
+            url.searchParams.set("tab", btn.dataset.viewTab);
+            if (btn.dataset.viewTab === "invoer") {
+                url.searchParams.delete("player_id");
+            }
+            window.history.replaceState({}, "", url.toString());
+        });
+    });
+
+    const initialBtn = document.querySelector(".testdata-view-btn.is-active") || pageTabButtons[0];
+    if (initialBtn) {
+        openPageTab(initialBtn.dataset.viewTab);
+    }
+
     const tabButtons = document.querySelectorAll(".test-tab-btn");
     const tabPanels = document.querySelectorAll(".test-tab-panel");
     const formEl = document.querySelector(".input-form");
@@ -570,6 +658,98 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
 /* ================================ */
 /* KAART STYLING                    */
 /* ================================ */
+.testdata-view-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 6px auto 24px;
+}
+
+.testdata-view-btn {
+    border: 1px solid #c8d3e8;
+    background: #f4f7ff;
+    color: #1f2a44;
+    border-radius: 999px;
+    padding: 11px 22px;
+    font-size: 1.02rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.testdata-view-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(31, 42, 68, 0.14);
+}
+
+.testdata-view-btn.is-active {
+    color: #fff;
+    border-color: #1f2a44;
+    background: linear-gradient(135deg, #1f2a44, #2f4877);
+    box-shadow: 0 10px 22px rgba(31, 42, 68, 0.24);
+}
+
+.testdata-view-panel {
+    width: 100%;
+}
+
+.team-max-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    border-left: 5px solid #b60000;
+    padding: 20px 22px 18px;
+    margin-bottom: 28px;
+}
+
+.team-max-head h3 {
+    margin: 0;
+    color: #1f2a44;
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.team-max-head p {
+    margin: 6px 0 14px;
+    color: #5c6680;
+    font-size: 0.95rem;
+}
+
+.team-max-table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+}
+
+.team-max-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+}
+
+.team-max-table th {
+    background: #1f2a44;
+    color: #fff;
+    text-align: left;
+    padding: 12px;
+    font-size: 0.92rem;
+}
+
+.team-max-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid #e6ecf6;
+    color: #263250;
+    background: #fff;
+}
+
+.team-max-table tbody tr:nth-child(even) td {
+    background: #f8faff;
+}
+
+.team-max-table .player-col {
+    font-weight: 700;
+    color: #1f2a44;
+}
+
 .player-select-card {
     background: #ffffff;
     padding: 24px 28px;
@@ -718,23 +898,30 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
 
 
 /* Donut canvas */
+.donut-wrap {
+    position: relative;
+    width: 105px;
+    height: 105px;
+    margin: 0 auto;
+    display: grid;
+    place-items: center;
+}
+
 .donut-card canvas {
     width: 105px !important;
     height: 105px !important;
     display: block;
-    margin: 0 auto;
+    margin: 0;
 }
 
 
 /* Percentage beter gecentreerd in de donut */
 .donut-value {
     position: absolute;
-
-    top: 50%;
-    left: 50%;
-
-    transform: translate(-50%, -54%);  
-    /* -48% = minder correctie â†’ tekst komt hoger uit, visueel midden */
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     font-size: 1.25rem;
     font-weight: 800;
