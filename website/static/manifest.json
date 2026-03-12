@@ -1,7 +1,7 @@
 {
   "name": "Dashboard Willem II",
   "short_name": "Dashboard",
-  "start_url": "/",
+  "start_url": "/dashboard/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1d1d1d",
