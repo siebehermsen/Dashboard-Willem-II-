@@ -162,9 +162,9 @@ input[type="date"] {
                             <td>
                                 <select name="training_type" class="form-select" required>
                                     <option value="">-- Type --</option>
-                                    <option>Training</option>
-                                    <option>Wedstrijd</option>
-                                    <option>Individueel</option>
+                                    {% for tt in training_types %}
+                                    <option value="{{ tt.id }}">{{ tt.name }}</option>
+                                    {% endfor %}
                                 </select>
                             </td>
 
@@ -224,7 +224,7 @@ input[type="date"] {
                         <tr>
                             <td>{{ entry.player.name }}</td>
                             <td>{{ entry.date }}</td>
-                            <td>{{ entry.training_type }}</td>
+                            <td>{% if entry.training_type_ref %}{{ entry.training_type_ref.name }}{% else %}-{% endif %}</td>
                             <td><strong>{{ entry.rpe }}</strong></td>
                         </tr>
                         {% endfor %}

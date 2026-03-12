@@ -37,9 +37,50 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 .match-info { color: #555; font-size: 1.1rem; }
 
 /* ALERTS */
+.alerts-card {
+    border: 1px solid #f0d3d3;
+    background: linear-gradient(180deg, #fff 0%, #fff9f9 100%);
+}
+
 .alerts-card .card-header {
     border-bottom: none;
-    margin-bottom: 6px;
+    margin-bottom: 14px;
+}
+
+.alerts-headline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.alerts-subtitle {
+    margin: 0;
+    color: #5f6f8e;
+    font-size: 0.95rem;
+}
+
+.alerts-metrics {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.alerts-metric {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid #e7eaf0;
+    background: #fff;
+    font-size: 0.88rem;
+    color: #354562;
+}
+
+.alerts-metric strong {
+    color: #1f2a44;
 }
 
 .alerts-grid {
@@ -49,9 +90,9 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 }
 
 .alert-panel {
-    background: #f8faff;
-    border: 1px solid #dce5f4;
-    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #e5eaf5;
+    border-radius: 14px;
     padding: 14px;
 }
 
@@ -71,34 +112,69 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 }
 
 .alert-item {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(130px, 180px) 1fr auto;
+    align-items: center;
     gap: 10px;
-    background: #ffffff;
+    background: #fafcff;
     border: 1px solid #e7edf8;
     border-radius: 10px;
-    padding: 9px 10px;
+    padding: 10px 12px;
 }
 
 .alert-player {
-    font-weight: 600;
+    font-weight: 700;
     color: #1f2a44;
 }
 
 .alert-text {
     color: #4f5f80;
     font-size: 0.92rem;
-    text-align: right;
+}
+
+.risk-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 56px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.risk-low {
+    background: #e8f6ed;
+    color: #1d7f45;
+}
+
+.risk-medium {
+    background: #fff5dd;
+    color: #a56a00;
+}
+
+.risk-high {
+    background: #fde9e9;
+    color: #b12525;
 }
 
 .alert-empty {
     color: #6c757d;
     margin: 0;
+    background: #f7f9fc;
+    border: 1px dashed #d9e1ef;
+    padding: 10px 12px;
+    border-radius: 10px;
 }
 
 @media (max-width: 900px) {
     .alerts-grid {
         grid-template-columns: 1fr;
+    }
+    .alert-item {
+        grid-template-columns: 1fr;
+        align-items: start;
     }
 }
 
@@ -378,8 +454,24 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 
 <!-- ALERTS: WELLNESS + BLESSURERISICO -->
 <div class="card alerts-card">
-    <div class="card-header">
-        <h2><i data-feather="alert-triangle"></i> Verhoogd blessurerisico</h2>
+    <div class="card-header alerts-headline">
+        <div>
+            <h2><i data-feather="alert-triangle"></i> Verhoogd blessurerisico</h2>
+            <p class="alerts-subtitle">Signalering op basis van wellness en recente belastingsopbouw.</p>
+        </div>
+        <div class="alerts-metrics">
+            <span class="alerts-metric">Actieve signalen: <strong>{{ total_risk_count }}</strong></span>
+            <span class="alerts-metric">
+                Hoogste load ratio:
+                <strong>
+                    {% if highest_load_ratio %}
+                        {{ highest_load_ratio }}x
+                    {% else %}
+                        -
+                    {% endif %}
+                </strong>
+            </span>
+        </div>
     </div>
     <div class="alerts-grid">
         <div class="alert-panel">
@@ -390,6 +482,9 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                         <li class="alert-item">
                             <span class="alert-player">{{ alert.player_name }}</span>
                             <span class="alert-text">{{ alert.reason }}</span>
+                            <span class="risk-pill {% if alert.level == 'hoog' %}risk-high{% elif alert.level == 'matig' %}risk-medium{% else %}risk-low{% endif %}">
+                                {{ alert.level }}
+                            </span>
                         </li>
                     {% endfor %}
                 </ul>
@@ -407,6 +502,9 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                             <span class="alert-text">
                                 +{{ alert.ratio }}x vs vorige weken
                                 ({{ alert.current_avg }} / {{ alert.prev_avg }})
+                            </span>
+                            <span class="risk-pill {% if alert.level == 'hoog' %}risk-high{% elif alert.level == 'matig' %}risk-medium{% else %}risk-low{% endif %}">
+                                {{ alert.level }}
                             </span>
                         </li>
                     {% endfor %}
