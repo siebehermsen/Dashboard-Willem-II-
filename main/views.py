@@ -50,6 +50,7 @@ from .models import (
     InjuryPhase,
     InjuryStatus,
     RPEEntry,
+    RPETrainingType,
     HitWeekPlan,
     HitWeekPlanEntry,
     BeweeganalysePunt,
@@ -2414,66 +2415,96 @@ def individueel_programma_opslaan(request, player_id):
     return redirect("individuele_programmas")
 
 def rpe_view(request):
-    """
-    RPE-pagina met dezelfde structuur als Wellness:
-    ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ toont 'niet ingevuld' en 'wel ingevuld' voor vandaag.
-    """
+    """RPE dashboard met robuuste POST-afhandeling en 3NF velden."""
 
-    # --- Alle spelers ---
     players = Player.objects.select_related("monitoring_profile").all().order_by("name")
-
-    # --- Datum filter (vandaag) ---
+    training_types = RPETrainingType.objects.filter(is_active=True).order_by("name")
     today = timezone.now().date()
 
-    # --- Alle ingevulde RPEÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢s van vandaag ---
-    todays_rpe = RPEEntry.objects.select_related("player", "training_type_ref").filter(date=today)
+    def _parse_rpe_date(raw_value):
+        raw_value = (raw_value or "").strip()
+        if not raw_value:
+            return today
 
-    # --- Lijsten voor UI ---
-    players_with_rpe = {entry.player.id for entry in todays_rpe}  # set van player IDs
+        parsed = parse_date(raw_value)  # yyyy-mm-dd
+        if parsed:
+            return parsed
 
-    not_filled = [p for p in players if p.id not in players_with_rpe]
-    filled = todays_rpe.order_by("player__name")
+        # Fallbacks: dd-mm-yyyy of dd/mm/yyyy
+        for fmt in ("%d-%m-%Y", "%d/%m/%Y"):
+            try:
+                return datetime.strptime(raw_value, fmt).date()
+            except ValueError:
+                continue
+        return None
 
-    # --- POST ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ RPE opslaan ---
     if request.method == "POST":
-        player_id = request.POST.get("player_id")
-        rpe_value = request.POST.get("rpe")
-        training_type = request.POST.get("training_type")
-        date_value_raw = request.POST.get("date")
+        player_id_raw = (request.POST.get("player_id") or "").strip()
+        rpe_raw = (request.POST.get("rpe") or "").strip()
+        training_type_raw = (request.POST.get("training_type") or "").strip()
+        date_raw = request.POST.get("date")
 
-        player = get_object_or_404(Player, id=player_id)
+        errors = []
 
-        # Geen datum ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ vandaag
-        if not date_value_raw:
-            date_value = today
-        else:
-            parsed_date = parse_date(date_value_raw)
-            date_value = parsed_date or today
+        player = Player.objects.filter(id=player_id_raw).first()
+        if not player:
+            errors.append("Ongeldige speler.")
 
-        # Bestaat er al een rpe entry voor die speler vandaag?
-        existing = RPEEntry.objects.filter(player=player, date=date_value).first()
+        date_value = _parse_rpe_date(date_raw)
+        if not date_value:
+            errors.append("Ongeldige datum. Gebruik dd-mm-jjjj of jjjj-mm-dd.")
 
-        if existing:
-            # Updaten
-            existing.training_type = training_type
-            existing.rpe = rpe_value
-            existing.save()
-        else:
-            # Nieuwe entry
-            RPEEntry.objects.create(
+        try:
+            rpe_value = int(rpe_raw)
+            if rpe_value < 1 or rpe_value > 10:
+                raise ValueError
+        except (TypeError, ValueError):
+            rpe_value = None
+            errors.append("RPE moet een getal tussen 1 en 10 zijn.")
+
+        training_type_obj = None
+        if training_type_raw:
+            if training_type_raw.isdigit():
+                training_type_obj = RPETrainingType.objects.filter(id=int(training_type_raw)).first()
+            else:
+                training_type_obj = RPETrainingType.objects.filter(name__iexact=training_type_raw).first()
+            if not training_type_obj:
+                errors.append("Ongeldig trainingstype.")
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            return redirect("/rpe/")
+
+        try:
+            _, created = RPEEntry.objects.update_or_create(
                 player=player,
                 date=date_value,
-                training_type=training_type,
-                rpe=rpe_value
+                defaults={
+                    "rpe": rpe_value,
+                    "training_type_ref": training_type_obj,
+                },
             )
+            if created:
+                messages.success(request, f"RPE opgeslagen voor {player.name}.")
+            else:
+                messages.success(request, f"RPE bijgewerkt voor {player.name}.")
+        except Exception:
+            messages.error(request, "Opslaan van RPE is mislukt. Controleer invoer of databaseverbinding.")
 
         return redirect("/rpe/")
 
+    todays_rpe = RPEEntry.objects.select_related("player", "training_type_ref").filter(date=today)
+    players_with_rpe = {entry.player_id for entry in todays_rpe}
+    not_filled = [p for p in players if p.id not in players_with_rpe]
+    filled = todays_rpe.order_by("player__name")
+
     context = {
         "players": players,
+        "training_types": training_types,
         "today": today,
-        "not_filled": not_filled,   # spelers die nog geen RPE hebben
-        "filled": filled,           # ingevulde RPE entries
+        "not_filled": not_filled,
+        "filled": filled,
     }
 
     return render(request, "rpe.html", context)
