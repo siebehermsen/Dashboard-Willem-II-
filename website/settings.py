@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # --------------------------------------------------
@@ -17,12 +18,46 @@ from pathlib import Path
 # --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def load_dotenv(dotenv_path: Path) -> None:
+    if not dotenv_path.exists():
+        return
+
+    for raw_line in dotenv_path.read_text(encoding='utf-8').splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+
+        key, value = line.split('=', 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+def env(key: str, default=None):
+    return os.environ.get(key, default)
+
+
+def env_bool(key: str, default: bool = False) -> bool:
+    value = env(key)
+    if value is None:
+        return default
+    return value.lower() in {'1', 'true', 'yes', 'on'}
+
+
+def env_list(key: str, default=None):
+    value = env(key)
+    if value is None:
+        return default or []
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
+load_dotenv(BASE_DIR / '.env')
+
 # --------------------------------------------------
 # VEILIGHEID & DEBUG
 # --------------------------------------------------
-SECRET_KEY = 'django-insecure-!*ovk!2vjqs#5fnl7$w0qlpi(8=1l1+b3@j=3vlo20nhgx!q-5'
-DEBUG = True
-ALLOWED_HOSTS = []  # Laat leeg voor lokaal gebruik
+SECRET_KEY = env('DJANGO_SECRET_KEY', 'django-insecure-!*ovk!2vjqs#5fnl7$w0qlpi(8=1l1+b3@j=3vlo20nhgx!q-5')
+DEBUG = env_bool('DJANGO_DEBUG', True)
+ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', [])  # Laat leeg voor lokaal gebruik
 
 # --------------------------------------------------
 # DJANGO-APPS
@@ -91,12 +126,12 @@ WSGI_APPLICATION = 'website.wsgi.application'
 # --------------------------------------------------
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'willemii_dashboard',
-        'USER': 'root',
-        'PASSWORD': 'RootTemp1234',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'ENGINE': env('DB_ENGINE', 'django.db.backends.mysql'),
+        'NAME': env('DB_NAME', 'willemii_dashboard'),
+        'USER': env('DB_USER', 'root'),
+        'PASSWORD': env('DB_PASSWORD', 'RootTemp1234'),
+        'HOST': env('DB_HOST', 'localhost'),
+        'PORT': env('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
