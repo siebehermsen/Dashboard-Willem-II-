@@ -13,6 +13,24 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Dashboard">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script>
+    (() => {
+        const isStandalone =
+            window.matchMedia('(display-mode: standalone)').matches ||
+            window.navigator.standalone === true;
+
+        if (!isStandalone) {
+            return;
+        }
+
+        document.documentElement.classList.add('app-mode');
+        window.__APP_STANDALONE__ = true;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('app-mode');
+        });
+    })();
+</script>
 
 <style>
     /* =========================

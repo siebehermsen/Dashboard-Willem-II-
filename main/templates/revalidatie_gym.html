@@ -22,7 +22,9 @@ a { color: #b60000; text-decoration: none; }
 
 /* ---------- HEADER ---------- */
 .header {
-    display: block;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 40px;
 }
 .header h1 {
@@ -39,45 +41,6 @@ a { color: #b60000; text-decoration: none; }
     border-radius: 8px;
     font-weight: 500;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    display: inline-block;
-    margin-top: 14px;
-}
-
-.revalidatie-switch {
-    display: flex;
-    gap: 10px;
-    background: #eef2f9;
-    padding: 6px;
-    border-radius: 999px;
-    width: fit-content;
-}
-
-.revalidatie-switch-wrap {
-    display: flex;
-    justify-content: center;
-    margin-top: 18px;
-}
-
-.revalidatie-switch a {
-    text-decoration: none;
-    color: #1f2a44;
-    font-weight: 600;
-    padding: 8px 16px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    transition: all 0.18s ease;
-}
-
-.revalidatie-switch a:hover {
-    background: #ffffff;
-    border-color: #d4dcea;
-}
-
-.revalidatie-switch a.active {
-    background: #1f2a44;
-    color: #ffffff;
-    border-color: #1f2a44;
-    box-shadow: 0 4px 12px rgba(31, 42, 68, 0.24);
 }
 
 /* ---------- ALGEMENE CARDS ---------- */
@@ -181,21 +144,11 @@ tr:nth-child(even) {
 .program-form textarea,
 .program-form select {
     width: 100%;
-    padding: 9px 10px;
-    border: 1px solid #cdd5e3;
-    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
     margin-top: 4px;
     font-family: "Inter", sans-serif;
-    background: #fff;
-    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-}
-.program-form input:focus,
-.program-form textarea:focus,
-.program-form select:focus {
-    outline: none;
-    border-color: #2e6fb6;
-    box-shadow: 0 0 0 3px rgba(46, 111, 182, 0.14);
-    background: #fcfdff;
 }
 .program-form textarea {
     resize: vertical;
@@ -203,20 +156,17 @@ tr:nth-child(even) {
 .add-btn {
     display: inline-block;
     margin-top: 20px;
-    background: linear-gradient(135deg, #b60000, #ca2424);
+    background-color: #b60000;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     padding: 10px 18px;
     cursor: pointer;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    font-weight: 500;
+    transition: 0.25s;
 }
 .add-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 18px rgba(182, 0, 0, 0.23);
-    filter: brightness(1.03);
+    background-color: #1f2a44;
 }
 
 /* ---------- TOEGEVOEGDE PROGRAMMA'S ---------- */
@@ -237,130 +187,6 @@ tr:nth-child(even) {
     background-color: #f8f9fb;
 }
 
-.program-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 22px;
-}
-
-.program-card {
-    margin-bottom: 0;
-    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
-    border: 1px solid #e8edf5;
-    box-shadow: 0 8px 22px rgba(18, 31, 53, 0.06);
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.program-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 26px rgba(18, 31, 53, 0.1);
-}
-
-.program-card.kracht {
-    border-top: 4px solid #b60000;
-}
-
-.program-card.offfeet {
-    border-top: 4px solid #1976d2;
-}
-
-.program-label {
-    display: inline-block;
-    margin-bottom: 10px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.program-label.kracht {
-    background: #fdecec;
-    color: #b60000;
-}
-
-.program-label.offfeet {
-    background: #e9f2ff;
-    color: #1256a0;
-}
-
-/* ---------- PROGRAM BUILDER ---------- */
-.program-builder {
-    border: 1px solid #e2e8f2;
-    box-shadow: 0 14px 34px rgba(20, 34, 56, 0.08);
-    position: relative;
-    overflow: hidden;
-}
-
-.program-builder::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto auto 0;
-    width: 100%;
-    height: 120px;
-    background: linear-gradient(180deg, rgba(182, 0, 0, 0.06), rgba(182, 0, 0, 0));
-    pointer-events: none;
-}
-
-/* ---------- GEDEELDE SPELERSELECTIE ---------- */
-.shared-player-select {
-    background: linear-gradient(180deg, #f8fbff 0%, #f5f8fd 100%);
-    border: 1px solid #d7e0ef;
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin: 8px 0 20px;
-}
-
-.shared-player-select label {
-    display: block;
-    font-weight: 600;
-    color: #1f2a44;
-}
-
-.shared-player-select select {
-    width: 100%;
-    margin-top: 6px;
-    padding: 9px 10px;
-    border: 1px solid #bfcbe0;
-    border-radius: 8px;
-    font-family: "Inter", sans-serif;
-}
-
-.shared-player-select .helper {
-    margin: 8px 0 0;
-    font-size: 0.84rem;
-    color: #5f6d85;
-}
-
-.player-select-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.selected-player-badge {
-    display: inline-flex;
-    align-items: center;
-    max-width: 55%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: #eaf2ff;
-    color: #17579f;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-}
-
-.selected-player-badge.is-empty {
-    background: #eef1f6;
-    color: #6c7890;
-}
-
 /* ---------- EXTRA ---------- */
 .section-divider {
     margin: 50px 0 20px;
@@ -378,42 +204,10 @@ tr:nth-child(even) {
 .badge.phase3 { background: #c8e6c9; color: #1b5e20; }
 .badge.phase4 { background: #bbdefb; color: #0d47a1; }
 
-/* ---------- BEWERK ACTIE ---------- */
-.edit-details summary {
-    list-style: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: #1f2a44;
-    color: #fff;
-    font-weight: 600;
-    font-size: 0.85rem;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
-}
-.edit-details summary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(31, 42, 68, 0.25);
-    background: #b60000;
-}
-.edit-details summary::-webkit-details-marker { display: none; }
-.edit-panel {
-    margin-top: 10px;
-    padding: 12px;
-    background: #f8f9fb;
-    border: 1px solid #e3e7ef;
-    border-radius: 12px;
-}
-
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 768px) {
     .protocol-grid { grid-template-columns: 1fr; }
-    .program-grid { grid-template-columns: 1fr; }
     .header { flex-direction: column; align-items: flex-start; gap: 10px; }
-    .player-select-head { flex-direction: column; align-items: flex-start; }
-    .selected-player-badge { max-width: 100%; }
 }
 </style>
 
@@ -421,114 +215,47 @@ tr:nth-child(even) {
 
     <!-- HEADER -->
     <div class="header">
-        <h1>Revalidatie Gym Protocol</h1>
-        <div class="revalidatie-switch-wrap">
-            <div class="revalidatie-switch">
-                <a href="{% url 'revalidatie' %}">Revalidatie veld</a>
-                <a href="{% url 'revalidatie_gym' %}" class="active">Revalidatie gym</a>
-            </div>
-        </div>
-        <div class="phase-count">4 fasen - Gymfocus</div>
+        <h1>🏋️‍♂️ Revalidatie Gym Protocol</h1>
+        <div class="phase-count">4 Fases - Gym Focus</div>
     </div>
 
     <!-- ACTIEVE BLESSURES -->
     <div class="rehab-card">
         <h2><i data-feather="activity"></i> Actieve blessures</h2>
-        <form class="program-form" method="post" style="margin-bottom: 16px;">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="add_injury_gym">
-
-            <label for="injury_name">Speler:</label>
-            <input type="text" id="injury_name" name="name" placeholder="Naam speler" required>
-
-            <label for="injury_type">Type blessure:</label>
-            <input type="text" id="injury_type" name="injury_type" placeholder="Bijv. hamstring" required>
-
-            <label for="injury_start">Startdatum:</label>
-            <input type="date" id="injury_start" name="start_date" required>
-
-            <label for="injury_duration">Duur (dagen):</label>
-            <input type="number" id="injury_duration" name="duration" min="1" required>
-
-            <label for="injury_phase">Fase:</label>
-            <select id="injury_phase" name="phase" required>
-                <option value="early">Vroege fase</option>
-                <option value="mid">Middenfase</option>
-                <option value="final">Laatste fase</option>
-            </select>
-
-            <button type="submit" class="add-btn">Blessure toevoegen</button>
-        </form>
-
         <table>
             <thead>
                 <tr>
                     <th>Speler</th>
                     <th>Type blessure</th>
                     <th>Startdatum</th>
-                    <th>Duur (dagen)</th>
+                    <th>Verwachte terugkeer</th>
                     <th>Status</th>
-                    <th>Acties</th>
                 </tr>
             </thead>
             <tbody>
-                {% for blessure in blessures %}
                 <tr>
-                    <td>{{ blessure.name }}</td>
-                    <td>{{ blessure.injury_type }}</td>
-                    <td>{{ blessure.start_date|date:"d M Y" }}</td>
-                    <td>{{ blessure.duration|default:"-" }}</td>
+                    <td>Amine Lachkar</td>
+                    <td>Hamstring</td>
+                    <td>10 okt 2025</td>
+                    <td>25 nov 2025</td>
                     <td>
-                        {% if blessure.phase == 'early' %}
-                            <span class="badge phase1">Vroege fase</span>
-                        {% elif blessure.phase == 'mid' %}
-                            <span class="badge phase2">Middenfase</span>
-                        {% elif blessure.phase == 'final' %}
-                            <span class="badge phase3">Laatste fase</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <details class="edit-details">
-                            <summary>Bewerk</summary>
-                            <div class="edit-panel">
-                                <form class="program-form" method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="form_type" value="edit_injury_gym">
-                                <input type="hidden" name="injury_id" value="{{ blessure.id }}">
-
-                                <label>Speler:</label>
-                                <input type="text" name="name" value="{{ blessure.name }}" required>
-
-                                <label>Type blessure:</label>
-                                <input type="text" name="injury_type" value="{{ blessure.injury_type }}" required>
-
-                                <label>Startdatum:</label>
-                                <input type="date" name="start_date" value="{{ blessure.start_date|date:'Y-m-d' }}" required>
-
-                                <label>Duur (dagen):</label>
-                                <input type="number" name="duration" value="{{ blessure.duration }}" min="1" required>
-
-                                <label>Fase:</label>
-                                <select name="phase" required>
-                                    <option value="early" {% if blessure.phase == 'early' %}selected{% endif %}>Vroege fase</option>
-                                    <option value="mid" {% if blessure.phase == 'mid' %}selected{% endif %}>Middenfase</option>
-                                    <option value="final" {% if blessure.phase == 'final' %}selected{% endif %}>Laatste fase</option>
-                                </select>
-
-                                <button type="submit" class="add-btn">Opslaan</button>
-                                </form>
-                            </div>
-                        </details>
+                        <div class="progress-bar"><div class="progress-fill" style="width:70%;"></div></div>
+                        <small>70% – <span class="badge phase3">Fase 3</span></small>
                     </td>
                 </tr>
-                {% empty %}
                 <tr>
-                    <td colspan="6">Geen actieve blessures toegevoegd.</td>
+                    <td>Niels van Berkel</td>
+                    <td>Enkelverstuiking</td>
+                    <td>22 okt 2025</td>
+                    <td>10 nov 2025</td>
+                    <td>
+                        <div class="progress-bar"><div class="progress-fill" style="width:40%;"></div></div>
+                        <small>40% – <span class="badge phase2">Fase 2</span></small>
+                    </td>
                 </tr>
-                {% endfor %}
             </tbody>
         </table>
-        <p class="note">Laatste update: {{ today|date:"d-m-Y"|default:"-" }}</p>
+        <p class="note">Laatste update: 7 november 2025</p>
     </div>
 
     <!-- FASES OVERZICHT -->
@@ -536,224 +263,105 @@ tr:nth-child(even) {
         <h2><i data-feather="layers"></i> Overzicht revalidatiefases</h2>
         <div class="protocol-grid">
             <div class="phase-box phase-early">
-                <h3>Fase 1 - Pijnvrij bewegen</h3>
+                <h3>Fase 1 – Pijnvrij bewegen</h3>
                 <p>Herstel mobiliteit, pijnvrije ROM en basiscontrole.</p>
             </div>
             <div class="phase-box phase-mid">
-                <h3>Fase 2 - Voorwaarden creeren</h3>
+                <h3>Fase 2 – Voorwaarden creëren</h3>
                 <p>Stabiliteit, activatie en volledige bewegingsuitslag.</p>
             </div>
             <div class="phase-box phase-final">
-                <h3>Fase 3 - Robuuste basis</h3>
-                <p>Kracht, volledige range en functionele belastbaarheid.</p>
+                <h3>Fase 3 – Robust Body</h3>
+                <p>Power, full range en functionele kracht.</p>
             </div>
             <div class="phase-box phase-performance">
-                <h3>Fase 4 - Prestatie</h3>
-                <p>Transfer naar veldspecifieke kracht, snelheid en intensiteit.</p>
+                <h3>Fase 4 – Performance</h3>
+                <p>Transfer naar veldspecifieke kracht en snelheid.</p>
             </div>
         </div>
     </div>
 
     <hr class="section-divider">
 
-    <!-- PROGRAMMA'S -->
-    <div class="program-section program-builder">
-        <h2><i data-feather="clipboard"></i> Persoonlijk revalidatieprogramma</h2>
+    <!-- NIEUW PROGRAMMA TOEVOEGEN -->
+    <div class="program-section">
+        <h2><i data-feather="clipboard"></i> Persoonlijk Revalidatieprogramma</h2>
         <p style="color:#666; margin-bottom:15px;">
-            Stel per speler zowel een krachtprogramma als een off-feet conditioneringsprogramma op.
+            Voeg hieronder een oefening toe aan het revalidatieprogramma van een speler.
         </p>
-        <div class="shared-player-select">
-            <div class="player-select-head">
-                <label for="program_player_shared">Speler (voor beide programma's):</label>
-                <span class="selected-player-badge is-empty" id="selected_player_badge">Geen speler geselecteerd</span>
-            </div>
-            <select id="program_player_shared">
+
+        <form class="program-form" method="post">
+            {% csrf_token %}
+
+            <label for="player">Speler:</label>
+            <select name="player" id="player" required>
                 <option value="">-- Kies speler --</option>
                 {% for speler in spelers %}
                     <option value="{{ speler.id }}">{{ speler.name }}</option>
                 {% endfor %}
             </select>
-            <p class="helper">Deze speler wordt automatisch gebruikt voor zowel kracht als conditionering.</p>
-        </div>
-        <div class="program-grid">
-            <div class="program-section program-card kracht">
-                <span class="program-label kracht">Krachtprogramma</span>
-                <form class="program-form" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="program_type" value="{{ kracht_label }}">
-                    <input type="hidden" name="player" class="js-program-player">
-                    <label for="phase_kracht">Fase:</label>
-                    <select id="phase_kracht" name="phase" required>
-                        <option>Fase 1 - Pijnvrij bewegen</option>
-                        <option>Fase 2 - Voorwaarden creeren</option>
-                        <option>Fase 3 - Robuuste basis</option>
-                        <option>Fase 4 - Prestatie</option>
-                    </select>
-                    <label for="focus_point_kracht">Fysiek aandachtspunt:</label>
-                    <input type="text" id="focus_point_kracht" name="focus_point" placeholder="Bijv. heupstabiliteit, posterior chain..." required>
-                    <label for="exercise_kracht">Oefening:</label>
-                    <input type="text" id="exercise_kracht" name="exercise" placeholder="Bijv. Split squat isometrisch" required>
-                    <label for="description_kracht">Beschrijving:</label>
-                    <textarea id="description_kracht" name="description" rows="3" placeholder="Techniek, tempo, rust en opbouw..." required></textarea>
-                    <label for="sets_reps_kracht">Sets / Herhalingen:</label>
-                    <input type="text" id="sets_reps_kracht" name="sets_reps" placeholder="Bijv. 4 x 6 @ RPE 7" required>
-                    <button type="submit" class="add-btn">Oefening opslaan</button>
-                </form>
-            </div>
-            <div class="program-section program-card offfeet">
-                <span class="program-label offfeet">Conditionering off-feet</span>
-                <form class="program-form" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="program_type" value="{{ offfeet_label }}">
-                    <input type="hidden" name="player" class="js-program-player">
-                    <label for="phase_offfeet">Fase:</label>
-                    <select id="phase_offfeet" name="phase" required>
-                        <option>Fase 1 - Aerobe basis</option>
-                        <option>Fase 2 - Extensieve intervallen</option>
-                        <option>Fase 3 - Intensieve intervallen</option>
-                        <option>Fase 4 - Wedstrijdspecifieke prikkel</option>
-                    </select>
-                    <label for="focus_point_offfeet">Fysiek aandachtspunt:</label>
-                    <input type="text" id="focus_point_offfeet" name="focus_point" placeholder="Bijv. cardiovasculair herstel, lactaattolerantie..." required>
-                    <label for="exercise_offfeet">Vorm:</label>
-                    <input type="text" id="exercise_offfeet" name="exercise" placeholder="Bijv. Bike intervals 30-30" required>
-                    <label for="description_offfeet">Beschrijving:</label>
-                    <textarea id="description_offfeet" name="description" rows="3" placeholder="Apparaat, intervalstructuur, target intensiteit..." required></textarea>
-                    <label for="sets_reps_offfeet">Duur / structuur:</label>
-                    <input type="text" id="sets_reps_offfeet" name="sets_reps" placeholder="Bijv. 3 blokken van 8 min (1:1 werk-rust)" required>
-                    <button type="submit" class="add-btn">Sessie opslaan</button>
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <div class="program-grid">
-        <div class="program-section program-summary program-card kracht">
-            <h2><i data-feather="list"></i> Opgeslagen krachtprogramma</h2>
-            {% if oefeningen_kracht %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Speler</th>
-                        <th>Fase</th>
-                        <th>Aandachtspunt</th>
-                        <th>Oefening</th>
-                        <th>Beschrijving</th>
-                        <th>Sets / Reps</th>
-                        <th>Datum</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for oef in oefeningen_kracht %}
-                    <tr>
-                        <td>{{ oef.player.name|default:"-" }}</td>
-                        <td>{{ oef.phase }}</td>
-                        <td>{{ oef.focus_point|default:"-" }}</td>
-                        <td>{{ oef.exercise }}</td>
-                        <td>{{ oef.description }}</td>
-                        <td>{{ oef.sets_reps }}</td>
-                        <td>{{ oef.created_at|date:"d-m-Y" }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-                <p style="color:#777; text-align:center;">Nog geen krachtprogramma toegevoegd.</p>
-            {% endif %}
-        </div>
-        <div class="program-section program-summary program-card offfeet">
-            <h2><i data-feather="list"></i> Opgeslagen conditionering off-feet</h2>
-            {% if oefeningen_offfeet %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Speler</th>
-                        <th>Fase</th>
-                        <th>Aandachtspunt</th>
-                        <th>Vorm</th>
-                        <th>Beschrijving</th>
-                        <th>Duur / structuur</th>
-                        <th>Datum</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for oef in oefeningen_offfeet %}
-                    <tr>
-                        <td>{{ oef.player.name|default:"-" }}</td>
-                        <td>{{ oef.phase }}</td>
-                        <td>{{ oef.focus_point|default:"-" }}</td>
-                        <td>{{ oef.exercise }}</td>
-                        <td>{{ oef.description }}</td>
-                        <td>{{ oef.sets_reps }}</td>
-                        <td>{{ oef.created_at|date:"d-m-Y" }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-                <p style="color:#777; text-align:center;">Nog geen off-feet conditioneringsprogramma toegevoegd.</p>
-            {% endif %}
-        </div>
+            <label for="phase">Fase:</label>
+<select id="phase" name="phase" required>
+    <option>Fase 1 – Pijnvrij bewegen</option>
+    <option>Fase 2 – Voorwaarden creëren</option>
+    <option>Fase 3 – Robust Body</option>
+    <option>Fase 4 – Performance</option>
+</select>
+
+<!-- 🔽 Nieuw toegevoegd veld -->
+<label for="focus_point">Fysiek aandachtspunt:</label>
+<input type="text" id="focus_point" name="focus_point" placeholder="Bijv. focus op enkel, core, heup..." required>
+
+<label for="exercise">Oefening:</label>
+<input type="text" id="exercise" name="exercise" placeholder="Bijv. Nordic Hamstring" required>
+
+<label for="description">Beschrijving:</label>
+<textarea id="description" name="description" rows="3" placeholder="Beschrijving van de oefening..." required></textarea>
+
+<label for="sets_reps">Sets / Herhalingen:</label>
+<input type="text" id="sets_reps" name="sets_reps" placeholder="Bijv. 3 x 8" required>
+
+<button type="submit" class="add-btn">💾 Oefening opslaan</button>
+</form>
+</div>
+
+    <!-- OVERZICHT TOEGEVOEGDE OEFENINGEN -->
+    {% if oefeningen %}
+    <div class="program-section program-summary">
+        <h2><i data-feather="list"></i> Opgeslagen programma's</h2>
+        <table> 
+            <thead>
+                <tr>
+                    <th>Speler</th>
+                    <th>Fase</th>
+                    <th>Oefening</th>
+                    <th>Beschrijving</th>
+                    <th>Sets / Reps</th>
+                    <th>Datum toegevoegd</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for oef in oefeningen %}
+                <tr>
+                    <td>{{ oef.player.name }}</td>
+                    <td>{{ oef.phase }}</td>
+                    <td>{{ oef.exercise }}</td>
+                    <td>{{ oef.description }}</td>
+                    <td>{{ oef.sets_reps }}</td>
+                    <td>{{ oef.created_at|date:"d-m-Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    {% else %}
+        <p style="color:#777; text-align:center;">Nog geen oefeningen toegevoegd aan het programma.</p>
+    {% endif %}
+
 </div>
 
 <script>
 feather.replace();
-
-const sharedPlayerSelect = document.getElementById("program_player_shared");
-const programForms = document.querySelectorAll(".program-card form");
-const programPlayerInputs = document.querySelectorAll(".js-program-player");
-const selectedPlayerBadge = document.getElementById("selected_player_badge");
-const playerStorageKey = "revalidatieGymSelectedPlayer";
-
-function syncProgramPlayer(value) {
-    programPlayerInputs.forEach((input) => {
-        input.value = value || "";
-    });
-}
-
-function renderSelectedPlayerBadge() {
-    if (!sharedPlayerSelect || !selectedPlayerBadge) {
-        return;
-    }
-    const selectedText = sharedPlayerSelect.options[sharedPlayerSelect.selectedIndex]?.text || "";
-    const hasPlayer = Boolean(sharedPlayerSelect.value);
-    selectedPlayerBadge.textContent = hasPlayer ? selectedText : "Geen speler geselecteerd";
-    selectedPlayerBadge.classList.toggle("is-empty", !hasPlayer);
-}
-
-if (sharedPlayerSelect) {
-    const storedPlayer = window.localStorage.getItem(playerStorageKey);
-    if (storedPlayer && sharedPlayerSelect.querySelector(`option[value="${storedPlayer}"]`)) {
-        sharedPlayerSelect.value = storedPlayer;
-        syncProgramPlayer(storedPlayer);
-    } else {
-        syncProgramPlayer(sharedPlayerSelect.value);
-    }
-
-    sharedPlayerSelect.addEventListener("change", () => {
-        const selected = sharedPlayerSelect.value || "";
-        syncProgramPlayer(selected);
-        if (selected) {
-            window.localStorage.setItem(playerStorageKey, selected);
-        } else {
-            window.localStorage.removeItem(playerStorageKey);
-        }
-        renderSelectedPlayerBadge();
-    });
-}
-renderSelectedPlayerBadge();
-
-programForms.forEach((form) => {
-    form.addEventListener("submit", (event) => {
-        if (!sharedPlayerSelect || !sharedPlayerSelect.value) {
-            event.preventDefault();
-            alert("Selecteer eerst een speler boven de programma's.");
-            if (sharedPlayerSelect) {
-                sharedPlayerSelect.focus();
-            }
-        }
-    });
-});
 </script>
 {% endblock %}

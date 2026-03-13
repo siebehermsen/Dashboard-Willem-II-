@@ -399,9 +399,385 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
     align-items: center;
     gap: 10px;
 }
+
+.dashboard-app-shell {
+    display: none;
+}
+
+@media (max-width: 820px) {
+    html.app-mode body {
+        background:
+            radial-gradient(120% 120% at 0% 0%, rgba(212, 35, 42, 0.08), transparent 42%),
+            linear-gradient(180deg, #eef2f8 0%, #f8fafd 100%);
+    }
+
+    html.app-mode header,
+    html.app-mode footer {
+        display: none;
+    }
+
+    html.app-mode .container.dashboard-page {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    html.app-mode .dashboard-desktop-shell {
+        display: none;
+    }
+
+    html.app-mode .dashboard-app-shell {
+        display: block;
+        min-height: 100vh;
+        padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 28px);
+    }
+
+    html.app-mode .dashboard-app-topbar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    html.app-mode .dashboard-app-logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        object-fit: cover;
+        box-shadow: 0 12px 28px rgba(18, 31, 62, 0.18);
+    }
+
+    html.app-mode .dashboard-app-kicker {
+        margin: 0 0 4px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #667696;
+    }
+
+    html.app-mode .dashboard-app-title {
+        margin: 0;
+        font-size: 1.55rem;
+        line-height: 1.1;
+        color: #10213f;
+    }
+
+    html.app-mode .dashboard-app-subtitle {
+        margin: 8px 0 0;
+        color: #5b6c8c;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    html.app-mode .dashboard-app-summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    html.app-mode .dashboard-app-stat {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(16, 33, 63, 0.08);
+        border-radius: 18px;
+        padding: 14px;
+        box-shadow: 0 10px 28px rgba(20, 34, 66, 0.08);
+    }
+
+    html.app-mode .dashboard-app-stat-label {
+        display: block;
+        font-size: 0.82rem;
+        color: #64728f;
+        margin-bottom: 6px;
+    }
+
+    html.app-mode .dashboard-app-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #10213f;
+        line-height: 1;
+    }
+
+    html.app-mode .dashboard-app-panel {
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(16, 33, 63, 0.08);
+        border-radius: 22px;
+        padding: 18px;
+        box-shadow: 0 16px 34px rgba(20, 34, 66, 0.09);
+        margin-bottom: 16px;
+    }
+
+    html.app-mode .dashboard-app-panel-title {
+        margin: 0 0 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #10213f;
+    }
+
+    html.app-mode .dashboard-app-match-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    html.app-mode .dashboard-app-team {
+        flex: 1;
+        min-width: 0;
+        text-align: center;
+    }
+
+    html.app-mode .dashboard-app-team img {
+        width: 52px;
+        height: 52px;
+        object-fit: contain;
+        border-radius: 14px;
+        background: #f4f7fb;
+        padding: 6px;
+    }
+
+    html.app-mode .dashboard-app-team span {
+        display: block;
+        margin-top: 8px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #1f2a44;
+    }
+
+    html.app-mode .dashboard-app-versus {
+        font-size: 0.86rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        color: #d2232a;
+    }
+
+    html.app-mode .dashboard-app-match-time {
+        margin: 14px 0 0;
+        font-size: 0.94rem;
+        color: #5a6a89;
+    }
+
+    html.app-mode .dashboard-app-alert-copy {
+        margin: 0;
+        color: #5a6a89;
+        line-height: 1.55;
+        font-size: 0.94rem;
+    }
+
+    html.app-mode .dashboard-app-alert-pill {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 12px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: #fff3f3;
+        color: #ad1f26;
+        font-size: 0.84rem;
+        font-weight: 700;
+    }
+
+    html.app-mode .dashboard-app-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    html.app-mode .dashboard-app-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        padding: 16px 18px;
+        border-radius: 20px;
+        text-decoration: none;
+        background: #ffffff;
+        border: 1px solid rgba(16, 33, 63, 0.08);
+        box-shadow: 0 10px 24px rgba(20, 34, 66, 0.08);
+    }
+
+    html.app-mode .dashboard-app-link-main {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    html.app-mode .dashboard-app-link-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #10213f;
+    }
+
+    html.app-mode .dashboard-app-link-text {
+        font-size: 0.85rem;
+        color: #687897;
+        line-height: 1.4;
+    }
+
+    html.app-mode .dashboard-app-link-accent {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #1b2745 0%, #31446f 100%);
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+}
 </style>
 
-<main class="container">
+<main class="container dashboard-page">
+    <section class="dashboard-app-shell" aria-label="App dashboard home">
+        <div class="dashboard-app-topbar">
+            <img class="dashboard-app-logo" src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg" alt="Willem II">
+            <div>
+                <p class="dashboard-app-kicker">Dashboard app</p>
+                <h1 class="dashboard-app-title">Hallo {{ request.user.first_name|default:request.user.username }}</h1>
+            </div>
+        </div>
+
+        <p class="dashboard-app-subtitle">Snelle toegang tot de belangrijkste onderdelen, geoptimaliseerd voor gebruik als geïnstalleerde app op je telefoon.</p>
+
+        <section class="dashboard-app-summary" aria-label="Dashboard samenvatting">
+            <article class="dashboard-app-stat">
+                <span class="dashboard-app-stat-label">Teamleden</span>
+                <strong class="dashboard-app-stat-value">{{ players|length }}</strong>
+            </article>
+            <article class="dashboard-app-stat">
+                <span class="dashboard-app-stat-label">Revalidaties</span>
+                <strong class="dashboard-app-stat-value">{{ rehab_players|length }}</strong>
+            </article>
+            <article class="dashboard-app-stat">
+                <span class="dashboard-app-stat-label">Alerts</span>
+                <strong class="dashboard-app-stat-value">{{ total_risk_count }}</strong>
+            </article>
+            <article class="dashboard-app-stat">
+                <span class="dashboard-app-stat-label">Vetpercentage</span>
+                <strong class="dashboard-app-stat-value">{{ avg_fat|default:"-" }}{% if avg_fat %}%{% endif %}</strong>
+            </article>
+        </section>
+
+        <section class="dashboard-app-panel" aria-label="Volgende wedstrijd">
+            <h2 class="dashboard-app-panel-title">Volgende wedstrijd</h2>
+            {% if upcoming_match %}
+                <div class="dashboard-app-match-row">
+                    <div class="dashboard-app-team">
+                        {% if home_logo %}
+                            <img src="{{ home_logo }}" alt="{{ home_name }}">
+                        {% endif %}
+                        <span>{{ home_name }}</span>
+                    </div>
+                    <div class="dashboard-app-versus">VS</div>
+                    <div class="dashboard-app-team">
+                        {% if away_logo %}
+                            <img src="{{ away_logo }}" alt="{{ away_name }}">
+                        {% endif %}
+                        <span>{{ away_name }}</span>
+                    </div>
+                </div>
+                <p class="dashboard-app-match-time">{{ upcoming_match.kickoff|date:"l d F Y - H:i" }}</p>
+            {% else %}
+                <p class="dashboard-app-alert-copy">Er staat nu geen volgende wedstrijd ingepland.</p>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-app-panel" aria-label="Blessurerisico">
+            <h2 class="dashboard-app-panel-title">Blessurerisico</h2>
+            <p class="dashboard-app-alert-copy">{{ wellness_alerts|length }} wellness-signalen en {{ load_alerts|length }} belastingssignalen vragen vandaag extra aandacht.</p>
+            <span class="dashboard-app-alert-pill">Actieve signalen: {{ total_risk_count }}</span>
+        </section>
+
+        <section class="dashboard-app-panel" aria-label="Navigatie">
+            <h2 class="dashboard-app-panel-title">Onderdelen</h2>
+            <div class="dashboard-app-nav">
+                <a class="dashboard-app-link" href="{% url 'nutrition' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Voeding</span>
+                        <span class="dashboard-app-link-text">Maaltijden, wedstrijdvoeding en huidplooien.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">V</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'training' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Training</span>
+                        <span class="dashboard-app-link-text">Trainingsbelasting, programma's en sessies.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">T</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'revalidatie' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Revalidatie</span>
+                        <span class="dashboard-app-link-text">Blessures, status en opbouw per speler.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">R</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'wellness' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Wellness</span>
+                        <span class="dashboard-app-link-text">Dagelijkse checks en opvallende signalen.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">W</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'rpe' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">RPE</span>
+                        <span class="dashboard-app-link-text">Sessiebelasting en load-monitoring.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">R</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'testdata' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Testdata</span>
+                        <span class="dashboard-app-link-text">Metingen en fysieke testresultaten.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">D</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'individuele_programmas' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Individuele programma's</span>
+                        <span class="dashboard-app-link-text">Persoonlijke schema's en opvolging.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">I</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'aanwezigheden' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Aanwezigheden</span>
+                        <span class="dashboard-app-link-text">Snelle registratie en controle per dag.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">A</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'hit' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">HIT</span>
+                        <span class="dashboard-app-link-text">Weekplanning en opbouw in één overzicht.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">H</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'beweeganalyse' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Beweeganalyse</span>
+                        <span class="dashboard-app-link-text">Analysepunten en video's per sessie.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">B</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'overig' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Overig</span>
+                        <span class="dashboard-app-link-text">Extra pagina's en aanvullende modules.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">O</span>
+                </a>
+            </div>
+        </section>
+    </section>
+
+    <div class="dashboard-desktop-shell">
 
     <!-- 📊 OVERALL STATISTICS -->
     <div class="stats-row">
@@ -1052,5 +1428,7 @@ window.addEventListener("click", (e) => {
     }
 });
 </script>
+
+</div>
 
 {% endblock %}

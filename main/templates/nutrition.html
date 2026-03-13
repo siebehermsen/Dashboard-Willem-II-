@@ -25,11 +25,6 @@
     </div>
 </header>
 
-<div class="page-toggle">
-    <a href="{% url 'nutrition' %}" class="toggle-btn active">Voeding</a>
-    <a href="{% url 'huidplooimeting' %}" class="toggle-btn">Huidplooimeting</a>
-</div>
-
 
 
 
@@ -474,7 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 class="form-control"
                 rows="3"
                 placeholder="Overige notities..."
-      >{{ selected_player.monitor_nutrition_focus|default_if_none:'' }}</textarea>
+      >{{ selected_player.nutrition_focus|default_if_none:'' }}</textarea>
     </div>
 
     <!-- FIXED OPSLAAN KNOP (los van layout) -->
@@ -533,7 +528,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             </span>
                         </td>
                         <td>
-                            {{ player.monitor_prev_weight|default_if_none:"-" }}
+                            {{ player.prev_weight|default_if_none:"-" }}
                         </td>
                         <td>
                             <input
@@ -541,13 +536,13 @@ document.addEventListener("DOMContentLoaded", () => {
                                 step="0.1"
                                 min="0"
                                 name="weight_{{ player.id }}"
-                                value="{{ player.monitor_curr_weight|default_if_none:'' }}"
+                                value="{{ player.curr_weight|default_if_none:'' }}"
                                 placeholder="Bijv. 72.5"
                                 class="form-control"
                             >
                         </td>
                         <td>
-                            {{ player.monitor_weight_diff|default_if_none:"-" }}
+                            {{ player.weight_diff|default_if_none:"-" }}
                         </td>
                     </tr>
                     {% endfor %}
