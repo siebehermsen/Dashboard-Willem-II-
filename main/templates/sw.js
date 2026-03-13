@@ -1,8 +1,8 @@
-const CACHE_VERSION = 'willemii-pwa-v1';
+const CACHE_VERSION = 'willemii-pwa-v2';
 const OFFLINE_URL = '/offline/';
 const APP_SHELL_URLS = [
   OFFLINE_URL,
-  '/dashboard/',
+  '/login/',
   '/static/manifest.json',
   '/static/icons/icon-192.png',
   '/static/icons/icon-512.png',

@@ -1,7 +1,7 @@
 {
   "name": "Willem II Performance Dashboard",
   "short_name": "Dashboard",
-  "start_url": "/login/",
+  "start_url": "/logout/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
