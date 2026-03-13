@@ -167,6 +167,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'main' / 'static',
     BASE_DIR / 'website' / 'static',
 ]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # --------------------------------------------------
 # DEFAULT PRIMARY KEY
