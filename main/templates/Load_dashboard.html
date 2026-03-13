@@ -522,7 +522,6 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
     }
 
     html.app-mode .dashboard-app-summary,
-    html.app-mode .dashboard-app-panel[aria-label="Volgende wedstrijd"],
     html.app-mode .dashboard-app-panel[aria-label="Blessurerisico"] {
         display: none;
     }
@@ -625,6 +624,109 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         color: #ad1f26;
         font-size: 0.84rem;
         font-weight: 700;
+    }
+
+    html.app-mode .dashboard-app-week {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    html.app-mode .dashboard-app-week-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 4px;
+    }
+
+    html.app-mode .dashboard-app-week-range {
+        margin: 0;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #62718e;
+    }
+
+    html.app-mode .dashboard-app-week-add {
+        border: none;
+        border-radius: 999px;
+        background: #10213f;
+        color: #fff;
+        padding: 8px 12px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    html.app-mode .dashboard-app-week-card {
+        background: #fff;
+        border: 1px solid rgba(16, 33, 63, 0.08);
+        border-radius: 16px;
+        padding: 12px;
+        box-shadow: 0 6px 16px rgba(20, 34, 66, 0.06);
+    }
+
+    html.app-mode .dashboard-app-week-date {
+        margin: 0 0 6px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #10213f;
+    }
+
+    html.app-mode .dashboard-app-week-activities,
+    html.app-mode .dashboard-app-week-notes {
+        margin: 0;
+        font-size: 0.84rem;
+        line-height: 1.45;
+        color: #5a6a89;
+    }
+
+    html.app-mode .dashboard-app-week-notes {
+        margin-top: 6px;
+    }
+
+    html.app-mode .dashboard-app-week-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    html.app-mode .dashboard-app-week-actions .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        padding: 8px 10px;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        line-height: 1;
+    }
+
+    html.app-mode .dashboard-app-week-editing {
+        display: grid;
+        gap: 8px;
+    }
+
+    html.app-mode .dashboard-app-week-editing input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #d5ddeb;
+        font-size: 0.84rem;
+        box-sizing: border-box;
+    }
+
+    html.app-mode .dashboard-app-week-empty {
+        margin: 0;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px dashed #d5ddeb;
+        background: #f8fafd;
+        color: #5a6a89;
+        font-size: 0.86rem;
     }
 
     html.app-mode .dashboard-app-nav {
@@ -754,6 +856,61 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
             {% else %}
                 <p class="dashboard-app-alert-copy">Er staat nu geen volgende wedstrijd ingepland.</p>
             {% endif %}
+        </section>
+
+        <section class="dashboard-app-panel" aria-label="Huidige weekplanning">
+            <div class="dashboard-app-week-head">
+                <div>
+                    <h2 class="dashboard-app-panel-title">Huidige weekplanning</h2>
+                    <p class="dashboard-app-week-range">{{ current_week_start|date:"d M" }} - {{ current_week_end|date:"d M" }}</p>
+                </div>
+                <button type="button" id="openWeekModalMobile" class="dashboard-app-week-add">Toevoegen</button>
+            </div>
+
+            <div class="dashboard-app-week">
+                {% for day in current_week_dayprograms %}
+                    <article class="dashboard-app-week-card" id="app-week-card-{{ day.id }}">
+                        <div id="app-week-view-{{ day.id }}">
+                            <p class="dashboard-app-week-date">{{ day.date|date:"l d F" }}</p>
+                            <p class="dashboard-app-week-activities" id="app-activities-text-{{ day.id }}">{{ day.activities|default:"-" }}</p>
+                            <p class="dashboard-app-week-notes" id="app-notes-text-{{ day.id }}">{{ day.notes|default:"Geen bijzonderheden." }}</p>
+                            <div class="dashboard-app-week-actions">
+                                <button type="button" class="action-btn btn-edit" onclick="enableAppWeekEdit({{ day.id }})">Bewerk</button>
+                                <form action="{% url 'delete_weekday' day.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-btn btn-delete">Verwijder</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div id="app-week-edit-{{ day.id }}" class="dashboard-app-week-editing" style="display:none;">
+                            <input type="date" id="app-edit-date-{{ day.id }}" value="{{ day.date|date:'Y-m-d' }}">
+                            <input type="text" id="app-edit-activities-{{ day.id }}" value="{{ day.activities|default:'' }}" placeholder="Activiteiten">
+                            <input type="text" id="app-edit-notes-{{ day.id }}" value="{{ day.notes|default:'' }}" placeholder="Bijzonderheden">
+                            <div class="dashboard-app-week-actions">
+                                <form action="{% url 'edit_weekday' day.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="date" id="app-save-date-{{ day.id }}">
+                                    <input type="hidden" name="activities" id="app-save-activities-{{ day.id }}">
+                                    <input type="hidden" name="notes" id="app-save-notes-{{ day.id }}">
+                                    <button
+                                        type="submit"
+                                        class="action-btn btn-edit"
+                                        onclick="
+                                            document.getElementById('app-save-date-{{ day.id }}').value = document.getElementById('app-edit-date-{{ day.id }}').value;
+                                            document.getElementById('app-save-activities-{{ day.id }}').value = document.getElementById('app-edit-activities-{{ day.id }}').value;
+                                            document.getElementById('app-save-notes-{{ day.id }}').value = document.getElementById('app-edit-notes-{{ day.id }}').value;
+                                        "
+                                    >Opslaan</button>
+                                </form>
+                                <button type="button" class="action-btn btn-delete" onclick="cancelAppWeekEdit({{ day.id }})">Annuleer</button>
+                            </div>
+                        </div>
+                    </article>
+                {% empty %}
+                    <p class="dashboard-app-week-empty">Er staat nog geen weekplanning voor deze week ingevoerd.</p>
+                {% endfor %}
+            </div>
         </section>
 
         <section class="dashboard-app-panel" aria-label="Blessurerisico">
@@ -1422,11 +1579,18 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
 <!-- ⭐ SCRIPT: Trainingsdag modal openen/sluiten -->
 <script>
 const openWeekBtn = document.getElementById("openWeekModal");
+const openWeekBtnMobile = document.getElementById("openWeekModalMobile");
 const closeWeekBtn = document.getElementById("closeWeekModal");
 const weekModal = document.getElementById("weekModal");
 
 if (openWeekBtn) {
     openWeekBtn.addEventListener("click", () => {
+        weekModal.style.display = "block";
+    });
+}
+
+if (openWeekBtnMobile) {
+    openWeekBtnMobile.addEventListener("click", () => {
         weekModal.style.display = "block";
     });
 }
@@ -1442,6 +1606,24 @@ window.addEventListener("click", (e) => {
         weekModal.style.display = "none";
     }
 });
+
+function enableAppWeekEdit(id) {
+    const view = document.getElementById(`app-week-view-${id}`);
+    const edit = document.getElementById(`app-week-edit-${id}`);
+    if (view && edit) {
+        view.style.display = "none";
+        edit.style.display = "grid";
+    }
+}
+
+function cancelAppWeekEdit(id) {
+    const view = document.getElementById(`app-week-view-${id}`);
+    const edit = document.getElementById(`app-week-edit-${id}`);
+    if (view && edit) {
+        edit.style.display = "none";
+        view.style.display = "block";
+    }
+}
 </script>
 
 

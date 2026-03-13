@@ -420,6 +420,12 @@ def dashboard(request):
 
     total_risk_count = len(wellness_alerts) + len(load_alerts)
     highest_load_ratio = load_alerts[0]["ratio"] if load_alerts else None
+    week_start_date = today - timedelta(days=today.weekday())
+    week_end_date = week_start_date + timedelta(days=6)
+    current_week_dayprograms = (
+        DayProgramEntry.objects.filter(date__gte=week_start_date, date__lte=week_end_date)
+        .order_by("date")
+    )
 
     # ---------- CONTEXT ----------
     context = {
@@ -440,6 +446,9 @@ def dashboard(request):
         "load_alerts": load_alerts,
         "total_risk_count": total_risk_count,
         "highest_load_ratio": highest_load_ratio,
+        "current_week_dayprograms": current_week_dayprograms,
+        "current_week_start": week_start_date,
+        "current_week_end": week_end_date,
     }
 
     return render(request, "Load_dashboard.html", context)
