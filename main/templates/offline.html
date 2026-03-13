@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline | Willem II Dashboard</title>
+    <meta name="theme-color" content="#1e2a44">
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            font-family: "Poppins", Arial, sans-serif;
+            color: #1f2a44;
+            background: linear-gradient(160deg, #eef3fb 0%, #ffffff 55%, #e7edf8 100%);
+        }
+
+        .offline-card {
+            width: min(100%, 560px);
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(31, 42, 68, 0.08);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 20px 50px rgba(31, 42, 68, 0.12);
+            text-align: center;
+        }
+
+        .offline-card img {
+            width: 84px;
+            height: 84px;
+            object-fit: contain;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 2rem;
+        }
+
+        p {
+            margin: 0 0 20px;
+            line-height: 1.6;
+        }
+
+        a {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 999px;
+            background: #1f2a44;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <main class="offline-card">
+        <img src="{% static 'icons/icon-192.png' %}" alt="Willem II Dashboard icoon">
+        <h1>Je bent offline</h1>
+        <p>Er is nu geen netwerkverbinding. Eerder bezochte pagina's blijven beschikbaar zodra ze al in de app-cache zitten.</p>
+        <a href="/dashboard/">Opnieuw proberen</a>
+    </main>
+</body>
+</html>

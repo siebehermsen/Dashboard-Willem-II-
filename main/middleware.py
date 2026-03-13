@@ -20,6 +20,8 @@ class LoginRequiredMiddleware:
             settings.LOGIN_URL,
             "/logout/",
             "/admin/",
+            "/offline/",
+            "/sw.js",
             settings.STATIC_URL,
             settings.MEDIA_URL,
         )

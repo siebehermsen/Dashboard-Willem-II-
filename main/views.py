@@ -35,6 +35,7 @@ from types import SimpleNamespace
 from django.conf import settings
 from django.urls import reverse
 from django.core.files.storage import default_storage
+from django.views.decorators.cache import never_cache
 import os
 import uuid
 import shutil
@@ -65,6 +66,18 @@ from .performance_3nf import fetch_performance_rows, mean, upsert_performance_se
 def logout_view(request):
     logout(request)
     return redirect("login")
+
+
+@never_cache
+def service_worker(request):
+    response = render(request, "sw.js", content_type="application/javascript")
+    response["Service-Worker-Allowed"] = "/"
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return response
+
+
+def offline_page(request):
+    return render(request, "offline.html", status=200)
 
 
 

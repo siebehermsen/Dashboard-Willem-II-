@@ -10,6 +10,8 @@ from main.views import skinfold_view, huidplooimeting_pdf
 
 
 urlpatterns = [
+    path("sw.js", views.service_worker, name="service_worker"),
+    path("offline/", views.offline_page, name="offline_page"),
     path(
         "login/",
         auth_views.LoginView.as_view(
