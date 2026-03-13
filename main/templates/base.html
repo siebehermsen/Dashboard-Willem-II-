@@ -48,24 +48,58 @@
        HEADER
     ========================= */
     header {
-        background-color: #1f2a44;
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        background: linear-gradient(135deg, rgba(17, 28, 53, 0.97) 0%, rgba(31, 42, 68, 0.98) 58%, rgba(139, 24, 33, 0.94) 100%);
         color: #ffffff;
-        padding: 20px 40px;
+        padding: 16px 24px 18px;
         display: flex;
-        justify-content: flex-start;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 26px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        gap: 16px 22px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+        backdrop-filter: blur(14px);
     }
 
     .header-left {
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 14px;
+        min-width: 0;
     }
 
     .header-left img {
-        height: 72px;
+        height: 60px;
+        width: 60px;
+        border-radius: 18px;
+        object-fit: cover;
+        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+    }
+
+    .brand-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .brand-kicker {
+        font-size: 0.72rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(226, 232, 240, 0.72);
+        font-weight: 700;
+    }
+
+    .brand-title {
+        font-size: 1.08rem;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .brand-subtitle {
+        font-size: 0.86rem;
+        color: rgba(226, 232, 240, 0.78);
     }
 
     /* =========================
@@ -74,54 +108,72 @@
     nav {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 14px;
+        gap: 10px;
         flex: 1;
         min-width: 0;
-        white-space: nowrap;
+        flex-wrap: wrap;
+    }
+
+    .site-nav-links {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        min-width: 0;
+        flex-wrap: wrap;
+    }
+
+    .site-nav-actions {
+        display: flex;
+        align-items: center;
+        margin-left: auto;
     }
 
     nav a {
         color: #ffffff;
         text-decoration: none;
         font-weight: 600;
-        font-size: 0.9rem;
-        padding: 7px 10px;
-        border: 1px solid rgba(255, 255, 255, 0.28);
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.04);
+        font-size: 0.92rem;
+        padding: 10px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.07);
         transition: all 0.2s ease;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     }
 
     nav a:hover,
     nav a.active {
-        border-color: rgba(255, 255, 255, 0.65);
-        background: rgba(255, 255, 255, 0.12);
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.34);
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
     }
 
     nav a.active {
-        border-color: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 0 0 1px rgba(231, 76, 60, 0.75) inset;
+        border-color: rgba(255, 255, 255, 0.52);
+        background: linear-gradient(135deg, #ffffff 0%, #f5d9db 100%);
+        color: #182544;
+        box-shadow: 0 0 0 1px rgba(182, 0, 0, 0.18) inset, 0 10px 24px rgba(0, 0, 0, 0.2);
     }
 
     .nav-logout-btn {
         color: #ffffff;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.28);
-        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 14px;
         text-decoration: none;
         font-weight: 600;
         font-size: 0.95rem;
-        padding: 7px 10px;
+        padding: 10px 14px;
         cursor: pointer;
         transition: all 0.2s ease;
     }
 
     .nav-logout-btn:hover {
-        border-color: rgba(255, 255, 255, 0.65);
-        background: rgba(255, 255, 255, 0.12);
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+        border-color: rgba(255, 255, 255, 0.34);
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
     }
 
     @media (max-width: 1700px) {
@@ -131,17 +183,18 @@
         nav a,
         .nav-logout-btn {
             font-size: 0.86rem;
-            padding: 6px 9px;
+            padding: 9px 12px;
         }
     }
 
     @media (max-width: 1450px) {
         header {
             gap: 16px;
-            padding: 16px 24px;
+            padding: 14px 18px 16px;
         }
         .header-left img {
-            height: 62px;
+            height: 54px;
+            width: 54px;
         }
         nav {
             gap: 8px;
@@ -149,7 +202,7 @@
         nav a,
         .nav-logout-btn {
             font-size: 0.82rem;
-            padding: 5px 8px;
+            padding: 8px 10px;
         }
     }
 
@@ -221,8 +274,20 @@
     }
 
     @media (max-width: 1100px) {
-        header {
-            flex-wrap: wrap;
+        nav {
+            width: 100%;
+            order: 3;
+        }
+
+        .site-nav-links {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: thin;
+        }
+
+        .site-nav-actions {
+            margin-left: 0;
         }
 
         .install-app-btn {
@@ -240,32 +305,36 @@
 <header>
     <div class="header-left">
         <img src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg" alt="Willem II logo">
+        <div class="brand-copy">
+            <span class="brand-kicker">Willem II</span>
+            <span class="brand-title">Performance Dashboard</span>
+            <span class="brand-subtitle">Snelle navigatie voor staf en monitoring</span>
+        </div>
     </div>
 
     <button type="button" id="installAppButton" class="install-app-btn" aria-label="Installeer deze app">
         Installeer app
     </button>
 
-    <nav>
-        <a href="{% url 'dashboard' %}" class="{% if 'dashboard' in request.path %}active{% endif %}">Home</a>
-        <a href="{% url 'nutrition' %}" class="{% if 'nutrition' in request.path or 'huidplooimeting' in request.path %}active{% endif %}">Voeding</a>
-        <a href="{% url 'training' %}" class="{% if 'training' in request.path %}active{% endif %}">Training</a>
-        <a href="{% url 'testdata' %}" class="{% if 'testdata' in request.path %}active{% endif %}">Testdata</a>
-        <a href="{% url 'revalidatie' %}" class="{% if 'revalidatie' in request.path %}active{% endif %}">Revalidatie</a>
-        <a href="{% url 'individuele_programmas' %}" class="{% if 'individuele_programmas' in request.path %}active{% endif %}">Individuele Programma's</a>
-        <a href="{% url 'rpe' %}">RPE</a>
-        <a href="{% url 'wellness' %}" class="{% if 'wellness' in request.path %}active{% endif %}">Wellness</a>
-        <a href="{% url 'hit' %}" class="{% if 'hit' in request.path %}active{% endif %}">HIT</a>
-        <a href="{% url 'aanwezigheden' %}" class="{% if 'aanwezigheden' in request.path %}active{% endif %}">Aanwezigheden</a>
-        <a href="{% url 'beweeganalyse' %}" class="{% if 'beweeganalyse' in request.path %}active{% endif %}">Beweeganalyse</a>
-        <a href="{% url 'overig' %}">Overig</a>
-        <form method="post" action="{% url 'logout' %}" style="display:inline;">
+    <nav aria-label="Hoofdnavigatie">
+        <div class="site-nav-links">
+            <a href="{% url 'dashboard' %}" class="{% if 'dashboard' in request.path %}active{% endif %}">Home</a>
+            <a href="{% url 'nutrition' %}" class="{% if 'nutrition' in request.path or 'huidplooimeting' in request.path %}active{% endif %}">Voeding</a>
+            <a href="{% url 'training' %}" class="{% if 'training' in request.path %}active{% endif %}">Training</a>
+            <a href="{% url 'rpe' %}" class="{% if 'rpe' in request.path %}active{% endif %}">RPE</a>
+            <a href="{% url 'wellness' %}" class="{% if 'wellness' in request.path %}active{% endif %}">Wellness</a>
+            <a href="{% url 'testdata' %}" class="{% if 'testdata' in request.path %}active{% endif %}">Testdata</a>
+            <a href="{% url 'revalidatie' %}" class="{% if 'revalidatie' in request.path %}active{% endif %}">Revalidatie</a>
+            <a href="{% url 'individuele_programmas' %}" class="{% if 'individuele_programmas' in request.path %}active{% endif %}">Individuele Programma's</a>
+            <a href="{% url 'hit' %}" class="{% if 'hit' in request.path %}active{% endif %}">HIT</a>
+            <a href="{% url 'aanwezigheden' %}" class="{% if 'aanwezigheden' in request.path %}active{% endif %}">Aanwezigheden</a>
+            <a href="{% url 'beweeganalyse' %}" class="{% if 'beweeganalyse' in request.path %}active{% endif %}">Beweeganalyse</a>
+            <a href="{% url 'overig' %}" class="{% if 'overig' in request.path %}active{% endif %}">Overig</a>
+        </div>
+        <form method="post" action="{% url 'logout' %}" class="site-nav-actions">
             {% csrf_token %}
             <button type="submit" class="nav-logout-btn">Uitloggen</button>
         </form>
-        
-
-
     </nav>
 </header>
 
