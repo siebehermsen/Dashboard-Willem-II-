@@ -463,7 +463,18 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         color: #10213f;
     }
 
-    html.app-mode .dashboard-app-intro {
+    html.app-mode .dashboard-app-subtitle {
+        margin: 0 0 18px;
+        color: #5a6a89;
+        font-size: 0.94rem;
+        line-height: 1.5;
+    }
+
+    .dashboard-app-intro {
+        display: none;
+    }
+
+    html.app-ui.app-mode .dashboard-app-intro {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -475,13 +486,13 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         border: 1px solid rgba(16, 33, 63, 0.08);
     }
 
-    html.app-mode .dashboard-app-intro-copy {
+    html.app-ui.app-mode .dashboard-app-intro-copy {
         display: flex;
         flex-direction: column;
         gap: 4px;
     }
 
-    html.app-mode .dashboard-app-intro-label {
+    html.app-ui.app-mode .dashboard-app-intro-label {
         margin: 0;
         font-size: 0.78rem;
         font-weight: 700;
@@ -490,14 +501,14 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         color: #62718e;
     }
 
-    html.app-mode .dashboard-app-intro-value {
+    html.app-ui.app-mode .dashboard-app-intro-value {
         margin: 0;
         font-size: 1rem;
         font-weight: 700;
         color: #10213f;
     }
 
-    html.app-mode .dashboard-app-intro-note {
+    html.app-ui.app-mode .dashboard-app-intro-note {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -510,11 +521,10 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         white-space: nowrap;
     }
 
-    html.app-mode .dashboard-app-summary {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 18px;
+    html.app-mode .dashboard-app-summary,
+    html.app-mode .dashboard-app-panel[aria-label="Volgende wedstrijd"],
+    html.app-mode .dashboard-app-panel[aria-label="Blessurerisico"] {
+        display: none;
     }
 
     html.app-mode .dashboard-app-stat {
@@ -618,70 +628,66 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
     }
 
     html.app-mode .dashboard-app-nav {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
 
     html.app-mode .dashboard-app-link {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        gap: 14px;
+        gap: 12px;
         width: 100%;
-        padding: 16px 18px;
-        border-radius: 20px;
+        padding: 16px 14px;
+        border-radius: 14px;
         text-decoration: none;
         background: #ffffff;
-        border: 1px solid rgba(16, 33, 63, 0.08);
-        box-shadow: 0 10px 24px rgba(20, 34, 66, 0.08);
-        min-height: 136px;
+        border: 1px solid rgba(210, 35, 42, 0.16);
+        box-shadow: 0 8px 18px rgba(20, 34, 66, 0.06);
+        min-height: 0;
     }
 
     html.app-mode .dashboard-app-link-main {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 3px;
         min-width: 0;
         width: 100%;
     }
 
     html.app-mode .dashboard-app-link-title {
-        font-size: 1rem;
+        font-size: 0.98rem;
         font-weight: 700;
         color: #10213f;
     }
 
     html.app-mode .dashboard-app-link-text {
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         color: #687897;
         line-height: 1.4;
     }
 
     html.app-mode .dashboard-app-link-accent {
-        border-radius: 999px;
-        background: rgba(16, 33, 63, 0.08);
-        color: #10213f;
+        background: transparent;
+        color: #d2232a;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 8px 12px;
-        font-size: 0.76rem;
+        padding: 0;
+        font-size: 1.1rem;
         font-weight: 700;
         flex-shrink: 0;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
     }
 
     @media (max-width: 640px) {
-        html.app-mode .dashboard-app-intro {
+        html.app-ui.app-mode .dashboard-app-intro {
             flex-direction: column;
             align-items: flex-start;
         }
 
         html.app-mode .dashboard-app-link {
-            min-height: 124px;
-            padding: 14px;
+            padding: 15px 14px;
         }
     }
 }
@@ -696,6 +702,8 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                 <h1 class="dashboard-app-title">Hallo {{ request.user.first_name|default:request.user.username }}</h1>
             </div>
         </div>
+
+        <p class="dashboard-app-subtitle">Snelle toegang tot de belangrijkste onderdelen, geoptimaliseerd voor gebruik als geïnstalleerde app op je telefoon.</p>
 
         <div class="dashboard-app-intro" aria-label="Dashboard status">
             <div class="dashboard-app-intro-copy">
@@ -755,84 +763,56 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         </section>
 
         <section class="dashboard-app-panel" aria-label="Navigatie">
-            <h2 class="dashboard-app-panel-title">Onderdelen</h2>
+            <h2 class="dashboard-app-panel-title">Home</h2>
             <div class="dashboard-app-nav">
-                <a class="dashboard-app-link" href="{% url 'nutrition' %}">
-                    <span class="dashboard-app-link-main">
-                        <span class="dashboard-app-link-title">Voeding</span>
-                        <span class="dashboard-app-link-text">Maaltijden, wedstrijdvoeding en huidplooien.</span>
-                    </span>
-                    <span class="dashboard-app-link-accent">Open voeding</span>
-                </a>
-                <a class="dashboard-app-link" href="{% url 'training' %}">
-                    <span class="dashboard-app-link-main">
-                        <span class="dashboard-app-link-title">Training</span>
-                        <span class="dashboard-app-link-text">Trainingsbelasting, programma's en sessies.</span>
-                    </span>
-                    <span class="dashboard-app-link-accent">Open training</span>
-                </a>
-                <a class="dashboard-app-link" href="{% url 'revalidatie' %}">
-                    <span class="dashboard-app-link-main">
-                        <span class="dashboard-app-link-title">Revalidatie</span>
-                        <span class="dashboard-app-link-text">Blessures, status en opbouw per speler.</span>
-                    </span>
-                    <span class="dashboard-app-link-accent">Open revalidatie</span>
-                </a>
                 <a class="dashboard-app-link" href="{% url 'wellness' %}">
                     <span class="dashboard-app-link-main">
                         <span class="dashboard-app-link-title">Wellness</span>
                         <span class="dashboard-app-link-text">Dagelijkse checks en opvallende signalen.</span>
                     </span>
-                    <span class="dashboard-app-link-accent">Open wellness</span>
+                    <span class="dashboard-app-link-accent">&rsaquo;</span>
                 </a>
                 <a class="dashboard-app-link" href="{% url 'rpe' %}">
                     <span class="dashboard-app-link-main">
                         <span class="dashboard-app-link-title">RPE</span>
                         <span class="dashboard-app-link-text">Sessiebelasting en load-monitoring.</span>
                     </span>
-                    <span class="dashboard-app-link-accent">Open RPE</span>
-                </a>
-                <a class="dashboard-app-link" href="{% url 'testdata' %}">
-                    <span class="dashboard-app-link-main">
-                        <span class="dashboard-app-link-title">Testdata</span>
-                        <span class="dashboard-app-link-text">Metingen en fysieke testresultaten.</span>
-                    </span>
-                    <span class="dashboard-app-link-accent">Open testdata</span>
-                </a>
-                <a class="dashboard-app-link" href="{% url 'individuele_programmas' %}">
-                    <span class="dashboard-app-link-main">
-                        <span class="dashboard-app-link-title">Individuele programma's</span>
-                        <span class="dashboard-app-link-text">Persoonlijke schema's en opvolging.</span>
-                    </span>
-                    <span class="dashboard-app-link-accent">Open programma's</span>
+                    <span class="dashboard-app-link-accent">&rsaquo;</span>
                 </a>
                 <a class="dashboard-app-link" href="{% url 'aanwezigheden' %}">
                     <span class="dashboard-app-link-main">
                         <span class="dashboard-app-link-title">Aanwezigheden</span>
                         <span class="dashboard-app-link-text">Snelle registratie en controle per dag.</span>
                     </span>
-                    <span class="dashboard-app-link-accent">Open aanwezigheden</span>
+                    <span class="dashboard-app-link-accent">&rsaquo;</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'training' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Training</span>
+                        <span class="dashboard-app-link-text">Trainingsbelasting, programma's en sessies.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">&rsaquo;</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'testdata' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Testdata</span>
+                        <span class="dashboard-app-link-text">Metingen en fysieke testresultaten.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">&rsaquo;</span>
+                </a>
+                <a class="dashboard-app-link" href="{% url 'revalidatie' %}">
+                    <span class="dashboard-app-link-main">
+                        <span class="dashboard-app-link-title">Revalidatie</span>
+                        <span class="dashboard-app-link-text">Blessures, status en opbouw per speler.</span>
+                    </span>
+                    <span class="dashboard-app-link-accent">&rsaquo;</span>
                 </a>
                 <a class="dashboard-app-link" href="{% url 'hit' %}">
                     <span class="dashboard-app-link-main">
-                        <span class="dashboard-app-link-title">HIT</span>
-                        <span class="dashboard-app-link-text">Weekplanning en opbouw in één overzicht.</span>
+                        <span class="dashboard-app-link-title">Hit</span>
+                        <span class="dashboard-app-link-text">Weekplanning en opbouw in een overzicht.</span>
                     </span>
-                    <span class="dashboard-app-link-accent">Open HIT</span>
-                </a>
-                <a class="dashboard-app-link" href="{% url 'beweeganalyse' %}">
-                    <span class="dashboard-app-link-main">
-                        <span class="dashboard-app-link-title">Beweeganalyse</span>
-                        <span class="dashboard-app-link-text">Analysepunten en video's per sessie.</span>
-                    </span>
-                    <span class="dashboard-app-link-accent">Open analyse</span>
-                </a>
-                <a class="dashboard-app-link" href="{% url 'overig' %}">
-                    <span class="dashboard-app-link-main">
-                        <span class="dashboard-app-link-title">Overig</span>
-                        <span class="dashboard-app-link-text">Extra pagina's en aanvullende modules.</span>
-                    </span>
-                    <span class="dashboard-app-link-accent">Open overig</span>
+                    <span class="dashboard-app-link-accent">&rsaquo;</span>
                 </a>
             </div>
         </section>

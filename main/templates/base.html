@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="nl" data-app-ui-only-mode="{{ APP_UI_ONLY_MODE|yesno:'true,false' }}">
 <head>
     {% load static %}
     <meta charset="UTF-8">
@@ -23,11 +23,16 @@
             return;
         }
 
-        document.documentElement.classList.add('app-mode');
+        const appUiEnabled = document.documentElement.dataset.appUiOnlyMode === 'true';
+        if (!appUiEnabled) {
+            return;
+        }
+
+        document.documentElement.classList.add('app-mode', 'app-ui');
         window.__APP_STANDALONE__ = true;
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.body.classList.add('app-mode');
+            document.body.classList.add('app-mode', 'app-ui');
         });
     })();
 </script>
@@ -48,58 +53,29 @@
        HEADER
     ========================= */
     header {
-        position: sticky;
-        top: 0;
-        z-index: 30;
-        background: linear-gradient(135deg, rgba(17, 28, 53, 0.97) 0%, rgba(31, 42, 68, 0.98) 58%, rgba(139, 24, 33, 0.94) 100%);
+        background-color: #1f2a44;
         color: #ffffff;
-        padding: 16px 24px 18px;
+        padding: 16px 28px;
         display: flex;
-        flex-wrap: wrap;
+        justify-content: flex-start;
         align-items: center;
-        gap: 16px 22px;
-        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
-        backdrop-filter: blur(14px);
+        gap: 18px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
     .header-left {
         display: flex;
         align-items: center;
-        gap: 14px;
-        min-width: 0;
+        gap: 12px;
+        flex: 0 0 auto;
     }
 
     .header-left img {
-        height: 60px;
-        width: 60px;
-        border-radius: 18px;
-        object-fit: cover;
-        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+        height: 58px;
     }
 
     .brand-copy {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .brand-kicker {
-        font-size: 0.72rem;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: rgba(226, 232, 240, 0.72);
-        font-weight: 700;
-    }
-
-    .brand-title {
-        font-size: 1.08rem;
-        font-weight: 700;
-        line-height: 1.1;
-    }
-
-    .brand-subtitle {
-        font-size: 0.86rem;
-        color: rgba(226, 232, 240, 0.78);
+        display: none;
     }
 
     /* =========================
@@ -108,10 +84,11 @@
     nav {
         display: flex;
         align-items: center;
-        gap: 10px;
+        justify-content: space-between;
+        gap: 12px;
         flex: 1;
         min-width: 0;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
 
     .site-nav-links {
@@ -120,89 +97,204 @@
         gap: 10px;
         flex: 1;
         min-width: 0;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        overflow: hidden;
     }
 
     .site-nav-actions {
         display: flex;
         align-items: center;
         margin-left: auto;
+        flex: 0 0 auto;
     }
 
     nav a {
         color: #ffffff;
         text-decoration: none;
         font-weight: 600;
+        font-size: 0.76rem;
+        line-height: 1.1;
+        padding: 6px 11px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    nav a:hover,
+    nav a.active {
+        border-color: rgba(255, 255, 255, 0.65);
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    }
+
+    nav a.active {
+        border-color: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 0 1px rgba(231, 76, 60, 0.75) inset;
+    }
+
+    .nav-logout-btn {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.76rem;
+        line-height: 1.1;
+        padding: 6px 11px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .nav-logout-btn:hover {
+        border-color: rgba(255, 255, 255, 0.65);
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    }
+
+    html.app-ui.app-mode header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        background: linear-gradient(135deg, rgba(17, 28, 53, 0.97) 0%, rgba(31, 42, 68, 0.98) 58%, rgba(139, 24, 33, 0.94) 100%);
+        padding: 16px 24px 18px;
+        flex-wrap: wrap;
+        gap: 16px 22px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+        backdrop-filter: blur(14px);
+    }
+
+    html.app-ui.app-mode .header-left {
+        gap: 14px;
+        min-width: 0;
+    }
+
+    html.app-ui.app-mode .header-left img {
+        height: 60px;
+        width: 60px;
+        border-radius: 18px;
+        object-fit: cover;
+        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+    }
+
+    html.app-ui.app-mode .brand-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    html.app-ui.app-mode .brand-kicker {
+        font-size: 0.72rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(226, 232, 240, 0.72);
+        font-weight: 700;
+    }
+
+    html.app-ui.app-mode .brand-title {
+        font-size: 1.08rem;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    html.app-ui.app-mode .brand-subtitle {
+        font-size: 0.86rem;
+        color: rgba(226, 232, 240, 0.78);
+    }
+
+    html.app-ui.app-mode nav {
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    html.app-ui.app-mode .site-nav-links {
+        gap: 10px;
+        flex-wrap: wrap;
+        white-space: normal;
+    }
+
+    html.app-ui.app-mode nav a {
         font-size: 0.92rem;
         padding: 10px 14px;
         border: 1px solid rgba(255, 255, 255, 0.16);
         border-radius: 14px;
         background: rgba(255, 255, 255, 0.07);
-        transition: all 0.2s ease;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     }
 
-    nav a:hover,
-    nav a.active {
+    html.app-ui.app-mode nav a:hover,
+    html.app-ui.app-mode nav a.active {
         transform: translateY(-1px);
         border-color: rgba(255, 255, 255, 0.34);
         background: rgba(255, 255, 255, 0.15);
         box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
     }
 
-    nav a.active {
+    html.app-ui.app-mode nav a.active {
         border-color: rgba(255, 255, 255, 0.52);
         background: linear-gradient(135deg, #ffffff 0%, #f5d9db 100%);
         color: #182544;
         box-shadow: 0 0 0 1px rgba(182, 0, 0, 0.18) inset, 0 10px 24px rgba(0, 0, 0, 0.2);
     }
 
-    .nav-logout-btn {
-        color: #ffffff;
+    html.app-ui.app-mode .nav-logout-btn {
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.18);
         border-radius: 14px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.95rem;
         padding: 10px 14px;
-        cursor: pointer;
-        transition: all 0.2s ease;
     }
 
-    .nav-logout-btn:hover {
+    html.app-ui.app-mode .nav-logout-btn:hover {
         border-color: rgba(255, 255, 255, 0.34);
         background: rgba(255, 255, 255, 0.15);
         box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
     }
 
     @media (max-width: 1700px) {
-        nav {
+        html.app-ui.app-mode nav {
             gap: 10px;
         }
-        nav a,
-        .nav-logout-btn {
+        html.app-ui.app-mode nav a,
+        html.app-ui.app-mode .nav-logout-btn {
             font-size: 0.86rem;
             padding: 9px 12px;
         }
     }
 
     @media (max-width: 1450px) {
-        header {
+        html.app-ui.app-mode header {
             gap: 16px;
             padding: 14px 18px 16px;
         }
-        .header-left img {
+        html.app-ui.app-mode .header-left img {
             height: 54px;
             width: 54px;
         }
-        nav {
+        html.app-ui.app-mode nav {
             gap: 8px;
         }
-        nav a,
-        .nav-logout-btn {
+        html.app-ui.app-mode nav a,
+        html.app-ui.app-mode .nav-logout-btn {
             font-size: 0.82rem;
             padding: 8px 10px;
+        }
+    }
+
+    @media (max-width: 1450px) {
+        nav {
+            justify-content: flex-start;
+            row-gap: 10px;
+        }
+
+        .site-nav-links {
+            flex: 1 1 100%;
+        }
+
+        .site-nav-actions {
+            margin-left: 0;
         }
     }
 
@@ -247,7 +339,7 @@
     }
 
     .install-app-btn {
-        display: none;
+        display: none !important;
         margin-left: auto;
         color: #1f2a44;
         background: #ffffff;
@@ -266,27 +358,20 @@
         justify-content: center;
     }
 
-    @media (max-width: 1450px) {
-        .install-app-btn {
-            font-size: 0.82rem;
-            padding: 8px 12px;
-        }
-    }
-
     @media (max-width: 1100px) {
-        nav {
+        html.app-ui.app-mode nav {
             width: 100%;
             order: 3;
         }
 
-        .site-nav-links {
+        html.app-ui.app-mode .site-nav-links {
             flex-wrap: nowrap;
             overflow-x: auto;
             padding-bottom: 4px;
             scrollbar-width: thin;
         }
 
-        .site-nav-actions {
+        html.app-ui.app-mode .site-nav-actions {
             margin-left: 0;
         }
 
@@ -311,10 +396,6 @@
             <span class="brand-subtitle">Snelle navigatie voor staf en monitoring</span>
         </div>
     </div>
-
-    <button type="button" id="installAppButton" class="install-app-btn" aria-label="Installeer deze app">
-        Installeer app
-    </button>
 
     <nav aria-label="Hoofdnavigatie">
         <div class="site-nav-links">

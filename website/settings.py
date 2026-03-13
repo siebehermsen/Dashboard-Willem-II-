@@ -58,6 +58,7 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = env('DJANGO_SECRET_KEY', 'django-insecure-!*ovk!2vjqs#5fnl7$w0qlpi(8=1l1+b3@j=3vlo20nhgx!q-5')
 DEBUG = env_bool('DJANGO_DEBUG', True)
 ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', [])  # Laat leeg voor lokaal gebruik
+APP_UI_ONLY_MODE = env_bool('APP_UI_ONLY_MODE', True)
 
 # --------------------------------------------------
 # DJANGO-APPS
@@ -111,6 +112,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'main.context_processors.app_flags',
             ],
         },
     },
