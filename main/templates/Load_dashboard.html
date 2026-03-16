@@ -1115,7 +1115,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         <p class="match-info">{{ upcoming_match.kickoff|date:"l d F Y - H:i" }}</p>
 
     {% else %}
-        <p>Geen wedstrijd gepland ðŸŽ‰</p>
+        <p>Geen wedstrijd gepland.</p>
     {% endif %}
 </div>
 
@@ -1188,7 +1188,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 <div class="card">
     <div class="card-header">
         <h2><i data-feather="clock"></i> Weekplanning</h2>
-        <button id="openWeekModal" class="primary-btn">âž• Trainingsdag toevoegen</button>
+        <button id="openWeekModal" class="primary-btn">Trainingsdag toevoegen</button>
     </div>
 
     <table class="weekprogram-table">
@@ -1214,11 +1214,11 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                         type="button" 
                         class="action-btn btn-edit" 
                         onclick="enableEdit({{ day.id }})"
-                    >âœï¸</button>
+                    >Bewerk</button>
 
                     <form action="{% url 'delete_weekday' day.id %}" method="POST" style="display:inline;">
                         {% csrf_token %}
-                        <button type="submit" class="action-btn btn-delete">ðŸ—‘ï¸</button>
+                        <button type="submit" class="action-btn btn-delete">Verwijder</button>
                     </form>
                 </td>
             </tr>
@@ -1265,14 +1265,14 @@ function enableEdit(id) {
                     document.getElementById('save-notes-${id}').value =
                         document.getElementById('edit-notes-${id}').value;
                 "
-            >ðŸ’¾</button>
+            >Opslaan</button>
         </form>
 
         <button 
             type="button" 
             class="action-btn btn-delete" 
             onclick="cancelEdit(${id}, '${oldDate}', '${oldAct}', '${oldNotes}')"
-        >âŒ</button>
+        >Annuleer</button>
     `;
 }
 
@@ -1286,11 +1286,11 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             type="button" 
             class="action-btn btn-edit" 
             onclick="enableEdit(${id})"
-        >âœï¸</button>
+        >Bewerk</button>
 
         <form action="/delete-weekday/${id}/" method="POST" style="display:inline;">
             {% csrf_token %}
-            <button type="submit" class="action-btn btn-delete">ðŸ—‘ï¸</button>
+            <button type="submit" class="action-btn btn-delete">Verwijder</button>
         </form>
     `;
 }
@@ -1408,7 +1408,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             </select>
 
             <!-- KNOP OM MODAL TE OPENEN -->
-            <button id="openRehabModal" class="primary-btn">âž• Blessure toevoegen</button>
+            <button id="openRehabModal" class="primary-btn">Blessure toevoegen</button>
         </div>
     </div>
 
@@ -1501,7 +1501,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
         <h2>
             <i data-feather="gift"></i>
             Verjaardagen
-            <span class="birthday-cake" aria-hidden="true">ðŸŽ‚</span>
+            <span class="birthday-cake" aria-hidden="true"> </span>
         </h2>
     </div>
 
