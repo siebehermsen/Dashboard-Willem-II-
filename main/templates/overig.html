@@ -50,8 +50,14 @@
 
     .overig-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 18px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .overig-grid a {
+        display: block;
+        text-decoration: none;
+        color: inherit;
     }
 
     /* ============================
@@ -103,16 +109,17 @@
     .overig-card h4 {
         margin: 0 0 8px;
         font-weight: 800;
-        font-size: 1.22rem;
+        font-size: 1.16rem;
         color: #1f2a44;
+        line-height: 1.2;
     }
 
     .overig-card p {
         margin: 0;
         color: #6c757d;
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         line-height: 1.5;
-        max-width: 28ch;
+        max-width: 30ch;
     }
 
     .card-cta {
@@ -123,6 +130,22 @@
         font-size: 0.9rem;
         font-weight: 700;
         color: #b60000;
+    }
+
+    @media (max-width: 1199px) {
+        .overig-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 767px) {
+        .overig-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .overig-hero {
+            padding: 26px 22px 22px;
+        }
     }
 
     /* ============================
@@ -219,6 +242,33 @@
                 <div class="card-tag">🎓</div>
                 <h4>Jeugd Willem II</h4>
                 <p>Materialen, werkwijze en ontwikkelstructuren voor de jeugdopleiding en begeleiding.</p>
+                <span class="card-cta">Open pagina <span>&rsaquo;</span></span>
+            </div>
+        </a>
+
+        <a href="/overig/?page=staf-aanwezigheden" class="text-decoration-none text-dark">
+            <div class="overig-card">
+                <div class="card-tag">📅</div>
+                <h4>Aanwezigheden staf</h4>
+                <p>Leg aanwezigheid, rolverdeling en afstemming binnen de staf overzichtelijk vast.</p>
+                <span class="card-cta">Open pagina <span>&rsaquo;</span></span>
+            </div>
+        </a>
+
+        <a href="/overig/?page=fysiek-wetenschap" class="text-decoration-none text-dark">
+            <div class="overig-card">
+                <div class="card-tag">🧪</div>
+                <h4>Fysiek en wetenschap</h4>
+                <p>Bundel inzichten, onderzoekslijnen, fysieke thema’s en praktische vertaalslagen naar het veld.</p>
+                <span class="card-cta">Open pagina <span>&rsaquo;</span></span>
+            </div>
+        </a>
+
+        <a href="/overig/?page=ontwikkelingsgesprekken" class="text-decoration-none text-dark">
+            <div class="overig-card">
+                <div class="card-tag">💬</div>
+                <h4>Ontwikkelingsgesprekken</h4>
+                <p>Houd voortgang, gespreksonderwerpen en concrete acties per ontwikkelmoment centraal bij elkaar.</p>
                 <span class="card-cta">Open pagina <span>&rsaquo;</span></span>
             </div>
         </a>
@@ -1233,6 +1283,137 @@
         </div>
     </div>
     {% endif %}
+</section>
+{% endif %}
+
+{% if page == "staf-aanwezigheden" or page == "fysiek-wetenschap" or page == "ontwikkelingsgesprekken" %}
+<a href="/overig/" class="btn btn-secondary mb-3 back-btn">&larr; Terug</a>
+
+<style>
+    .generic-overig-shell {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        border-radius: 22px;
+        padding: 34px;
+        box-shadow: 0 14px 34px rgba(31,42,68,0.08);
+        border: 1px solid rgba(31,42,68,0.08);
+        margin-bottom: 34px;
+    }
+
+    .generic-overig-title {
+        font-size: 1.9rem;
+        font-weight: 800;
+        color: #1f2a44;
+        margin: 0 0 8px;
+    }
+
+    .generic-overig-subtitle {
+        color: #61708a;
+        font-size: 1rem;
+        margin-bottom: 24px;
+        max-width: 68ch;
+    }
+
+    .generic-overig-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .generic-overig-card {
+        background: #fff;
+        border: 1px solid #e3eaf4;
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 6px 16px rgba(31,42,68,0.05);
+    }
+
+    .generic-overig-card h4 {
+        margin: 0 0 10px;
+        color: #1f2a44;
+        font-size: 1.02rem;
+        font-weight: 800;
+    }
+
+    .generic-overig-card p {
+        margin: 0 0 12px;
+        color: #61708a;
+        line-height: 1.55;
+    }
+
+    .generic-overig-card textarea {
+        width: 100%;
+        min-height: 180px;
+        border: 1px solid #cfd8e7;
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: #fbfdff;
+        resize: vertical;
+    }
+
+    .generic-overig-card button {
+        margin-top: 12px;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 16px;
+        font-weight: 700;
+        cursor: pointer;
+        background: #1f2a44;
+        color: #fff;
+    }
+
+    @media (max-width: 991px) {
+        .generic-overig-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="generic-overig-shell">
+    <h3 class="generic-overig-title">
+        {% if page == "staf-aanwezigheden" %}Aanwezigheden staf{% endif %}
+        {% if page == "fysiek-wetenschap" %}Fysiek en wetenschap{% endif %}
+        {% if page == "ontwikkelingsgesprekken" %}Ontwikkelingsgesprekken{% endif %}
+    </h3>
+    <p class="generic-overig-subtitle">
+        {% if page == "staf-aanwezigheden" %}Bundel hier aanwezigheid, bezetting, verantwoordelijkheden en praktische stafafspraken.{% endif %}
+        {% if page == "fysiek-wetenschap" %}Gebruik dit onderdeel voor fysieke thema’s, onderzoeksinzichten en de vertaalslag naar trainingspraktijk.{% endif %}
+        {% if page == "ontwikkelingsgesprekken" %}Leg hier vaste lijnen vast voor voortgangsgesprekken, gespreksonderwerpen en ontwikkelafspraken.{% endif %}
+    </p>
+
+    <div class="generic-overig-grid">
+        <div class="generic-overig-card">
+            <h4>Kader</h4>
+            <p>Leg hier de vaste werkwijze, uitgangspunten en context van dit onderwerp vast.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="kader">
+                <textarea name="text">{{ generic_texts.kader }}</textarea>
+                <button type="submit">Opslaan</button>
+            </form>
+        </div>
+
+        <div class="generic-overig-card">
+            <h4>Actueel</h4>
+            <p>Gebruik dit blok voor lopende observaties, stand van zaken en aandachtspunten van dit moment.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="actueel">
+                <textarea name="text">{{ generic_texts.actueel }}</textarea>
+                <button type="submit">Opslaan</button>
+            </form>
+        </div>
+
+        <div class="generic-overig-card">
+            <h4>Afspraken</h4>
+            <p>Noteer concrete acties, verantwoordelijkheden, opvolging en evaluatiemomenten.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="afspraken">
+                <textarea name="text">{{ generic_texts.afspraken }}</textarea>
+                <button type="submit">Opslaan</button>
+            </form>
+        </div>
+    </div>
 </section>
 {% endif %}
 

@@ -3026,6 +3026,33 @@ def overig(request):
         })
 
     # ======================================
+    # GENERIEKE OVERIG-SECTIES
+    # ======================================
+    if page in {"staf-aanwezigheden", "fysiek-wetenschap", "ontwikkelingsgesprekken"}:
+        if request.method == "POST":
+            section = request.POST.get("section")
+            text = request.POST.get("text", "")
+            if section:
+                OverigNote.objects.create(
+                    note_type="section",
+                    page_key=page,
+                    section_key=section,
+                    text=text.strip(),
+                )
+            return redirect(f"/overig/?page={page}")
+
+        return render(request, 'overig.html', {
+            'page': page,
+            'players': players,
+            'staff': staff_members,
+            'generic_texts': {
+                'kader': section_text(page, 'kader'),
+                'actueel': section_text(page, 'actueel'),
+                'afspraken': section_text(page, 'afspraken'),
+            },
+        })
+
+    # ======================================
     # GROEI & DISPENSATIE JEUGD
     # ======================================
     if page == "groei":
