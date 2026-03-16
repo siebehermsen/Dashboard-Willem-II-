@@ -352,15 +352,15 @@
                     {% for item in voetbalbeleid_videos %}
                     <div class="beleid-file-item">
                         <div class="beleid-file-meta">
-                            <a class="beleid-file-name" href="{{ item.attachment.url }}" target="_blank" rel="noopener">
-                                {{ item.attachment.name|cut:"beleid_uploads/" }}
+                            <a class="beleid-file-name" href="{{ item.url }}" target="_blank" rel="noopener">
+                                {{ item.name }}
                             </a>
                             <span class="beleid-file-date">{{ item.created_at|date:"d-m-Y H:i" }}</span>
-                            {% if item.text %}
-                            <span class="beleid-file-date">{{ item.text }}</span>
+                            {% if item.description %}
+                            <span class="beleid-file-date">{{ item.description }}</span>
                             {% endif %}
                         </div>
-                        <a class="beleid-file-link" href="{{ item.attachment.url }}" target="_blank" rel="noopener">Open</a>
+                        <a class="beleid-file-link" href="{{ item.url }}" target="_blank" rel="noopener">Open</a>
                     </div>
                     {% empty %}
                     <p style="margin-top: 12px; color: #61708a;">Nog geen videobestanden geüpload.</p>

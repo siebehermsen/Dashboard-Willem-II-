@@ -3497,26 +3497,61 @@ def beleid(request):
         )
         return (item.text or "") if item else ""
 
-    voetbalbeleid_videos = (
+    def _split_video_note(raw_text: str) -> tuple[str, str]:
+        marker = "[[FILE::"
+        if not raw_text or marker not in raw_text:
+            return raw_text.strip(), ""
+        description, _, remainder = raw_text.partition(marker)
+        file_path, _, _ = remainder.partition("]]")
+        return description.strip(), file_path.strip()
+
+    voetbalbeleid_videos = []
+    video_notes = (
         OverigNote.objects
-        .filter(page_key="beleid", section_key="voetbalbeleid:videos", attachment__isnull=False)
+        .filter(note_type="section", page_key="beleid", section_key="voetbalbeleid:videos")
         .order_by("-created_at")
     )
+    for item in video_notes:
+        description, file_path = _split_video_note(item.text or "")
+        if not file_path:
+            continue
+        try:
+            file_url = default_storage.url(file_path)
+        except Exception:
+            file_url = f"{settings.MEDIA_URL.rstrip('/')}/{file_path.lstrip('/')}"
+        voetbalbeleid_videos.append({
+            "name": os.path.basename(file_path),
+            "url": file_url,
+            "description": description,
+            "created_at": item.created_at,
+        })
 
     if request.method == "POST":
         section = request.POST.get("section", "").strip()
         text = request.POST.get("text", "")
         if section:
             attachment = request.FILES.get("attachment")
-            note_kwargs = {
-                "note_type": "section",
-                "page_key": "beleid",
-                "section_key": section,
-                "text": text.strip(),
-            }
-            if attachment:
-                note_kwargs["attachment"] = attachment
-            OverigNote.objects.create(**note_kwargs)
+            if section == "voetbalbeleid:videos" and attachment:
+                upload_name = f"{uuid.uuid4().hex}_{attachment.name}"
+                upload_path = default_storage.save(f"beleid_uploads/{upload_name}", attachment)
+                stored_text = text.strip()
+                if stored_text:
+                    stored_text = f"{stored_text}\n[[FILE::{upload_path}]]"
+                else:
+                    stored_text = f"[[FILE::{upload_path}]]"
+                OverigNote.objects.create(
+                    note_type="section",
+                    page_key="beleid",
+                    section_key=section,
+                    text=stored_text,
+                )
+            elif section != "voetbalbeleid:videos":
+                OverigNote.objects.create(
+                    note_type="section",
+                    page_key="beleid",
+                    section_key=section,
+                    text=text.strip(),
+                )
         return redirect(f"/beleid/?tab={beleid_tab}&subtab={beleid_subtab}")
 
     return render(request, "beleid.html", {
