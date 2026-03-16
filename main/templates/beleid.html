@@ -76,6 +76,35 @@
         gap: 18px;
     }
 
+    .beleid-subtabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0 0 18px;
+    }
+
+    .beleid-subtab {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 14px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #33415e;
+        background: #f3f6fb;
+        border: 1px solid #d8e0ee;
+        transition: all 0.2s ease;
+    }
+
+    .beleid-subtab.active {
+        background: #ffffff;
+        color: #1f2a44;
+        border-color: #1f2a44;
+        box-shadow: 0 8px 16px rgba(31, 42, 68, 0.10);
+    }
+
     .beleid-card {
         background: #fff;
         border: 1px solid #e3eaf4;
@@ -151,17 +180,44 @@
         <a class="beleid-tab {% if beleid_tab == 'beleid-jeugd' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd">Beleid jeugd</a>
     </div>
 
+    {% if beleid_tab == "fysiek-beleid" %}
+    <div class="beleid-subtabs">
+        <a class="beleid-subtab {% if beleid_subtab == 'voeding' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=voeding">Voeding</a>
+        <a class="beleid-subtab {% if beleid_subtab == 'krachttraining' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=krachttraining">Krachttraining</a>
+        <a class="beleid-subtab {% if beleid_subtab == 'testen-meten' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=testen-meten">Testen en meten</a>
+        <a class="beleid-subtab {% if beleid_subtab == 'leefstijl' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=leefstijl">Leefstijl</a>
+    </div>
+    {% endif %}
+
+    {% if beleid_tab == "beleid-jeugd" %}
+    <div class="beleid-subtabs">
+        <a class="beleid-subtab {% if beleid_subtab == 'onderbouw' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd&subtab=onderbouw">Beleid onderbouw</a>
+        <a class="beleid-subtab {% if beleid_subtab == 'middenbouw' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd&subtab=middenbouw">Beleid middenbouw</a>
+        <a class="beleid-subtab {% if beleid_subtab == 'bovenbouw' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd&subtab=bovenbouw">Beleid bovenbouw</a>
+    </div>
+    {% endif %}
+
     <div class="beleid-grid">
         <div class="beleid-card">
             <h3>
                 {% if beleid_tab == "voetbalbeleid" %}Voetbalbeleid{% endif %}
-                {% if beleid_tab == "fysiek-beleid" %}Fysiek beleid{% endif %}
-                {% if beleid_tab == "beleid-jeugd" %}Beleid jeugd{% endif %}
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "voeding" %}Fysiek beleid - Voeding{% endif %}
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "krachttraining" %}Fysiek beleid - Krachttraining{% endif %}
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "testen-meten" %}Fysiek beleid - Testen en meten{% endif %}
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "leefstijl" %}Fysiek beleid - Leefstijl{% endif %}
+                {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "onderbouw" %}Beleid jeugd - Onderbouw{% endif %}
+                {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "middenbouw" %}Beleid jeugd - Middenbouw{% endif %}
+                {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "bovenbouw" %}Beleid jeugd - Bovenbouw{% endif %}
             </h3>
             <p>
                 {% if beleid_tab == "voetbalbeleid" %}Beschrijf hier de spelprincipes, teamidentiteit, coachingaccenten en keuzes in wedstrijd- en trainingsaanpak.{% endif %}
-                {% if beleid_tab == "fysiek-beleid" %}Leg hier de fysieke visie vast: belastbaarheid, monitoring, periodisering, testen en onderlinge verantwoordelijkheden.{% endif %}
-                {% if beleid_tab == "beleid-jeugd" %}Gebruik dit onderdeel voor ontwikkellijnen, selectie-uitgangspunten, doorstroming en begeleiding binnen de jeugdopleiding.{% endif %}
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "voeding" %}Leg voedingsafspraken, uitgangspunten, routines rond wedstrijddag en individuele aandachtspunten vast.{% endif %}
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "krachttraining" %}Beschrijf de krachtvisie, periodisering, oefenprincipes en opbouw per doelgroep of fase.{% endif %}
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "testen-meten" %}Gebruik dit deel voor testbeleid, meetmomenten, normen, selectie van KPI’s en interpretatie-afspraken.{% endif %}
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "leefstijl" %}Leg afspraken vast over slaap, herstel, gedrag, planning en professionele leefstijl buiten het veld.{% endif %}
+                {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "onderbouw" %}Beschrijf de ontwikkelaccenten, coaching en spelprincipes voor de onderbouw.{% endif %}
+                {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "middenbouw" %}Gebruik dit onderdeel voor de middenbouw: ontwikkeling, belasting, selectie en begeleidingslijnen.{% endif %}
+                {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "bovenbouw" %}Leg hier vast hoe de bovenbouw werkt richting prestatie, doorstroom en individuele begeleiding.{% endif %}
             </p>
             <ul class="beleid-points">
                 {% if beleid_tab == "voetbalbeleid" %}
@@ -169,15 +225,40 @@
                 <li>Vertaling naar trainingsvormen en coaching</li>
                 <li>Wedstrijdprincipes per fase van het spel</li>
                 {% endif %}
-                {% if beleid_tab == "fysiek-beleid" %}
-                <li>Belastingsopbouw, herstel en individuele sturing</li>
-                <li>Meetmomenten, thresholds en decision rules</li>
-                <li>Afstemming tussen performance, staf en medisch</li>
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "voeding" %}
+                <li>Wedstrijddag voeding en herstelmomenten</li>
+                <li>Individuele aandachtspunten en begeleiding</li>
+                <li>Afstemming tussen voeding, prestatie en planning</li>
                 {% endif %}
-                {% if beleid_tab == "beleid-jeugd" %}
-                <li>Leerlijnen per leeftijdsfase</li>
-                <li>Ontwikkelcriteria en evaluatiemomenten</li>
-                <li>Doorstroom, begeleiding en communicatie met staf</li>
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "krachttraining" %}
+                <li>Krachtlijnen per leeftijd, rol of fase</li>
+                <li>Progressie, techniek en belastingsregels</li>
+                <li>Afstemming met veldbelasting en herstel</li>
+                {% endif %}
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "testen-meten" %}
+                <li>Welke testen wanneer worden afgenomen</li>
+                <li>Welke metrics leidend zijn in besluitvorming</li>
+                <li>Rapportage en terugkoppeling naar staf/speler</li>
+                {% endif %}
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "leefstijl" %}
+                <li>Slaap, herstel, routines en planning</li>
+                <li>Professioneel gedrag buiten de club</li>
+                <li>Monitoring en aanspreekpunten binnen staf</li>
+                {% endif %}
+                {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "onderbouw" %}
+                <li>Plezier, basisvaardigheden en breed motorisch ontwikkelen</li>
+                <li>Eenvoudige spelprincipes en veel herhaling</li>
+                <li>Begeleiding passend bij leeftijd en belastbaarheid</li>
+                {% endif %}
+                {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "middenbouw" %}
+                <li>Verfijning van keuzes, posities en fysieke opbouw</li>
+                <li>Structuur in leerdoelen en evaluaties</li>
+                <li>Afstemming tussen prestatie en ontwikkeling</li>
+                {% endif %}
+                {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "bovenbouw" %}
+                <li>Doorstroomcriteria richting senioren/prestatie</li>
+                <li>Individuele ontwikkelplannen en prestatiedruk</li>
+                <li>Afstemming tussen staf, speler en omgeving</li>
                 {% endif %}
             </ul>
         </div>
@@ -186,7 +267,7 @@
             <h3>Beleidstekst</h3>
             <form method="post">
                 {% csrf_token %}
-                <input type="hidden" name="section" value="{{ beleid_tab }}">
+                <input type="hidden" name="section" value="{% if beleid_tab == 'voetbalbeleid' %}voetbalbeleid{% else %}{{ beleid_tab }}:{{ beleid_subtab }}{% endif %}">
                 <textarea name="text" placeholder="Leg hier het beleid vast...">{{ beleid_current_text }}</textarea>
                 <button type="submit" class="beleid-btn">Opslaan</button>
             </form>

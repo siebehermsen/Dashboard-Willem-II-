@@ -3477,6 +3477,17 @@ def beleid(request):
     if beleid_tab not in {"voetbalbeleid", "fysiek-beleid", "beleid-jeugd"}:
         beleid_tab = "voetbalbeleid"
 
+    subtab_options = {
+        "voetbalbeleid": ["voetbalbeleid"],
+        "fysiek-beleid": ["voeding", "krachttraining", "testen-meten", "leefstijl"],
+        "beleid-jeugd": ["onderbouw", "middenbouw", "bovenbouw"],
+    }
+    beleid_subtab = (request.GET.get("subtab") or subtab_options[beleid_tab][0]).strip().lower()
+    if beleid_subtab not in subtab_options[beleid_tab]:
+        beleid_subtab = subtab_options[beleid_tab][0]
+
+    section_key = beleid_tab if beleid_tab == "voetbalbeleid" else f"{beleid_tab}:{beleid_subtab}"
+
     def section_text(section_key: str) -> str:
         item = (
             OverigNote.objects
@@ -3496,16 +3507,12 @@ def beleid(request):
                 section_key=section,
                 text=text.strip(),
             )
-        return redirect(f"/beleid/?tab={beleid_tab}")
+        return redirect(f"/beleid/?tab={beleid_tab}&subtab={beleid_subtab}")
 
     return render(request, "beleid.html", {
         "beleid_tab": beleid_tab,
-        "beleid_texts": {
-            "voetbalbeleid": section_text("voetbalbeleid"),
-            "fysiek-beleid": section_text("fysiek-beleid"),
-            "beleid-jeugd": section_text("beleid-jeugd"),
-        },
-        "beleid_current_text": section_text(beleid_tab),
+        "beleid_subtab": beleid_subtab,
+        "beleid_current_text": section_text(section_key),
     })
 
 
