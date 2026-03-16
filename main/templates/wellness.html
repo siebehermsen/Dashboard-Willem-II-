@@ -133,6 +133,151 @@
     color: #721c24 !important;
     border-color: #f5c6cb !important;
 }
+
+html.app-ui.app-mode .wellness-container {
+    max-width: none;
+    margin: 0;
+    padding: 16px 14px 20px;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+}
+
+html.app-ui.app-mode h1 {
+    font-size: 1.55rem;
+    text-align: left;
+    margin-bottom: 14px;
+}
+
+html.app-ui.app-mode .date-selector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+html.app-ui.app-mode .date-label {
+    grid-column: 1 / -1;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #61708a;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+html.app-ui.app-mode .date-input {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 46px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+html.app-ui.app-mode .nav-btn {
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+}
+
+html.app-ui.app-mode .tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+html.app-ui.app-mode .tab-btn {
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 10px;
+    border-radius: 14px;
+    font-size: 0.95rem;
+}
+
+html.app-ui.app-mode #wellnessTable,
+html.app-ui.app-mode #wellnessTable tbody {
+    display: block;
+    width: 100%;
+}
+
+html.app-ui.app-mode #wellnessTable thead {
+    display: none;
+}
+
+html.app-ui.app-mode #wellnessTable tbody.hidden {
+    display: none;
+}
+
+html.app-ui.app-mode #wellnessTable tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid #e0e8f5;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 10px 20px rgba(31, 42, 68, 0.08);
+}
+
+html.app-ui.app-mode #wellnessTable td {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid #d9e6f4;
+    border-radius: 12px;
+    background: #f8fbff;
+    text-align: left;
+}
+
+html.app-ui.app-mode #wellnessTable td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #6a7891;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+html.app-ui.app-mode #wellnessTable td.player-name {
+    grid-column: 1 / -1;
+    padding: 0 0 2px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1f2a44;
+}
+
+html.app-ui.app-mode #wellnessTable td.player-name::before {
+    content: none;
+}
+
+html.app-ui.app-mode #wellnessTable td[data-label="Opmerkingen"],
+html.app-ui.app-mode #wellnessTable td[data-label="Opslaan"] {
+    grid-column: 1 / -1;
+}
+
+html.app-ui.app-mode #wellnessTable select,
+html.app-ui.app-mode #wellnessTable input[type="text"],
+html.app-ui.app-mode #wellnessTable .save-row {
+    width: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
+}
+
+html.app-ui.app-mode #wellnessTable input[type="text"] {
+    text-align: left;
+}
+
+html.app-ui.app-mode #wellnessTable .save-row {
+    min-height: 46px;
+    font-weight: 700;
+}
 </style>
 
 <div class="wellness-container">
@@ -170,9 +315,9 @@
         <tbody id="tbody-not-filled">
             {% for player in players_not_filled %}
             <tr>
-                <td class="player-name">{{ player.name }}</td>
+                <td class="player-name" data-label="Speler">{{ player.name }}</td>
 
-                <td>
+                <td data-label="Slaap">
                     <select class="slaap">
                         <option value="">-</option>
                         <option value="1">Heel goed</option>
@@ -182,7 +327,7 @@
                     </select>
                 </td>
 
-                <td>
+                <td data-label="Gevoel">
                     <select class="gevoel">
                         <option value="">-</option>
                         <option value="1">Heel goed</option>
@@ -192,7 +337,7 @@
                     </select>
                 </td>
 
-                <td>
+                <td data-label="Fitheid">
                     <select class="fit">
                         <option value="">-</option>
                         <option value="1">Heel fit</option>
@@ -202,7 +347,7 @@
                     </select>
                 </td>
 
-                <td>
+                <td data-label="Spierpijn">
                     <select class="spierpijn">
                         <option value="">-</option>
                         <option value="1">Geen</option>
@@ -211,11 +356,11 @@
                     </select>
                 </td>
 
-                <td>
+                <td data-label="Opmerkingen">
                     <input type="text" class="comment" placeholder="Opmerking...">
                 </td>
 
-                <td>
+                <td data-label="Opslaan">
                     <button class="save-row" type="button" onclick="saveRow(this, {{ player.id }})">Opslaan</button>
                 </td>
             </tr>
@@ -225,9 +370,9 @@
         <tbody id="tbody-filled" class="hidden">
             {% for entry in existing_entries %}
             <tr>
-                <td class="player-name">{{ entry.player.name }}</td>
+                <td class="player-name" data-label="Speler">{{ entry.player.name }}</td>
 
-                <td>
+                <td data-label="Slaap">
                     <select class="slaap">
                         <option value="1" {% if entry.sleep == 1 %}selected{% endif %}>Heel goed</option>
                         <option value="2" {% if entry.sleep == 2 %}selected{% endif %}>Goed</option>
@@ -236,7 +381,7 @@
                     </select>
                 </td>
 
-                <td>
+                <td data-label="Gevoel">
                     <select class="gevoel">
                         <option value="1" {% if entry.mood == 1 %}selected{% endif %}>Heel goed</option>
                         <option value="2" {% if entry.mood == 2 %}selected{% endif %}>Goed</option>
@@ -245,7 +390,7 @@
                     </select>
                 </td>
 
-                <td>
+                <td data-label="Fitheid">
                     <select class="fit">
                         <option value="1" {% if entry.fitness == 1 %}selected{% endif %}>Heel fit</option>
                         <option value="2" {% if entry.fitness == 2 %}selected{% endif %}>Fit</option>
@@ -254,7 +399,7 @@
                     </select>
                 </td>
 
-                <td>
+                <td data-label="Spierpijn">
                     <select class="spierpijn">
                         <option value="1" {% if entry.soreness == 1 %}selected{% endif %}>Geen</option>
                         <option value="2" {% if entry.soreness == 2 %}selected{% endif %}>Licht</option>
@@ -262,11 +407,11 @@
                     </select>
                 </td>
 
-                <td>
+                <td data-label="Opmerkingen">
                     <input type="text" class="comment" value="{{ entry.comment }}">
                 </td>
 
-                <td>
+                <td data-label="Opslaan">
                     <button class="save-row" type="button" onclick="saveRow(this, {{ entry.player.id }})">Opslaan</button>
                 </td>
             </tr>
