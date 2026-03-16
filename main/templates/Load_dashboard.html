@@ -742,6 +742,85 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         font-size: 0.86rem;
     }
 
+    html.app-mode .dashboard-app-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 10020;
+        padding: 24px 16px;
+        background: rgba(10, 18, 35, 0.44);
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+    }
+
+    html.app-mode .dashboard-app-modal.is-open {
+        display: flex;
+    }
+
+    html.app-mode .dashboard-app-modal-card {
+        width: min(100%, 420px);
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 22px 18px 18px;
+        box-shadow: 0 24px 48px rgba(10, 18, 35, 0.22);
+    }
+
+    html.app-mode .dashboard-app-modal-close {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 6px;
+    }
+
+    html.app-mode .dashboard-app-modal-close button {
+        border: none;
+        background: transparent;
+        color: #1f2a44;
+        font-size: 1.8rem;
+        line-height: 1;
+        padding: 0;
+    }
+
+    html.app-mode .dashboard-app-modal-title {
+        margin: 0 0 18px;
+        color: #10213f;
+        font-size: 1.75rem;
+        line-height: 1.1;
+    }
+
+    html.app-mode .dashboard-app-form {
+        display: grid;
+        gap: 14px;
+    }
+
+    html.app-mode .dashboard-app-form-group {
+        display: grid;
+        gap: 6px;
+    }
+
+    html.app-mode .dashboard-app-form-group label {
+        color: #1f2a44;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    html.app-mode .dashboard-app-form-group input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #cfd8e7;
+        background: #fbfdff;
+        font-size: 0.95rem;
+    }
+
+    html.app-mode .dashboard-app-form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 4px;
+    }
+
     html.app-mode .dashboard-app-nav {
         display: flex;
         flex-direction: column;
@@ -878,42 +957,20 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
             <div class="dashboard-app-week">
                 {% for day in current_week_dayprograms %}
                     <article class="dashboard-app-week-card" id="app-week-card-{{ day.id }}">
-                        <div id="app-week-view-{{ day.id }}">
-                            <p class="dashboard-app-week-date">{{ day.date|date:"l d F" }}</p>
-                            <p class="dashboard-app-week-activities" id="app-activities-text-{{ day.id }}">{{ day.activities|default:"-" }}</p>
-                            <p class="dashboard-app-week-notes" id="app-notes-text-{{ day.id }}">{{ day.notes|default:"Geen bijzonderheden." }}</p>
                             <div class="dashboard-app-week-actions">
-                                <button type="button" class="action-btn btn-edit" onclick="enableAppWeekEdit({{ day.id }})">Bewerk</button>
+                                <button
+                                    type="button"
+                                    class="action-btn btn-edit"
+                                    onclick="openAppWeekModal('edit', '{{ day.id }}', '{{ day.date|date:"Y-m-d"|escapejs }}', '{{ day.activities|default:""|escapejs }}', '{{ day.notes|default:""|escapejs }}')"
+                                >Bewerk</button>
                                 <form action="{% url 'delete_weekday' day.id %}" method="POST">
                                     {% csrf_token %}
                                     <button type="submit" class="action-btn btn-delete">Verwijder</button>
                                 </form>
                             </div>
-                        </div>
-
-                        <div id="app-week-edit-{{ day.id }}" class="dashboard-app-week-editing" style="display:none;">
-                            <input type="date" id="app-edit-date-{{ day.id }}" value="{{ day.date|date:'Y-m-d' }}">
-                            <input type="text" id="app-edit-activities-{{ day.id }}" value="{{ day.activities|default:'' }}" placeholder="Activiteiten">
-                            <input type="text" id="app-edit-notes-{{ day.id }}" value="{{ day.notes|default:'' }}" placeholder="Bijzonderheden">
-                            <div class="dashboard-app-week-actions">
-                                <form action="{% url 'edit_weekday' day.id %}" method="POST">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="date" id="app-save-date-{{ day.id }}">
-                                    <input type="hidden" name="activities" id="app-save-activities-{{ day.id }}">
-                                    <input type="hidden" name="notes" id="app-save-notes-{{ day.id }}">
-                                    <button
-                                        type="submit"
-                                        class="action-btn btn-edit"
-                                        onclick="
-                                            document.getElementById('app-save-date-{{ day.id }}').value = document.getElementById('app-edit-date-{{ day.id }}').value;
-                                            document.getElementById('app-save-activities-{{ day.id }}').value = document.getElementById('app-edit-activities-{{ day.id }}').value;
-                                            document.getElementById('app-save-notes-{{ day.id }}').value = document.getElementById('app-edit-notes-{{ day.id }}').value;
-                                        "
-                                    >Opslaan</button>
-                                </form>
-                                <button type="button" class="action-btn btn-delete" onclick="cancelAppWeekEdit({{ day.id }})">Annuleer</button>
-                            </div>
-                        </div>
+                            <p class="dashboard-app-week-date">{{ day.date|date:"l d F" }}</p>
+                            <p class="dashboard-app-week-activities">{{ day.activities|default:"-" }}</p>
+                            <p class="dashboard-app-week-notes">{{ day.notes|default:"Geen bijzonderheden." }}</p>
                     </article>
                 {% empty %}
                     <p class="dashboard-app-week-empty">Er staat nog geen weekplanning voor deze week ingevoerd.</p>
@@ -981,6 +1038,34 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                 </a>
             </div>
         </section>
+
+        <div id="appWeekModal" class="dashboard-app-modal" aria-hidden="true">
+            <div class="dashboard-app-modal-card">
+                <div class="dashboard-app-modal-close">
+                    <button type="button" aria-label="Sluiten" onclick="closeAppWeekModal()">&times;</button>
+                </div>
+                <h3 id="appWeekModalTitle" class="dashboard-app-modal-title">Trainingsdag toevoegen</h3>
+                <form id="appWeekForm" class="dashboard-app-form" action="{% url 'add_weekday' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="dashboard-app-form-group">
+                        <label for="appWeekDate">Datum</label>
+                        <input id="appWeekDate" type="date" name="date" required>
+                    </div>
+                    <div class="dashboard-app-form-group">
+                        <label for="appWeekActivities">Activiteiten</label>
+                        <input id="appWeekActivities" type="text" name="activities" required>
+                    </div>
+                    <div class="dashboard-app-form-group">
+                        <label for="appWeekNotes">Bijzonderheden</label>
+                        <input id="appWeekNotes" type="text" name="notes">
+                    </div>
+                    <div class="dashboard-app-form-actions">
+                        <button type="submit" class="primary-btn">Opslaan</button>
+                        <button type="button" class="secondary-btn" onclick="closeAppWeekModal()">Annuleren</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </section>
 
     <div class="dashboard-desktop-shell">
@@ -1590,6 +1675,12 @@ const openWeekBtn = document.getElementById("openWeekModal");
 const openWeekBtnMobile = document.getElementById("openWeekModalMobile");
 const closeWeekBtn = document.getElementById("closeWeekModal");
 const weekModal = document.getElementById("weekModal");
+const appWeekModal = document.getElementById("appWeekModal");
+const appWeekForm = document.getElementById("appWeekForm");
+const appWeekModalTitle = document.getElementById("appWeekModalTitle");
+const appWeekDate = document.getElementById("appWeekDate");
+const appWeekActivities = document.getElementById("appWeekActivities");
+const appWeekNotes = document.getElementById("appWeekNotes");
 
 if (openWeekBtn) {
     openWeekBtn.addEventListener("click", () => {
@@ -1599,7 +1690,7 @@ if (openWeekBtn) {
 
 if (openWeekBtnMobile) {
     openWeekBtnMobile.addEventListener("click", () => {
-        weekModal.style.display = "block";
+        openAppWeekModal("add");
     });
 }
 
@@ -1613,23 +1704,49 @@ window.addEventListener("click", (e) => {
     if (e.target === weekModal) {
         weekModal.style.display = "none";
     }
+    if (e.target === appWeekModal) {
+        closeAppWeekModal();
+    }
 });
 
-function enableAppWeekEdit(id) {
-    const view = document.getElementById(`app-week-view-${id}`);
-    const edit = document.getElementById(`app-week-edit-${id}`);
-    if (view && edit) {
-        view.style.display = "none";
-        edit.style.display = "grid";
+function openAppWeekModal(mode, id = "", date = "", activities = "", notes = "") {
+    if (!appWeekModal || !appWeekForm || !appWeekModalTitle) {
+        return;
     }
+
+    if (mode === "edit" && id) {
+        appWeekModalTitle.textContent = "Trainingsdag bewerken";
+        appWeekForm.action = `/edit-weekday/${id}/`;
+    } else {
+        appWeekModalTitle.textContent = "Trainingsdag toevoegen";
+        appWeekForm.action = "{% url 'add_weekday' %}";
+    }
+
+    if (appWeekDate) {
+        appWeekDate.value = date || "";
+    }
+    if (appWeekActivities) {
+        appWeekActivities.value = activities || "";
+    }
+    if (appWeekNotes) {
+        appWeekNotes.value = notes || "";
+    }
+
+    appWeekModal.classList.add("is-open");
+    appWeekModal.setAttribute("aria-hidden", "false");
 }
 
-function cancelAppWeekEdit(id) {
-    const view = document.getElementById(`app-week-view-${id}`);
-    const edit = document.getElementById(`app-week-edit-${id}`);
-    if (view && edit) {
-        edit.style.display = "none";
-        view.style.display = "block";
+function closeAppWeekModal() {
+    if (!appWeekModal || !appWeekForm) {
+        return;
+    }
+
+    appWeekModal.classList.remove("is-open");
+    appWeekModal.setAttribute("aria-hidden", "true");
+    appWeekForm.reset();
+    appWeekForm.action = "{% url 'add_weekday' %}";
+    if (appWeekModalTitle) {
+        appWeekModalTitle.textContent = "Trainingsdag toevoegen";
     }
 }
 </script>
