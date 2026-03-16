@@ -58,6 +58,7 @@ urlpatterns = [
     path("aanwezigheden/", views.aanwezigheden_pagina, name="aanwezigheden"),
     path("aanwezigheden/update/<int:record_id>/", views.aanwezigheden_update, name="aanwezigheden_update"),
     path("overig/", views.overig, name="overig"),
+    path("beleid/", views.beleid, name="beleid"),
     path("beweeganalyse/", views.beweeganalyse, name="beweeganalyse"),
     path("huidplooimeting/pdf/", huidplooimeting_pdf, name="huidplooimeting_pdf"),
 

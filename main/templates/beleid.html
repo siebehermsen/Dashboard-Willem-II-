@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}Beleid{% endblock %}
+
+{% block content %}
+<style>
+    .beleid-shell {
+        background:
+            radial-gradient(1200px 260px at -10% -40%, rgba(182, 0, 0, 0.10), transparent 60%),
+            radial-gradient(900px 220px at 110% 0%, rgba(31, 42, 68, 0.12), transparent 58%),
+            linear-gradient(180deg, #ffffff 0%, #f7f9fd 100%);
+        border: 1px solid rgba(31, 42, 68, 0.08);
+        border-radius: 28px;
+        padding: 34px 36px 30px;
+        box-shadow: 0 18px 38px rgba(31, 42, 68, 0.08);
+    }
+
+    .beleid-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(31, 42, 68, 0.08);
+        color: #31415f;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+    }
+
+    .beleid-title {
+        margin: 0 0 10px;
+        color: #1f2a44;
+        font-size: 2rem;
+        font-weight: 800;
+    }
+
+    .beleid-subtitle {
+        margin: 0 0 24px;
+        color: #61708a;
+        font-size: 1rem;
+        max-width: 72ch;
+    }
+
+    .beleid-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 22px;
+    }
+
+    .beleid-tab {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 11px 18px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 700;
+        color: #1f2a44;
+        background: #eef2f8;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .beleid-tab.active {
+        background: linear-gradient(135deg, #1f2a44, #35548a);
+        color: #fff;
+        box-shadow: 0 10px 20px rgba(31, 42, 68, 0.18);
+    }
+
+    .beleid-grid {
+        display: grid;
+        grid-template-columns: 0.92fr 1.08fr;
+        gap: 18px;
+    }
+
+    .beleid-card {
+        background: #fff;
+        border: 1px solid #e3eaf4;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 8px 20px rgba(31, 42, 68, 0.06);
+    }
+
+    .beleid-card h3 {
+        margin: 0 0 10px;
+        color: #1f2a44;
+        font-size: 1.18rem;
+        font-weight: 800;
+    }
+
+    .beleid-card p {
+        color: #61708a;
+        line-height: 1.6;
+        margin-bottom: 0;
+    }
+
+    .beleid-card textarea {
+        width: 100%;
+        min-height: 360px;
+        border: 1px solid #cfd8e7;
+        border-radius: 14px;
+        padding: 14px 16px;
+        background: #fbfdff;
+        resize: vertical;
+        margin-top: 16px;
+        font-size: 0.98rem;
+    }
+
+    .beleid-btn {
+        margin-top: 14px;
+        border: none;
+        border-radius: 12px;
+        padding: 11px 18px;
+        font-weight: 700;
+        cursor: pointer;
+        background: #b60000;
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(182, 0, 0, 0.16);
+    }
+
+    .beleid-points {
+        margin: 16px 0 0;
+        padding-left: 18px;
+        color: #4f5f7c;
+    }
+
+    .beleid-points li {
+        margin-bottom: 8px;
+    }
+
+    @media (max-width: 991px) {
+        .beleid-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="beleid-shell">
+    <div class="beleid-kicker">Beleidsomgeving</div>
+    <h2 class="beleid-title">Beleid</h2>
+    <p class="beleid-subtitle">
+        Leg hier de belangrijkste beleidslijnen vast voor het voetbal, het fysieke domein en de jeugdopleiding. Zo staat richting, onderbouwing en werkwijze op één vaste plek.
+    </p>
+
+    <div class="beleid-tabs">
+        <a class="beleid-tab {% if beleid_tab == 'voetbalbeleid' %}active{% endif %}" href="/beleid/?tab=voetbalbeleid">Voetbalbeleid</a>
+        <a class="beleid-tab {% if beleid_tab == 'fysiek-beleid' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid">Fysiek beleid</a>
+        <a class="beleid-tab {% if beleid_tab == 'beleid-jeugd' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd">Beleid jeugd</a>
+    </div>
+
+    <div class="beleid-grid">
+        <div class="beleid-card">
+            <h3>
+                {% if beleid_tab == "voetbalbeleid" %}Voetbalbeleid{% endif %}
+                {% if beleid_tab == "fysiek-beleid" %}Fysiek beleid{% endif %}
+                {% if beleid_tab == "beleid-jeugd" %}Beleid jeugd{% endif %}
+            </h3>
+            <p>
+                {% if beleid_tab == "voetbalbeleid" %}Beschrijf hier de spelprincipes, teamidentiteit, coachingaccenten en keuzes in wedstrijd- en trainingsaanpak.{% endif %}
+                {% if beleid_tab == "fysiek-beleid" %}Leg hier de fysieke visie vast: belastbaarheid, monitoring, periodisering, testen en onderlinge verantwoordelijkheden.{% endif %}
+                {% if beleid_tab == "beleid-jeugd" %}Gebruik dit onderdeel voor ontwikkellijnen, selectie-uitgangspunten, doorstroming en begeleiding binnen de jeugdopleiding.{% endif %}
+            </p>
+            <ul class="beleid-points">
+                {% if beleid_tab == "voetbalbeleid" %}
+                <li>Speelwijze, pressing, opbouw en restverdediging</li>
+                <li>Vertaling naar trainingsvormen en coaching</li>
+                <li>Wedstrijdprincipes per fase van het spel</li>
+                {% endif %}
+                {% if beleid_tab == "fysiek-beleid" %}
+                <li>Belastingsopbouw, herstel en individuele sturing</li>
+                <li>Meetmomenten, thresholds en decision rules</li>
+                <li>Afstemming tussen performance, staf en medisch</li>
+                {% endif %}
+                {% if beleid_tab == "beleid-jeugd" %}
+                <li>Leerlijnen per leeftijdsfase</li>
+                <li>Ontwikkelcriteria en evaluatiemomenten</li>
+                <li>Doorstroom, begeleiding en communicatie met staf</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="beleid-card">
+            <h3>Beleidstekst</h3>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="{{ beleid_tab }}">
+                <textarea name="text" placeholder="Leg hier het beleid vast...">{{ beleid_current_text }}</textarea>
+                <button type="submit" class="beleid-btn">Opslaan</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

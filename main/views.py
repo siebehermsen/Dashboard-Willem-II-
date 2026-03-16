@@ -3472,6 +3472,43 @@ def overig(request):
     })
 
 
+def beleid(request):
+    beleid_tab = (request.GET.get("tab") or "voetbalbeleid").strip().lower()
+    if beleid_tab not in {"voetbalbeleid", "fysiek-beleid", "beleid-jeugd"}:
+        beleid_tab = "voetbalbeleid"
+
+    def section_text(section_key: str) -> str:
+        item = (
+            OverigNote.objects
+            .filter(note_type="section", page_key="beleid", section_key=section_key)
+            .order_by("-created_at")
+            .first()
+        )
+        return (item.text or "") if item else ""
+
+    if request.method == "POST":
+        section = request.POST.get("section", "").strip()
+        text = request.POST.get("text", "")
+        if section:
+            OverigNote.objects.create(
+                note_type="section",
+                page_key="beleid",
+                section_key=section,
+                text=text.strip(),
+            )
+        return redirect(f"/beleid/?tab={beleid_tab}")
+
+    return render(request, "beleid.html", {
+        "beleid_tab": beleid_tab,
+        "beleid_texts": {
+            "voetbalbeleid": section_text("voetbalbeleid"),
+            "fysiek-beleid": section_text("fysiek-beleid"),
+            "beleid-jeugd": section_text("beleid-jeugd"),
+        },
+        "beleid_current_text": section_text(beleid_tab),
+    })
+
+
 def player_data(request, player_id):
     """
     Geeft JSON terug met de voortgang van gewicht en huidplooien

@@ -410,6 +410,7 @@
             <a href="{% url 'hit' %}" class="{% if 'hit' in request.path %}active{% endif %}">HIT</a>
             <a href="{% url 'aanwezigheden' %}" class="{% if 'aanwezigheden' in request.path %}active{% endif %}">Aanwezigheden</a>
             <a href="{% url 'beweeganalyse' %}" class="{% if 'beweeganalyse' in request.path %}active{% endif %}">Beweeganalyse</a>
+            <a href="{% url 'beleid' %}" class="{% if 'beleid' in request.path %}active{% endif %}">Beleid</a>
             <a href="{% url 'overig' %}" class="{% if 'overig' in request.path %}active{% endif %}">Overig</a>
         </div>
         <form method="post" action="{% url 'logout' %}" class="site-nav-actions">
