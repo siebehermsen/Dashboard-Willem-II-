@@ -3513,6 +3513,8 @@ def beleid(request):
         "beleid_tab": beleid_tab,
         "beleid_subtab": beleid_subtab,
         "beleid_current_text": section_text(section_key),
+        "voetbalbeleid_videos_text": section_text("voetbalbeleid:videos"),
+        "voetbalbeleid_oefenstof_text": section_text("voetbalbeleid:oefenstof"),
     })
 
 

@@ -76,6 +76,11 @@
         gap: 18px;
     }
 
+    .beleid-stack {
+        display: grid;
+        gap: 18px;
+    }
+
     .beleid-subtabs {
         display: flex;
         flex-wrap: wrap;
@@ -263,14 +268,40 @@
             </ul>
         </div>
 
-        <div class="beleid-card">
-            <h3>Beleidstekst</h3>
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="section" value="{% if beleid_tab == 'voetbalbeleid' %}voetbalbeleid{% else %}{{ beleid_tab }}:{{ beleid_subtab }}{% endif %}">
-                <textarea name="text" placeholder="Leg hier het beleid vast...">{{ beleid_current_text }}</textarea>
-                <button type="submit" class="beleid-btn">Opslaan</button>
-            </form>
+        <div class="beleid-stack">
+            <div class="beleid-card">
+                <h3>Beleidstekst</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="section" value="{% if beleid_tab == 'voetbalbeleid' %}voetbalbeleid{% else %}{{ beleid_tab }}:{{ beleid_subtab }}{% endif %}">
+                    <textarea name="text" placeholder="Leg hier het beleid vast...">{{ beleid_current_text }}</textarea>
+                    <button type="submit" class="beleid-btn">Opslaan</button>
+                </form>
+            </div>
+
+            {% if beleid_tab == "voetbalbeleid" %}
+            <div class="beleid-card">
+                <h3>Video's</h3>
+                <p>Gebruik dit blok voor videolinks, referentiebeelden, clips per thema of wedstrijdfragmenten.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="section" value="voetbalbeleid:videos">
+                    <textarea name="text" placeholder="Bijv. links naar Wyscout, YouTube of interne videoclips...">{{ voetbalbeleid_videos_text }}</textarea>
+                    <button type="submit" class="beleid-btn">Opslaan</button>
+                </form>
+            </div>
+
+            <div class="beleid-card">
+                <h3>Oefenstof</h3>
+                <p>Noteer hier trainingsvormen, spelvormen, coachingsaccenten en oefenideeën die bij het voetbalbeleid horen.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="section" value="voetbalbeleid:oefenstof">
+                    <textarea name="text" placeholder="Beschrijf hier oefenvormen, spelprincipes en trainingsaccenten...">{{ voetbalbeleid_oefenstof_text }}</textarea>
+                    <button type="submit" class="beleid-btn">Opslaan</button>
+                </form>
+            </div>
+            {% endif %}
         </div>
     </div>
 </section>
