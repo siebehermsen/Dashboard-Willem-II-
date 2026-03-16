@@ -3530,7 +3530,7 @@ def beleid(request):
         beleid_tab = "voetbalbeleid"
 
     subtab_options = {
-        "voetbalbeleid": ["voetbalbeleid"],
+        "voetbalbeleid": ["speelwijze", "teamafspraken"],
         "fysiek-beleid": ["voeding", "krachttraining", "testen-meten", "leefstijl"],
         "beleid-jeugd": ["onderbouw", "middenbouw", "bovenbouw"],
     }
@@ -3538,7 +3538,7 @@ def beleid(request):
     if beleid_subtab not in subtab_options[beleid_tab]:
         beleid_subtab = subtab_options[beleid_tab][0]
 
-    section_key = beleid_tab if beleid_tab == "voetbalbeleid" else f"{beleid_tab}:{beleid_subtab}"
+    section_key = f"{beleid_tab}:{beleid_subtab}"
 
     def section_text(section_key: str) -> str:
         item = (
@@ -3565,7 +3565,6 @@ def beleid(request):
         "beleid_tab": beleid_tab,
         "beleid_subtab": beleid_subtab,
         "beleid_current_text": section_text(section_key),
-        "voetbalbeleid_oefenstof_text": section_text("voetbalbeleid:oefenstof"),
     })
 
 

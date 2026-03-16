@@ -185,6 +185,13 @@
         <a class="beleid-tab {% if beleid_tab == 'beleid-jeugd' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd">Beleid jeugd</a>
     </div>
 
+    {% if beleid_tab == "voetbalbeleid" %}
+    <div class="beleid-subtabs">
+        <a class="beleid-subtab {% if beleid_subtab == 'speelwijze' %}active{% endif %}" href="/beleid/?tab=voetbalbeleid&subtab=speelwijze">Speelwijze</a>
+        <a class="beleid-subtab {% if beleid_subtab == 'teamafspraken' %}active{% endif %}" href="/beleid/?tab=voetbalbeleid&subtab=teamafspraken">Teamafspraken</a>
+    </div>
+    {% endif %}
+
     {% if beleid_tab == "fysiek-beleid" %}
     <div class="beleid-subtabs">
         <a class="beleid-subtab {% if beleid_subtab == 'voeding' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=voeding">Voeding</a>
@@ -205,7 +212,8 @@
     <div class="beleid-grid">
         <div class="beleid-card">
             <h3>
-                {% if beleid_tab == "voetbalbeleid" %}Voetbalbeleid{% endif %}
+                {% if beleid_tab == "voetbalbeleid" and beleid_subtab == "speelwijze" %}Voetbalbeleid - Speelwijze{% endif %}
+                {% if beleid_tab == "voetbalbeleid" and beleid_subtab == "teamafspraken" %}Voetbalbeleid - Teamafspraken{% endif %}
                 {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "voeding" %}Fysiek beleid - Voeding{% endif %}
                 {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "krachttraining" %}Fysiek beleid - Krachttraining{% endif %}
                 {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "testen-meten" %}Fysiek beleid - Testen en meten{% endif %}
@@ -215,7 +223,8 @@
                 {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "bovenbouw" %}Beleid jeugd - Bovenbouw{% endif %}
             </h3>
             <p>
-                {% if beleid_tab == "voetbalbeleid" %}Beschrijf hier de spelprincipes, teamidentiteit, coachingaccenten en keuzes in wedstrijd- en trainingsaanpak.{% endif %}
+                {% if beleid_tab == "voetbalbeleid" and beleid_subtab == "speelwijze" %}Beschrijf hier de speelwijze, spelprincipes, teamidentiteit en keuzes in wedstrijd- en trainingsaanpak.{% endif %}
+                {% if beleid_tab == "voetbalbeleid" and beleid_subtab == "teamafspraken" %}Leg hier vaste teamafspraken vast over gedrag, discipline, communicatie, rollen en standaarden binnen het team.{% endif %}
                 {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "voeding" %}Leg voedingsafspraken, uitgangspunten, routines rond wedstrijddag en individuele aandachtspunten vast.{% endif %}
                 {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "krachttraining" %}Beschrijf de krachtvisie, periodisering, oefenprincipes en opbouw per doelgroep of fase.{% endif %}
                 {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "testen-meten" %}Gebruik dit deel voor testbeleid, meetmomenten, normen, selectie van KPI's en interpretatie-afspraken.{% endif %}
@@ -225,10 +234,15 @@
                 {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "bovenbouw" %}Leg hier vast hoe de bovenbouw werkt richting prestatie, doorstroom en individuele begeleiding.{% endif %}
             </p>
             <ul class="beleid-points">
-                {% if beleid_tab == "voetbalbeleid" %}
+                {% if beleid_tab == "voetbalbeleid" and beleid_subtab == "speelwijze" %}
                 <li>Speelwijze, pressing, opbouw en restverdediging</li>
                 <li>Vertaling naar trainingsvormen en coaching</li>
                 <li>Wedstrijdprincipes per fase van het spel</li>
+                {% endif %}
+                {% if beleid_tab == "voetbalbeleid" and beleid_subtab == "teamafspraken" %}
+                <li>Afspraken over houding, discipline en voorbereiding</li>
+                <li>Rolverdeling binnen team en stafcommunicatie</li>
+                <li>Gedragsnormen op training, wedstrijddag en daarbuiten</li>
                 {% endif %}
                 {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "voeding" %}
                 <li>Wedstrijddag voeding en herstelmomenten</li>
@@ -273,24 +287,11 @@
                 <h3>Beleidstekst</h3>
                 <form method="post">
                     {% csrf_token %}
-                    <input type="hidden" name="section" value="{% if beleid_tab == 'voetbalbeleid' %}voetbalbeleid{% else %}{{ beleid_tab }}:{{ beleid_subtab }}{% endif %}">
+                    <input type="hidden" name="section" value="{{ beleid_tab }}:{{ beleid_subtab }}">
                     <textarea name="text" placeholder="Leg hier het beleid vast...">{{ beleid_current_text }}</textarea>
                     <button type="submit" class="beleid-btn">Opslaan</button>
                 </form>
             </div>
-
-            {% if beleid_tab == "voetbalbeleid" %}
-            <div class="beleid-card">
-                <h3>Oefenstof</h3>
-                <p>Noteer hier trainingsvormen, spelvormen, coachingsaccenten en oefenideeën die bij het voetbalbeleid horen.</p>
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="section" value="voetbalbeleid:oefenstof">
-                    <textarea name="text" placeholder="Beschrijf hier oefenvormen, spelprincipes en trainingsaccenten...">{{ voetbalbeleid_oefenstof_text }}</textarea>
-                    <button type="submit" class="beleid-btn">Opslaan</button>
-                </form>
-            </div>
-            {% endif %}
         </div>
     </div>
 </section>
