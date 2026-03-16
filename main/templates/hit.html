@@ -536,6 +536,237 @@
   .asr-history-card { overflow-x: auto; }
   .asr-history-table { min-width: 760px; }
 }
+
+html.app-ui.app-mode .jeugd-section {
+    padding: 16px 14px;
+    border-radius: 16px;
+}
+
+html.app-ui.app-mode .jeugd-title {
+    font-size: 1.45rem;
+    margin-bottom: 6px;
+}
+
+html.app-ui.app-mode .jeugd-subtitle {
+    font-size: 0.88rem;
+    margin-bottom: 16px;
+}
+
+html.app-ui.app-mode .jeugd-block-title {
+    font-size: 1.08rem;
+    margin-bottom: 6px;
+}
+
+html.app-ui.app-mode .calculator-box {
+    padding: 14px 12px 16px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+}
+
+html.app-ui.app-mode .calculator-box label {
+    margin-top: 12px;
+    font-size: 0.88rem;
+}
+
+html.app-ui.app-mode .calculator-box input[type=range] {
+    margin-top: 10px;
+    height: 28px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+}
+
+html.app-ui.app-mode .calculator-box input[type=range]::-webkit-slider-runnable-track {
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #d8e0ee, #c6d2e7);
+}
+
+html.app-ui.app-mode .calculator-box input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #b60000;
+    border: 2px solid #ffffff;
+    box-shadow: 0 3px 10px rgba(182, 0, 0, 0.28);
+    margin-top: -6px;
+}
+
+html.app-ui.app-mode .calculator-box input[type=range]::-moz-range-track {
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #d8e0ee, #c6d2e7);
+}
+
+html.app-ui.app-mode .calculator-box input[type=range]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #b60000;
+    border: 2px solid #ffffff;
+    box-shadow: 0 3px 10px rgba(182, 0, 0, 0.28);
+}
+
+html.app-ui.app-mode .correction-box {
+    margin-top: 16px;
+    padding: 10px 12px;
+}
+
+html.app-ui.app-mode .correction-options {
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+html.app-ui.app-mode .hit-box {
+    padding: 14px 12px;
+    border-radius: 14px;
+}
+
+html.app-ui.app-mode .hit-title {
+    font-size: 1.02rem;
+}
+
+html.app-ui.app-mode .hit-subtitle,
+html.app-ui.app-mode .hit-load-label,
+html.app-ui.app-mode .hit-load-value {
+    font-size: 0.82rem;
+}
+
+html.app-ui.app-mode .hit-bar-bg,
+html.app-ui.app-mode .hit-bar {
+    height: 14px;
+    border-radius: 8px;
+}
+
+html.app-ui.app-mode .asr-box {
+    padding: 14px 12px;
+    border-radius: 16px;
+}
+
+html.app-ui.app-mode .asr-toolbar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+}
+
+html.app-ui.app-mode .asr-date-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+html.app-ui.app-mode .asr-date-item .asr-percent-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+html.app-ui.app-mode .asr-actions {
+    justify-content: stretch;
+    gap: 8px;
+}
+
+html.app-ui.app-mode .asr-save-btn {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+}
+
+html.app-ui.app-mode .asr-toolbar-note {
+    text-align: left;
+    font-size: 0.76rem;
+}
+
+html.app-ui.app-mode .asr-meta {
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+html.app-ui.app-mode .asr-card {
+    padding: 12px;
+}
+
+html.app-ui.app-mode .asr-card-title,
+html.app-ui.app-mode .asr-control-label {
+    font-size: 0.84rem;
+}
+
+html.app-ui.app-mode .asr-formula,
+html.app-ui.app-mode .asr-muted,
+html.app-ui.app-mode .asr-help-list li {
+    font-size: 0.74rem;
+}
+
+html.app-ui.app-mode .asr-table-wrap {
+    overflow: visible;
+    border-radius: 12px;
+}
+
+html.app-ui.app-mode .asr-table {
+    min-width: 0;
+}
+
+html.app-ui.app-mode .asr-table thead {
+    display: none;
+}
+
+html.app-ui.app-mode .asr-table,
+html.app-ui.app-mode .asr-table tbody {
+    display: block;
+    width: 100%;
+}
+
+html.app-ui.app-mode .asr-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-bottom: none;
+    border: 1px solid #e3e8f0;
+    border-radius: 12px;
+    background: #fbfcff;
+}
+
+html.app-ui.app-mode .asr-table tbody tr:nth-child(n+2) {
+    display: none;
+}
+
+html.app-ui.app-mode .asr-table td {
+    padding: 0;
+    border-bottom: none;
+    font-size: 0.78rem;
+}
+
+html.app-ui.app-mode .asr-table td:nth-child(1),
+html.app-ui.app-mode .asr-table td:nth-child(2),
+html.app-ui.app-mode .asr-table td:nth-child(3) {
+    grid-column: 1 / -1;
+}
+
+html.app-ui.app-mode .asr-table input,
+html.app-ui.app-mode .asr-table select {
+    min-height: 40px;
+    padding: 8px 9px;
+    font-size: 0.84rem;
+}
+
+html.app-ui.app-mode .asr-target-cell,
+html.app-ui.app-mode .asr-pct-mas,
+html.app-ui.app-mode .asr-asr-kmh,
+html.app-ui.app-mode .asr-pct-asr,
+html.app-ui.app-mode .asr-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    background: #fff;
+}
 </style>
 
 <!-- MAS / ASR INDIVIDUALISERING -->
