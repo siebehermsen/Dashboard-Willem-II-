@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Revalidatie Gym - Willem II{% endblock %}
 
 {% block content %}
@@ -80,6 +80,53 @@ a { color: #b60000; text-decoration: none; }
     box-shadow: 0 4px 12px rgba(31, 42, 68, 0.24);
 }
 
+.injury-entry-form {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin: 8px 0 20px;
+    align-items: end;
+}
+
+.injury-entry-field {
+    display: grid;
+    gap: 6px;
+}
+
+.injury-entry-field label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2a44;
+}
+
+.injury-entry-field input,
+.injury-entry-field select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #cfd8e5;
+    background: #fff;
+    font-size: 0.95rem;
+}
+
+.injury-entry-actions {
+    display: flex;
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+}
+
+.injury-entry-actions button {
+    width: auto;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    background: #1f2a44;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
 html.app-ui.app-mode .revalidatie-switch-wrap {
     margin-bottom: 18px;
 }
@@ -96,6 +143,24 @@ html.app-ui.app-mode .revalidatie-switch a {
     padding: 8px 10px;
     font-size: 0.88rem;
     text-align: center;
+}
+
+html.app-ui.app-mode .injury-entry-form {
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+html.app-ui.app-mode .injury-entry-field label,
+html.app-ui.app-mode .injury-entry-field input,
+html.app-ui.app-mode .injury-entry-field select,
+html.app-ui.app-mode .injury-entry-actions button {
+    font-size: 0.82rem;
+}
+
+html.app-ui.app-mode .injury-entry-field input,
+html.app-ui.app-mode .injury-entry-field select,
+html.app-ui.app-mode .injury-entry-actions button {
+    padding: 8px 9px;
 }
 
 /* ---------- ALGEMENE CARDS ---------- */
@@ -352,6 +417,12 @@ html.app-ui.app-mode .add-btn {
 
 <div class="container">
 
+    <!-- HEADER -->
+    <div class="header">
+        <h1>Revalidatie Gym Protocol</h1>
+        <div class="phase-count">4 Fases - Gym Focus</div>
+    </div>
+
     <div class="revalidatie-switch-wrap">
         <div class="revalidatie-switch">
             <a href="{% url 'revalidatie' %}">Revalidatie veld</a>
@@ -359,15 +430,45 @@ html.app-ui.app-mode .add-btn {
         </div>
     </div>
 
-    <!-- HEADER -->
-    <div class="header">
-        <h1>🏋️‍♂️ Revalidatie Gym Protocol</h1>
-        <div class="phase-count">4 Fases - Gym Focus</div>
-    </div>
-
-    <!-- ACTIEVE BLESSURES -->
+        <!-- ACTIEVE BLESSURES -->
     <div class="rehab-card">
         <h2><i data-feather="activity"></i> Actieve blessures</h2>
+        <form method="post" class="injury-entry-form">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="add_injury_gym">
+            <div class="injury-entry-field">
+                <label for="injury_player">Speler</label>
+                <select name="injury_player" id="injury_player" required>
+                    <option value="">-- Selecteer speler --</option>
+                    {% for speler in spelers %}
+                        <option value="{{ speler.id }}">{{ speler.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="injury-entry-field">
+                <label for="injury_type">Type blessure</label>
+                <input type="text" name="injury_type" id="injury_type" placeholder="Bijv. hamstring, enkel, heup" required>
+            </div>
+            <div class="injury-entry-field">
+                <label for="start_date">Startdatum</label>
+                <input type="date" name="start_date" id="start_date" required>
+            </div>
+            <div class="injury-entry-field">
+                <label for="expected_return">Verwachte terugkeer</label>
+                <input type="date" name="expected_return" id="expected_return" required>
+            </div>
+            <div class="injury-entry-field">
+                <label for="phase">Herstelstatus</label>
+                <select name="phase" id="phase" required>
+                    <option value="early">Vroege fase</option>
+                    <option value="mid">Middenfase</option>
+                    <option value="final">Laatste fase</option>
+                </select>
+            </div>
+            <div class="injury-entry-actions">
+                <button type="submit">Blessure toevoegen</button>
+            </div>
+        </form>
         <table>
             <thead>
                 <tr>
@@ -379,29 +480,39 @@ html.app-ui.app-mode .add-btn {
                 </tr>
             </thead>
             <tbody>
+                {% for blessure in blessures %}
                 <tr>
-                    <td>Amine Lachkar</td>
-                    <td>Hamstring</td>
-                    <td>10 okt 2025</td>
-                    <td>25 nov 2025</td>
+                    <td>{{ blessure.name }}</td>
+                    <td>{{ blessure.injury_type }}</td>
+                    <td>{% if blessure.start_date %}{{ blessure.start_date|date:"d M Y" }}{% else %}-{% endif %}</td>
                     <td>
-                        <div class="progress-bar"><div class="progress-fill" style="width:70%;"></div></div>
-                        <small>70% – <span class="badge phase3">Fase 3</span></small>
+                        {% if blessure.expected_return %}
+                            {{ blessure.expected_return|date:"d M Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if blessure.phase == "early" %}
+                            <div class="progress-bar"><div class="progress-fill" style="width:25%;"></div></div>
+                            <small>Vroege fase</small>
+                        {% elif blessure.phase == "mid" %}
+                            <div class="progress-bar"><div class="progress-fill" style="width:60%;"></div></div>
+                            <small>Middenfase</small>
+                        {% else %}
+                            <div class="progress-bar"><div class="progress-fill" style="width:90%;"></div></div>
+                            <small>Laatste fase</small>
+                        {% endif %}
                     </td>
                 </tr>
+                {% empty %}
                 <tr>
-                    <td>Niels van Berkel</td>
-                    <td>Enkelverstuiking</td>
-                    <td>22 okt 2025</td>
-                    <td>10 nov 2025</td>
-                    <td>
-                        <div class="progress-bar"><div class="progress-fill" style="width:40%;"></div></div>
-                        <small>40% – <span class="badge phase2">Fase 2</span></small>
-                    </td>
+                    <td colspan="5">Geen actieve blessures gevonden.</td>
                 </tr>
+                {% endfor %}
             </tbody>
         </table>
-        <p class="note">Laatste update: 7 november 2025</p>
+        <p class="note">Overzicht van actieve blessures binnen de gymrevalidatie.</p>
     </div>
 
     <!-- FASES OVERZICHT -->
@@ -409,19 +520,19 @@ html.app-ui.app-mode .add-btn {
         <h2><i data-feather="layers"></i> Overzicht revalidatiefases</h2>
         <div class="protocol-grid">
             <div class="phase-box phase-early">
-                <h3>Fase 1 – Pijnvrij bewegen</h3>
+                <h3>Fase 1 â€“ Pijnvrij bewegen</h3>
                 <p>Herstel mobiliteit, pijnvrije ROM en basiscontrole.</p>
             </div>
             <div class="phase-box phase-mid">
-                <h3>Fase 2 – Voorwaarden creëren</h3>
+                <h3>Fase 2 â€“ Voorwaarden creÃ«ren</h3>
                 <p>Stabiliteit, activatie en volledige bewegingsuitslag.</p>
             </div>
             <div class="phase-box phase-final">
-                <h3>Fase 3 – Robust Body</h3>
+                <h3>Fase 3 â€“ Robust Body</h3>
                 <p>Power, full range en functionele kracht.</p>
             </div>
             <div class="phase-box phase-performance">
-                <h3>Fase 4 – Performance</h3>
+                <h3>Fase 4 â€“ Performance</h3>
                 <p>Transfer naar veldspecifieke kracht en snelheid.</p>
             </div>
         </div>
@@ -449,13 +560,13 @@ html.app-ui.app-mode .add-btn {
 
             <label for="phase">Fase:</label>
 <select id="phase" name="phase" required>
-    <option>Fase 1 – Pijnvrij bewegen</option>
-    <option>Fase 2 – Voorwaarden creëren</option>
-    <option>Fase 3 – Robust Body</option>
-    <option>Fase 4 – Performance</option>
+    <option>Fase 1 â€“ Pijnvrij bewegen</option>
+    <option>Fase 2 â€“ Voorwaarden creÃ«ren</option>
+    <option>Fase 3 â€“ Robust Body</option>
+    <option>Fase 4 â€“ Performance</option>
 </select>
 
-<!-- 🔽 Nieuw toegevoegd veld -->
+<!-- ðŸ”½ Nieuw toegevoegd veld -->
 <label for="focus_point">Fysiek aandachtspunt:</label>
 <input type="text" id="focus_point" name="focus_point" placeholder="Bijv. focus op enkel, core, heup..." required>
 
@@ -468,7 +579,7 @@ html.app-ui.app-mode .add-btn {
 <label for="sets_reps">Sets / Herhalingen:</label>
 <input type="text" id="sets_reps" name="sets_reps" placeholder="Bijv. 3 x 8" required>
 
-<button type="submit" class="add-btn">💾 Oefening opslaan</button>
+<button type="submit" class="add-btn">ðŸ’¾ Oefening opslaan</button>
 </form>
 </div>
 
@@ -511,3 +622,4 @@ html.app-ui.app-mode .add-btn {
 feather.replace();
 </script>
 {% endblock %}
+

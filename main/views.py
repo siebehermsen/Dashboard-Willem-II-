@@ -2296,17 +2296,26 @@ def revalidatie_gym(request):
     offfeet_label = "Conditionering off-feet"
     if request.method == "POST":
         if request.POST.get("form_type") == "add_injury_gym":
+            player_id = request.POST.get("injury_player")
             name = request.POST.get("name")
             injury_type = request.POST.get("injury_type")
             start_date = request.POST.get("start_date")
             duration = request.POST.get("duration")
+            expected_return = request.POST.get("expected_return")
             phase = request.POST.get("phase")
 
-            if not name or not injury_type or not start_date or not duration or not phase:
-                messages.error(request, "Alle velden voor blessure zijn verplicht.")
+            if not injury_type or not start_date or not phase or not (duration or expected_return):
+                messages.error(request, "Vul speler, blessuretype, startdatum, terugkeer en fase in.")
                 return redirect("revalidatie_gym")
 
-            player_obj = _resolve_player_by_name(name)
+            player_obj = None
+            if player_id:
+                try:
+                    player_obj = Player.objects.get(id=int(player_id))
+                except (Player.DoesNotExist, ValueError, TypeError):
+                    player_obj = None
+            if player_obj is None:
+                player_obj = _resolve_player_by_name(name)
             if player_obj is None:
                 messages.error(request, "Speler niet gevonden. Voeg eerst de speler toe.")
                 return redirect("revalidatie_gym")
@@ -2316,6 +2325,7 @@ def revalidatie_gym(request):
                 injury_type=injury_type,
                 start_date_value=start_date,
                 duration_value=duration,
+                expected_return_value=expected_return,
                 phase=phase,
             )
 
