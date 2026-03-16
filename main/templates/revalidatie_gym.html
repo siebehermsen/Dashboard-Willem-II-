@@ -209,6 +209,90 @@ tr:nth-child(even) {
     .protocol-grid { grid-template-columns: 1fr; }
     .header { flex-direction: column; align-items: flex-start; gap: 10px; }
 }
+
+html.app-ui.app-mode .container {
+    margin: 16px auto;
+    padding: 0 14px;
+}
+
+html.app-ui.app-mode .header {
+    margin-bottom: 18px;
+    gap: 8px;
+}
+
+html.app-ui.app-mode .header h1 {
+    font-size: 1.4rem;
+}
+
+html.app-ui.app-mode .header .phase-count {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    border-radius: 10px;
+}
+
+html.app-ui.app-mode .card,
+html.app-ui.app-mode .rehab-card,
+html.app-ui.app-mode .program-section {
+    padding: 14px;
+    margin-bottom: 18px;
+    border-radius: 16px;
+}
+
+html.app-ui.app-mode .card h2,
+html.app-ui.app-mode .program-section h2 {
+    font-size: 1.02rem;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+html.app-ui.app-mode table th,
+html.app-ui.app-mode table td {
+    padding: 5px 6px;
+    font-size: 0.66rem;
+    line-height: 1.15;
+}
+
+html.app-ui.app-mode .progress-bar {
+    height: 6px;
+}
+
+html.app-ui.app-mode .note,
+html.app-ui.app-mode .phase-box p,
+html.app-ui.app-mode .program-section p,
+html.app-ui.app-mode .program-form label,
+html.app-ui.app-mode .program-form input,
+html.app-ui.app-mode .program-form textarea,
+html.app-ui.app-mode .program-form select {
+    font-size: 0.82rem;
+}
+
+html.app-ui.app-mode .protocol-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+html.app-ui.app-mode .phase-box {
+    padding: 12px 10px;
+    border-radius: 12px;
+}
+
+html.app-ui.app-mode .phase-box h3 {
+    font-size: 0.82rem;
+    margin-bottom: 4px;
+}
+
+html.app-ui.app-mode .program-form input,
+html.app-ui.app-mode .program-form textarea,
+html.app-ui.app-mode .program-form select {
+    padding: 7px 8px;
+}
+
+html.app-ui.app-mode .add-btn {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.84rem;
+}
 </style>
 
 <div class="container">
