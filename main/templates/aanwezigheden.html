@@ -114,6 +114,124 @@
     /* COLORS */
     .row-green { background: #e8ffec !important; }
     .row-orange { background: #fff3e0 !important; }
+
+    html.app-ui.app-mode .page-title {
+        text-align: left;
+        font-size: 1.55rem;
+        margin-bottom: 16px;
+    }
+
+    html.app-ui.app-mode .date-nav {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    html.app-ui.app-mode .nav-btn {
+        padding: 10px 12px;
+        border-radius: 12px;
+        font-size: 0.88rem;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    html.app-ui.app-mode .date-display {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    html.app-ui.app-mode .table-wrapper {
+        margin-top: 0;
+        padding: 14px;
+        border-radius: 18px;
+        overflow: visible;
+    }
+
+    html.app-ui.app-mode table,
+    html.app-ui.app-mode tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    html.app-ui.app-mode thead {
+        display: none;
+    }
+
+    html.app-ui.app-mode tbody tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 10px;
+        margin-bottom: 10px;
+        padding: 12px;
+        border: 1px solid #e5ebf3;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 6px 16px rgba(12, 35, 64, 0.07);
+    }
+
+    html.app-ui.app-mode tbody tr.row-green {
+        border-color: #b9e4c2;
+        background: linear-gradient(180deg, #f8fff9 0%, #eefbf1 100%) !important;
+    }
+
+    html.app-ui.app-mode tbody tr.row-orange {
+        border-color: #ffd59e;
+        background: linear-gradient(180deg, #fffdfa 0%, #fff4e5 100%) !important;
+    }
+
+    html.app-ui.app-mode td {
+        padding: 0;
+        border-bottom: none;
+    }
+
+    html.app-ui.app-mode .player-name-cell {
+        grid-column: 1 / -1;
+        font-size: 1rem;
+        font-weight: 800;
+        color: #0c2340;
+        padding-bottom: 2px;
+    }
+
+    html.app-ui.app-mode .status-cell {
+        min-width: 0;
+    }
+
+    html.app-ui.app-mode .status-box {
+        padding: 4px;
+        border-radius: 12px;
+    }
+
+    html.app-ui.app-mode .status-cell select {
+        min-height: 40px;
+    }
+
+    html.app-ui.app-mode .save-cell,
+    html.app-ui.app-mode .complete-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    html.app-ui.app-mode .save-btn {
+        width: 44px;
+        min-width: 44px;
+        height: 40px;
+        padding: 0;
+        border-radius: 12px;
+    }
+
+    html.app-ui.app-mode .complete-toggle {
+        width: 22px;
+        height: 22px;
+        margin: 0;
+        accent-color: #0c2340;
+    }
 </style>
 
 <h1 class="page-title">AANWEZIGHEDEN</h1>
@@ -146,11 +264,11 @@
                     class="row-orange"
                 {% endif %}
             >
-                <td>{{ record.player.name }}</td>
+                <td class="player-name-cell">{{ record.player.name }}</td>
 
                 <form method="POST" action="{% url 'aanwezigheden_update' record.id %}">
                 {% csrf_token %}
-                    <td>
+                    <td class="status-cell">
                         <div class="status-box">
                             <select name="status" onchange="this.form.submit()">
                                 {% for value, label in status_choices %}
@@ -160,12 +278,12 @@
                         </div>
                     </td>
 
-                    <td>
+                    <td class="save-cell">
                         <button type="submit" class="save-btn">💾</button>
                     </td>
 
-                    <td style="text-align:center;">
-                        <input type="checkbox" name="completed" {% if record.completed %}checked{% endif %} onchange="this.form.submit()">
+                    <td class="complete-cell" style="text-align:center;">
+                        <input class="complete-toggle" type="checkbox" name="completed" {% if record.completed %}checked{% endif %} onchange="this.form.submit()">
                     </td>
                 </form>
             </tr>
