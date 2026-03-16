@@ -1012,6 +1012,91 @@ html.app-ui.app-mode .anthro-card {
     margin-bottom: 18px;
 }
 
+html.app-ui.app-mode .team-max-card {
+    padding: 16px 14px 14px;
+    border-radius: 18px;
+    margin-bottom: 18px;
+}
+
+html.app-ui.app-mode .team-max-head h3 {
+    font-size: 1.05rem;
+}
+
+html.app-ui.app-mode .team-max-head p {
+    font-size: 0.84rem;
+    margin: 4px 0 10px;
+}
+
+html.app-ui.app-mode .team-max-table-wrap {
+    overflow: visible;
+    border-radius: 0;
+}
+
+html.app-ui.app-mode .team-max-table,
+html.app-ui.app-mode .team-max-table tbody {
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
+html.app-ui.app-mode .team-max-table thead {
+    display: none;
+}
+
+html.app-ui.app-mode .team-max-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 12px;
+    border: 1px solid #dfe7f4;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 6px 16px rgba(31, 42, 68, 0.06);
+}
+
+html.app-ui.app-mode .team-max-table td {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 6px;
+    border-bottom: none;
+    background: #f8fbff;
+    border-radius: 10px;
+    text-align: left;
+    font-size: 0.82rem;
+}
+
+html.app-ui.app-mode .team-max-table td::before {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c7890;
+}
+
+html.app-ui.app-mode .team-max-table td:nth-child(1) {
+    grid-column: 1 / -1;
+    background: transparent;
+    padding: 0 0 2px;
+}
+
+html.app-ui.app-mode .team-max-table td:nth-child(1)::before {
+    content: none;
+}
+
+html.app-ui.app-mode .team-max-table td:nth-child(2)::before {
+    content: "Max snelheid";
+}
+
+html.app-ui.app-mode .team-max-table td:nth-child(3)::before {
+    content: "ISRT";
+}
+
+html.app-ui.app-mode .team-max-table td:nth-child(4)::before {
+    content: "Max HR";
+}
+
 html.app-ui.app-mode .player-select-card {
     padding: 18px 16px;
 }
@@ -1102,6 +1187,10 @@ html.app-ui.app-mode .quadrant-card {
 html.app-ui.app-mode .quadrant-canvas-wrap {
     width: min(100%, 260px) !important;
     height: min(100vw - 72px, 260px) !important;
+}
+
+html.app-ui.app-mode .anthro-card {
+    display: none;
 }
 
 
