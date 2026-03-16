@@ -986,6 +986,124 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
     }
 }
 
+html.app-ui.app-mode main {
+    max-width: none !important;
+    padding: 14px !important;
+}
+
+html.app-ui.app-mode .testdata-view-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 2px 0 18px;
+}
+
+html.app-ui.app-mode .testdata-view-btn {
+    width: 100%;
+    min-height: 50px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    font-size: 0.95rem;
+}
+
+html.app-ui.app-mode .player-select-card,
+html.app-ui.app-mode .player-info-card,
+html.app-ui.app-mode .anthro-card {
+    margin-bottom: 18px;
+}
+
+html.app-ui.app-mode .player-select-card {
+    padding: 18px 16px;
+}
+
+html.app-ui.app-mode .select-wrapper {
+    max-width: none;
+}
+
+html.app-ui.app-mode .player-profile-layout {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin: 18px 0 24px;
+}
+
+html.app-ui.app-mode .player-info-card {
+    padding: 20px 16px;
+    border-radius: 18px;
+}
+
+html.app-ui.app-mode .player-photo {
+    max-width: 140px;
+    margin-bottom: 12px;
+}
+
+html.app-ui.app-mode .player-name {
+    font-size: 1.15rem;
+    margin-bottom: 6px;
+}
+
+html.app-ui.app-mode .player-meta {
+    font-size: 0.88rem;
+}
+
+html.app-ui.app-mode .metrics-row {
+    display: block;
+}
+
+html.app-ui.app-mode .metrics-left,
+html.app-ui.app-mode .metrics-right {
+    width: 100%;
+}
+
+html.app-ui.app-mode .small-donuts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    justify-content: stretch;
+    align-items: stretch;
+    margin-left: 0;
+}
+
+html.app-ui.app-mode .donut-card {
+    width: 100%;
+    height: auto;
+    min-height: 168px;
+    padding: 12px 8px 10px;
+    border-radius: 16px;
+}
+
+html.app-ui.app-mode .donut-card h3 {
+    font-size: 0.92rem;
+    margin-bottom: 4px;
+}
+
+html.app-ui.app-mode .donut-wrap {
+    width: 84px;
+    height: 84px;
+}
+
+html.app-ui.app-mode .donut-card canvas {
+    width: 84px !important;
+    height: 84px !important;
+}
+
+html.app-ui.app-mode .donut-value {
+    font-size: 1rem;
+}
+
+html.app-ui.app-mode .donut-label {
+    margin-top: 6px;
+    font-size: 0.68rem;
+    line-height: 1.2;
+}
+
+html.app-ui.app-mode .quadrant-card {
+    margin-top: 16px;
+}
+
+html.app-ui.app-mode .quadrant-canvas-wrap {
+    width: min(100%, 260px) !important;
+    height: min(100vw - 72px, 260px) !important;
+}
+
 
 
 
