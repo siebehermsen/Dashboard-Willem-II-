@@ -60,6 +60,7 @@
         display: block;
         text-decoration: none;
         color: inherit;
+        height: 100%;
     }
 
     /* ============================
@@ -75,6 +76,7 @@
         transition: all 0.28s ease;
         cursor: pointer;
         height: 100%;
+        min-height: 260px;
         position: relative;
         overflow: hidden;
     }
@@ -148,12 +150,20 @@
             column-gap: 18px;
             row-gap: 22px;
         }
+
+        .overig-card {
+            min-height: 240px;
+        }
     }
 
     @media (max-width: 767px) {
         .overig-grid {
             grid-template-columns: 1fr;
             row-gap: 18px;
+        }
+
+        .overig-card {
+            min-height: 0;
         }
 
         .overig-hero {
