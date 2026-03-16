@@ -3497,7 +3497,7 @@ def beleid(request):
         )
         return (item.text or "") if item else ""
 
-    def _split_video_note(raw_text: str) -> tuple[str, str]:
+    def _split_video_note(raw_text: str):
         marker = "[[FILE::"
         if not raw_text or marker not in raw_text:
             return raw_text.strip(), ""
@@ -3518,7 +3518,8 @@ def beleid(request):
         try:
             file_url = default_storage.url(file_path)
         except Exception:
-            file_url = f"{settings.MEDIA_URL.rstrip('/')}/{file_path.lstrip('/')}"
+            media_url = getattr(settings, "MEDIA_URL", "/media/") or "/media/"
+            file_url = f"{media_url.rstrip('/')}/{file_path.lstrip('/')}"
         voetbalbeleid_videos.append({
             "name": os.path.basename(file_path),
             "url": file_url,
