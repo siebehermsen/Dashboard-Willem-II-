@@ -583,6 +583,7 @@ class OverigNote(models.Model):
     page_key = models.CharField(blank=True, max_length=50, null=True)
     section_key = models.CharField(blank=True, max_length=50, null=True)
     text = models.TextField(blank=True, default='')
+    attachment = models.FileField(blank=True, null=True, upload_to='beleid_uploads/')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

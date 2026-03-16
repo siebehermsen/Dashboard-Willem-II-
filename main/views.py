@@ -3497,24 +3497,34 @@ def beleid(request):
         )
         return (item.text or "") if item else ""
 
+    voetbalbeleid_videos = (
+        OverigNote.objects
+        .filter(page_key="beleid", section_key="voetbalbeleid:videos", attachment__isnull=False)
+        .order_by("-created_at")
+    )
+
     if request.method == "POST":
         section = request.POST.get("section", "").strip()
         text = request.POST.get("text", "")
         if section:
-            OverigNote.objects.create(
-                note_type="section",
-                page_key="beleid",
-                section_key=section,
-                text=text.strip(),
-            )
+            attachment = request.FILES.get("attachment")
+            note_kwargs = {
+                "note_type": "section",
+                "page_key": "beleid",
+                "section_key": section,
+                "text": text.strip(),
+            }
+            if attachment:
+                note_kwargs["attachment"] = attachment
+            OverigNote.objects.create(**note_kwargs)
         return redirect(f"/beleid/?tab={beleid_tab}&subtab={beleid_subtab}")
 
     return render(request, "beleid.html", {
         "beleid_tab": beleid_tab,
         "beleid_subtab": beleid_subtab,
         "beleid_current_text": section_text(section_key),
-        "voetbalbeleid_videos_text": section_text("voetbalbeleid:videos"),
         "voetbalbeleid_oefenstof_text": section_text("voetbalbeleid:oefenstof"),
+        "voetbalbeleid_videos": voetbalbeleid_videos,
     })
 
 

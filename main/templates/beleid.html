@@ -165,6 +165,64 @@
         margin-bottom: 8px;
     }
 
+    .beleid-upload-input {
+        width: 100%;
+        border: 1px solid #cfd8e7;
+        border-radius: 14px;
+        padding: 12px 14px;
+        background: #fbfdff;
+        margin-top: 16px;
+    }
+
+    .beleid-file-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+    .beleid-file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border: 1px solid #dfe6f2;
+        border-radius: 14px;
+        padding: 12px 14px;
+        background: #ffffff;
+    }
+
+    .beleid-file-meta {
+        min-width: 0;
+    }
+
+    .beleid-file-name {
+        display: block;
+        color: #1f2a44;
+        font-weight: 700;
+        text-decoration: none;
+        word-break: break-word;
+    }
+
+    .beleid-file-date {
+        display: block;
+        color: #6a7891;
+        font-size: 0.84rem;
+        margin-top: 4px;
+    }
+
+    .beleid-file-link {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: #1f2a44;
+        color: #fff;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
     @media (max-width: 991px) {
         .beleid-grid {
             grid-template-columns: 1fr;
@@ -282,13 +340,32 @@
             {% if beleid_tab == "voetbalbeleid" %}
             <div class="beleid-card">
                 <h3>Video's</h3>
-                <p>Gebruik dit blok voor videolinks, referentiebeelden, clips per thema of wedstrijdfragmenten.</p>
-                <form method="post">
+                <p>Upload hier videobestanden, clips of materiaal dat je bij het voetbalbeleid wilt bewaren.</p>
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <input type="hidden" name="section" value="voetbalbeleid:videos">
-                    <textarea name="text" placeholder="Bijv. links naar Wyscout, YouTube of interne videoclips...">{{ voetbalbeleid_videos_text }}</textarea>
+                    <input class="beleid-upload-input" type="file" name="attachment" required>
+                    <textarea name="text" placeholder="Optionele toelichting bij dit videobestand..." style="min-height: 120px;"></textarea>
                     <button type="submit" class="beleid-btn">Opslaan</button>
                 </form>
+                <div class="beleid-file-list">
+                    {% for item in voetbalbeleid_videos %}
+                    <div class="beleid-file-item">
+                        <div class="beleid-file-meta">
+                            <a class="beleid-file-name" href="{{ item.attachment.url }}" target="_blank" rel="noopener">
+                                {{ item.attachment.name|cut:"beleid_uploads/" }}
+                            </a>
+                            <span class="beleid-file-date">{{ item.created_at|date:"d-m-Y H:i" }}</span>
+                            {% if item.text %}
+                            <span class="beleid-file-date">{{ item.text }}</span>
+                            {% endif %}
+                        </div>
+                        <a class="beleid-file-link" href="{{ item.attachment.url }}" target="_blank" rel="noopener">Open</a>
+                    </div>
+                    {% empty %}
+                    <p style="margin-top: 12px; color: #61708a;">Nog geen videobestanden geüpload.</p>
+                    {% endfor %}
+                </div>
             </div>
 
             <div class="beleid-card">
