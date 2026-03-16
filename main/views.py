@@ -118,6 +118,7 @@ def _injury_to_ui(injury):
         name=injury.player.name if injury.player else "",
         injury_type=injury.injury_type_ref.name if injury.injury_type_ref else "-",
         start_date=injury.started_on,
+        expected_return=injury.expected_return_on,
         duration=_injury_duration_days(injury),
         phase=phase_code,
         phase_label=phase_label_map.get(phase_code, "Laatste fase"),
@@ -125,7 +126,16 @@ def _injury_to_ui(injury):
     )
 
 
-def _upsert_injury_case(*, player, injury_type, start_date_value, duration_value, phase, instance=None):
+def _upsert_injury_case(
+    *,
+    player,
+    injury_type,
+    start_date_value,
+    duration_value,
+    phase,
+    expected_return_value=None,
+    instance=None,
+):
     started_on = parse_date(start_date_value) if isinstance(start_date_value, str) else start_date_value
 
     duration_days = None
@@ -135,8 +145,12 @@ def _upsert_injury_case(*, player, injury_type, start_date_value, duration_value
         except (TypeError, ValueError):
             duration_days = None
 
-    expected_return_on = None
-    if started_on and duration_days is not None:
+    expected_return_on = (
+        parse_date(expected_return_value)
+        if isinstance(expected_return_value, str) and expected_return_value.strip()
+        else expected_return_value
+    )
+    if expected_return_on is None and started_on and duration_days is not None:
         expected_return_on = started_on + timedelta(days=duration_days)
 
     injury_type_obj = None
@@ -2157,6 +2171,34 @@ def revalidatie(request):
 
     # Formulierverwerking
     if request.method == "POST":
+        if request.POST.get("form_type") == "add_injury_field":
+            player_id = request.POST.get("injury_player")
+            injury_type = request.POST.get("injury_type")
+            start_date = request.POST.get("start_date")
+            expected_return = request.POST.get("expected_return")
+            phase = request.POST.get("injury_phase")
+
+            if not player_id or not injury_type or not start_date or not expected_return or not phase:
+                messages.error(request, "Vul speler, type blessure, startdatum, verwachte terugkeer en fase in.")
+                return redirect("revalidatie")
+
+            try:
+                player = Player.objects.get(id=player_id)
+            except Player.DoesNotExist:
+                messages.error(request, "Ongeldige speler geselecteerd.")
+                return redirect("revalidatie")
+
+            _upsert_injury_case(
+                player=player,
+                injury_type=injury_type,
+                start_date_value=start_date,
+                duration_value=None,
+                expected_return_value=expected_return,
+                phase=phase,
+            )
+            messages.success(request, f"Blessure voor {player.name} toegevoegd.")
+            return redirect("revalidatie")
+
         player_id = request.POST.get("player")
         phase = request.POST.get("phase")
 

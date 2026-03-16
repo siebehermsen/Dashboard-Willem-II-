@@ -94,6 +94,53 @@
         padding-bottom: 5px;
     }
 
+    .injury-entry-form {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        margin: 10px 0 20px;
+        align-items: end;
+    }
+
+    .injury-entry-field {
+        display: grid;
+        gap: 6px;
+    }
+
+    .injury-entry-field label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1f2a44;
+    }
+
+    .injury-entry-field input,
+    .injury-entry-field select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #cfd8e5;
+        background: #fff;
+        font-size: 0.95rem;
+    }
+
+    .injury-entry-actions {
+        display: flex;
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+    }
+
+    .injury-entry-actions button {
+        width: auto;
+        padding: 10px 14px;
+        border: none;
+        border-radius: 8px;
+        background: #1f2a44;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
     table {
         width: 100%;
         border-collapse: collapse;
@@ -354,6 +401,10 @@
     }
 
     @media (max-width: 768px) {
+        .injury-entry-form {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
         .planner-controls {
             grid-template-columns: 1fr;
             gap: 10px;
@@ -421,6 +472,24 @@
     html.app-ui.app-mode .player-select select,
     html.app-ui.app-mode .planner-field input {
         padding: 7px 9px;
+    }
+
+    html.app-ui.app-mode .injury-entry-form {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    html.app-ui.app-mode .injury-entry-field label,
+    html.app-ui.app-mode .injury-entry-field input,
+    html.app-ui.app-mode .injury-entry-field select,
+    html.app-ui.app-mode .injury-entry-actions button {
+        font-size: 0.82rem;
+    }
+
+    html.app-ui.app-mode .injury-entry-field input,
+    html.app-ui.app-mode .injury-entry-field select,
+    html.app-ui.app-mode .injury-entry-actions button {
+        padding: 8px 9px;
     }
 
     html.app-ui.app-mode table th,
@@ -530,6 +599,42 @@
     <!-- Actieve blessures -->
     <section class="rehab-section">
     <h2>Actieve blessures</h2>
+    <form method="post" class="injury-entry-form">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="add_injury_field">
+        <div class="injury-entry-field">
+            <label for="injury_player">Speler</label>
+            <select name="injury_player" id="injury_player" required>
+                <option value="">-- Selecteer speler --</option>
+                {% for p in players %}
+                    <option value="{{ p.id }}">{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="injury-entry-field">
+            <label for="injury_type">Type blessure</label>
+            <input type="text" name="injury_type" id="injury_type" placeholder="Bijv. kuit, hamstring, heup" required>
+        </div>
+        <div class="injury-entry-field">
+            <label for="start_date">Startdatum</label>
+            <input type="date" name="start_date" id="start_date" required>
+        </div>
+        <div class="injury-entry-field">
+            <label for="expected_return">Verwachte terugkeer</label>
+            <input type="date" name="expected_return" id="expected_return" required>
+        </div>
+        <div class="injury-entry-field">
+            <label for="injury_phase">Herstelstatus</label>
+            <select name="injury_phase" id="injury_phase" required>
+                <option value="early">Vroege fase</option>
+                <option value="mid">Middenfase</option>
+                <option value="final">Laatste fase</option>
+            </select>
+        </div>
+        <div class="injury-entry-actions">
+            <button type="submit">Blessure toevoegen</button>
+        </div>
+    </form>
     <table>
         <thead>
             <tr>
@@ -546,7 +651,16 @@
                 <td>{{ injury.name }}</td>
                 <td>{{ injury.injury_type }}</td>
                 <td>{% if injury.start_date %}{{ injury.start_date|date:"d-m-Y" }}{% else %}-{% endif %}</td>
-                <td>{{ injury.duration|default:"-" }}</td>
+                <td>
+                    {% if injury.expected_return %}
+                        {{ injury.expected_return|date:"d-m-Y" }}
+                        {% if injury.duration %}
+                            <br><small>{{ injury.duration }} dagen</small>
+                        {% endif %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
                 <td>
                     {% if injury.phase == "early" %}
                         <div class="progress-bar"><div class="progress-fill" style="width: 25%;"></div></div>
