@@ -51,7 +51,9 @@
     .overig-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 16px;
+        column-gap: 22px;
+        row-gap: 28px;
+        align-items: start;
     }
 
     .overig-grid a {
@@ -66,10 +68,10 @@
     .overig-card {
         background: white;
         border-radius: 18px;
-        padding: 22px 20px 20px;
+        padding: 20px 20px 18px;
         text-align: left;
         border: 1px solid rgba(31,42,68,0.08);
-        box-shadow: 0 10px 24px rgba(31,42,68,0.08);
+        box-shadow: 0 8px 18px rgba(31,42,68,0.07);
         transition: all 0.28s ease;
         cursor: pointer;
         height: 100%;
@@ -78,7 +80,7 @@
     }
     .overig-card:hover {
         transform: translateY(-8px);
-        box-shadow: 0 20px 36px rgba(31,42,68,0.16);
+        box-shadow: 0 18px 30px rgba(31,42,68,0.14);
     }
 
     .overig-card::after {
@@ -135,18 +137,23 @@
     @media (max-width: 1199px) {
         .overig-grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
+            column-gap: 20px;
+            row-gap: 24px;
         }
     }
 
     @media (max-width: 991px) {
         .overig-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+            column-gap: 18px;
+            row-gap: 22px;
         }
     }
 
     @media (max-width: 767px) {
         .overig-grid {
             grid-template-columns: 1fr;
+            row-gap: 18px;
         }
 
         .overig-hero {
