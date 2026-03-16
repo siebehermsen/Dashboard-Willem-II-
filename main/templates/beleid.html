@@ -165,64 +165,6 @@
         margin-bottom: 8px;
     }
 
-    .beleid-upload-input {
-        width: 100%;
-        border: 1px solid #cfd8e7;
-        border-radius: 14px;
-        padding: 12px 14px;
-        background: #fbfdff;
-        margin-top: 16px;
-    }
-
-    .beleid-file-list {
-        display: grid;
-        gap: 10px;
-        margin-top: 16px;
-    }
-
-    .beleid-file-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        border: 1px solid #dfe6f2;
-        border-radius: 14px;
-        padding: 12px 14px;
-        background: #ffffff;
-    }
-
-    .beleid-file-meta {
-        min-width: 0;
-    }
-
-    .beleid-file-name {
-        display: block;
-        color: #1f2a44;
-        font-weight: 700;
-        text-decoration: none;
-        word-break: break-word;
-    }
-
-    .beleid-file-date {
-        display: block;
-        color: #6a7891;
-        font-size: 0.84rem;
-        margin-top: 4px;
-    }
-
-    .beleid-file-link {
-        flex: 0 0 auto;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 8px 12px;
-        border-radius: 10px;
-        background: #1f2a44;
-        color: #fff;
-        font-weight: 700;
-        text-decoration: none;
-    }
-
     @media (max-width: 991px) {
         .beleid-grid {
             grid-template-columns: 1fr;
@@ -234,7 +176,7 @@
     <div class="beleid-kicker">Beleidsomgeving</div>
     <h2 class="beleid-title">Beleid</h2>
     <p class="beleid-subtitle">
-        Leg hier de belangrijkste beleidslijnen vast voor het voetbal, het fysieke domein en de jeugdopleiding. Zo staat richting, onderbouwing en werkwijze op één vaste plek.
+        Leg hier de belangrijkste beleidslijnen vast voor het voetbal, het fysieke domein en de jeugdopleiding. Zo staat richting, onderbouwing en werkwijze op een vaste plek.
     </p>
 
     <div class="beleid-tabs">
@@ -276,7 +218,7 @@
                 {% if beleid_tab == "voetbalbeleid" %}Beschrijf hier de spelprincipes, teamidentiteit, coachingaccenten en keuzes in wedstrijd- en trainingsaanpak.{% endif %}
                 {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "voeding" %}Leg voedingsafspraken, uitgangspunten, routines rond wedstrijddag en individuele aandachtspunten vast.{% endif %}
                 {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "krachttraining" %}Beschrijf de krachtvisie, periodisering, oefenprincipes en opbouw per doelgroep of fase.{% endif %}
-                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "testen-meten" %}Gebruik dit deel voor testbeleid, meetmomenten, normen, selectie van KPI’s en interpretatie-afspraken.{% endif %}
+                {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "testen-meten" %}Gebruik dit deel voor testbeleid, meetmomenten, normen, selectie van KPI's en interpretatie-afspraken.{% endif %}
                 {% if beleid_tab == "fysiek-beleid" and beleid_subtab == "leefstijl" %}Leg afspraken vast over slaap, herstel, gedrag, planning en professionele leefstijl buiten het veld.{% endif %}
                 {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "onderbouw" %}Beschrijf de ontwikkelaccenten, coaching en spelprincipes voor de onderbouw.{% endif %}
                 {% if beleid_tab == "beleid-jeugd" and beleid_subtab == "middenbouw" %}Gebruik dit onderdeel voor de middenbouw: ontwikkeling, belasting, selectie en begeleidingslijnen.{% endif %}
@@ -338,36 +280,6 @@
             </div>
 
             {% if beleid_tab == "voetbalbeleid" %}
-            <div class="beleid-card">
-                <h3>Video's</h3>
-                <p>Upload hier videobestanden, clips of materiaal dat je bij het voetbalbeleid wilt bewaren.</p>
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <input type="hidden" name="section" value="voetbalbeleid:videos">
-                    <input class="beleid-upload-input" type="file" name="attachment" required>
-                    <textarea name="text" placeholder="Optionele toelichting bij dit videobestand..." style="min-height: 120px;"></textarea>
-                    <button type="submit" class="beleid-btn">Opslaan</button>
-                </form>
-                <div class="beleid-file-list">
-                    {% for item in voetbalbeleid_videos %}
-                    <div class="beleid-file-item">
-                        <div class="beleid-file-meta">
-                            <a class="beleid-file-name" href="{{ item.url }}" target="_blank" rel="noopener">
-                                {{ item.name }}
-                            </a>
-                            <span class="beleid-file-date">{{ item.created_at|date:"d-m-Y H:i" }}</span>
-                            {% if item.description %}
-                            <span class="beleid-file-date">{{ item.description }}</span>
-                            {% endif %}
-                        </div>
-                        <a class="beleid-file-link" href="{{ item.url }}" target="_blank" rel="noopener">Open</a>
-                    </div>
-                    {% empty %}
-                    <p style="margin-top: 12px; color: #61708a;">Nog geen videobestanden geüpload.</p>
-                    {% endfor %}
-                </div>
-            </div>
-
             <div class="beleid-card">
                 <h3>Oefenstof</h3>
                 <p>Noteer hier trainingsvormen, spelvormen, coachingsaccenten en oefenideeën die bij het voetbalbeleid horen.</p>
