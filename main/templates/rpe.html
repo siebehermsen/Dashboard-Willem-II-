@@ -113,6 +113,130 @@ input[type="date"] {
 .save-btn:hover {
     background: #152033;
 }
+
+html.app-ui.app-mode .page-container {
+    max-width: none;
+    margin: 0;
+    padding: 16px 14px 20px;
+}
+
+html.app-ui.app-mode .card-box {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+}
+
+html.app-ui.app-mode .section-title,
+html.app-ui.app-mode .section-subtitle {
+    text-align: left;
+}
+
+html.app-ui.app-mode .section-title {
+    font-size: 1.55rem;
+    margin-bottom: 4px;
+}
+
+html.app-ui.app-mode .section-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+}
+
+html.app-ui.app-mode .tab-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+html.app-ui.app-mode .tab-btn {
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 10px;
+    border-radius: 14px;
+    font-size: 0.95rem;
+}
+
+html.app-ui.app-mode .table-wrapper {
+    border-radius: 0;
+    overflow: visible;
+}
+
+html.app-ui.app-mode table,
+html.app-ui.app-mode tbody {
+    display: block;
+    width: 100%;
+}
+
+html.app-ui.app-mode thead {
+    display: none;
+}
+
+html.app-ui.app-mode tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid #e0e8f5;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 10px 20px rgba(31, 42, 68, 0.08);
+}
+
+html.app-ui.app-mode td {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid #d9e6f4;
+    border-radius: 12px;
+    background: #f8fbff;
+    text-align: left;
+}
+
+html.app-ui.app-mode td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #6a7891;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+html.app-ui.app-mode td.player-name {
+    grid-column: 1 / -1;
+    padding: 0 0 2px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1f2a44;
+}
+
+html.app-ui.app-mode td.player-name::before {
+    content: none;
+}
+
+html.app-ui.app-mode td[data-label="Opslaan"] {
+    grid-column: 1 / -1;
+}
+
+html.app-ui.app-mode .form-select,
+html.app-ui.app-mode input[type="date"],
+html.app-ui.app-mode .save-btn {
+    width: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
+}
+
+html.app-ui.app-mode .save-btn {
+    min-height: 46px;
+    font-weight: 700;
+}
 </style>
 
 
@@ -153,13 +277,13 @@ input[type="date"] {
                             <form method="post">
                             {% csrf_token %}
 
-                            <td>{{ p.name }}</td>
+                            <td class="player-name" data-label="Speler">{{ p.name }}</td>
 
-                            <td>
+                            <td data-label="Datum">
                                 <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" required>
                             </td>
 
-                            <td>
+                            <td data-label="Type">
                                 <select name="training_type" class="form-select" required>
                                     <option value="">-- Type --</option>
                                     {% for tt in training_types %}
@@ -169,7 +293,7 @@ input[type="date"] {
                             </td>
 
                             <!-- RPE dropdown met kleuren -->
-                            <td>
+                            <td data-label="RPE">
                                 <select name="rpe" class="form-select rpe-colored" required>
                                     <option value="" disabled selected>-- RPE --</option>
                                     <option value="1" data-color="#00A651">1 – Minimaal</option>
@@ -185,7 +309,7 @@ input[type="date"] {
                                 </select>
                             </td>
 
-                            <td>
+                            <td data-label="Opslaan">
                                 <input type="hidden" name="player_id" value="{{ p.id }}">
                                 <button class="save-btn">Opslaan</button>
                             </td>
@@ -222,10 +346,10 @@ input[type="date"] {
                     <tbody>
                         {% for entry in filled %}
                         <tr>
-                            <td>{{ entry.player.name }}</td>
-                            <td>{{ entry.date }}</td>
-                            <td>{% if entry.training_type_ref %}{{ entry.training_type_ref.name }}{% else %}-{% endif %}</td>
-                            <td><strong>{{ entry.rpe }}</strong></td>
+                            <td class="player-name" data-label="Speler">{{ entry.player.name }}</td>
+                            <td data-label="Datum">{{ entry.date }}</td>
+                            <td data-label="Type">{% if entry.training_type_ref %}{{ entry.training_type_ref.name }}{% else %}-{% endif %}</td>
+                            <td data-label="RPE"><strong>{{ entry.rpe }}</strong></td>
                         </tr>
                         {% endfor %}
                     </tbody>
