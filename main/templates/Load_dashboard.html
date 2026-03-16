@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Willem II | Performance Dashboard{% endblock %}
 
 {% block content %}
@@ -6,30 +6,30 @@
 <script src="https://unpkg.com/feather-icons"></script>
 
 <style>
-/* 🌐 ALGEMEEN */
+/* ðŸŒ ALGEMEEN */
 body { background: #f4f6fa; font-family: "Inter", sans-serif; color: #1f2a44; }
 .container { max-width: 1400px; margin: 40px auto; padding: 0 25px; }
 h1, h2, h3 { font-weight: 600; }
 .section-title { border-left: 5px solid #b60000; padding-left: 12px; font-size: 1.6rem; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
 
-/* 🧱 KAARTEN */
+/* ðŸ§± KAARTEN */
 .card { background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.07); padding: 25px; margin-bottom: 45px; transition: transform 0.25s ease, box-shadow 0.25s ease; }
 .card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
 .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; margin-bottom: 15px; padding-bottom: 10px; }
 .card-header h2 { margin: 0; font-size: 1.35rem; display: flex; align-items: center; gap: 8px; }
 
-/* ⚙️ BUTTONS */
+/* âš™ï¸ BUTTONS */
 button.primary-btn { background-color: #1f2a44; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.2s; }
 button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 
-/* 📊 OVERVIEW BOXES */
+/* ðŸ“Š OVERVIEW BOXES */
 .stats-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 25px; margin-bottom: 35px; }
 .stat-box { flex: 1; min-width: 250px; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 3px 12px rgba(0,0,0,0.08); text-align: center; }
 .stat-box h3 { font-size: 1rem; color: #555; margin-bottom: 8px; }
 .stat-box p { font-size: 1.8rem; font-weight: 700; color: #1f2a44; }
 .stat-icon { color: #b60000; margin-bottom: 8px; }
 
-/* ⚽ VOLGENDE WEDSTRIJD */
+/* âš½ VOLGENDE WEDSTRIJD */
 .match-card { text-align: center; }
 .teams { display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 10px; }
 .team-logo { height: 80px; border-radius: 10px; }
@@ -178,7 +178,7 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
     }
 }
 
-/* 📅 WEEKPROGRAMMA */
+/* ðŸ“… WEEKPROGRAMMA */
 .weekprogram-table { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
 .weekprogram-table th, .weekprogram-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
 .weekprogram-table th { background-color: #1f2a44; color: white; font-weight: 500; }
@@ -187,7 +187,7 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 .btn-edit { background-color: #1f2a44; } .btn-edit:hover { background-color: #b60000; }
 .btn-delete { background-color: #b60000; } .btn-delete:hover { background-color: #8a0000; }
 
-/* 🩹 REVALIDATIESPELERS */
+/* ðŸ©¹ REVALIDATIESPELERS */
 .table-rehab { width: 100%; border-collapse: collapse; margin-top: 10px; }
 .table-rehab th, .table-rehab td { border: 1px solid #ddd; padding: 10px; }
 .table-rehab th { background-color: #1f2a44; color: white; }
@@ -199,20 +199,20 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 .progress-bar { width: 100%; height: 8px; border-radius: 6px; background: #eee; overflow: hidden; margin-top: 4px; }
 .progress-fill { height: 100%; transition: width 0.3s; }
 
-/* 📈 GRAFIEKEN */
+/* ðŸ“ˆ GRAFIEKEN */
 .chart-container { width: 100%; max-width: 850px; margin: 40px auto; }
 
-/* 🪟 MODALS */
+/* ðŸªŸ MODALS */
 .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
 .modal-content { background-color: white; margin: 6% auto; padding: 25px; border-radius: 10px; width: 450px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 .close { float: right; font-size: 1.4rem; cursor: pointer; }
 .close:hover { color: #b60000; }
 
-/* 🔍 FILTERS */
+/* ðŸ” FILTERS */
 .filter-container { display: flex; align-items: center; gap: 10px; }
 select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 
-/* 👥 TEAMOVERZICHT — Strakkere, moderne stijl */
+/* ðŸ‘¥ TEAMOVERZICHT â€” Strakkere, moderne stijl */
 .player-table-wrapper {
     overflow-x: auto;
     border-radius: 14px;
@@ -427,9 +427,18 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
     }
 
     html.app-mode .dashboard-app-shell {
-        display: block;
+        display: flex;
+        flex-direction: column;
         min-height: 100vh;
         padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 28px);
+    }
+
+    html.app-mode .dashboard-app-panel[aria-label="Huidige weekplanning"] {
+        order: 1;
+    }
+
+    html.app-mode .dashboard-app-panel[aria-label="Volgende wedstrijd"] {
+        order: 2;
     }
 
     html.app-mode .dashboard-app-topbar {
@@ -805,15 +814,8 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
             </div>
         </div>
 
-        <p class="dashboard-app-subtitle">Snelle toegang tot de belangrijkste onderdelen, geoptimaliseerd voor gebruik als geïnstalleerde app op je telefoon.</p>
 
-        <div class="dashboard-app-intro" aria-label="Dashboard status">
-            <div class="dashboard-app-intro-copy">
-                <p class="dashboard-app-intro-label">Vandaag</p>
-                <p class="dashboard-app-intro-value">{% now "l d F" %}</p>
-            </div>
-            <span class="dashboard-app-intro-note">Direct overzicht van teamstatus en acties</span>
-        </div>
+
 
         <section class="dashboard-app-summary" aria-label="Dashboard samenvatting">
             <article class="dashboard-app-stat">
@@ -833,6 +835,8 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                 <strong class="dashboard-app-stat-value">{{ avg_fat|default:"-" }}{% if avg_fat %}%{% endif %}</strong>
             </article>
         </section>
+
+
 
         <section class="dashboard-app-panel" aria-label="Volgende wedstrijd">
             <h2 class="dashboard-app-panel-title">Volgende wedstrijd</h2>
@@ -977,7 +981,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 
     <div class="dashboard-desktop-shell">
 
-    <!-- 📊 OVERALL STATISTICS -->
+    <!-- ðŸ“Š OVERALL STATISTICS -->
     <div class="stats-row">
         <div class="stat-box">
             <i data-feather="activity" class="stat-icon"></i>
@@ -996,7 +1000,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         </div>
     </div>
 
-<!-- ⚽ VOLGENDE WEDSTRIJD -->
+<!-- âš½ VOLGENDE WEDSTRIJD -->
 <div class="card match-card">
     <h2 class="section-title"><i data-feather="calendar"></i> Volgende wedstrijd</h2>
 
@@ -1022,7 +1026,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         <p class="match-info">{{ upcoming_match.kickoff|date:"l d F Y - H:i" }}</p>
 
     {% else %}
-        <p>Geen wedstrijd gepland 🎉</p>
+        <p>Geen wedstrijd gepland ðŸŽ‰</p>
     {% endif %}
 </div>
 
@@ -1091,11 +1095,11 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 </div>
 
 
-<!-- 🗓️ WEEKPROGRAMMA -->
+<!-- ðŸ—“ï¸ WEEKPROGRAMMA -->
 <div class="card">
     <div class="card-header">
         <h2><i data-feather="clock"></i> Weekplanning</h2>
-        <button id="openWeekModal" class="primary-btn">➕ Trainingsdag toevoegen</button>
+        <button id="openWeekModal" class="primary-btn">âž• Trainingsdag toevoegen</button>
     </div>
 
     <table class="weekprogram-table">
@@ -1121,11 +1125,11 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                         type="button" 
                         class="action-btn btn-edit" 
                         onclick="enableEdit({{ day.id }})"
-                    >✏️</button>
+                    >âœï¸</button>
 
                     <form action="{% url 'delete_weekday' day.id %}" method="POST" style="display:inline;">
                         {% csrf_token %}
-                        <button type="submit" class="action-btn btn-delete">🗑️</button>
+                        <button type="submit" class="action-btn btn-delete">ðŸ—‘ï¸</button>
                     </form>
                 </td>
             </tr>
@@ -1172,14 +1176,14 @@ function enableEdit(id) {
                     document.getElementById('save-notes-${id}').value =
                         document.getElementById('edit-notes-${id}').value;
                 "
-            >💾</button>
+            >ðŸ’¾</button>
         </form>
 
         <button 
             type="button" 
             class="action-btn btn-delete" 
             onclick="cancelEdit(${id}, '${oldDate}', '${oldAct}', '${oldNotes}')"
-        >❌</button>
+        >âŒ</button>
     `;
 }
 
@@ -1193,17 +1197,17 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             type="button" 
             class="action-btn btn-edit" 
             onclick="enableEdit(${id})"
-        >✏️</button>
+        >âœï¸</button>
 
         <form action="/delete-weekday/${id}/" method="POST" style="display:inline;">
             {% csrf_token %}
-            <button type="submit" class="action-btn btn-delete">🗑️</button>
+            <button type="submit" class="action-btn btn-delete">ðŸ—‘ï¸</button>
         </form>
     `;
 }
 </script>
 
-<!-- 🗓️ MODAL: Trainingsdag toevoegen -->
+<!-- ðŸ—“ï¸ MODAL: Trainingsdag toevoegen -->
 <div id="weekModal" class="modal" style="
     display:none;
     position: fixed;
@@ -1302,7 +1306,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
 </style>
 
 
-<!-- 🩹 REVALIDATIESPELERS -->
+<!-- ðŸ©¹ REVALIDATIESPELERS -->
 <div class="card">
     <div class="card-header">
         <h2><i data-feather="heart"></i> Revalidatiespelers</h2>
@@ -1315,7 +1319,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             </select>
 
             <!-- KNOP OM MODAL TE OPENEN -->
-            <button id="openRehabModal" class="primary-btn">➕ Blessure toevoegen</button>
+            <button id="openRehabModal" class="primary-btn">âž• Blessure toevoegen</button>
         </div>
     </div>
 
@@ -1408,7 +1412,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
         <h2>
             <i data-feather="gift"></i>
             Verjaardagen
-            <span class="birthday-cake" aria-hidden="true">🎂</span>
+            <span class="birthday-cake" aria-hidden="true">ðŸŽ‚</span>
         </h2>
     </div>
 
@@ -1452,7 +1456,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
     </div>
 </div>
 
-<!-- 🩺 MODAL: Blessure toevoegen (ENKEL EN CORRECT) -->
+<!-- ðŸ©º MODAL: Blessure toevoegen (ENKEL EN CORRECT) -->
 <div id="rehabModal" style="
     display: none; 
     position: fixed;
@@ -1551,7 +1555,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
 
 
 
-<!-- 🗓️ MODAL: Trainingsdag toevoegen -->
+<!-- ðŸ—“ï¸ MODAL: Trainingsdag toevoegen -->
 <div id="weekModal" class="modal" style="display:none;">
     <div class="modal-content">
         <span class="close" id="closeWeekModal">&times;</span>
@@ -1576,7 +1580,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
 </div>
 
 
-<!-- ⭐ SCRIPT: Trainingsdag modal openen/sluiten -->
+<!-- â­ SCRIPT: Trainingsdag modal openen/sluiten -->
 <script>
 const openWeekBtn = document.getElementById("openWeekModal");
 const openWeekBtnMobile = document.getElementById("openWeekModalMobile");
@@ -1627,7 +1631,7 @@ function cancelAppWeekEdit(id) {
 </script>
 
 
-<!-- ⭐ SCRIPT: Blessuremodal openen/sluiten -->
+<!-- â­ SCRIPT: Blessuremodal openen/sluiten -->
 <script>
 const openRehabBtn = document.getElementById("openRehabModal");
 const closeRehabBtn = document.getElementById("closeRehabModal");
@@ -1655,3 +1659,5 @@ window.addEventListener("click", (e) => {
 </div>
 
 {% endblock %}
+
+
