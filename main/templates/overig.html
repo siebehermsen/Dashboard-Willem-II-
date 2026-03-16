@@ -50,8 +50,8 @@
 
     .overig-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
     }
 
     .overig-grid a {
@@ -66,7 +66,7 @@
     .overig-card {
         background: white;
         border-radius: 18px;
-        padding: 26px 24px 24px;
+        padding: 22px 20px 20px;
         text-align: left;
         border: 1px solid rgba(31,42,68,0.08);
         box-shadow: 0 10px 24px rgba(31,42,68,0.08);
@@ -96,20 +96,20 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 44px;
-        height: 44px;
-        border-radius: 14px;
+        min-width: 40px;
+        height: 40px;
+        border-radius: 12px;
         background: linear-gradient(135deg, #1f2a44, #314d7f);
         color: #fff;
-        font-size: 1.15rem;
-        margin-bottom: 16px;
+        font-size: 1rem;
+        margin-bottom: 14px;
         box-shadow: 0 8px 18px rgba(31,42,68,0.18);
     }
 
     .overig-card h4 {
         margin: 0 0 8px;
         font-weight: 800;
-        font-size: 1.16rem;
+        font-size: 0.98rem;
         color: #1f2a44;
         line-height: 1.2;
     }
@@ -117,22 +117,28 @@
     .overig-card p {
         margin: 0;
         color: #6c757d;
-        font-size: 0.92rem;
-        line-height: 1.5;
-        max-width: 30ch;
+        font-size: 0.84rem;
+        line-height: 1.45;
+        max-width: 26ch;
     }
 
     .card-cta {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        margin-top: 18px;
-        font-size: 0.9rem;
+        margin-top: 14px;
+        font-size: 0.84rem;
         font-weight: 700;
         color: #b60000;
     }
 
     @media (max-width: 1199px) {
+        .overig-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 991px) {
         .overig-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
