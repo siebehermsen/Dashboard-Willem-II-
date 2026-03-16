@@ -3028,7 +3028,32 @@ def overig(request):
     # ======================================
     # GENERIEKE OVERIG-SECTIES
     # ======================================
-    if page in {"staf-aanwezigheden", "fysiek-wetenschap", "ontwikkelingsgesprekken"}:
+    if page == "staf-aanwezigheden":
+        if request.method == "POST":
+            section = request.POST.get("section")
+            text = request.POST.get("text", "")
+            if section:
+                OverigNote.objects.create(
+                    note_type="section",
+                    page_key=page,
+                    section_key=section,
+                    text=text.strip(),
+                )
+            return redirect(f"/overig/?page={page}")
+
+        return render(request, 'overig.html', {
+            'page': page,
+            'players': players,
+            'staff': staff_members,
+            'staff_presence_texts': {
+                'bezetting': section_text(page, 'bezetting'),
+                'afwezig': section_text(page, 'afwezig'),
+                'locatie': section_text(page, 'locatie'),
+                'opvolging': section_text(page, 'opvolging'),
+            },
+        })
+
+    if page in {"fysiek-wetenschap", "ontwikkelingsgesprekken"}:
         if request.method == "POST":
             section = request.POST.get("section")
             text = request.POST.get("text", "")

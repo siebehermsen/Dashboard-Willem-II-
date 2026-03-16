@@ -1292,7 +1292,143 @@
 </section>
 {% endif %}
 
-{% if page == "staf-aanwezigheden" or page == "fysiek-wetenschap" or page == "ontwikkelingsgesprekken" %}
+{% if page == "staf-aanwezigheden" %}
+<a href="/overig/" class="btn btn-secondary mb-3 back-btn">&larr; Terug</a>
+
+<style>
+    .staff-presence-shell {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        border-radius: 22px;
+        padding: 34px;
+        box-shadow: 0 14px 34px rgba(31,42,68,0.08);
+        border: 1px solid rgba(31,42,68,0.08);
+        margin-bottom: 34px;
+    }
+
+    .staff-presence-title {
+        font-size: 1.9rem;
+        font-weight: 800;
+        color: #1f2a44;
+        margin: 0 0 8px;
+    }
+
+    .staff-presence-subtitle {
+        color: #61708a;
+        font-size: 1rem;
+        margin-bottom: 24px;
+        max-width: 72ch;
+    }
+
+    .staff-presence-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .staff-presence-card {
+        background: #fff;
+        border: 1px solid #e3eaf4;
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 6px 16px rgba(31,42,68,0.05);
+    }
+
+    .staff-presence-card h4 {
+        margin: 0 0 10px;
+        color: #1f2a44;
+        font-size: 1.02rem;
+        font-weight: 800;
+    }
+
+    .staff-presence-card p {
+        margin: 0 0 12px;
+        color: #61708a;
+        line-height: 1.55;
+    }
+
+    .staff-presence-card textarea {
+        width: 100%;
+        min-height: 200px;
+        border: 1px solid #cfd8e7;
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: #fbfdff;
+        resize: vertical;
+    }
+
+    .staff-presence-card button {
+        margin-top: 12px;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 16px;
+        font-weight: 700;
+        cursor: pointer;
+        background: #1f2a44;
+        color: #fff;
+    }
+
+    @media (max-width: 991px) {
+        .staff-presence-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="staff-presence-shell">
+    <h3 class="staff-presence-title">Aanwezigheden staf</h3>
+    <p class="staff-presence-subtitle">
+        Gebruik dit onderdeel om snel zichtbaar te maken wie er niet aanwezig is, waarom dat zo is, waar iemand zich bevindt en hoe taken of afstemming zijn opgevangen.
+    </p>
+
+    <div class="staff-presence-grid">
+        <div class="staff-presence-card">
+            <h4>Bezetting en aanwezigheid</h4>
+            <p>Noteer wie aanwezig is, welke bezetting er op het veld of in de ondersteuning staat en of er bijzonderheden zijn in de planning.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="bezetting">
+                <textarea name="text" placeholder="Bijv.&#10;- Aanwezig: performance coach, fysio, videoanalist&#10;- Afwezig: assistent-trainer&#10;- Training start 10:30, voorbespreking 09:45">{{ staff_presence_texts.bezetting }}</textarea>
+                <button type="submit">Opslaan</button>
+            </form>
+        </div>
+
+        <div class="staff-presence-card">
+            <h4>Niet aanwezig</h4>
+            <p>Leg duidelijk vast wie afwezig is en waarom. Gebruik vaste structuur zodat het in één oogopslag leesbaar blijft.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="afwezig">
+                <textarea name="text" placeholder="Bijv.&#10;- Naam: Siebe&#10;  Reden: Extern overleg&#10;- Naam: Fysio 2&#10;  Reden: Vrij / verlof">{{ staff_presence_texts.afwezig }}</textarea>
+                <button type="submit">Opslaan</button>
+            </form>
+        </div>
+
+        <div class="staff-presence-card">
+            <h4>Waar ben je dan?</h4>
+            <p>Beschrijf waar een staflid is wanneer hij of zij niet op de gebruikelijke plek aanwezig is, zodat iedereen weet waar afstemming mogelijk is.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="locatie">
+                <textarea name="text" placeholder="Bijv.&#10;- Siebe: extern overleg op sportpark / meeting KNVB&#10;- Fysio 2: binnen in behandelkamer / bij jeugdtraining">{{ staff_presence_texts.locatie }}</textarea>
+                <button type="submit">Opslaan</button>
+            </form>
+        </div>
+
+        <div class="staff-presence-card">
+            <h4>Opvolging en afstemming</h4>
+            <p>Noteer wie iets overneemt, welke afspraken lopen en welke communicatie nog nodig is richting staf of spelers.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="opvolging">
+                <textarea name="text" placeholder="Bijv.&#10;- GPS-uitgifte overgenomen door ...&#10;- Blessurecheck terugkoppelen aan ...&#10;- Na training update in groepsapp plaatsen">{{ staff_presence_texts.opvolging }}</textarea>
+                <button type="submit">Opslaan</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if page == "fysiek-wetenschap" or page == "ontwikkelingsgesprekken" %}
 <a href="/overig/" class="btn btn-secondary mb-3 back-btn">&larr; Terug</a>
 
 <style>
@@ -1376,12 +1512,10 @@
 
 <section class="generic-overig-shell">
     <h3 class="generic-overig-title">
-        {% if page == "staf-aanwezigheden" %}Aanwezigheden staf{% endif %}
         {% if page == "fysiek-wetenschap" %}Fysiek en wetenschap{% endif %}
         {% if page == "ontwikkelingsgesprekken" %}Ontwikkelingsgesprekken{% endif %}
     </h3>
     <p class="generic-overig-subtitle">
-        {% if page == "staf-aanwezigheden" %}Bundel hier aanwezigheid, bezetting, verantwoordelijkheden en praktische stafafspraken.{% endif %}
         {% if page == "fysiek-wetenschap" %}Gebruik dit onderdeel voor fysieke thema’s, onderzoeksinzichten en de vertaalslag naar trainingspraktijk.{% endif %}
         {% if page == "ontwikkelingsgesprekken" %}Leg hier vaste lijnen vast voor voortgangsgesprekken, gespreksonderwerpen en ontwikkelafspraken.{% endif %}
     </p>
