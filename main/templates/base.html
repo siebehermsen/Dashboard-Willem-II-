@@ -8,10 +8,21 @@
     <link rel="manifest" href="{% static 'manifest.json' %}?v=5">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}?v=2">
     <link rel="icon" type="image/png" sizes="192x192" href="{% static 'icons/icon-192.png' %}?v=2">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
     <meta name="theme-color" content="#1e2a44">
-    <meta name="description" content="Willem II Performance Dashboard als installeerbare webapp.">
+    <meta name="description" content="Willem II Dashboard voor performance, monitoring, planning en teamoverzicht.">
+    <meta property="og:site_name" content="Willem II Dashboard">
+    <meta property="og:title" content="{% block og_title %}Willem II Dashboard{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Online dashboard voor performance, monitoring, planning en teamoverzicht binnen Willem II.{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'icons/icon-512.png' %}">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{% block twitter_title %}Willem II Dashboard{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Online dashboard voor performance, monitoring, planning en teamoverzicht binnen Willem II.{% endblock %}">
+    <meta name="application-name" content="Willem II Dashboard">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Dashboard">
+    <meta name="apple-mobile-web-app-title" content="Willem II">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>
     (() => {
