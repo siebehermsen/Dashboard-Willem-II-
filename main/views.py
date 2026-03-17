@@ -3105,7 +3105,7 @@ def overig(request):
             },
         })
 
-    if page in {"fysiek-wetenschap", "ontwikkelingsgesprekken"}:
+    if page in {"fysiek-wetenschap", "ontwikkelingsgesprekken", "vakantieprogramma"}:
         if request.method == "POST":
             section = request.POST.get("section")
             text = request.POST.get("text", "")
