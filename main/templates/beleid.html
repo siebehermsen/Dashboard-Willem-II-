@@ -228,7 +228,7 @@
     }
 </style>
 
-<section class="beleid-shell">
+<section class="beleid-shell" id="beleid-page">
     <div class="beleid-hero">
         <div class="beleid-hero-grid">
             <div class="beleid-tabs">
@@ -356,4 +356,96 @@
         </div>
     </div>
 </section>
+
+<script>
+    (() => {
+        const rootSelector = '#beleid-page';
+
+        async function swapBeleidContent(url, options = {}) {
+            const response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                ...options,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Beleid request failed: ${response.status}`);
+            }
+
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const incoming = doc.querySelector(rootSelector);
+            const current = document.querySelector(rootSelector);
+
+            if (!incoming || !current) {
+                window.location.href = url;
+                return;
+            }
+
+            current.replaceWith(incoming);
+            bindBeleidInteractions();
+        }
+
+        function bindBeleidInteractions() {
+            const root = document.querySelector(rootSelector);
+            if (!root) {
+                return;
+            }
+
+            root.querySelectorAll('.beleid-tab, .beleid-subtab').forEach((link) => {
+                link.addEventListener('click', async (event) => {
+                    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    const url = link.href;
+
+                    try {
+                        history.pushState({}, '', url);
+                        await swapBeleidContent(url);
+                    } catch (error) {
+                        window.location.href = url;
+                    }
+                });
+            });
+
+            root.querySelectorAll('form[method="post"]').forEach((form) => {
+                form.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+
+                    const submitButton = form.querySelector('button[type="submit"], .beleid-btn');
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                        submitButton.dataset.originalText = submitButton.textContent;
+                        submitButton.textContent = 'Opslaan...';
+                    }
+
+                    try {
+                        await swapBeleidContent(window.location.href, {
+                            method: 'POST',
+                            body: new FormData(form),
+                        });
+                    } catch (error) {
+                        form.submit();
+                    } finally {
+                        if (submitButton && submitButton.dataset.originalText) {
+                            submitButton.disabled = false;
+                            submitButton.textContent = submitButton.dataset.originalText;
+                        }
+                    }
+                });
+            });
+        }
+
+        window.addEventListener('popstate', async () => {
+            try {
+                await swapBeleidContent(window.location.href);
+            } catch (error) {
+                window.location.reload();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', bindBeleidInteractions);
+    })();
+</script>
 {% endblock %}
