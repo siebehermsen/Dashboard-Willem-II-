@@ -4,13 +4,49 @@
 {% block content %}
 <style>
     .beleid-shell {
+        display: grid;
+        gap: 24px;
+    }
+
+    .beleid-hero {
+        position: relative;
+        overflow: hidden;
+        min-height: 420px;
+        border-radius: 30px;
+        padding: 28px 30px;
+        background:
+            linear-gradient(100deg, rgba(7, 12, 24, 0.82) 0%, rgba(15, 24, 42, 0.68) 36%, rgba(15, 24, 42, 0.24) 66%, rgba(15, 24, 42, 0.20) 100%),
+            url('https://www.willem-ii.nl/sites/default/files/styles/header/public/2025-10/56224-Geert-van-Erven.jpg.webp?h=bae7a75e&itok=O0zrGG6-') center/cover no-repeat;
+        border: 1px solid rgba(31, 42, 68, 0.08);
+        box-shadow: 0 22px 44px rgba(31, 42, 68, 0.14);
+        display: grid;
+        align-items: end;
+    }
+
+    .beleid-hero-grid {
+        display: grid;
+        grid-template-columns: minmax(320px, 460px) 1fr;
+        gap: 26px;
+        align-items: start;
+    }
+
+    .beleid-intro-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        border-radius: 26px;
+        padding: 28px 30px;
+        box-shadow: 0 16px 34px rgba(10, 18, 33, 0.16);
+    }
+
+    .beleid-content {
         background:
             radial-gradient(1200px 260px at -10% -40%, rgba(182, 0, 0, 0.10), transparent 60%),
             radial-gradient(900px 220px at 110% 0%, rgba(31, 42, 68, 0.12), transparent 58%),
             linear-gradient(180deg, #ffffff 0%, #f7f9fd 100%);
         border: 1px solid rgba(31, 42, 68, 0.08);
         border-radius: 28px;
-        padding: 34px 36px 30px;
+        padding: 32px 34px 30px;
         box-shadow: 0 18px 38px rgba(31, 42, 68, 0.08);
     }
 
@@ -20,7 +56,7 @@
         gap: 8px;
         padding: 8px 12px;
         border-radius: 999px;
-        background: rgba(31, 42, 68, 0.08);
+        background: rgba(15, 24, 42, 0.08);
         color: #31415f;
         font-size: 0.82rem;
         font-weight: 700;
@@ -32,8 +68,9 @@
     .beleid-title {
         margin: 0 0 10px;
         color: #1f2a44;
-        font-size: 2rem;
+        font-size: 2.15rem;
         font-weight: 800;
+        line-height: 1.05;
     }
 
     .beleid-subtitle {
@@ -47,27 +84,31 @@
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
-        margin-bottom: 22px;
+        margin: 0;
+        justify-content: flex-end;
+        align-content: start;
     }
 
     .beleid-tab {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 11px 18px;
+        padding: 12px 18px;
         border-radius: 999px;
         text-decoration: none;
         font-weight: 700;
-        color: #1f2a44;
-        background: #eef2f8;
-        border: 1px solid transparent;
+        color: #ffffff;
+        background: rgba(15, 24, 42, 0.56);
+        border: 1px solid rgba(255, 255, 255, 0.34);
+        backdrop-filter: blur(10px);
         transition: all 0.2s ease;
     }
 
     .beleid-tab.active {
-        background: linear-gradient(135deg, #1f2a44, #35548a);
+        background: linear-gradient(135deg, #c11117, #1f2a44);
         color: #fff;
-        box-shadow: 0 10px 20px rgba(31, 42, 68, 0.18);
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 12px 24px rgba(12, 18, 32, 0.22);
     }
 
     .beleid-grid {
@@ -85,7 +126,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        margin: 0 0 18px;
+        margin: 0 0 20px;
     }
 
     .beleid-subtab {
@@ -166,6 +207,23 @@
     }
 
     @media (max-width: 991px) {
+        .beleid-hero {
+            min-height: 0;
+            padding: 24px;
+        }
+
+        .beleid-hero-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .beleid-tabs {
+            justify-content: flex-start;
+        }
+
+        .beleid-content {
+            padding: 26px 22px 24px;
+        }
+
         .beleid-grid {
             grid-template-columns: 1fr;
         }
@@ -173,43 +231,50 @@
 </style>
 
 <section class="beleid-shell">
-    <div class="beleid-kicker">Beleidsomgeving</div>
-    <h2 class="beleid-title">Beleid</h2>
-    <p class="beleid-subtitle">
-        Leg hier de belangrijkste beleidslijnen vast voor het voetbal, het fysieke domein en de jeugdopleiding. Zo staat richting, onderbouwing en werkwijze op een vaste plek.
-    </p>
+    <div class="beleid-hero">
+        <div class="beleid-hero-grid">
+            <div class="beleid-intro-card">
+                <div class="beleid-kicker">Beleidsomgeving</div>
+                <h2 class="beleid-title">Beleid</h2>
+                <p class="beleid-subtitle">
+                    Leg hier de belangrijkste beleidslijnen vast voor het voetbal, het fysieke domein en de jeugdopleiding. Zo staat richting, onderbouwing en werkwijze op een vaste plek.
+                </p>
+            </div>
 
-    <div class="beleid-tabs">
-        <a class="beleid-tab {% if beleid_tab == 'voetbalbeleid' %}active{% endif %}" href="/beleid/?tab=voetbalbeleid">Voetbalbeleid</a>
-        <a class="beleid-tab {% if beleid_tab == 'fysiek-beleid' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid">Fysiek beleid</a>
-        <a class="beleid-tab {% if beleid_tab == 'beleid-jeugd' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd">Beleid jeugd</a>
+            <div class="beleid-tabs">
+                <a class="beleid-tab {% if beleid_tab == 'voetbalbeleid' %}active{% endif %}" href="/beleid/?tab=voetbalbeleid">Voetbalbeleid</a>
+                <a class="beleid-tab {% if beleid_tab == 'fysiek-beleid' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid">Fysiek beleid</a>
+                <a class="beleid-tab {% if beleid_tab == 'beleid-jeugd' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd">Beleid jeugd</a>
+            </div>
+        </div>
     </div>
 
-    {% if beleid_tab == "voetbalbeleid" %}
-    <div class="beleid-subtabs">
-        <a class="beleid-subtab {% if beleid_subtab == 'speelwijze' %}active{% endif %}" href="/beleid/?tab=voetbalbeleid&subtab=speelwijze">Speelwijze</a>
-        <a class="beleid-subtab {% if beleid_subtab == 'teamafspraken' %}active{% endif %}" href="/beleid/?tab=voetbalbeleid&subtab=teamafspraken">Teamafspraken</a>
-    </div>
-    {% endif %}
+    <div class="beleid-content">
+        {% if beleid_tab == "voetbalbeleid" %}
+        <div class="beleid-subtabs">
+            <a class="beleid-subtab {% if beleid_subtab == 'speelwijze' %}active{% endif %}" href="/beleid/?tab=voetbalbeleid&subtab=speelwijze">Speelwijze</a>
+            <a class="beleid-subtab {% if beleid_subtab == 'teamafspraken' %}active{% endif %}" href="/beleid/?tab=voetbalbeleid&subtab=teamafspraken">Teamafspraken</a>
+        </div>
+        {% endif %}
 
-    {% if beleid_tab == "fysiek-beleid" %}
-    <div class="beleid-subtabs">
-        <a class="beleid-subtab {% if beleid_subtab == 'voeding' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=voeding">Voeding</a>
-        <a class="beleid-subtab {% if beleid_subtab == 'krachttraining' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=krachttraining">Krachttraining</a>
-        <a class="beleid-subtab {% if beleid_subtab == 'testen-meten' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=testen-meten">Testen en meten</a>
-        <a class="beleid-subtab {% if beleid_subtab == 'leefstijl' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=leefstijl">Leefstijl</a>
-    </div>
-    {% endif %}
+        {% if beleid_tab == "fysiek-beleid" %}
+        <div class="beleid-subtabs">
+            <a class="beleid-subtab {% if beleid_subtab == 'voeding' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=voeding">Voeding</a>
+            <a class="beleid-subtab {% if beleid_subtab == 'krachttraining' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=krachttraining">Krachttraining</a>
+            <a class="beleid-subtab {% if beleid_subtab == 'testen-meten' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=testen-meten">Testen en meten</a>
+            <a class="beleid-subtab {% if beleid_subtab == 'leefstijl' %}active{% endif %}" href="/beleid/?tab=fysiek-beleid&subtab=leefstijl">Leefstijl</a>
+        </div>
+        {% endif %}
 
-    {% if beleid_tab == "beleid-jeugd" %}
-    <div class="beleid-subtabs">
-        <a class="beleid-subtab {% if beleid_subtab == 'onderbouw' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd&subtab=onderbouw">Beleid onderbouw</a>
-        <a class="beleid-subtab {% if beleid_subtab == 'middenbouw' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd&subtab=middenbouw">Beleid middenbouw</a>
-        <a class="beleid-subtab {% if beleid_subtab == 'bovenbouw' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd&subtab=bovenbouw">Beleid bovenbouw</a>
-    </div>
-    {% endif %}
+        {% if beleid_tab == "beleid-jeugd" %}
+        <div class="beleid-subtabs">
+            <a class="beleid-subtab {% if beleid_subtab == 'onderbouw' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd&subtab=onderbouw">Beleid onderbouw</a>
+            <a class="beleid-subtab {% if beleid_subtab == 'middenbouw' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd&subtab=middenbouw">Beleid middenbouw</a>
+            <a class="beleid-subtab {% if beleid_subtab == 'bovenbouw' %}active{% endif %}" href="/beleid/?tab=beleid-jeugd&subtab=bovenbouw">Beleid bovenbouw</a>
+        </div>
+        {% endif %}
 
-    <div class="beleid-grid">
+        <div class="beleid-grid">
         <div class="beleid-card">
             <h3>
                 {% if beleid_tab == "voetbalbeleid" and beleid_subtab == "speelwijze" %}Voetbalbeleid - Speelwijze{% endif %}
@@ -293,6 +358,7 @@
                 </form>
             </div>
         </div>
+    </div>
     </div>
 </section>
 {% endblock %}
