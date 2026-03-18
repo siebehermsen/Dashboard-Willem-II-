@@ -279,24 +279,60 @@
     box-shadow: 0 12px 28px rgba(12, 22, 44, 0.08);
     margin-top: 18px;
 }
+.asr-intro {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 0 0 14px;
+    border-bottom: 1px solid var(--asr-border);
+}
+.asr-kicker {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #e9eef9;
+    color: #243356;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.asr-intro-text {
+    color: #5f6d80;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    max-width: 72ch;
+}
 .asr-meta {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 14px;
+    margin-bottom: 14px;
 }
 .asr-card {
     background: var(--asr-soft);
     border: 1px solid var(--asr-border);
     border-radius: 14px;
-    padding: 14px 16px;
+    padding: 16px 18px;
 }
 .asr-card strong { color: var(--asr-navy); }
-.asr-formula { font-family: Consolas, monospace; font-size: .83rem; color: #516072; margin-top: 6px; }
+.asr-formula {
+    font-family: Consolas, monospace;
+    font-size: .83rem;
+    color: #516072;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.7);
+    border: 1px dashed #cfdae8;
+}
 .asr-card-title {
     font-weight: 800;
     color: var(--asr-ink);
     letter-spacing: -.01em;
+    font-size: 1rem;
 }
 .asr-speed-pill {
     display: inline-flex;
@@ -314,7 +350,7 @@
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
-    margin-top: 6px;
+    margin-top: 10px;
 }
 .asr-control-label {
     font-weight: 700;
@@ -336,12 +372,15 @@
     box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.12);
 }
 .asr-help-list {
-    margin: 8px 0 0 0;
+    margin: 10px 0 0 0;
     padding-left: 16px;
 }
 .asr-help-list li {
     color: #5f6d7f;
-    margin: 4px 0;
+    margin: 6px 0;
+}
+.asr-help-list strong {
+    color: var(--asr-ink);
 }
 .asr-table-wrap {
     border: 1px solid var(--asr-border);
@@ -349,6 +388,22 @@
     overflow: hidden;
     background: #fff;
     box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+}
+.asr-table-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 2px 0 10px;
+}
+.asr-table-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--asr-ink);
+}
+.asr-table-subtitle {
+    color: #6b7280;
+    font-size: 0.84rem;
 }
 .asr-table {
     width: 100%;
@@ -421,18 +476,34 @@
 .asr-chip.ok { background:#dcfce7; color:#166534; }
 .asr-toolbar {
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 12px;
-    align-items: end;
-    margin-bottom: 14px;
-    padding-bottom: 12px;
+    grid-template-columns: minmax(280px, 1fr) minmax(320px, auto);
+    gap: 16px;
+    align-items: stretch;
+    margin-bottom: 16px;
+    padding: 14px;
+    border: 1px solid var(--asr-border);
+    border-radius: 16px;
+    background: #f9fbfe;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+}
+.asr-toolbar::before {
+    content: "Stap 1 - invoer en opslaan";
+    grid-column: 1 / -1;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #44536a;
+    margin-bottom: -4px;
+}
+.asr-toolbar {
     border-bottom: 1px solid var(--asr-border);
 }
 .asr-date-group {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
     align-items: end;
     gap: 14px;
-    flex-wrap: wrap;
 }
 .asr-date-item {
     display: grid;
@@ -445,16 +516,15 @@
     width: 180px;
 }
 .asr-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
+    display: grid;
+    align-content: center;
+    justify-items: end;
     gap: 10px;
-    flex-wrap: wrap;
 }
 .asr-save-btn {
     border: none;
     cursor: pointer;
-    padding: 10px 14px;
+    padding: 11px 16px;
     border-radius: 999px;
     font-size: .88rem;
     font-weight: 800;
@@ -474,11 +544,11 @@
     box-shadow: 0 6px 16px rgba(124, 45, 18, .16);
 }
 .asr-toolbar-note {
-    width: 100%;
+    width: auto;
     color: #6b7280;
     font-size: .84rem;
     text-align: right;
-    margin-top: 2px;
+    margin-top: -2px;
 }
 .asr-history {
     margin-top: 16px;
@@ -528,6 +598,8 @@
 }
 @media (max-width: 900px) {
   .asr-toolbar { grid-template-columns: 1fr; align-items: stretch; }
+  .asr-toolbar::before { margin-bottom: 0; }
+  .asr-date-group { grid-template-columns: 1fr; }
   .asr-actions { justify-content: flex-start; }
   .asr-toolbar-note { text-align: left; }
   .asr-meta { grid-template-columns: 1fr; }
@@ -644,12 +716,21 @@ html.app-ui.app-mode .asr-box {
     padding: 14px 12px;
     border-radius: 16px;
 }
+html.app-ui.app-mode .asr-intro {
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+}
+html.app-ui.app-mode .asr-intro-text {
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
 
 html.app-ui.app-mode .asr-toolbar {
     grid-template-columns: 1fr;
     gap: 10px;
     margin-bottom: 10px;
-    padding-bottom: 10px;
+    padding: 10px;
 }
 
 html.app-ui.app-mode .asr-date-group {
@@ -664,7 +745,7 @@ html.app-ui.app-mode .asr-date-item .asr-percent-input {
 }
 
 html.app-ui.app-mode .asr-actions {
-    justify-content: stretch;
+    justify-items: stretch;
     gap: 8px;
 }
 
@@ -782,6 +863,13 @@ html.app-ui.app-mode .asr-chip {
     <form method="post" id="asrSaveForm" style="margin-bottom:10px;">
         {% csrf_token %}
         <input type="hidden" name="asr_reference_speed_kmh" id="asrReferenceSpeedInput" value="20.0">
+        <div class="asr-intro">
+            <div class="asr-kicker">MSS / ASR overzicht</div>
+            <div class="asr-intro-text">
+                Werk hier vanuit drie vaste stappen: kies eerst je datums, stel daarna de gewenste trainingsintensiteit in en vul vervolgens per speler MSS en MAS in.
+                Zo zie je direct welke doelsnelheid daarbij hoort en hoe zwaar die opdracht relatief is.
+            </div>
+        </div>
         <div class="asr-toolbar">
             <div class="asr-date-group">
                 <div class="asr-date-item">
@@ -806,7 +894,7 @@ html.app-ui.app-mode .asr-chip {
     <div class="asr-meta">
         <div class="asr-card">
             <div style="margin-bottom:8px;">
-                <span class="asr-card-title">Referentie snelheid (HIT calculator)</span>
+                <span class="asr-card-title">Stap 2 - referentie en intensiteit</span>
                 <span class="asr-speed-pill"><span id="asrTargetSpeed">20.0</span> km/u</span>
             </div>
             <div class="asr-control-row">
@@ -814,19 +902,25 @@ html.app-ui.app-mode .asr-chip {
                 <input id="asrMasPercent" name="asr_mas_percent" class="asr-percent-input" type="number" step="0.1" min="0" value="110">
                 <span class="asr-muted">Bijv. 110 = trainen op 110% van MAS</span>
             </div>
-            <div class="asr-muted" style="margin-top:6px;">Doelsnelheid per speler wordt berekend uit deze intensiteit (niet uit de referentiesnelheid hierboven).</div>
+            <div class="asr-muted" style="margin-top:8px;">De doelsnelheid per speler wordt berekend uit deze intensiteit. De referentiesnelheid hierboven komt alleen uit de HIT calculator.</div>
             <div class="asr-formula">%ASR = ((doelsnelheid - MAS) / (MSS - MAS)) * 100</div>
         </div>
         <div class="asr-card">
-            <div class="asr-card-title">Interpretatie (globaal)</div>
+            <div class="asr-card-title">Stap 3 - interpretatie</div>
             <ul class="asr-help-list">
-                <li>Negatief %ASR = onder MAS</li>
-                <li>Hoge %ASR = hogere relatieve belasting bij gelijke opdracht</li>
-                <li>>100% ASR = doelsnelheid boven gemeten MSS (check invoer/opdracht)</li>
+                <li><strong>Negatief %ASR</strong> betekent dat de doelsnelheid onder MAS ligt.</li>
+                <li><strong>Hoge %ASR</strong> betekent een hogere relatieve belasting bij dezelfde opdracht.</li>
+                <li><strong>Boven 100% ASR</strong> betekent dat de doelsnelheid boven de gemeten MSS uitkomt. Dan klopt de invoer of opdracht waarschijnlijk niet.</li>
             </ul>
         </div>
     </div>
 
+    <div class="asr-table-heading">
+        <div>
+            <div class="asr-table-title">Spelervergelijking</div>
+            <div class="asr-table-subtitle">Vul per speler MSS en MAS in. De doelsnelheid en %ASR worden automatisch berekend.</div>
+        </div>
+    </div>
     <div class="asr-table-wrap">
     <table class="asr-table" id="asrTable">
         <thead>
