@@ -41,6 +41,7 @@ import os
 import uuid
 import shutil
 import subprocess
+from urllib.parse import parse_qs, urlparse
 try:
     from playwright.sync_api import sync_playwright
 except ImportError:
@@ -2457,6 +2458,37 @@ def individuele_programmas(request):
     programma = None
     oefeningen = []
     day_program = None
+    video_previews = []
+
+    def _build_video_preview(raw_url):
+        raw_url = (raw_url or "").strip()
+        if not raw_url:
+            return None
+
+        parsed = urlparse(raw_url)
+        host = (parsed.netloc or "").lower()
+        path = parsed.path or ""
+
+        if "youtube.com" in host:
+            video_id = parse_qs(parsed.query).get("v", [None])[0]
+            if video_id:
+                return {"url": raw_url, "embed_url": f"https://www.youtube.com/embed/{video_id}"}
+        if "youtu.be" in host:
+            video_id = path.strip("/")
+            if video_id:
+                return {"url": raw_url, "embed_url": f"https://www.youtube.com/embed/{video_id}"}
+        if "vimeo.com" in host:
+            video_id = path.strip("/").split("/")[-1]
+            if video_id.isdigit():
+                return {"url": raw_url, "embed_url": f"https://player.vimeo.com/video/{video_id}"}
+        if "loom.com" in host and "/share/" in path:
+            video_id = path.split("/share/")[-1].strip("/")
+            if video_id:
+                return {"url": raw_url, "embed_url": f"https://www.loom.com/embed/{video_id}"}
+        if raw_url.lower().endswith((".mp4", ".webm", ".ogg")):
+            return {"url": raw_url, "embed_url": raw_url, "is_direct_video": True}
+
+        return {"url": raw_url, "embed_url": None}
 
     if player_id:
         selected_player = get_object_or_404(Player.objects.select_related("monitoring_profile"), id=player_id)
@@ -2484,6 +2516,14 @@ def individuele_programmas(request):
             oefeningen = ProgrammaOefening.objects.select_related(
                 "naam_ref", "frequentie_ref", "duur_unit_ref"
             ).filter(programma=programma)
+            video_previews = [
+                preview
+                for preview in (
+                    _build_video_preview(line)
+                    for line in (programma.video_links or "").splitlines()
+                )
+                if preview
+            ]
 
         # Opslaan dagprogramma
         if request.method == "POST":
@@ -2499,6 +2539,7 @@ def individuele_programmas(request):
         "day_program": day_program,
         "programma": programma,
         "oefeningen": oefeningen,
+        "video_previews": video_previews,
     }
 
     return render(request, "individuele_programmas.html", context)
@@ -2518,6 +2559,7 @@ def individueel_programma_opslaan(request, player_id):
         sterke_punten = request.POST.get("sterke_punten", "")
         verbeterpunten = request.POST.get("verbeterpunten", "")
         plan_komende_periode = request.POST.get("plan_komende_periode", "")
+        video_links = request.POST.get("video_links", "")
 
         programma = Programma.objects.create(
             player=player,
@@ -2525,6 +2567,7 @@ def individueel_programma_opslaan(request, player_id):
             sterke_punten=sterke_punten,
             verbeterpunten=verbeterpunten,
             plan_komende_periode=plan_komende_periode,
+            video_links=video_links,
         )
 
         exercises = zip(

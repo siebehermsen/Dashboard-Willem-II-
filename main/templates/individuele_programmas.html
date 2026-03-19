@@ -2,11 +2,10 @@
 {% block content %}
 
 <style>
-  /* ---------- TITELS ---------- */
   .page-title {
     color: #b60000;
     font-weight: 700;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
   }
 
   .subtitle {
@@ -14,111 +13,235 @@
     margin-bottom: 20px;
   }
 
-  /* ---------- CARDS ---------- */
   .card {
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    padding: 20px;
-    margin-bottom: 25px;
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(12, 35, 64, 0.08);
+    padding: 24px;
+    margin-bottom: 24px;
   }
 
-  /* ---------- PLAYER LIST ---------- */
+  .section-title {
+    color: #0c2340;
+    font-size: 2rem;
+    margin: 0 0 14px;
+  }
+
   .player-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 15px;
+    gap: 16px;
   }
 
   .player-item {
     background: #f7f7f7;
-    border-radius: 8px;
+    border-radius: 12px;
     text-align: center;
-    padding: 12px;
+    padding: 14px;
     border-left: 4px solid #0c2340;
     transition: 0.2s;
     cursor: pointer;
   }
 
   .player-item:hover {
-    background: #e9e9e9;
+    background: #eef3f8;
     transform: translateY(-2px);
   }
 
   .player-name {
     font-weight: 600;
-    margin-top: 5px;
+    margin-top: 8px;
   }
 
-  /* ---------- FORM ELEMENTEN ---------- */
-  textarea, input, select {
+  .profile-card {
+    text-align: center;
+  }
+
+  .profile-card img {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 3px solid #b60000;
+    object-fit: cover;
+  }
+
+  .profile-card h3 {
+    margin: 12px 0 0;
+    color: #0c2340;
+  }
+
+  .content-stack {
+    display: grid;
+    gap: 24px;
+  }
+
+  .info-title {
+    color: #0c2340;
+    margin: 0 0 14px;
+    font-size: 1.9rem;
+  }
+
+  .field-label {
+    display: block;
+    font-weight: 700;
+    color: #0c2340;
+    margin-bottom: 6px;
+  }
+
+  .field-help {
+    color: #5c6e86;
+    font-size: 0.95rem;
+    margin: -2px 0 12px;
+  }
+
+  textarea,
+  input,
+  select {
     width: 100%;
-    border: 1px solid #ccc;
-    padding: 8px;
-    border-radius: 6px;
+    border: 1px solid #cfd7e3;
+    padding: 10px 12px;
+    border-radius: 10px;
     margin-top: 4px;
     font-size: 15px;
+    background: #fff;
   }
 
-  /* ---------- BUTTONS ---------- */
+  textarea {
+    resize: vertical;
+  }
+
+  .btn-primary,
+  .btn-danger {
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    color: #fff;
+  }
+
   .btn-primary {
     background: #0c2340;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
   }
+
   .btn-primary:hover {
     background: #153a6e;
   }
 
   .btn-danger {
     background: #b60000;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
   }
+
   .btn-danger:hover {
     background: #910000;
   }
 
-  /* ---------- OEFENINGEN TABEL ---------- */
+  .button-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .program-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .sub-card {
+    background: #f8fbff;
+    border: 1px solid #dbe5f0;
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  .sub-card h4 {
+    margin: 0 0 12px;
+    color: #0c2340;
+    font-size: 1.25rem;
+  }
+
+  .video-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 18px;
+  }
+
+  .video-preview-card {
+    border: 1px solid #dbe5f0;
+    border-radius: 14px;
+    padding: 14px;
+    background: #fff;
+  }
+
+  .video-preview-card iframe,
+  .video-preview-card video {
+    width: 100%;
+    height: 220px;
+    border: 0;
+    border-radius: 10px;
+    background: #111;
+  }
+
+  .video-preview-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: #0c2340;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .video-preview-link:hover {
+    text-decoration: underline;
+  }
+
   table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin-top: 12px;
   }
 
   th {
     background: #0c2340;
     color: white;
-    padding: 8px;
+    padding: 10px 8px;
   }
 
   td {
-    padding: 6px;
+    padding: 8px 6px;
     border-bottom: 1px solid #ddd;
   }
 
-  /* ---------- MESSAGES ---------- */
   .alert-success {
     background: #e6ffe6;
-    border: 1px solid #4CAF50;
+    border: 1px solid #4caf50;
     padding: 10px;
     color: #145214;
-    border-radius: 6px;
+    border-radius: 8px;
     margin-bottom: 15px;
   }
 
+  .saved-program-list {
+    margin: 18px 0 0;
+    padding-left: 18px;
+  }
+
+  .saved-program-list li {
+    margin-bottom: 8px;
+    color: #213754;
+  }
+
+  @media (max-width: 980px) {
+    .program-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 
-
-<h2 class="page-title">⚽ Individueel</h2>
+<h2 class="page-title">Individueel</h2>
 <p class="subtitle">Selecteer een speler om een dagprogramma of individueel krachtprogramma te bekijken of te maken.</p>
 
 <hr>
@@ -129,121 +252,130 @@
   {% endfor %}
 {% endif %}
 
-
-<!-- ------------------------------------------------------------- -->
-<!-- 🔥 BEGINPAGINA — SPelersoverzicht voordat iemand gekozen is -->
-<!-- ------------------------------------------------------------- -->
-
 {% if not selected_player %}
   <div class="card">
-    <h3 style="color:#0c2340; margin-bottom:10px;">👥 Kies een speler</h3>
-
+    <h3 class="section-title">Kies een speler</h3>
     <div class="player-list">
       {% for player in players %}
         <a href="?player_id={{ player.id }}" style="text-decoration:none; color:inherit;">
           <div class="player-item">
-            <img src="{% if player.image %}{{ player.image.url }}{% else %}/static/images/default_player.png{% endif %}" 
-                 style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #b60000;">
+            <img src="{% if player.image %}{{ player.image.url }}{% else %}/static/images/default_player.png{% endif %}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #b60000;">
             <div class="player-name">{{ player.name }}</div>
           </div>
         </a>
       {% endfor %}
     </div>
   </div>
-
 {% endif %}
 
-
-
-<!-- ------------------------------------------------------------- -->
-<!-- 🔥 PAGINA NA SELECTIE VAN SPELER -->
-<!-- ------------------------------------------------------------- -->
-
 {% if selected_player %}
-
-  <!-- 🔹 Spelerprofiel -->
-  <div class="card" style="text-align:center;">
-    <img src="{% if selected_player.image %}{{ selected_player.image.url }}{% else %}/static/images/default_player.png{% endif %}"
-         style="width:130px; height:130px; border-radius:50%; border:3px solid #b60000; object-fit:cover;">
-    <h3 style="margin-top:10px;">{{ selected_player.name }}</h3>
+  <div class="card profile-card">
+    <img src="{% if selected_player.image %}{{ selected_player.image.url }}{% else %}/static/images/default_player.png{% endif %}">
+    <h3>{{ selected_player.name }}</h3>
   </div>
 
-
-  <!-- 🔹 Dagprogramma -->
   <div class="card">
-    <h3 style="color:#0c2340;">📅 Dagprogramma ({{ day_program.date }})</h3>
-
+    <h3 class="info-title">Dagprogramma ({{ day_program.date }})</h3>
     <form method="POST">
       {% csrf_token %}
       <textarea name="program_text" rows="6" placeholder="Schrijf hier het dagprogramma...">{{ day_program.program_text }}</textarea>
-
-      <br><br>
-      <button class="btn-primary">💾 Dagprogramma opslaan</button>
+      <div class="button-row">
+        <button class="btn-primary" type="submit">Dagprogramma opslaan</button>
+      </div>
     </form>
   </div>
 
+  <form method="POST" action="{% url 'individueel_programma_opslaan' selected_player.id %}">
+    {% csrf_token %}
 
-  <!-- 🔹 Individueel krachtprogramma -->
-  <div class="card">
-    <h3 style="color:#0c2340;">🏋️‍♂️ Individueel krachtprogramma</h3>
+    <div class="program-grid">
+      <div class="card">
+        <h3 class="info-title">Individueel krachtprogramma</h3>
+        <label class="field-label" for="doel">Doel van het programma</label>
+        <textarea id="doel" name="doel" rows="3" placeholder="Omschrijf het doel van het krachtprogramma...">{% if programma and programma.doel %}{{ programma.doel }}{% endif %}</textarea>
 
-    <form method="POST" action="{% url 'individueel_programma_opslaan' selected_player.id %}">
-      {% csrf_token %}
+        <div class="sub-card" style="margin-top:20px;">
+          <h4>Oefeningen</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Naam</th>
+                <th>Duur</th>
+                <th>RPE</th>
+                <th>Freq.</th>
+                <th>Opmerkingen</th>
+              </tr>
+            </thead>
+            <tbody id="exercise-table">
+              <tr>
+                <td><input type="text" name="exercise_name[]"></td>
+                <td><input type="text" name="exercise_duration[]"></td>
+                <td><input type="number" name="exercise_rpe[]" min="0" max="10"></td>
+                <td><input type="text" name="exercise_frequency[]"></td>
+                <td><input type="text" name="exercise_notes[]"></td>
+              </tr>
+            </tbody>
+          </table>
 
-      <label><strong>Doel van het programma</strong></label>
-      <textarea name="doel" rows="2">{% if programma and programma.doel %}{{ programma.doel }}{% endif %}</textarea>
+          <div class="button-row">
+            <button type="button" class="btn-primary" onclick="addExerciseRow()">Oefening toevoegen</button>
+          </div>
+        </div>
 
-      <h4 style="margin-top:20px; color:#0c2340;">Beelden bekijken</h4>
+        {% if oefeningen %}
+          <div class="sub-card" style="margin-top:20px;">
+            <h4>Laatst opgeslagen krachtprogramma</h4>
+            <ul class="saved-program-list">
+              {% for oef in oefeningen %}
+                <li><strong>{{ oef.naam }}</strong> - {{ oef.duur }} - RPE {{ oef.rpe }} - {{ oef.frequentie }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </div>
 
-      <label><strong>Sterke punten</strong></label>
-      <textarea name="sterke_punten" rows="3" placeholder="Wat valt positief op in de beelden?">{% if programma and programma.sterke_punten %}{{ programma.sterke_punten }}{% endif %}</textarea>
+      <div class="content-stack">
+        <div class="card">
+          <h3 class="info-title">Beelden bekijken</h3>
+          <p class="field-help">Noteer hier wat je in de videobeelden ziet en voeg daaronder links toe om de beelden direct terug te kijken.</p>
 
-      <label style="margin-top:14px; display:block;"><strong>Verbeterpunten</strong></label>
-      <textarea name="verbeterpunten" rows="3" placeholder="Welke verbeterpunten zie je terug in de beelden?">{% if programma and programma.verbeterpunten %}{{ programma.verbeterpunten }}{% endif %}</textarea>
+          <label class="field-label" for="sterke_punten">Sterke punten</label>
+          <textarea id="sterke_punten" name="sterke_punten" rows="4" placeholder="Wat valt positief op in de beelden?">{% if programma and programma.sterke_punten %}{{ programma.sterke_punten }}{% endif %}</textarea>
 
-      <label style="margin-top:14px; display:block;"><strong>Plan richting de komende periode</strong></label>
-      <textarea name="plan_komende_periode" rows="3" placeholder="Wat is het plan richting de komende periode?">{% if programma and programma.plan_komende_periode %}{{ programma.plan_komende_periode }}{% endif %}</textarea>
+          <label class="field-label" for="verbeterpunten" style="margin-top:14px;">Verbeterpunten</label>
+          <textarea id="verbeterpunten" name="verbeterpunten" rows="4" placeholder="Welke verbeterpunten zie je terug in de beelden?">{% if programma and programma.verbeterpunten %}{{ programma.verbeterpunten }}{% endif %}</textarea>
 
-      <h4 style="margin-top:20px; color:#0c2340;">Oefeningen</h4>
+          <label class="field-label" for="plan_komende_periode" style="margin-top:14px;">Plan richting de komende periode</label>
+          <textarea id="plan_komende_periode" name="plan_komende_periode" rows="4" placeholder="Wat is het plan richting de komende periode?">{% if programma and programma.plan_komende_periode %}{{ programma.plan_komende_periode }}{% endif %}</textarea>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Naam</th>
-            <th>Duur</th>
-            <th>RPE</th>
-            <th>Freq.</th>
-            <th>Opmerkingen</th>
-          </tr>
-        </thead>
-        <tbody id="exercise-table">
-          <tr>
-            <td><input type="text" name="exercise_name[]"></td>
-            <td><input type="text" name="exercise_duration[]"></td>
-            <td><input type="number" name="exercise_rpe[]" min="0" max="10"></td>
-            <td><input type="text" name="exercise_frequency[]"></td>
-            <td><input type="text" name="exercise_notes[]"></td>
-          </tr>
-        </tbody>
-      </table>
+          <label class="field-label" for="video_links" style="margin-top:14px;">Videolinks</label>
+          <textarea id="video_links" name="video_links" rows="5" placeholder="Plak hier per regel een videolink, bijvoorbeeld YouTube, Vimeo, Loom of een direct mp4-bestand.">{% if programma and programma.video_links %}{{ programma.video_links }}{% endif %}</textarea>
 
-      <button type="button" class="btn-primary" onclick="addExerciseRow()">➕ Oefening toevoegen</button>
-      <button type="submit" class="btn-danger" style="margin-left:10px;">💾 Opslaan</button>
-    </form>
+          {% if video_previews %}
+            <div class="video-preview-grid">
+              {% for video in video_previews %}
+                <div class="video-preview-card">
+                  {% if video.is_direct_video %}
+                    <video controls preload="metadata">
+                      <source src="{{ video.embed_url }}">
+                    </video>
+                  {% elif video.embed_url %}
+                    <iframe src="{{ video.embed_url }}" allowfullscreen loading="lazy"></iframe>
+                  {% endif %}
+                  <a class="video-preview-link" href="{{ video.url }}" target="_blank" rel="noopener">Open video</a>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
 
-    {% if oefeningen %}
-      <h4 style="margin-top:25px;">📘 Laatste opgeslagen krachtprogramma</h4>
-      <ul>
-        {% for oef in oefeningen %}
-          <li><strong>{{ oef.naam }}</strong> – {{ oef.duur }} – RPE {{ oef.rpe }} – {{ oef.frequentie }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  </div>
-
+          <div class="button-row">
+            <button type="submit" class="btn-danger">Krachtprogramma opslaan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
 {% endif %}
-
-
 
 <script>
   function addExerciseRow() {

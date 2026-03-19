@@ -736,6 +736,7 @@ class Programma(models.Model):
     sterke_punten = models.TextField(blank=True, null=True, verbose_name='Sterke punten')
     verbeterpunten = models.TextField(blank=True, null=True, verbose_name='Verbeterpunten')
     plan_komende_periode = models.TextField(blank=True, null=True, verbose_name='Plan komende periode')
+    video_links = models.TextField(blank=True, null=True, verbose_name='Videolinks')
     created_at = models.DateTimeField(auto_now_add=True)
     player = models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='main.player', verbose_name='Speler')
 
