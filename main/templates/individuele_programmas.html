@@ -337,7 +337,7 @@
   </div>
 
   <div class="card">
-    <h3 class="info-title">Dagprogramma ({{ day_program.date }})</h3>
+    <h3 class="info-title">Opmerkingen ({{ day_program.date }})</h3>
     <form method="POST">
       {% csrf_token %}
       <label class="field-label" for="remarks_text">Opmerkingen</label>
@@ -346,11 +346,14 @@
         <button class="btn-primary" type="submit" name="save_remarks" value="1">Opmerkingen opslaan</button>
       </div>
     </form>
+  </div>
 
-    <form method="POST" style="margin-top:18px;">
+  <div class="card">
+    <h3 class="info-title">Dagprogramma ({{ day_program.date }})</h3>
+    <form method="POST">
       {% csrf_token %}
-      <label class="field-label" for="program_text" style="margin-top:14px;">Dagprogramma</label>
-      <textarea name="program_text" rows="6" placeholder="Schrijf hier het dagprogramma...">{{ day_program.program_text }}</textarea>
+      <label class="field-label" for="program_text">Dagprogramma</label>
+      <textarea id="program_text" name="program_text" rows="6" placeholder="Schrijf hier het dagprogramma...">{{ day_program.program_text }}</textarea>
       <div class="button-row">
         <button class="btn-primary" type="submit" name="save_program" value="1">Dagprogramma opslaan</button>
       </div>
@@ -364,6 +367,7 @@
       <div class="inner-tabs" role="tablist" aria-label="Individueel tabs">
         <button type="button" class="inner-tab is-active" data-tab-target="krachtprogramma">Individueel krachtprogramma</button>
         <button type="button" class="inner-tab" data-tab-target="beelden">Beelden bekijken</button>
+        <button type="button" class="inner-tab" data-tab-target="ontwikkelpunt">Fysiek ontwikkelpunt</button>
       </div>
 
       <div id="tab-krachtprogramma" class="tab-panel is-active">
@@ -459,6 +463,26 @@
 
           <div class="button-row">
             <button type="submit" class="btn-danger">Beelden en notities opslaan</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-ontwikkelpunt" class="tab-panel">
+        <div class="card">
+          <h3 class="info-title">Fysiek ontwikkelpunt</h3>
+          <p class="field-help">Leg hier vast waar de speler fysiek nog in kan groeien, hoe dat aangepakt wordt en wanneer je dat opnieuw wilt beoordelen.</p>
+
+          <label class="field-label" for="fysiek_ontwikkelpunt">Waar kan deze speler nog in ontwikkelen?</label>
+          <textarea id="fysiek_ontwikkelpunt" name="fysiek_ontwikkelpunt" rows="4" placeholder="Beschrijf het fysieke ontwikkelpunt van de speler...">{% if programma and programma.fysiek_ontwikkelpunt %}{{ programma.fysiek_ontwikkelpunt }}{% endif %}</textarea>
+
+          <label class="field-label" for="ontwikkelaanpak" style="margin-top:14px;">Hoe gaat de speler dit ontwikkelen?</label>
+          <textarea id="ontwikkelaanpak" name="ontwikkelaanpak" rows="4" placeholder="Omschrijf de aanpak, inhoud en werkwijze voor de komende periode...">{% if programma and programma.ontwikkelaanpak %}{{ programma.ontwikkelaanpak }}{% endif %}</textarea>
+
+          <label class="field-label" for="evaluatie_datum" style="margin-top:14px;">Wanneer wordt dit opnieuw gevalueerd?</label>
+          <input id="evaluatie_datum" name="evaluatie_datum" type="date" value="{% if programma and programma.evaluatie_datum %}{{ programma.evaluatie_datum|date:'Y-m-d' }}{% endif %}">
+
+          <div class="button-row">
+            <button type="submit" class="btn-danger">Ontwikkelpunt opslaan</button>
           </div>
         </div>
       </div>
