@@ -191,6 +191,35 @@
     text-decoration: underline;
   }
 
+  .exercise-builder {
+    display: grid;
+    gap: 14px;
+    margin-top: 12px;
+  }
+
+  .exercise-row {
+    display: grid;
+    grid-template-columns: 1.35fr 0.8fr 0.55fr 0.8fr 1.35fr;
+    gap: 12px;
+    align-items: end;
+    background: #fff;
+    border: 1px solid #dbe5f0;
+    border-radius: 14px;
+    padding: 14px;
+  }
+
+  .exercise-field label {
+    display: block;
+    color: #48617f;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .exercise-field input {
+    margin-top: 0;
+  }
+
   table {
     width: 100%;
     border-collapse: collapse;
@@ -225,6 +254,18 @@
   .saved-program-list li {
     margin-bottom: 8px;
     color: #213754;
+  }
+
+  @media (max-width: 980px) {
+    .exercise-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 680px) {
+    .exercise-row {
+      grid-template-columns: 1fr;
+    }
   }
 
 </style>
@@ -294,26 +335,31 @@
 
         <div class="sub-card" style="margin-top:20px;">
           <h4>Oefeningen</h4>
-          <table>
-            <thead>
-              <tr>
-                <th>Naam</th>
-                <th>Duur</th>
-                <th>RPE</th>
-                <th>Freq.</th>
-                <th>Opmerkingen</th>
-              </tr>
-            </thead>
-            <tbody id="exercise-table">
-              <tr>
-                <td><input type="text" name="exercise_name[]"></td>
-                <td><input type="text" name="exercise_duration[]"></td>
-                <td><input type="number" name="exercise_rpe[]" min="0" max="10"></td>
-                <td><input type="text" name="exercise_frequency[]"></td>
-                <td><input type="text" name="exercise_notes[]"></td>
-              </tr>
-            </tbody>
-          </table>
+          <p class="field-help">Voeg per oefening rustig de inhoud, duur, intensiteit en aandachtspunten toe.</p>
+          <div id="exercise-table" class="exercise-builder">
+            <div class="exercise-row">
+              <div class="exercise-field">
+                <label>Naam</label>
+                <input type="text" name="exercise_name[]" placeholder="Bijv. Split squat">
+              </div>
+              <div class="exercise-field">
+                <label>Duur</label>
+                <input type="text" name="exercise_duration[]" placeholder="Bijv. 3 x 8">
+              </div>
+              <div class="exercise-field">
+                <label>RPE</label>
+                <input type="number" name="exercise_rpe[]" min="0" max="10" placeholder="0-10">
+              </div>
+              <div class="exercise-field">
+                <label>Freq.</label>
+                <input type="text" name="exercise_frequency[]" placeholder="Bijv. 2x p/w">
+              </div>
+              <div class="exercise-field">
+                <label>Opmerkingen</label>
+                <input type="text" name="exercise_notes[]" placeholder="Belangrijk aandachtspunt">
+              </div>
+            </div>
+          </div>
 
           <div class="button-row">
             <button type="button" class="btn-primary" onclick="addExerciseRow()">Oefening toevoegen</button>
@@ -380,13 +426,29 @@
 <script>
   function addExerciseRow() {
     const table = document.getElementById("exercise-table");
-    const newRow = document.createElement("tr");
+    const newRow = document.createElement("div");
+    newRow.className = "exercise-row";
     newRow.innerHTML = `
-      <td><input type="text" name="exercise_name[]"></td>
-      <td><input type="text" name="exercise_duration[]"></td>
-      <td><input type="number" name="exercise_rpe[]" min="0" max="10"></td>
-      <td><input type="text" name="exercise_frequency[]"></td>
-      <td><input type="text" name="exercise_notes[]"></td>
+      <div class="exercise-field">
+        <label>Naam</label>
+        <input type="text" name="exercise_name[]" placeholder="Bijv. Split squat">
+      </div>
+      <div class="exercise-field">
+        <label>Duur</label>
+        <input type="text" name="exercise_duration[]" placeholder="Bijv. 3 x 8">
+      </div>
+      <div class="exercise-field">
+        <label>RPE</label>
+        <input type="number" name="exercise_rpe[]" min="0" max="10" placeholder="0-10">
+      </div>
+      <div class="exercise-field">
+        <label>Freq.</label>
+        <input type="text" name="exercise_frequency[]" placeholder="Bijv. 2x p/w">
+      </div>
+      <div class="exercise-field">
+        <label>Opmerkingen</label>
+        <input type="text" name="exercise_notes[]" placeholder="Belangrijk aandachtspunt">
+      </div>
     `;
     table.appendChild(newRow);
   }
