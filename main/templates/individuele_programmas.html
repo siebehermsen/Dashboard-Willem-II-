@@ -143,6 +143,39 @@
     gap: 24px;
   }
 
+  .inner-tabs {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .inner-tab {
+    border: 1px solid #cfd7e3;
+    background: #f4f7fb;
+    color: #0c2340;
+    border-radius: 999px;
+    padding: 12px 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .inner-tab.is-active {
+    background: #0c2340;
+    color: #fff;
+    border-color: #0c2340;
+    box-shadow: 0 8px 18px rgba(12, 35, 64, 0.18);
+  }
+
+  .tab-panel {
+    display: none;
+  }
+
+  .tab-panel.is-active {
+    display: block;
+  }
+
   .sub-card {
     background: #f8fbff;
     border: 1px solid #dbe5f0;
@@ -328,95 +361,105 @@
     {% csrf_token %}
 
     <div class="section-stack">
-      <div class="card">
-        <h3 class="info-title">Individueel krachtprogramma</h3>
-        <label class="field-label" for="doel">Doel van het programma</label>
-        <textarea id="doel" name="doel" rows="3" placeholder="Omschrijf het doel van het krachtprogramma...">{% if programma and programma.doel %}{{ programma.doel }}{% endif %}</textarea>
+      <div class="inner-tabs" role="tablist" aria-label="Individueel tabs">
+        <button type="button" class="inner-tab is-active" data-tab-target="krachtprogramma">Individueel krachtprogramma</button>
+        <button type="button" class="inner-tab" data-tab-target="beelden">Beelden bekijken</button>
+      </div>
 
-        <div class="sub-card" style="margin-top:20px;">
-          <h4>Oefeningen</h4>
-          <p class="field-help">Voeg per oefening rustig de inhoud, duur, intensiteit en aandachtspunten toe.</p>
-          <div id="exercise-table" class="exercise-builder">
-            <div class="exercise-row">
-              <div class="exercise-field">
-                <label>Naam</label>
-                <input type="text" name="exercise_name[]" placeholder="Bijv. Split squat">
+      <div id="tab-krachtprogramma" class="tab-panel is-active">
+        <div class="card">
+          <h3 class="info-title">Individueel krachtprogramma</h3>
+          <label class="field-label" for="doel">Doel van het programma</label>
+          <textarea id="doel" name="doel" rows="3" placeholder="Omschrijf het doel van het krachtprogramma...">{% if programma and programma.doel %}{{ programma.doel }}{% endif %}</textarea>
+
+          <div class="sub-card" style="margin-top:20px;">
+            <h4>Oefeningen</h4>
+            <p class="field-help">Voeg per oefening rustig de inhoud, duur, intensiteit en aandachtspunten toe.</p>
+            <div id="exercise-table" class="exercise-builder">
+              <div class="exercise-row">
+                <div class="exercise-field">
+                  <label>Naam</label>
+                  <input type="text" name="exercise_name[]" placeholder="Bijv. Split squat">
+                </div>
+                <div class="exercise-field">
+                  <label>Duur</label>
+                  <input type="text" name="exercise_duration[]" placeholder="Bijv. 3 x 8">
+                </div>
+                <div class="exercise-field">
+                  <label>RPE</label>
+                  <input type="number" name="exercise_rpe[]" min="0" max="10" placeholder="0-10">
+                </div>
+                <div class="exercise-field">
+                  <label>Freq.</label>
+                  <input type="text" name="exercise_frequency[]" placeholder="Bijv. 2x p/w">
+                </div>
+                <div class="exercise-field">
+                  <label>Opmerkingen</label>
+                  <input type="text" name="exercise_notes[]" placeholder="Belangrijk aandachtspunt">
+                </div>
               </div>
-              <div class="exercise-field">
-                <label>Duur</label>
-                <input type="text" name="exercise_duration[]" placeholder="Bijv. 3 x 8">
-              </div>
-              <div class="exercise-field">
-                <label>RPE</label>
-                <input type="number" name="exercise_rpe[]" min="0" max="10" placeholder="0-10">
-              </div>
-              <div class="exercise-field">
-                <label>Freq.</label>
-                <input type="text" name="exercise_frequency[]" placeholder="Bijv. 2x p/w">
-              </div>
-              <div class="exercise-field">
-                <label>Opmerkingen</label>
-                <input type="text" name="exercise_notes[]" placeholder="Belangrijk aandachtspunt">
-              </div>
+            </div>
+
+            <div class="button-row">
+              <button type="button" class="btn-primary" onclick="addExerciseRow()">Oefening toevoegen</button>
+              <button type="submit" class="btn-danger">Krachtprogramma opslaan</button>
             </div>
           </div>
 
-          <div class="button-row">
-            <button type="button" class="btn-primary" onclick="addExerciseRow()">Oefening toevoegen</button>
-          </div>
+          {% if oefeningen %}
+            <div class="sub-card" style="margin-top:20px;">
+              <h4>Laatst opgeslagen krachtprogramma</h4>
+              <ul class="saved-program-list">
+                {% for oef in oefeningen %}
+                  <li><strong>{{ oef.naam }}</strong> - {{ oef.duur }} - RPE {{ oef.rpe }} - {{ oef.frequentie }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
         </div>
-
-        {% if oefeningen %}
-          <div class="sub-card" style="margin-top:20px;">
-            <h4>Laatst opgeslagen krachtprogramma</h4>
-            <ul class="saved-program-list">
-              {% for oef in oefeningen %}
-                <li><strong>{{ oef.naam }}</strong> - {{ oef.duur }} - RPE {{ oef.rpe }} - {{ oef.frequentie }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-        {% endif %}
       </div>
 
-      <div class="card">
-        <h3 class="info-title">Beelden bekijken</h3>
-        <p class="field-help">Voeg hier links toe naar wedstrijd- en trainingsbeelden, bekijk ze direct op deze pagina en sla je analyse en planpunten daaronder op.</p>
+      <div id="tab-beelden" class="tab-panel">
+        <div class="card">
+          <h3 class="info-title">Beelden bekijken</h3>
+          <p class="field-help">Voeg hier links toe naar wedstrijd- en trainingsbeelden, bekijk ze direct op deze pagina en sla je analyse en planpunten daaronder op.</p>
 
-        <label class="field-label" for="video_links">Videolinks</label>
-        <textarea id="video_links" name="video_links" rows="5" placeholder="Plak hier per regel een videolink naar een wedstrijd of training, bijvoorbeeld YouTube, Vimeo, Loom of een direct mp4-bestand.">{% if programma and programma.video_links %}{{ programma.video_links }}{% endif %}</textarea>
+          <label class="field-label" for="video_links">Videolinks</label>
+          <textarea id="video_links" name="video_links" rows="5" placeholder="Plak hier per regel een videolink naar een wedstrijd of training, bijvoorbeeld YouTube, Vimeo, Loom of een direct mp4-bestand.">{% if programma and programma.video_links %}{{ programma.video_links }}{% endif %}</textarea>
 
-        {% if video_previews %}
-          <div class="video-preview-grid">
-            {% for video in video_previews %}
-              <div class="video-preview-card">
-                {% if video.is_direct_video %}
-                  <video controls preload="metadata">
-                    <source src="{{ video.embed_url }}">
-                  </video>
-                {% elif video.embed_url %}
-                  <iframe src="{{ video.embed_url }}" allowfullscreen loading="lazy"></iframe>
-                {% endif %}
-                <a class="video-preview-link" href="{{ video.url }}" target="_blank" rel="noopener">Open video</a>
-              </div>
-            {% endfor %}
+          {% if video_previews %}
+            <div class="video-preview-grid">
+              {% for video in video_previews %}
+                <div class="video-preview-card">
+                  {% if video.is_direct_video %}
+                    <video controls preload="metadata">
+                      <source src="{{ video.embed_url }}">
+                    </video>
+                  {% elif video.embed_url %}
+                    <iframe src="{{ video.embed_url }}" allowfullscreen loading="lazy"></iframe>
+                  {% endif %}
+                  <a class="video-preview-link" href="{{ video.url }}" target="_blank" rel="noopener">Open video</a>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="sub-card" style="margin-top:20px;">
+            <h4>Analyse van de beelden</h4>
+
+            <label class="field-label" for="sterke_punten">Sterke punten</label>
+            <textarea id="sterke_punten" name="sterke_punten" rows="4" placeholder="Wat valt positief op in de wedstrijd- of trainingsbeelden?">{% if programma and programma.sterke_punten %}{{ programma.sterke_punten }}{% endif %}</textarea>
+
+            <label class="field-label" for="verbeterpunten" style="margin-top:14px;">Verbeterpunten</label>
+            <textarea id="verbeterpunten" name="verbeterpunten" rows="4" placeholder="Welke verbeterpunten zie je terug in de wedstrijd- of trainingsbeelden?">{% if programma and programma.verbeterpunten %}{{ programma.verbeterpunten }}{% endif %}</textarea>
+
+            <label class="field-label" for="plan_komende_periode" style="margin-top:14px;">Plan richting de komende periode</label>
+            <textarea id="plan_komende_periode" name="plan_komende_periode" rows="4" placeholder="Wat is het plan richting de komende periode op basis van deze beelden?">{% if programma and programma.plan_komende_periode %}{{ programma.plan_komende_periode }}{% endif %}</textarea>
           </div>
-        {% endif %}
 
-        <div class="sub-card" style="margin-top:20px;">
-          <h4>Analyse van de beelden</h4>
-
-          <label class="field-label" for="sterke_punten">Sterke punten</label>
-          <textarea id="sterke_punten" name="sterke_punten" rows="4" placeholder="Wat valt positief op in de wedstrijd- of trainingsbeelden?">{% if programma and programma.sterke_punten %}{{ programma.sterke_punten }}{% endif %}</textarea>
-
-          <label class="field-label" for="verbeterpunten" style="margin-top:14px;">Verbeterpunten</label>
-          <textarea id="verbeterpunten" name="verbeterpunten" rows="4" placeholder="Welke verbeterpunten zie je terug in de wedstrijd- of trainingsbeelden?">{% if programma and programma.verbeterpunten %}{{ programma.verbeterpunten }}{% endif %}</textarea>
-
-          <label class="field-label" for="plan_komende_periode" style="margin-top:14px;">Plan richting de komende periode</label>
-          <textarea id="plan_komende_periode" name="plan_komende_periode" rows="4" placeholder="Wat is het plan richting de komende periode op basis van deze beelden?">{% if programma and programma.plan_komende_periode %}{{ programma.plan_komende_periode }}{% endif %}</textarea>
-        </div>
-
-        <div class="button-row">
-          <button type="submit" class="btn-danger">Krachtprogramma en beelden opslaan</button>
+          <div class="button-row">
+            <button type="submit" class="btn-danger">Beelden en notities opslaan</button>
+          </div>
         </div>
       </div>
     </div>
@@ -424,6 +467,21 @@
 {% endif %}
 
 <script>
+  function activateInnerTab(target) {
+    document.querySelectorAll(".inner-tab").forEach((tab) => {
+      tab.classList.toggle("is-active", tab.dataset.tabTarget === target);
+    });
+    document.querySelectorAll(".tab-panel").forEach((panel) => {
+      panel.classList.toggle("is-active", panel.id === `tab-${target}`);
+    });
+  }
+
+  document.querySelectorAll(".inner-tab").forEach((tab) => {
+    tab.addEventListener("click", function () {
+      activateInnerTab(this.dataset.tabTarget);
+    });
+  });
+
   function addExerciseRow() {
     const table = document.getElementById("exercise-table");
     const newRow = document.createElement("div");
