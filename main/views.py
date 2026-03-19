@@ -2540,13 +2540,14 @@ def individuele_programmas(request):
 
         # Opslaan dagprogramma
         if request.method == "POST":
-            new_text = request.POST.get("program_text", "")
-            new_remarks = request.POST.get("remarks_text", "")
-            note.content = new_text
-            note.save(update_fields=["content", "updated_at"])
-            remarks_note.content = new_remarks
-            remarks_note.save(update_fields=["content", "updated_at"])
-            messages.success(request, "Dagprogramma opgeslagen!")
+            if "save_remarks" in request.POST:
+                remarks_note.content = request.POST.get("remarks_text", "")
+                remarks_note.save(update_fields=["content", "updated_at"])
+                messages.success(request, "Opmerkingen opgeslagen!")
+            elif "save_program" in request.POST:
+                note.content = request.POST.get("program_text", "")
+                note.save(update_fields=["content", "updated_at"])
+                messages.success(request, "Dagprogramma opgeslagen!")
             return redirect(f"/individuele_programmas/?player_id={player_id}")
 
     context = {
