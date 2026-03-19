@@ -70,11 +70,6 @@
     color: #0c2340;
   }
 
-  .content-stack {
-    display: grid;
-    gap: 24px;
-  }
-
   .info-title {
     color: #0c2340;
     margin: 0 0 14px;
@@ -143,11 +138,9 @@
     margin-top: 16px;
   }
 
-  .program-grid {
+  .section-stack {
     display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
     gap: 24px;
-    align-items: start;
   }
 
   .sub-card {
@@ -234,11 +227,6 @@
     color: #213754;
   }
 
-  @media (max-width: 980px) {
-    .program-grid {
-      grid-template-columns: 1fr;
-    }
-  }
 </style>
 
 <h2 class="page-title">Individueel</h2>
@@ -288,7 +276,7 @@
   <form method="POST" action="{% url 'individueel_programma_opslaan' selected_player.id %}">
     {% csrf_token %}
 
-    <div class="program-grid">
+    <div class="section-stack">
       <div class="card">
         <h3 class="info-title">Individueel krachtprogramma</h3>
         <label class="field-label" for="doel">Doel van het programma</label>
@@ -334,43 +322,45 @@
         {% endif %}
       </div>
 
-      <div class="content-stack">
-        <div class="card">
-          <h3 class="info-title">Beelden bekijken</h3>
-          <p class="field-help">Noteer hier wat je in de videobeelden ziet en voeg daaronder links toe om de beelden direct terug te kijken.</p>
+      <div class="card">
+        <h3 class="info-title">Beelden bekijken</h3>
+        <p class="field-help">Voeg hier links toe naar wedstrijd- en trainingsbeelden, bekijk ze direct op deze pagina en sla je analyse en planpunten daaronder op.</p>
+
+        <label class="field-label" for="video_links">Videolinks</label>
+        <textarea id="video_links" name="video_links" rows="5" placeholder="Plak hier per regel een videolink naar een wedstrijd of training, bijvoorbeeld YouTube, Vimeo, Loom of een direct mp4-bestand.">{% if programma and programma.video_links %}{{ programma.video_links }}{% endif %}</textarea>
+
+        {% if video_previews %}
+          <div class="video-preview-grid">
+            {% for video in video_previews %}
+              <div class="video-preview-card">
+                {% if video.is_direct_video %}
+                  <video controls preload="metadata">
+                    <source src="{{ video.embed_url }}">
+                  </video>
+                {% elif video.embed_url %}
+                  <iframe src="{{ video.embed_url }}" allowfullscreen loading="lazy"></iframe>
+                {% endif %}
+                <a class="video-preview-link" href="{{ video.url }}" target="_blank" rel="noopener">Open video</a>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="sub-card" style="margin-top:20px;">
+          <h4>Analyse van de beelden</h4>
 
           <label class="field-label" for="sterke_punten">Sterke punten</label>
-          <textarea id="sterke_punten" name="sterke_punten" rows="4" placeholder="Wat valt positief op in de beelden?">{% if programma and programma.sterke_punten %}{{ programma.sterke_punten }}{% endif %}</textarea>
+          <textarea id="sterke_punten" name="sterke_punten" rows="4" placeholder="Wat valt positief op in de wedstrijd- of trainingsbeelden?">{% if programma and programma.sterke_punten %}{{ programma.sterke_punten }}{% endif %}</textarea>
 
           <label class="field-label" for="verbeterpunten" style="margin-top:14px;">Verbeterpunten</label>
-          <textarea id="verbeterpunten" name="verbeterpunten" rows="4" placeholder="Welke verbeterpunten zie je terug in de beelden?">{% if programma and programma.verbeterpunten %}{{ programma.verbeterpunten }}{% endif %}</textarea>
+          <textarea id="verbeterpunten" name="verbeterpunten" rows="4" placeholder="Welke verbeterpunten zie je terug in de wedstrijd- of trainingsbeelden?">{% if programma and programma.verbeterpunten %}{{ programma.verbeterpunten }}{% endif %}</textarea>
 
           <label class="field-label" for="plan_komende_periode" style="margin-top:14px;">Plan richting de komende periode</label>
-          <textarea id="plan_komende_periode" name="plan_komende_periode" rows="4" placeholder="Wat is het plan richting de komende periode?">{% if programma and programma.plan_komende_periode %}{{ programma.plan_komende_periode }}{% endif %}</textarea>
+          <textarea id="plan_komende_periode" name="plan_komende_periode" rows="4" placeholder="Wat is het plan richting de komende periode op basis van deze beelden?">{% if programma and programma.plan_komende_periode %}{{ programma.plan_komende_periode }}{% endif %}</textarea>
+        </div>
 
-          <label class="field-label" for="video_links" style="margin-top:14px;">Videolinks</label>
-          <textarea id="video_links" name="video_links" rows="5" placeholder="Plak hier per regel een videolink, bijvoorbeeld YouTube, Vimeo, Loom of een direct mp4-bestand.">{% if programma and programma.video_links %}{{ programma.video_links }}{% endif %}</textarea>
-
-          {% if video_previews %}
-            <div class="video-preview-grid">
-              {% for video in video_previews %}
-                <div class="video-preview-card">
-                  {% if video.is_direct_video %}
-                    <video controls preload="metadata">
-                      <source src="{{ video.embed_url }}">
-                    </video>
-                  {% elif video.embed_url %}
-                    <iframe src="{{ video.embed_url }}" allowfullscreen loading="lazy"></iframe>
-                  {% endif %}
-                  <a class="video-preview-link" href="{{ video.url }}" target="_blank" rel="noopener">Open video</a>
-                </div>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-          <div class="button-row">
-            <button type="submit" class="btn-danger">Krachtprogramma opslaan</button>
-          </div>
+        <div class="button-row">
+          <button type="submit" class="btn-danger">Krachtprogramma en beelden opslaan</button>
         </div>
       </div>
     </div>
