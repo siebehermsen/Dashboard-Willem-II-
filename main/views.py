@@ -2507,7 +2507,20 @@ def individuele_programmas(request):
             note_type_ref=note_type_obj,
             defaults={"content": ""},
         )
-        day_program = SimpleNamespace(date=plan.date, program_text=note.content)
+        remarks_type_obj, _ = IndividualDayPlanNoteType.objects.get_or_create(
+            code="remarks",
+            defaults={"label": "Opmerkingen"},
+        )
+        remarks_note, _ = IndividualDayPlanNote.objects.get_or_create(
+            plan=plan,
+            note_type_ref=remarks_type_obj,
+            defaults={"content": ""},
+        )
+        day_program = SimpleNamespace(
+            date=plan.date,
+            program_text=note.content,
+            opmerkingen=remarks_note.content,
+        )
 
         # Laatste individuele programma ophalen
         programma = Programma.objects.filter(player=selected_player).order_by("-created_at").first()
@@ -2528,8 +2541,11 @@ def individuele_programmas(request):
         # Opslaan dagprogramma
         if request.method == "POST":
             new_text = request.POST.get("program_text", "")
+            new_remarks = request.POST.get("remarks_text", "")
             note.content = new_text
             note.save(update_fields=["content", "updated_at"])
+            remarks_note.content = new_remarks
+            remarks_note.save(update_fields=["content", "updated_at"])
             messages.success(request, "Dagprogramma opgeslagen!")
             return redirect(f"/individuele_programmas/?player_id={player_id}")
 

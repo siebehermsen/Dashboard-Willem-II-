@@ -266,6 +266,10 @@
     <h3 class="info-title">Dagprogramma ({{ day_program.date }})</h3>
     <form method="POST">
       {% csrf_token %}
+      <label class="field-label" for="remarks_text">Opmerkingen</label>
+      <textarea id="remarks_text" name="remarks_text" rows="3" placeholder="Voeg hier algemene opmerkingen toe voor deze dag...">{{ day_program.opmerkingen }}</textarea>
+
+      <label class="field-label" for="program_text" style="margin-top:14px;">Dagprogramma</label>
       <textarea name="program_text" rows="6" placeholder="Schrijf hier het dagprogramma...">{{ day_program.program_text }}</textarea>
       <div class="button-row">
         <button class="btn-primary" type="submit">Dagprogramma opslaan</button>
