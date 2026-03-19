@@ -2515,10 +2515,16 @@ def individueel_programma_opslaan(request, player_id):
 
     if request.method == "POST":
         doel = request.POST.get("doel")
+        sterke_punten = request.POST.get("sterke_punten", "")
+        verbeterpunten = request.POST.get("verbeterpunten", "")
+        plan_komende_periode = request.POST.get("plan_komende_periode", "")
 
         programma = Programma.objects.create(
             player=player,
             doel=doel,
+            sterke_punten=sterke_punten,
+            verbeterpunten=verbeterpunten,
+            plan_komende_periode=plan_komende_periode,
         )
 
         exercises = zip(

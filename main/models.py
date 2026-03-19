@@ -733,6 +733,9 @@ class PlayerTeamAssignment(models.Model):
 class Programma(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     doel = models.CharField(blank=True, max_length=255, null=True, verbose_name='Doel')
+    sterke_punten = models.TextField(blank=True, null=True, verbose_name='Sterke punten')
+    verbeterpunten = models.TextField(blank=True, null=True, verbose_name='Verbeterpunten')
+    plan_komende_periode = models.TextField(blank=True, null=True, verbose_name='Plan komende periode')
     created_at = models.DateTimeField(auto_now_add=True)
     player = models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='main.player', verbose_name='Speler')
 

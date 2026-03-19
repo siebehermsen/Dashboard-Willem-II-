@@ -119,7 +119,7 @@
 
 
 <h2 class="page-title">⚽ Individueel</h2>
-<p class="subtitle">Selecteer een speler om een dagprogramma of individueel programma te bekijken of te maken.</p>
+<p class="subtitle">Selecteer een speler om een dagprogramma of individueel krachtprogramma te bekijken of te maken.</p>
 
 <hr>
 
@@ -183,15 +183,26 @@
   </div>
 
 
-  <!-- 🔹 Individueel Programma -->
+  <!-- 🔹 Individueel krachtprogramma -->
   <div class="card">
-    <h3 style="color:#0c2340;">🏋️‍♂️ Individueel Programma</h3>
+    <h3 style="color:#0c2340;">🏋️‍♂️ Individueel krachtprogramma</h3>
 
     <form method="POST" action="{% url 'individueel_programma_opslaan' selected_player.id %}">
       {% csrf_token %}
 
       <label><strong>Doel van het programma</strong></label>
-      <textarea name="doel" rows="2"></textarea>
+      <textarea name="doel" rows="2">{% if programma and programma.doel %}{{ programma.doel }}{% endif %}</textarea>
+
+      <h4 style="margin-top:20px; color:#0c2340;">Beelden bekijken</h4>
+
+      <label><strong>Sterke punten</strong></label>
+      <textarea name="sterke_punten" rows="3" placeholder="Wat valt positief op in de beelden?">{% if programma and programma.sterke_punten %}{{ programma.sterke_punten }}{% endif %}</textarea>
+
+      <label style="margin-top:14px; display:block;"><strong>Verbeterpunten</strong></label>
+      <textarea name="verbeterpunten" rows="3" placeholder="Welke verbeterpunten zie je terug in de beelden?">{% if programma and programma.verbeterpunten %}{{ programma.verbeterpunten }}{% endif %}</textarea>
+
+      <label style="margin-top:14px; display:block;"><strong>Plan richting de komende periode</strong></label>
+      <textarea name="plan_komende_periode" rows="3" placeholder="Wat is het plan richting de komende periode?">{% if programma and programma.plan_komende_periode %}{{ programma.plan_komende_periode }}{% endif %}</textarea>
 
       <h4 style="margin-top:20px; color:#0c2340;">Oefeningen</h4>
 
@@ -221,7 +232,7 @@
     </form>
 
     {% if oefeningen %}
-      <h4 style="margin-top:25px;">📘 Laatste opgeslagen programma</h4>
+      <h4 style="margin-top:25px;">📘 Laatste opgeslagen krachtprogramma</h4>
       <ul>
         {% for oef in oefeningen %}
           <li><strong>{{ oef.naam }}</strong> – {{ oef.duur }} – RPE {{ oef.rpe }} – {{ oef.frequentie }}</li>
