@@ -3728,13 +3728,22 @@ def staf(request):
         image = request.FILES.get("image")
 
         if name and role_name:
-            role_obj, _ = StaffRole.objects.get_or_create(name=role_name)
-            Staff.objects.create(
-                name=name,
-                role_ref=role_obj,
-                image=image if image else None,
-            )
+            try:
+                role_obj, _ = StaffRole.objects.get_or_create(name=role_name)
+                Staff.objects.create(
+                    name=name,
+                    role_ref=role_obj,
+                    image=image if image else None,
+                )
+                messages.success(request, "Staflid toegevoegd.")
+            except Exception:
+                messages.error(
+                    request,
+                    "Uploaden van de foto is mislukt. Gebruik bij voorkeur een JPG, PNG of WEBP-bestand en probeer opnieuw.",
+                )
             return redirect("staf")
+        messages.error(request, "Vul zowel naam als functie in.")
+        return redirect("staf")
 
     return render(request, "staf.html", {
         "staff_members": staff_members,
