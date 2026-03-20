@@ -9,6 +9,7 @@ from django.shortcuts import render, redirect
 from .models import (
     Player,
     OverigNote,
+    BeleidSectionImage,
     Staff,
     BirthdayRecord,
     BirthdayProfile,
@@ -3684,6 +3685,12 @@ def beleid(request):
         )
         return (item.text or "") if item else ""
 
+    def section_images(section_key: str):
+        return BeleidSectionImage.objects.filter(
+            page_key="beleid",
+            section_key=section_key,
+        ).order_by("-created_at")
+
     if request.method == "POST":
         section = request.POST.get("section", "").strip()
         text = request.POST.get("text", "")
@@ -3694,12 +3701,20 @@ def beleid(request):
                 section_key=section,
                 text=text.strip(),
             )
+            for image in request.FILES.getlist("images"):
+                if image:
+                    BeleidSectionImage.objects.create(
+                        page_key="beleid",
+                        section_key=section,
+                        image=image,
+                    )
         return redirect(f"/beleid/?tab={beleid_tab}&subtab={beleid_subtab}")
 
     return render(request, "beleid.html", {
         "beleid_tab": beleid_tab,
         "beleid_subtab": beleid_subtab,
         "beleid_current_text": section_text(section_key),
+        "beleid_images": section_images(section_key),
     })
 
 

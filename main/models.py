@@ -592,6 +592,20 @@ class OverigNote(models.Model):
     def __str__(self):
         return getattr(self, 'name', f'{self.__class__.__name__} {self.pk}')
 
+class BeleidSectionImage(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    page_key = models.CharField(default='beleid', max_length=50)
+    section_key = models.CharField(max_length=50)
+    image = models.ImageField(upload_to='beleid_images/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+        indexes = [models.Index(fields=['page_key', 'section_key'], name='main_beleid_page_se_65fb58_idx')]
+
+    def __str__(self):
+        return getattr(self, 'name', f'{self.__class__.__name__} {self.pk}')
+
 class PerformanceMetric(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     value = models.FloatField()

@@ -196,6 +196,63 @@
         box-shadow: 0 10px 22px rgba(182, 0, 0, 0.16);
     }
 
+    .beleid-upload-wrap {
+        margin-top: 18px;
+        padding: 18px 18px 14px;
+        background: #f7f9fd;
+        border: 1px solid #dfe6f1;
+        border-radius: 16px;
+    }
+
+    .beleid-upload-wrap label {
+        display: block;
+        margin: 0 0 10px;
+        color: #1f2a44;
+        font-weight: 700;
+    }
+
+    .beleid-upload-wrap input[type="file"] {
+        display: block;
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .beleid-upload-help {
+        margin: 10px 0 0;
+        color: #61708a;
+        font-size: 0.92rem;
+    }
+
+    .beleid-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-top: 22px;
+    }
+
+    .beleid-gallery-item {
+        background: #fff;
+        border: 1px solid #e3eaf4;
+        border-radius: 18px;
+        padding: 12px;
+        box-shadow: 0 8px 20px rgba(31, 42, 68, 0.06);
+    }
+
+    .beleid-gallery-item img {
+        display: block;
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 12px;
+        background: #eef3fa;
+    }
+
+    .beleid-gallery-date {
+        margin-top: 10px;
+        color: #61708a;
+        font-size: 0.85rem;
+    }
+
     .beleid-points {
         margin: 16px 0 0;
         padding-left: 18px;
@@ -347,12 +404,27 @@
         <div class="beleid-editor-card">
             <h3>Beleidstekst</h3>
             <p>Werk hier het beleid volledig uit voor dit onderdeel. Deze tekst staat bewust over de volle breedte zodat je ruim kunt schrijven.</p>
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="section" value="{{ beleid_tab }}:{{ beleid_subtab }}">
                 <textarea name="text" placeholder="Leg hier het beleid vast...">{{ beleid_current_text }}</textarea>
+                <div class="beleid-upload-wrap">
+                    <label for="beleid-images">Afbeeldingen toevoegen</label>
+                    <input id="beleid-images" type="file" name="images" accept="image/*" multiple>
+                    <p class="beleid-upload-help">Upload hier een of meerdere foto's of afbeeldingen die bij dit beleidsonderdeel horen. Nieuwe afbeeldingen verschijnen onder deze tekst.</p>
+                </div>
                 <button type="submit" class="beleid-btn">Opslaan</button>
             </form>
+            {% if beleid_images %}
+            <div class="beleid-gallery">
+                {% for image in beleid_images %}
+                <div class="beleid-gallery-item">
+                    <img src="{{ image.image.url }}" alt="Beleid afbeelding">
+                    <div class="beleid-gallery-date">Toegevoegd op {{ image.created_at|date:"d-m-Y H:i" }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
     </div>
 </section>
