@@ -3718,6 +3718,29 @@ def beleid(request):
     })
 
 
+@login_required
+def staf(request):
+    staff_members = Staff.objects.select_related("role_ref").all().order_by("name")
+
+    if request.method == "POST":
+        name = (request.POST.get("name") or "").strip()
+        role_name = (request.POST.get("role_name") or "").strip()
+        image = request.FILES.get("image")
+
+        if name and role_name:
+            role_obj, _ = StaffRole.objects.get_or_create(name=role_name)
+            Staff.objects.create(
+                name=name,
+                role_ref=role_obj,
+                image=image if image else None,
+            )
+            return redirect("staf")
+
+    return render(request, "staf.html", {
+        "staff_members": staff_members,
+    })
+
+
 def player_data(request, player_id):
     """
     Geeft JSON terug met de voortgang van gewicht en huidplooien

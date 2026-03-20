@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}Staf{% endblock %}
+
+{% block content %}
+<style>
+    .staf-shell {
+        display: grid;
+        gap: 26px;
+    }
+
+    .staf-hero {
+        background:
+            radial-gradient(900px 240px at -10% -30%, rgba(182, 0, 0, 0.10), transparent 60%),
+            radial-gradient(700px 220px at 110% 10%, rgba(31, 42, 68, 0.12), transparent 58%),
+            linear-gradient(180deg, #ffffff 0%, #f7f9fd 100%);
+        border: 1px solid rgba(31, 42, 68, 0.08);
+        border-radius: 28px;
+        padding: 30px 34px;
+        box-shadow: 0 18px 38px rgba(31, 42, 68, 0.08);
+    }
+
+    .staf-kicker {
+        display: inline-flex;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(15, 24, 42, 0.08);
+        color: #31415f;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+    }
+
+    .staf-title {
+        margin: 0 0 12px;
+        color: #1f2a44;
+        font-size: 2.35rem;
+        font-weight: 800;
+    }
+
+    .staf-subtitle {
+        margin: 0;
+        color: #61708a;
+        font-size: 1rem;
+        max-width: 72ch;
+        line-height: 1.6;
+    }
+
+    .staf-form-card,
+    .staf-grid-card {
+        background: #fff;
+        border: 1px solid #e3eaf4;
+        border-radius: 24px;
+        padding: 28px;
+        box-shadow: 0 10px 24px rgba(31, 42, 68, 0.07);
+    }
+
+    .staf-form-card h3,
+    .staf-grid-card h3 {
+        margin: 0 0 18px;
+        color: #1f2a44;
+        font-size: 1.4rem;
+        font-weight: 800;
+    }
+
+    .staf-form {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr 1fr auto;
+        gap: 16px;
+        align-items: end;
+    }
+
+    .staf-field label {
+        display: block;
+        margin: 0 0 8px;
+        color: #1f2a44;
+        font-weight: 700;
+    }
+
+    .staf-field input {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #cfd8e7;
+        border-radius: 14px;
+        padding: 13px 14px;
+        background: #fbfdff;
+        font-size: 0.98rem;
+    }
+
+    .staf-submit {
+        border: none;
+        border-radius: 14px;
+        padding: 13px 20px;
+        background: #b60000;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 10px 22px rgba(182, 0, 0, 0.16);
+    }
+
+    .staf-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 22px;
+    }
+
+    .staf-card {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        border: 1px solid #e3eaf4;
+        border-radius: 22px;
+        padding: 16px;
+        box-shadow: 0 12px 26px rgba(31, 42, 68, 0.08);
+    }
+
+    .staf-photo {
+        width: 100%;
+        aspect-ratio: 3 / 4;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #eef3fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 18px;
+    }
+
+    .staf-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .staf-photo-placeholder {
+        color: #7a879d;
+        font-weight: 700;
+        font-size: 1rem;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .staf-name {
+        margin: 0 0 8px;
+        color: #1f2a44;
+        font-size: 1.5rem;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .staf-role {
+        margin: 0;
+        color: #b60000;
+        font-size: 1rem;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    @media (max-width: 991px) {
+        .staf-form {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="staf-shell">
+    <div class="staf-hero">
+        <div class="staf-kicker">Stafomgeving</div>
+        <h1 class="staf-title">Staf</h1>
+        <p class="staf-subtitle">
+            Voeg hier stafleden toe met een foto en hun functie. De kaarten worden automatisch netjes naast elkaar en onder elkaar geplaatst.
+        </p>
+    </div>
+
+    <div class="staf-form-card">
+        <h3>Staflid toevoegen</h3>
+        <form method="post" enctype="multipart/form-data" class="staf-form">
+            {% csrf_token %}
+            <div class="staf-field">
+                <label for="staf-name">Naam</label>
+                <input id="staf-name" type="text" name="name" placeholder="Bijv. Siebe Hermsen" required>
+            </div>
+            <div class="staf-field">
+                <label for="staf-role">Functie</label>
+                <input id="staf-role" type="text" name="role_name" placeholder="Bijv. Performance coach" required>
+            </div>
+            <div class="staf-field">
+                <label for="staf-image">Foto</label>
+                <input id="staf-image" type="file" name="image" accept="image/*">
+            </div>
+            <button type="submit" class="staf-submit">Toevoegen</button>
+        </form>
+    </div>
+
+    <div class="staf-grid-card">
+        <h3>Stafleden</h3>
+        <div class="staf-grid">
+            {% for member in staff_members %}
+            <article class="staf-card">
+                <div class="staf-photo">
+                    {% if member.image %}
+                    <img src="{{ member.image.url }}" alt="{{ member.name }}">
+                    {% else %}
+                    <div class="staf-photo-placeholder">Geen foto toegevoegd</div>
+                    {% endif %}
+                </div>
+                <h4 class="staf-name">{{ member.name }}</h4>
+                <p class="staf-role">{{ member.role_ref.name|default:"Geen functie ingevuld" }}</p>
+            </article>
+            {% empty %}
+            <article class="staf-card">
+                <div class="staf-photo">
+                    <div class="staf-photo-placeholder">Nog geen stafleden toegevoegd</div>
+                </div>
+                <h4 class="staf-name">Voeg een staflid toe</h4>
+                <p class="staf-role">Naam, functie en foto komen hier te staan</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
