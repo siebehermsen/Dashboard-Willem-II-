@@ -1357,17 +1357,63 @@ def training(request):
     week_targets, _ = TrainingWeekTarget.objects.get_or_create(
         name="Geplande weektargets training"
     )
+
+    day_field_map = [
+        ("monday", "Maandag"),
+        ("tuesday", "Dinsdag"),
+        ("wednesday", "Woensdag"),
+        ("thursday", "Donderdag"),
+        ("friday", "Vrijdag"),
+        ("saturday", "Zaterdag"),
+        ("sunday", "Zondag"),
+    ]
+    metric_keys = [
+        "total_distance",
+        "d15",
+        "d20",
+        "d25",
+        "acc",
+        "dec",
+    ]
+
+    def parse_weektarget_value(raw_value):
+        raw_value = (raw_value or "").strip()
+        if not raw_value:
+            return {key: "" for key in metric_keys}
+        if "|" in raw_value:
+            parts = raw_value.split("|")
+            padded = (parts + [""] * len(metric_keys))[: len(metric_keys)]
+            return {metric_keys[idx]: padded[idx] for idx in range(len(metric_keys))}
+        return {
+            "total_distance": raw_value,
+            "d15": "",
+            "d20": "",
+            "d25": "",
+            "acc": "",
+            "dec": "",
+        }
+
+    def serialize_weektarget_value(prefix):
+        return "|".join(
+            (request.POST.get(f"{prefix}_{metric}", "") or "").strip()
+            for metric in metric_keys
+        )
+
     if request.method == "POST" and request.POST.get("save_weektargets") == "1":
-        week_targets.monday = request.POST.get("target_monday", "")
-        week_targets.tuesday = request.POST.get("target_tuesday", "")
-        week_targets.wednesday = request.POST.get("target_wednesday", "")
-        week_targets.thursday = request.POST.get("target_thursday", "")
-        week_targets.friday = request.POST.get("target_friday", "")
-        week_targets.saturday = request.POST.get("target_saturday", "")
-        week_targets.sunday = request.POST.get("target_sunday", "")
+        for field_name, _label in day_field_map:
+            setattr(week_targets, field_name, serialize_weektarget_value(field_name))
         week_targets.save()
         messages.success(request, "Geplande weektargets opgeslagen!")
         return redirect("training")
+
+    week_target_rows = [
+        {
+            "field_name": field_name,
+            "label": label,
+            "values": parse_weektarget_value(getattr(week_targets, field_name, "")),
+        }
+        for field_name, label in day_field_map
+    ]
     rows = fetch_performance_rows("training")
 
     by_player = {}
@@ -1595,6 +1641,7 @@ def training(request):
         "training_daily_data_json": day_buckets,
         "training_daily_range_label": f"{start_date.strftime('%d-%m-%Y')} t/m {end_date.strftime('%d-%m-%Y')}",
         "week_targets": week_targets,
+        "week_target_rows": week_target_rows,
 
         "active_page": "training",
     }

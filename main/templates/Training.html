@@ -85,25 +85,27 @@
             <table class="weektargets-table">
                 <thead>
                     <tr>
-                        <th>Maandag</th>
-                        <th>Dinsdag</th>
-                        <th>Woensdag</th>
-                        <th>Donderdag</th>
-                        <th>Vrijdag</th>
-                        <th>Zaterdag</th>
-                        <th>Zondag</th>
+                        <th>Dag</th>
+                        <th>Totale afstand</th>
+                        <th>D15</th>
+                        <th>D20</th>
+                        <th>D25</th>
+                        <th>Acc</th>
+                        <th>Dec</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><input type="text" name="target_monday" value="{{ week_targets.monday }}" placeholder="Bijv. load / inhoud"></td>
-                        <td><input type="text" name="target_tuesday" value="{{ week_targets.tuesday }}" placeholder="Bijv. load / inhoud"></td>
-                        <td><input type="text" name="target_wednesday" value="{{ week_targets.wednesday }}" placeholder="Bijv. load / inhoud"></td>
-                        <td><input type="text" name="target_thursday" value="{{ week_targets.thursday }}" placeholder="Bijv. load / inhoud"></td>
-                        <td><input type="text" name="target_friday" value="{{ week_targets.friday }}" placeholder="Bijv. load / inhoud"></td>
-                        <td><input type="text" name="target_saturday" value="{{ week_targets.saturday }}" placeholder="Bijv. load / inhoud"></td>
-                        <td><input type="text" name="target_sunday" value="{{ week_targets.sunday }}" placeholder="Bijv. load / inhoud"></td>
-                    </tr>
+                    {% for row in week_target_rows %}
+                        <tr>
+                            <td class="weektargets-day">{{ row.label }}</td>
+                            <td><input type="text" name="{{ row.field_name }}_total_distance" value="{{ row.values.total_distance }}" placeholder="Totale afstand"></td>
+                            <td><input type="text" name="{{ row.field_name }}_d15" value="{{ row.values.d15 }}" placeholder="D15"></td>
+                            <td><input type="text" name="{{ row.field_name }}_d20" value="{{ row.values.d20 }}" placeholder="D20"></td>
+                            <td><input type="text" name="{{ row.field_name }}_d25" value="{{ row.values.d25 }}" placeholder="D25"></td>
+                            <td><input type="text" name="{{ row.field_name }}_acc" value="{{ row.values.acc }}" placeholder="Acc"></td>
+                            <td><input type="text" name="{{ row.field_name }}_dec" value="{{ row.values.dec }}" placeholder="Dec"></td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -1571,9 +1573,16 @@ main.container {
     padding: 10px;
 }
 
+.weektargets-day {
+    font-weight: 700;
+    color: #0c2340;
+    min-width: 140px;
+    white-space: nowrap;
+}
+
 .weektargets-table input {
     width: 100%;
-    min-width: 120px;
+    min-width: 110px;
     border: 1px solid #d8deea;
     border-radius: 10px;
     padding: 10px 12px;
