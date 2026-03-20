@@ -1335,6 +1335,7 @@ from django.db.models import Avg, Sum
 def training(request):
     import json
     import math
+    from .models import TrainingWeekTarget
 
     metric_field_map = {
         "load": "load",
@@ -1353,6 +1354,20 @@ def training(request):
     selected_metric_field = metric_field_map[selected_metric]
 
     players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    week_targets, _ = TrainingWeekTarget.objects.get_or_create(
+        name="Geplande weektargets training"
+    )
+    if request.method == "POST" and request.POST.get("save_weektargets") == "1":
+        week_targets.monday = request.POST.get("target_monday", "")
+        week_targets.tuesday = request.POST.get("target_tuesday", "")
+        week_targets.wednesday = request.POST.get("target_wednesday", "")
+        week_targets.thursday = request.POST.get("target_thursday", "")
+        week_targets.friday = request.POST.get("target_friday", "")
+        week_targets.saturday = request.POST.get("target_saturday", "")
+        week_targets.sunday = request.POST.get("target_sunday", "")
+        week_targets.save()
+        messages.success(request, "Geplande weektargets opgeslagen!")
+        return redirect("training")
     rows = fetch_performance_rows("training")
 
     by_player = {}
@@ -1579,6 +1594,7 @@ def training(request):
         "training_data_json": training_data,
         "training_daily_data_json": day_buckets,
         "training_daily_range_label": f"{start_date.strftime('%d-%m-%Y')} t/m {end_date.strftime('%d-%m-%Y')}",
+        "week_targets": week_targets,
 
         "active_page": "training",
     }
@@ -2577,6 +2593,9 @@ def individueel_programma_opslaan(request, player_id):
         verbeterpunten = request.POST.get("verbeterpunten", "")
         plan_komende_periode = request.POST.get("plan_komende_periode", "")
         video_links = request.POST.get("video_links", "")
+        fysiek_ontwikkelpunt = request.POST.get("fysiek_ontwikkelpunt", "")
+        ontwikkelaanpak = request.POST.get("ontwikkelaanpak", "")
+        evaluatie_datum = request.POST.get("evaluatie_datum") or None
 
         programma = Programma.objects.create(
             player=player,
@@ -2585,6 +2604,9 @@ def individueel_programma_opslaan(request, player_id):
             verbeterpunten=verbeterpunten,
             plan_komende_periode=plan_komende_periode,
             video_links=video_links,
+            fysiek_ontwikkelpunt=fysiek_ontwikkelpunt,
+            ontwikkelaanpak=ontwikkelaanpak,
+            evaluatie_datum=evaluatie_datum,
         )
 
         exercises = zip(

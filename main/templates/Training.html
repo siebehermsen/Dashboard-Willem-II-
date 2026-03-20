@@ -70,6 +70,48 @@
     {% endif %}
 </section>
 
+{% if active_page == "training" %}
+<section class="card fade-in weektargets-card">
+    <div class="weektargets-header">
+        <div>
+            <h3>Geplande weektargets</h3>
+            <p class="subtext">Vul per dag de gewenste teamfocus of belastingdoelstelling in.</p>
+        </div>
+    </div>
+    <form method="post" class="weektargets-form">
+        {% csrf_token %}
+        <input type="hidden" name="save_weektargets" value="1">
+        <div class="weektargets-table-wrap">
+            <table class="weektargets-table">
+                <thead>
+                    <tr>
+                        <th>Maandag</th>
+                        <th>Dinsdag</th>
+                        <th>Woensdag</th>
+                        <th>Donderdag</th>
+                        <th>Vrijdag</th>
+                        <th>Zaterdag</th>
+                        <th>Zondag</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" name="target_monday" value="{{ week_targets.monday }}" placeholder="Bijv. load / inhoud"></td>
+                        <td><input type="text" name="target_tuesday" value="{{ week_targets.tuesday }}" placeholder="Bijv. load / inhoud"></td>
+                        <td><input type="text" name="target_wednesday" value="{{ week_targets.wednesday }}" placeholder="Bijv. load / inhoud"></td>
+                        <td><input type="text" name="target_thursday" value="{{ week_targets.thursday }}" placeholder="Bijv. load / inhoud"></td>
+                        <td><input type="text" name="target_friday" value="{{ week_targets.friday }}" placeholder="Bijv. load / inhoud"></td>
+                        <td><input type="text" name="target_saturday" value="{{ week_targets.saturday }}" placeholder="Bijv. load / inhoud"></td>
+                        <td><input type="text" name="target_sunday" value="{{ week_targets.sunday }}" placeholder="Bijv. load / inhoud"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <button type="submit" class="btn btn-primary weektargets-save">Weektargets opslaan</button>
+    </form>
+</section>
+{% endif %}
+
 
 <!-- SPELERSELECTIE -->
  {% if active_page == "training" %}
@@ -1490,6 +1532,55 @@ main.container {
     font-size: 1.4rem;
     font-weight: 700;
     color: #1f2a44;
+}
+
+.weektargets-card {
+    margin-bottom: 26px;
+}
+
+.weektargets-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.weektargets-table-wrap {
+    overflow-x: auto;
+}
+
+.weektargets-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 980px;
+}
+
+.weektargets-table th {
+    background: #0c2340;
+    color: #fff;
+    padding: 12px 10px;
+    font-size: 0.95rem;
+}
+
+.weektargets-table td {
+    background: #f8fbff;
+    border: 1px solid #e3e6ed;
+    border-top: none;
+    padding: 10px;
+}
+
+.weektargets-table input {
+    width: 100%;
+    min-width: 120px;
+    border: 1px solid #d8deea;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.weektargets-save {
+    margin-top: 16px;
 }
 
 /* =======================================================================

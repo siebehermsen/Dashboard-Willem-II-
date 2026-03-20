@@ -737,6 +737,9 @@ class Programma(models.Model):
     verbeterpunten = models.TextField(blank=True, null=True, verbose_name='Verbeterpunten')
     plan_komende_periode = models.TextField(blank=True, null=True, verbose_name='Plan komende periode')
     video_links = models.TextField(blank=True, null=True, verbose_name='Videolinks')
+    fysiek_ontwikkelpunt = models.TextField(blank=True, null=True, verbose_name='Fysiek ontwikkelpunt')
+    ontwikkelaanpak = models.TextField(blank=True, null=True, verbose_name='Hoe gaat de speler dit ontwikkelen')
+    evaluatie_datum = models.DateField(blank=True, null=True, verbose_name='Evaluatiedatum')
     created_at = models.DateTimeField(auto_now_add=True)
     player = models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='main.player', verbose_name='Speler')
 
@@ -902,6 +905,28 @@ class VakantieProgrammaEntry(models.Model):
         verbose_name = 'Vakantieprogramma item'
         verbose_name_plural = 'Vakantieprogramma items'
         ordering = ['-date', 'player']
+
+    def __str__(self):
+        return getattr(self, 'name', f'{self.__class__.__name__} {self.pk}')
+
+
+class TrainingWeekTarget(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    name = models.CharField(default='Geplande weektargets training', max_length=120)
+    monday = models.CharField(blank=True, default='', max_length=255, verbose_name='Maandag')
+    tuesday = models.CharField(blank=True, default='', max_length=255, verbose_name='Dinsdag')
+    wednesday = models.CharField(blank=True, default='', max_length=255, verbose_name='Woensdag')
+    thursday = models.CharField(blank=True, default='', max_length=255, verbose_name='Donderdag')
+    friday = models.CharField(blank=True, default='', max_length=255, verbose_name='Vrijdag')
+    saturday = models.CharField(blank=True, default='', max_length=255, verbose_name='Zaterdag')
+    sunday = models.CharField(blank=True, default='', max_length=255, verbose_name='Zondag')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Training weektarget'
+        verbose_name_plural = 'Training weektargets'
+        ordering = ['-updated_at']
 
     def __str__(self):
         return getattr(self, 'name', f'{self.__class__.__name__} {self.pk}')
