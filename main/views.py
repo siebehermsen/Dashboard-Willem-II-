@@ -3241,7 +3241,10 @@ def overig(request):
             },
         })
 
-    if page in {"fysiek-wetenschap", "ontwikkelingsgesprekken", "vakantieprogramma"}:
+    if page == "fysiek-wetenschap":
+        return redirect("/overig/")
+
+    if page in {"ontwikkelingsgesprekken", "vakantieprogramma"}:
         if request.method == "POST":
             section = request.POST.get("section")
             text = request.POST.get("text", "")
