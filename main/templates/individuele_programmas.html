@@ -96,13 +96,6 @@
     line-height: 1.7;
   }
 
-  .ind-grid {
-    display: grid;
-    grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
-    gap: 22px;
-    align-items: start;
-  }
-
   .ind-card {
     background: var(--ind-card);
     border: 1px solid rgba(22, 35, 63, 0.08);
@@ -326,12 +319,6 @@
     color: #20552b;
   }
 
-  @media (max-width: 1100px) {
-    .ind-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
   @media (max-width: 760px) {
     .ind-page-tabs {
       flex-direction: column;
@@ -382,74 +369,73 @@
     {% endfor %}
   {% endif %}
 
-  <div class="ind-grid">
-    <section class="ind-card">
-      <div class="ind-card-head">
-        <h2>Speler en aandachtspunt</h2>
-        <p>Koppel per speler een specifiek ontwikkelpunt aan een notitie voor vandaag.</p>
-      </div>
-      <div class="ind-card-body">
-        <form method="get" class="ind-form">
-          <div class="ind-field">
-            <label class="ind-label" for="player_id">Speler</label>
-            <select class="ind-select" id="player_id" name="player_id" onchange="this.form.submit()">
-              <option value="">Selecteer een speler</option>
-              {% for player in players %}
-                <option value="{{ player.id }}" {% if selected_player and player.id == selected_player.id %}selected{% endif %}>
-                  {{ player.name }}
-                </option>
-              {% endfor %}
-            </select>
+  <section class="ind-card" style="margin-bottom:22px;">
+    <div class="ind-card-head">
+      <h2>Speler en aandachtspunt</h2>
+      <p>Koppel per speler een specifiek ontwikkelpunt aan een notitie voor vandaag.</p>
+    </div>
+    <div class="ind-card-body">
+      <form method="get" class="ind-form">
+        <div class="ind-field">
+          <label class="ind-label" for="player_id">Speler</label>
+          <select class="ind-select" id="player_id" name="player_id" onchange="this.form.submit()">
+            <option value="">Selecteer een speler</option>
+            {% for player in players %}
+              <option value="{{ player.id }}" {% if selected_player and player.id == selected_player.id %}selected{% endif %}>
+                {{ player.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
+        <noscript>
+          <div class="ind-btn-row">
+            <button type="submit" class="ind-btn ind-btn-light">Laden</button>
           </div>
-          <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
-          <noscript>
-            <div class="ind-btn-row">
-              <button type="submit" class="ind-btn ind-btn-light">Laden</button>
-            </div>
-          </noscript>
+        </noscript>
+      </form>
+
+      {% if selected_player %}
+        <form method="post" class="ind-form" style="margin-top:18px;">
+          {% csrf_token %}
+          <input type="hidden" name="focus_tab" id="focus-tab-input" value="{{ focus_tab }}">
+
+          <div class="ind-field">
+            <span class="ind-label">Geselecteerde speler</span>
+            <div class="ind-current-focus">{{ selected_player.name }}</div>
+          </div>
+
+          <div class="ind-field">
+            <span class="ind-label">Specifiek aandachtspunt</span>
+            <div class="ind-current-focus" id="current-focus-label">{{ focus_tab_label }}</div>
+          </div>
+
+          <div class="ind-field">
+            <label class="ind-label" for="focus_note">Notitie</label>
+            <textarea class="ind-textarea" id="focus_note" name="focus_note" placeholder="Bijv. speler verliest houding in eerste 5 meter, extra focus op heupinzet en voorwaartse lijn...">{% if day_program %}{{ day_program.focus_note }}{% endif %}</textarea>
+            <p class="ind-help">De actieve tab hieronder wordt mee opgeslagen als aandachtspunt voor deze speler.</p>
+          </div>
+
+          <div class="ind-btn-row">
+            <button type="submit" name="save_focus_note" value="1" class="ind-btn">Aandachtspunt opslaan</button>
+          </div>
         </form>
+      {% else %}
+        <p class="ind-help" style="margin-top:18px;">Selecteer eerst een speler om een aandachtspunt en notitie op te slaan.</p>
+      {% endif %}
+    </div>
+  </section>
 
-        {% if selected_player %}
-          <form method="post" class="ind-form" style="margin-top:18px;">
-            {% csrf_token %}
-            <input type="hidden" name="focus_tab" id="focus-tab-input" value="{{ focus_tab }}">
+  <section>
+    <div class="ind-tab-nav" role="tablist" aria-label="Onderdelen individueel trainen">
+      <button class="ind-tab-btn {% if focus_tab == 'sprint-acceleratie' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'sprint-acceleratie' %}true{% else %}false{% endif %}" data-tab="sprint-acceleratie" data-label="Sprint Acceleratie & Posture">Sprint Acceleratie & Posture</button>
+      <button class="ind-tab-btn {% if focus_tab == 'hip-lock' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'hip-lock' %}true{% else %}false{% endif %}" data-tab="hip-lock" data-label="Hip Lock & Footplant">Hip Lock & Footplant</button>
+      <button class="ind-tab-btn {% if focus_tab == 'core-control' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'core-control' %}true{% else %}false{% endif %}" data-tab="core-control" data-label="Core Control & Armcontrole">Core Control & Armcontrole</button>
+      <button class="ind-tab-btn {% if focus_tab == 'cod' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'cod' %}true{% else %}false{% endif %}" data-tab="cod" data-label="CoD - Remmen, Posture & Heraccelereren">CoD - Remmen, Posture & Heraccelereren</button>
+      <button class="ind-tab-btn {% if focus_tab == 'specifieke-hip-lock-cod' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'specifieke-hip-lock-cod' %}true{% else %}false{% endif %}" data-tab="specifieke-hip-lock-cod" data-label="Specifieke Hip Lock CoD-vorm">Specifieke Hip Lock CoD-vorm</button>
+    </div>
 
-            <div class="ind-field">
-              <span class="ind-label">Geselecteerde speler</span>
-              <div class="ind-current-focus">{{ selected_player.name }}</div>
-            </div>
-
-            <div class="ind-field">
-              <span class="ind-label">Specifiek aandachtspunt</span>
-              <div class="ind-current-focus" id="current-focus-label">{{ focus_tab_label }}</div>
-            </div>
-
-            <div class="ind-field">
-              <label class="ind-label" for="focus_note">Notitie</label>
-              <textarea class="ind-textarea" id="focus_note" name="focus_note" placeholder="Bijv. speler verliest houding in eerste 5 meter, extra focus op heupinzet en voorwaartse lijn...">{% if day_program %}{{ day_program.focus_note }}{% endif %}</textarea>
-              <p class="ind-help">De actieve tab hieronder wordt mee opgeslagen als aandachtspunt voor deze speler.</p>
-            </div>
-
-            <div class="ind-btn-row">
-              <button type="submit" name="save_focus_note" value="1" class="ind-btn">Aandachtspunt opslaan</button>
-            </div>
-          </form>
-        {% else %}
-          <p class="ind-help" style="margin-top:18px;">Selecteer eerst een speler om een aandachtspunt en notitie op te slaan.</p>
-        {% endif %}
-      </div>
-    </section>
-
-    <section>
-      <div class="ind-tab-nav" role="tablist" aria-label="Onderdelen individueel trainen">
-        <button class="ind-tab-btn {% if focus_tab == 'sprint-acceleratie' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'sprint-acceleratie' %}true{% else %}false{% endif %}" data-tab="sprint-acceleratie" data-label="Sprint Acceleratie & Posture">Sprint Acceleratie & Posture</button>
-        <button class="ind-tab-btn {% if focus_tab == 'hip-lock' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'hip-lock' %}true{% else %}false{% endif %}" data-tab="hip-lock" data-label="Hip Lock & Footplant">Hip Lock & Footplant</button>
-        <button class="ind-tab-btn {% if focus_tab == 'core-control' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'core-control' %}true{% else %}false{% endif %}" data-tab="core-control" data-label="Core Control & Armcontrole">Core Control & Armcontrole</button>
-        <button class="ind-tab-btn {% if focus_tab == 'cod' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'cod' %}true{% else %}false{% endif %}" data-tab="cod" data-label="CoD - Remmen, Posture & Heraccelereren">CoD - Remmen, Posture & Heraccelereren</button>
-        <button class="ind-tab-btn {% if focus_tab == 'specifieke-hip-lock-cod' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'specifieke-hip-lock-cod' %}true{% else %}false{% endif %}" data-tab="specifieke-hip-lock-cod" data-label="Specifieke Hip Lock CoD-vorm">Specifieke Hip Lock CoD-vorm</button>
-      </div>
-
-      <article class="ind-card ind-content-card {% if focus_tab == 'sprint-acceleratie' %}is-active{% endif %}" data-panel="sprint-acceleratie">
+    <article class="ind-card ind-content-card {% if focus_tab == 'sprint-acceleratie' %}is-active{% endif %}" data-panel="sprint-acceleratie">
         <div class="ind-card-head">
           <h3>Sprint Acceleratie & Posture</h3>
           <p>Technische focus om spelers beter in hun val- en versnellingspositie te houden.</p>
@@ -481,9 +467,9 @@
             </div>
           </div>
         </div>
-      </article>
+    </article>
 
-      <article class="ind-card ind-content-card {% if focus_tab == 'hip-lock' %}is-active{% endif %}" data-panel="hip-lock">
+    <article class="ind-card ind-content-card {% if focus_tab == 'hip-lock' %}is-active{% endif %}" data-panel="hip-lock">
         <div class="ind-card-head">
           <h3>Hip Lock & Footplant</h3>
           <p>Oefenvormen voor kniepositie, scheenspanning, landing en het organiseren van contact met de grond.</p>
@@ -508,9 +494,9 @@
             </ul>
           </div>
         </div>
-      </article>
+    </article>
 
-      <article class="ind-card ind-content-card {% if focus_tab == 'core-control' %}is-active{% endif %}" data-panel="core-control">
+    <article class="ind-card ind-content-card {% if focus_tab == 'core-control' %}is-active{% endif %}" data-panel="core-control">
         <div class="ind-card-head">
           <h3>Core Control & Armcontrole</h3>
           <p>Extra interventies om rompsturing, natuurlijke hoeken en armactie in de sprint te verbeteren.</p>
@@ -539,9 +525,9 @@
             </ul>
           </div>
         </div>
-      </article>
+    </article>
 
-      <article class="ind-card ind-content-card {% if focus_tab == 'cod' %}is-active{% endif %}" data-panel="cod">
+    <article class="ind-card ind-content-card {% if focus_tab == 'cod' %}is-active{% endif %}" data-panel="cod">
         <div class="ind-card-head">
           <h3>CoD - Remmen, Posture & Heraccelereren</h3>
           <p>Praktische coachpunten om spelers efficienter te laten vertragen, laden en opnieuw te laten versnellen.</p>
@@ -565,9 +551,9 @@
             </ul>
           </div>
         </div>
-      </article>
+    </article>
 
-      <article class="ind-card ind-content-card {% if focus_tab == 'specifieke-hip-lock-cod' %}is-active{% endif %}" data-panel="specifieke-hip-lock-cod">
+    <article class="ind-card ind-content-card {% if focus_tab == 'specifieke-hip-lock-cod' %}is-active{% endif %}" data-panel="specifieke-hip-lock-cod">
         <div class="ind-card-head">
           <h3>Specifieke Hip Lock CoD-vorm</h3>
           <p>Concrete veldvorm om rembeen, buitenste been en herplaatsing over een lijn te trainen.</p>
@@ -589,9 +575,8 @@
             </div>
           </div>
         </div>
-      </article>
-    </section>
-  </div>
+    </article>
+  </section>
 </div>
 
 <script>
