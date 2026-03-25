@@ -2518,6 +2518,16 @@ def individuele_programmas(request):
 
     # Haal geselecteerde speler uit URL parameters
     player_id = request.GET.get("player_id")
+    focus_tab = (request.GET.get("focus_tab") or "sprint-acceleratie").strip().lower()
+    focus_tab_options = {
+        "sprint-acceleratie": "Sprint Acceleratie & Posture",
+        "hip-lock": "Hip Lock & Footplant",
+        "core-control": "Core Control & Armcontrole",
+        "cod": "CoD - Remmen, Posture & Heraccelereren",
+        "specifieke-hip-lock-cod": "Specifieke Hip Lock CoD-vorm",
+    }
+    if focus_tab not in focus_tab_options:
+        focus_tab = "sprint-acceleratie"
     selected_player = None
     programma = None
     oefeningen = []
@@ -2580,10 +2590,33 @@ def individuele_programmas(request):
             note_type_ref=remarks_type_obj,
             defaults={"content": ""},
         )
+        focus_area_type_obj, _ = IndividualDayPlanNoteType.objects.get_or_create(
+            code="focus_area",
+            defaults={"label": "Aandachtspunt tab"},
+        )
+        focus_area_note, _ = IndividualDayPlanNote.objects.get_or_create(
+            plan=plan,
+            note_type_ref=focus_area_type_obj,
+            defaults={"content": ""},
+        )
+        focus_note_type_obj, _ = IndividualDayPlanNoteType.objects.get_or_create(
+            code="focus_note",
+            defaults={"label": "Aandachtspunt notitie"},
+        )
+        focus_note, _ = IndividualDayPlanNote.objects.get_or_create(
+            plan=plan,
+            note_type_ref=focus_note_type_obj,
+            defaults={"content": ""},
+        )
+        saved_focus_tab = (focus_area_note.content or "").strip().lower()
+        if saved_focus_tab in focus_tab_options and "focus_tab" not in request.GET:
+            focus_tab = saved_focus_tab
         day_program = SimpleNamespace(
             date=plan.date,
             program_text=note.content,
             opmerkingen=remarks_note.content,
+            focus_tab=focus_tab,
+            focus_note=focus_note.content,
         )
 
         # Laatste individuele programma ophalen
@@ -2612,7 +2645,17 @@ def individuele_programmas(request):
                 note.content = request.POST.get("program_text", "")
                 note.save(update_fields=["content", "updated_at"])
                 messages.success(request, "Dagprogramma opgeslagen!")
-            return redirect(f"/individuele_programmas/?player_id={player_id}")
+            elif "save_focus_note" in request.POST:
+                posted_focus_tab = (request.POST.get("focus_tab") or focus_tab).strip().lower()
+                if posted_focus_tab not in focus_tab_options:
+                    posted_focus_tab = focus_tab
+                focus_area_note.content = posted_focus_tab
+                focus_area_note.save(update_fields=["content", "updated_at"])
+                focus_note.content = request.POST.get("focus_note", "")
+                focus_note.save(update_fields=["content", "updated_at"])
+                messages.success(request, "Aandachtspunt opgeslagen!")
+                focus_tab = posted_focus_tab
+            return redirect(f"/individuele_programmas/?player_id={player_id}&focus_tab={focus_tab}")
 
     context = {
         "players": players,
@@ -2621,6 +2664,9 @@ def individuele_programmas(request):
         "programma": programma,
         "oefeningen": oefeningen,
         "video_previews": video_previews,
+        "focus_tab": focus_tab,
+        "focus_tab_options": focus_tab_options,
+        "focus_tab_label": focus_tab_options.get(focus_tab, "Sprint Acceleratie & Posture"),
     }
 
     return render(request, "individuele_programmas.html", context)
