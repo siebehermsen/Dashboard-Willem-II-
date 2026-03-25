@@ -1,575 +1,543 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Individueel trainen | Willem II{% endblock %}
+
 {% block content %}
-
 <style>
-  .page-title {
-    color: #b60000;
-    font-weight: 700;
-    margin-bottom: 6px;
+  :root {
+    --ind-bg: #f3f5fb;
+    --ind-ink: #13213d;
+    --ind-navy: #1f2a44;
+    --ind-navy-deep: #121b30;
+    --ind-red: #b60000;
+    --ind-red-bright: #d71920;
+    --ind-white: #ffffff;
+    --ind-muted: #5f6d85;
+    --ind-line: rgba(19, 33, 61, 0.12);
+    --ind-shadow: 0 20px 45px rgba(13, 23, 43, 0.12);
+    --ind-radius-xl: 28px;
+    --ind-radius-lg: 20px;
   }
 
-  .subtitle {
-    color: #444;
-    margin-bottom: 20px;
+  .ind-page {
+    max-width: 1380px;
+    margin: 0 auto;
+    color: var(--ind-ink);
   }
 
-  .page-tabs {
+  .ind-page-tabs {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
     margin-bottom: 18px;
   }
 
-  .page-tab {
+  .ind-page-tab {
     display: inline-flex;
     align-items: center;
     min-height: 40px;
     padding: 0 16px;
     border-radius: 999px;
-    border: 1px solid #cfd7e3;
-    background: #f4f7fb;
-    color: #0c2340;
+    border: 1px solid #c8d2e6;
+    background: #eef2fa;
+    color: var(--ind-navy);
     text-decoration: none;
     font-weight: 700;
     transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   }
 
-  .page-tab:hover {
-    background: #e8eef6;
+  .ind-page-tab:hover {
+    background: #e4ebf8;
   }
 
-  .page-tab.is-active {
-    background: #0c2340;
-    color: #fff;
-    border-color: #0c2340;
+  .ind-page-tab.is-active {
+    background: var(--ind-navy);
+    color: var(--ind-white);
+    border-color: var(--ind-navy);
   }
 
-  .card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 10px 24px rgba(12, 35, 64, 0.08);
-    padding: 24px;
-    margin-bottom: 24px;
+  .ind-hero {
+    position: relative;
+    overflow: hidden;
+    min-height: 250px;
+    padding: 32px 36px;
+    border-radius: 32px;
+    background:
+      radial-gradient(circle at 84% 18%, rgba(255, 255, 255, 0.16), transparent 20%),
+      radial-gradient(circle at 16% 78%, rgba(255, 255, 255, 0.09), transparent 28%),
+      linear-gradient(118deg, rgba(14, 21, 39, 0.98) 0%, rgba(30, 42, 74, 0.95) 38%, rgba(182, 0, 0, 0.92) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: var(--ind-shadow);
   }
 
-  .section-title {
-    color: #0c2340;
-    font-size: 2rem;
-    margin: 0 0 14px;
+  .ind-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.22));
+    pointer-events: none;
   }
 
-  .player-list {
+  .ind-hero-content,
+  .ind-hero-logo {
+    position: relative;
+    z-index: 1;
+  }
+
+  .ind-hero-logo {
+    position: absolute;
+    top: 26px;
+    right: 28px;
+    width: 108px;
+    height: 108px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 16px;
+    place-items: center;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(8px);
   }
 
-  .player-item {
-    background: #f7f7f7;
-    border-radius: 12px;
-    text-align: center;
-    padding: 14px;
-    border-left: 4px solid #0c2340;
-    transition: 0.2s;
-    cursor: pointer;
-  }
-
-  .player-item:hover {
-    background: #eef3f8;
-    transform: translateY(-2px);
-  }
-
-  .player-name {
-    font-weight: 600;
-    margin-top: 8px;
-  }
-
-  .profile-card {
-    text-align: center;
-  }
-
-  .profile-card img {
-    width: 130px;
-    height: 130px;
-    border-radius: 50%;
-    border: 3px solid #b60000;
-    object-fit: cover;
-  }
-
-  .profile-card h3 {
-    margin: 12px 0 0;
-    color: #0c2340;
-  }
-
-  .info-title {
-    color: #0c2340;
-    margin: 0 0 14px;
-    font-size: 1.9rem;
-  }
-
-  .field-label {
+  .ind-hero-logo img {
+    width: 74px;
+    height: auto;
     display: block;
-    font-weight: 700;
-    color: #0c2340;
-    margin-bottom: 6px;
   }
 
-  .field-help {
-    color: #5c6e86;
-    font-size: 0.95rem;
-    margin: -2px 0 12px;
-  }
-
-  textarea,
-  input,
-  select {
-    width: 100%;
-    border: 1px solid #cfd7e3;
-    padding: 10px 12px;
-    border-radius: 10px;
-    margin-top: 4px;
-    font-size: 15px;
-    background: #fff;
-  }
-
-  textarea {
-    resize: vertical;
-  }
-
-  .btn-primary,
-  .btn-danger {
-    border: none;
-    padding: 10px 18px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 700;
-    color: #fff;
-  }
-
-  .btn-primary {
-    background: #0c2340;
-  }
-
-  .btn-primary:hover {
-    background: #153a6e;
-  }
-
-  .btn-danger {
-    background: #b60000;
-  }
-
-  .btn-danger:hover {
-    background: #910000;
-  }
-
-  .button-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 16px;
-  }
-
-  .section-stack {
-    display: grid;
-    gap: 24px;
-  }
-
-  .inner-tabs {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-
-  .inner-tab {
-    border: 1px solid #cfd7e3;
-    background: #f4f7fb;
-    color: #0c2340;
+  .ind-eyebrow,
+  .ind-player-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 38px;
+    padding: 0 16px;
     border-radius: 999px;
-    padding: 12px 20px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s ease;
+    color: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(8px);
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 800;
   }
 
-  .inner-tab.is-active {
-    background: #0c2340;
-    color: #fff;
-    border-color: #0c2340;
-    box-shadow: 0 8px 18px rgba(12, 35, 64, 0.18);
+  .ind-player-chip {
+    margin-left: 10px;
   }
 
-  .tab-panel {
-    display: none;
+  .ind-hero h1 {
+    max-width: 760px;
+    margin: 18px 0 14px;
+    color: var(--ind-white);
+    font-size: clamp(2.5rem, 4vw, 4.4rem);
+    line-height: 0.94;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
   }
 
-  .tab-panel.is-active {
-    display: block;
+  .ind-subtitle {
+    max-width: 780px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.05rem;
+    line-height: 1.7;
   }
 
-  .sub-card {
-    background: #f8fbff;
-    border: 1px solid #dbe5f0;
-    border-radius: 14px;
-    padding: 18px;
-  }
-
-  .sub-card h4 {
-    margin: 0 0 12px;
-    color: #0c2340;
-    font-size: 1.25rem;
-  }
-
-  .video-preview-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-top: 18px;
-  }
-
-  .video-preview-card {
-    border: 1px solid #dbe5f0;
-    border-radius: 14px;
-    padding: 14px;
-    background: #fff;
-  }
-
-  .video-preview-card iframe,
-  .video-preview-card video {
-    width: 100%;
-    height: 220px;
-    border: 0;
-    border-radius: 10px;
-    background: #111;
-  }
-
-  .video-preview-link {
-    display: inline-block;
-    margin-top: 10px;
-    color: #0c2340;
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .video-preview-link:hover {
-    text-decoration: underline;
-  }
-
-  .exercise-builder {
-    display: grid;
-    gap: 14px;
-    margin-top: 12px;
-  }
-
-  .exercise-row {
-    display: grid;
-    grid-template-columns: 1.35fr 0.8fr 0.55fr 0.8fr 1.35fr;
+  .ind-tab-nav {
+    display: flex;
+    flex-wrap: wrap;
     gap: 12px;
-    align-items: end;
-    background: #fff;
-    border: 1px solid #dbe5f0;
-    border-radius: 14px;
-    padding: 14px;
+    margin: 28px 0 18px;
   }
 
-  .exercise-field label {
+  .ind-tab-btn {
+    appearance: none;
+    border: 1px solid rgba(31, 42, 68, 0.12);
+    border-radius: 999px;
+    padding: 12px 18px;
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--ind-navy);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    box-shadow: 0 8px 18px rgba(13, 23, 43, 0.04);
+  }
+
+  .ind-tab-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(31, 42, 68, 0.24);
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  .ind-tab-btn.is-active {
+    background: linear-gradient(135deg, var(--ind-red), var(--ind-red-bright));
+    color: var(--ind-white);
+    border-color: rgba(255, 255, 255, 0.18);
+    box-shadow: 0 14px 28px rgba(182, 0, 0, 0.2);
+  }
+
+  .ind-panel-grid {
     display: block;
-    color: #48617f;
-    font-size: 0.9rem;
-    font-weight: 700;
-    margin-bottom: 6px;
   }
 
-  .exercise-field input {
-    margin-top: 0;
+  .ind-card {
+    display: none;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--ind-radius-xl);
+    overflow: hidden;
+    box-shadow: var(--ind-shadow);
+    backdrop-filter: blur(10px);
   }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 12px;
+  .ind-card.is-active {
+    display: block;
   }
 
-  th {
-    background: #0c2340;
-    color: white;
-    padding: 10px 8px;
+  .ind-card-header {
+    padding: 24px 26px 18px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(245, 247, 252, 0.76));
+    border-bottom: 1px solid var(--ind-line);
   }
 
-  td {
-    padding: 8px 6px;
-    border-bottom: 1px solid #ddd;
+  .ind-card-header h3 {
+    margin: 0 0 8px;
+    font-size: 1.45rem;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: var(--ind-navy);
   }
 
-  .alert-success {
-    background: #e6ffe6;
-    border: 1px solid #4caf50;
-    padding: 10px;
-    color: #145214;
-    border-radius: 8px;
-    margin-bottom: 15px;
+  .ind-card-header p {
+    margin: 0;
+    color: var(--ind-muted);
+    line-height: 1.65;
+    max-width: 760px;
   }
 
-  .saved-program-list {
-    margin: 18px 0 0;
+  .ind-section-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    padding: 24px;
+  }
+
+  .ind-section-grid.ind-single {
+    grid-template-columns: 1fr;
+  }
+
+  .ind-section {
+    min-height: 100%;
+    padding: 22px;
+    border-radius: var(--ind-radius-lg);
+    background: linear-gradient(180deg, #ffffff, #f7f9fd);
+    border: 1px solid rgba(31, 42, 68, 0.09);
+  }
+
+  .ind-tag {
+    display: inline-block;
+    margin-bottom: 14px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: var(--ind-white);
+    background: linear-gradient(135deg, var(--ind-red), var(--ind-red-bright));
+    box-shadow: 0 10px 18px rgba(182, 0, 0, 0.14);
+  }
+
+  .ind-section h4 {
+    margin: 0 0 12px;
+    font-size: 1.08rem;
+    letter-spacing: -0.01em;
+    color: var(--ind-navy);
+  }
+
+  .ind-section ul {
+    margin: 0;
     padding-left: 18px;
   }
 
-  .saved-program-list li {
-    margin-bottom: 8px;
-    color: #213754;
+  .ind-section li {
+    margin: 0 0 10px;
+    line-height: 1.65;
+    color: #253552;
   }
 
-  @media (max-width: 980px) {
-    .exercise-row {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+  .ind-section li strong {
+    color: var(--ind-navy-deep);
+  }
+
+  .ind-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .ind-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: rgba(31, 42, 68, 0.06);
+    border: 1px solid rgba(31, 42, 68, 0.1);
+    color: var(--ind-navy);
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 1080px) {
+    .ind-hero {
+      padding: 28px;
     }
-  }
 
-  @media (max-width: 680px) {
-    .exercise-row {
+    .ind-hero-logo {
+      position: static;
+      margin-bottom: 16px;
+    }
+
+    .ind-section-grid {
       grid-template-columns: 1fr;
     }
   }
 
+  @media (max-width: 700px) {
+    .ind-page-tabs,
+    .ind-tab-nav {
+      flex-direction: column;
+    }
+
+    .ind-player-chip {
+      margin-top: 10px;
+      margin-left: 0;
+    }
+
+    .ind-hero {
+      padding: 24px 20px;
+      border-radius: 24px;
+    }
+
+    .ind-card {
+      border-radius: 22px;
+    }
+
+    .ind-card-header,
+    .ind-section-grid {
+      padding-left: 18px;
+      padding-right: 18px;
+    }
+
+    .ind-section {
+      padding: 18px;
+    }
+  }
 </style>
 
-<div class="page-tabs" role="tablist" aria-label="Individueel navigatie">
-  <a href="{% url 'beweeganalyse' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}" class="page-tab">Beweeganalyse</a>
-  <a href="{% url 'individuele_programmas' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}" class="page-tab is-active" aria-current="page">Individueel trainen</a>
+<div class="ind-page">
+  <div class="ind-page-tabs" role="tablist" aria-label="Individueel navigatie">
+    <a href="{% url 'beweeganalyse' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}" class="ind-page-tab">Beweeganalyse</a>
+    <a href="{% url 'individuele_programmas' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}" class="ind-page-tab is-active" aria-current="page">Individueel trainen</a>
+  </div>
+
+  <section class="ind-hero">
+    <div class="ind-hero-logo">
+      <img src="{% static 'icons/Willem2-logo.png' %}" alt="Willem II logo">
+    </div>
+
+    <div class="ind-hero-content">
+      <span class="ind-eyebrow">Willem II Academy</span>
+      {% if selected_player %}
+        <span class="ind-player-chip">Speler: {{ selected_player.name }}</span>
+      {% endif %}
+      <h1>Individuele Sprint-<br>en CoD-ontwikkeling</h1>
+      <p class="ind-subtitle">
+        Praktische coachpunten en oefenvormen voor acceleratie, hip lock, footplant, core control en change of direction.
+        De inhoud hieronder is opgezet als snelle werkpagina om tijdens het trainen direct tussen technische thema's te wisselen.
+      </p>
+    </div>
+  </section>
+
+  <section class="ind-tab-nav" role="tablist" aria-label="Onderdelen individueel trainen">
+    <button class="ind-tab-btn is-active" type="button" role="tab" aria-selected="true" data-tab="sprint-acceleratie">Sprint Acceleratie & Posture</button>
+    <button class="ind-tab-btn" type="button" role="tab" aria-selected="false" data-tab="hip-lock">Hip Lock & Footplant</button>
+    <button class="ind-tab-btn" type="button" role="tab" aria-selected="false" data-tab="core-control">Core Control & Armcontrole</button>
+    <button class="ind-tab-btn" type="button" role="tab" aria-selected="false" data-tab="cod">CoD - Remmen, Posture & Heraccelereren</button>
+    <button class="ind-tab-btn" type="button" role="tab" aria-selected="false" data-tab="specifieke-hip-lock-cod">Specifieke Hip Lock CoD-vorm</button>
+  </section>
+
+  <section class="ind-panel-grid">
+    <article class="ind-card is-active" data-panel="sprint-acceleratie">
+      <div class="ind-card-header">
+        <h3>Sprint Acceleratie & Posture</h3>
+        <p>Technische focus om spelers beter in hun val- en versnellingspositie te houden.</p>
+      </div>
+      <div class="ind-section-grid">
+        <div class="ind-section">
+          <span class="ind-tag">Posture</span>
+          <ul>
+            <li><strong>Hip thrust-variant:</strong> nadruk op krachtige heupinzet als basis voor acceleratie.</li>
+            <li><strong>Resisted sprint met explosieve heupinzet:</strong> leer spelers actief vanuit de heup te versnellen.</li>
+            <li><strong>Posterior pelvic tilt:</strong> buikspanning en oblique-spanning organiseren voor betere romppositie.</li>
+            <li><strong>Weerstandspositie vasthouden:</strong> resisted sprint even statisch vasthouden in ideaal postuur.</li>
+            <li><strong>Naar voren blijven:</strong> speler mag in de beginfase niet te vroeg oprichten.</li>
+            <li><strong>Stok boven het hoofd:</strong> lijn blijven volgen en niet eerder omhoog komen dan gewenst.</li>
+            <li><strong>Zonder stok eindigen:</strong> terug naar de normale beweegvorm nadat de houding is aangeleerd.</li>
+          </ul>
+        </div>
+        <div class="ind-section">
+          <span class="ind-tag">Valmoment</span>
+          <ul>
+            <li><strong>Fall in-acceleratie:</strong> leer eerst vallen, daarna pas versnellen.</li>
+            <li><strong>Rondjoggen naar valvorm:</strong> vanuit rustig bewegen direct in de juiste acceleratiehoek terechtkomen.</li>
+            <li><strong>Verschillende richtingen:</strong> laat spelers deze overgang maken vanuit voorwaartse, zijwaartse en schuine invalshoeken.</li>
+          </ul>
+          <div class="ind-pill-row">
+            <span class="ind-pill">Heupinzet</span>
+            <span class="ind-pill">Valhoek</span>
+            <span class="ind-pill">Lichaamslijn</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="ind-card" data-panel="hip-lock">
+      <div class="ind-card-header">
+        <h3>Hip Lock & Footplant</h3>
+        <p>Oefenvormen voor kniepositie, scheenspanning, landing en het organiseren van contact met de grond.</p>
+      </div>
+      <div class="ind-section-grid">
+        <div class="ind-section">
+          <span class="ind-tag">Hip Lock</span>
+          <ul>
+            <li><strong>Wall drills:</strong> basis voor kniepositie, romphoek en actieve voet.</li>
+            <li><strong>Bounding:</strong> focus op lang in de lucht blijven en landing bewust uitstellen.</li>
+            <li><strong>Resisted sprints:</strong> extra nadruk op het vasthouden van de hip lock-positie tijdens acceleratie.</li>
+          </ul>
+        </div>
+        <div class="ind-section">
+          <span class="ind-tag">Footplant</span>
+          <ul>
+            <li><strong>Meer scheenspanning in de beginfase:</strong> de teen moet actief en "aan" zijn.</li>
+            <li><strong>Droog oefenen van acceleratie:</strong> eerst zonder maximale snelheid focussen op voetplaatsing.</li>
+            <li><strong>Bounding starts vanuit stilstand:</strong> langere contacttijd als opstap naar uiteindelijk kortere contacttijd.</li>
+            <li><strong>Op de tenen blijven:</strong> voortdurend aandacht voor een actieve, stijve enkel.</li>
+            <li><strong>Pogo jumps in verschillende richtingen:</strong> geschikt richting de eindfase van sprintontwikkeling.</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <article class="ind-card" data-panel="core-control">
+      <div class="ind-card-header">
+        <h3>Core Control & Armcontrole</h3>
+        <p>Extra interventies om rompsturing, natuurlijke hoeken en armactie in de sprint te verbeteren.</p>
+      </div>
+      <div class="ind-section-grid">
+        <div class="ind-section">
+          <span class="ind-tag">Core Control</span>
+          <ul>
+            <li><strong>Stok boven je hoofd:</strong> speler leert spanning houden zonder in een verkeerde eindpositie te komen.</li>
+            <li><strong>Farmer carries:</strong> controle van romp, bekken en stapritme onder belasting.</li>
+            <li><strong>Bal tegen het lichaam aan vasthouden:</strong> ondersteunt een natuurlijkere 12:05-houding.</li>
+            <li><strong>Transfer terug naar vrije beweging:</strong> na de constraint weer sprinten zonder hulpmiddel.</li>
+          </ul>
+          <div class="ind-pill-row">
+            <span class="ind-pill">Rompstijfheid</span>
+            <span class="ind-pill">Buikspanning</span>
+            <span class="ind-pill">Natuurlijke houding</span>
+          </div>
+        </div>
+        <div class="ind-section">
+          <span class="ind-tag">Armcontrole</span>
+          <ul>
+            <li><strong>Gewichtjes vasthouden:</strong> maakt armactie bewust en gecontroleerd.</li>
+            <li><strong>Hesjes onder de oksels:</strong> mogen in de eerste 10 meter niet vallen; daarna wel.</li>
+            <li><strong>Doel:</strong> armactie compact houden zonder overmatige zijwaartse beweging.</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <article class="ind-card" data-panel="cod">
+      <div class="ind-card-header">
+        <h3>CoD - Remmen, Posture & Heraccelereren</h3>
+        <p>Praktische coachpunten om spelers efficiënter te laten vertragen, laden en opnieuw te laten versnellen.</p>
+      </div>
+      <div class="ind-section-grid">
+        <div class="ind-section">
+          <span class="ind-tag">Posture in CoD</span>
+          <ul>
+            <li><strong>Posture in meerdere richtingen:</strong> van achter naar voren, zijwaarts en voorwaarts organiseren.</li>
+            <li><strong>Snel hoogteverschil creëren:</strong> op het laatste moment zo snel mogelijk zakken.</li>
+            <li><strong>Lineair remmen en weer versnellen:</strong> eventueel met weerstandsbanden toevoegen.</li>
+          </ul>
+        </div>
+        <div class="ind-section">
+          <span class="ind-tag">Valmoment & Rembeen</span>
+          <ul>
+            <li><strong>Valmoment over een stok:</strong> stimuleert juiste gewichtplaatsing op het rembeen.</li>
+            <li><strong>Kruispas maken:</strong> daarna been op 90 graden neerzetten voor controle in de remfase.</li>
+            <li><strong>Eventueel bal op het been:</strong> om voet- en beenpositie nog duidelijker af te dwingen.</li>
+            <li><strong>Impliciet trainen:</strong> in spelvorm op een reactiemoment het valmoment oproepen.</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <article class="ind-card" data-panel="specifieke-hip-lock-cod">
+      <div class="ind-card-header">
+        <h3>Specifieke Hip Lock CoD-vorm</h3>
+        <p>Concrete veldvorm om rembeen, buitenste been en herplaatsing over een lijn te trainen.</p>
+      </div>
+      <div class="ind-section-grid ind-single">
+        <div class="ind-section">
+          <span class="ind-tag">Oefenvorm</span>
+          <ul>
+            <li>Speler remt met het <strong>rembeen vóór de lijn</strong> met pionnen.</li>
+            <li>Daarna stapt de speler met het <strong>buitenste been over de lijn</strong>.</li>
+            <li>Vóór het opnieuw plaatsen van de voet brengt hij zijn <strong>rembeen ook over de lijn</strong>.</li>
+            <li>Coaching ligt op <strong>controle in het remmoment</strong>, <strong>hip lock in de overgang</strong> en daarna <strong>snel opnieuw versnellen</strong>.</li>
+          </ul>
+          <div class="ind-pill-row">
+            <span class="ind-pill">Rembeencontrole</span>
+            <span class="ind-pill">Buitenste been actief</span>
+            <span class="ind-pill">Snelle herplaatsing</span>
+            <span class="ind-pill">Explosieve re-acceleratie</span>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
 </div>
 
-<h2 class="page-title">Individueel</h2>
-<p class="subtitle">Selecteer een speler om een dagprogramma of individueel krachtprogramma te bekijken of te maken.</p>
-
-<hr>
-
-{% if messages %}
-  {% for message in messages %}
-    <div class="alert-success">{{ message }}</div>
-  {% endfor %}
-{% endif %}
-
-{% if not selected_player %}
-  <div class="card">
-    <h3 class="section-title">Kies een speler</h3>
-    <div class="player-list">
-      {% for player in players %}
-        <a href="?player_id={{ player.id }}" style="text-decoration:none; color:inherit;">
-          <div class="player-item">
-            <img src="{% if player.image %}{{ player.image.url }}{% else %}/static/images/default_player.png{% endif %}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #b60000;">
-            <div class="player-name">{{ player.name }}</div>
-          </div>
-        </a>
-      {% endfor %}
-    </div>
-  </div>
-{% endif %}
-
-{% if selected_player %}
-  <div class="card profile-card">
-    <img src="{% if selected_player.image %}{{ selected_player.image.url }}{% else %}/static/images/default_player.png{% endif %}">
-    <h3>{{ selected_player.name }}</h3>
-  </div>
-
-  <div class="card">
-    <h3 class="info-title">Opmerkingen ({{ day_program.date }})</h3>
-    <form method="POST">
-      {% csrf_token %}
-      <label class="field-label" for="remarks_text">Opmerkingen</label>
-      <textarea id="remarks_text" name="remarks_text" rows="3" placeholder="Voeg hier algemene opmerkingen toe voor deze dag...">{{ day_program.opmerkingen }}</textarea>
-      <div class="button-row">
-        <button class="btn-primary" type="submit" name="save_remarks" value="1">Opmerkingen opslaan</button>
-      </div>
-    </form>
-  </div>
-
-  <div class="card">
-    <h3 class="info-title">Dagprogramma ({{ day_program.date }})</h3>
-    <form method="POST">
-      {% csrf_token %}
-      <label class="field-label" for="program_text">Dagprogramma</label>
-      <textarea id="program_text" name="program_text" rows="6" placeholder="Schrijf hier het dagprogramma...">{{ day_program.program_text }}</textarea>
-      <div class="button-row">
-        <button class="btn-primary" type="submit" name="save_program" value="1">Dagprogramma opslaan</button>
-      </div>
-    </form>
-  </div>
-
-  <form method="POST" action="{% url 'individueel_programma_opslaan' selected_player.id %}">
-    {% csrf_token %}
-
-    <div class="section-stack">
-      <div class="inner-tabs" role="tablist" aria-label="Individueel tabs">
-        <button type="button" class="inner-tab is-active" data-tab-target="krachtprogramma">Individueel krachtprogramma</button>
-        <button type="button" class="inner-tab" data-tab-target="beelden">Beelden bekijken</button>
-        <button type="button" class="inner-tab" data-tab-target="ontwikkelpunt">Fysiek ontwikkelpunt</button>
-      </div>
-
-      <div id="tab-krachtprogramma" class="tab-panel is-active">
-        <div class="card">
-          <h3 class="info-title">Individueel krachtprogramma</h3>
-          <label class="field-label" for="doel">Doel van het programma</label>
-          <textarea id="doel" name="doel" rows="3" placeholder="Omschrijf het doel van het krachtprogramma...">{% if programma and programma.doel %}{{ programma.doel }}{% endif %}</textarea>
-
-          <div class="sub-card" style="margin-top:20px;">
-            <h4>Oefeningen</h4>
-            <p class="field-help">Voeg per oefening rustig de inhoud, duur, intensiteit en aandachtspunten toe.</p>
-            <div id="exercise-table" class="exercise-builder">
-              <div class="exercise-row">
-                <div class="exercise-field">
-                  <label>Naam</label>
-                  <input type="text" name="exercise_name[]" placeholder="Bijv. Split squat">
-                </div>
-                <div class="exercise-field">
-                  <label>Duur</label>
-                  <input type="text" name="exercise_duration[]" placeholder="Bijv. 3 x 8">
-                </div>
-                <div class="exercise-field">
-                  <label>RPE</label>
-                  <input type="number" name="exercise_rpe[]" min="0" max="10" placeholder="0-10">
-                </div>
-                <div class="exercise-field">
-                  <label>Freq.</label>
-                  <input type="text" name="exercise_frequency[]" placeholder="Bijv. 2x p/w">
-                </div>
-                <div class="exercise-field">
-                  <label>Opmerkingen</label>
-                  <input type="text" name="exercise_notes[]" placeholder="Belangrijk aandachtspunt">
-                </div>
-              </div>
-            </div>
-
-            <div class="button-row">
-              <button type="button" class="btn-primary" onclick="addExerciseRow()">Oefening toevoegen</button>
-              <button type="submit" class="btn-danger">Krachtprogramma opslaan</button>
-            </div>
-          </div>
-
-          {% if oefeningen %}
-            <div class="sub-card" style="margin-top:20px;">
-              <h4>Laatst opgeslagen krachtprogramma</h4>
-              <ul class="saved-program-list">
-                {% for oef in oefeningen %}
-                  <li><strong>{{ oef.naam }}</strong> - {{ oef.duur }} - RPE {{ oef.rpe }} - {{ oef.frequentie }}</li>
-                {% endfor %}
-              </ul>
-            </div>
-          {% endif %}
-        </div>
-      </div>
-
-      <div id="tab-beelden" class="tab-panel">
-        <div class="card">
-          <h3 class="info-title">Beelden bekijken</h3>
-          <p class="field-help">Voeg hier links toe naar wedstrijd- en trainingsbeelden, bekijk ze direct op deze pagina en sla je analyse en planpunten daaronder op.</p>
-
-          <label class="field-label" for="video_links">Videolinks</label>
-          <textarea id="video_links" name="video_links" rows="5" placeholder="Plak hier per regel een videolink naar een wedstrijd of training, bijvoorbeeld YouTube, Vimeo, Loom of een direct mp4-bestand.">{% if programma and programma.video_links %}{{ programma.video_links }}{% endif %}</textarea>
-
-          {% if video_previews %}
-            <div class="video-preview-grid">
-              {% for video in video_previews %}
-                <div class="video-preview-card">
-                  {% if video.is_direct_video %}
-                    <video controls preload="metadata">
-                      <source src="{{ video.embed_url }}">
-                    </video>
-                  {% elif video.embed_url %}
-                    <iframe src="{{ video.embed_url }}" allowfullscreen loading="lazy"></iframe>
-                  {% endif %}
-                  <a class="video-preview-link" href="{{ video.url }}" target="_blank" rel="noopener">Open video</a>
-                </div>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-          <div class="sub-card" style="margin-top:20px;">
-            <h4>Analyse van de beelden</h4>
-
-            <label class="field-label" for="sterke_punten">Sterke punten</label>
-            <textarea id="sterke_punten" name="sterke_punten" rows="4" placeholder="Wat valt positief op in de wedstrijd- of trainingsbeelden?">{% if programma and programma.sterke_punten %}{{ programma.sterke_punten }}{% endif %}</textarea>
-
-            <label class="field-label" for="verbeterpunten" style="margin-top:14px;">Verbeterpunten</label>
-            <textarea id="verbeterpunten" name="verbeterpunten" rows="4" placeholder="Welke verbeterpunten zie je terug in de wedstrijd- of trainingsbeelden?">{% if programma and programma.verbeterpunten %}{{ programma.verbeterpunten }}{% endif %}</textarea>
-
-            <label class="field-label" for="plan_komende_periode" style="margin-top:14px;">Plan richting de komende periode</label>
-            <textarea id="plan_komende_periode" name="plan_komende_periode" rows="4" placeholder="Wat is het plan richting de komende periode op basis van deze beelden?">{% if programma and programma.plan_komende_periode %}{{ programma.plan_komende_periode }}{% endif %}</textarea>
-          </div>
-
-          <div class="button-row">
-            <button type="submit" class="btn-danger">Beelden en notities opslaan</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="tab-ontwikkelpunt" class="tab-panel">
-        <div class="card">
-          <h3 class="info-title">Fysiek ontwikkelpunt</h3>
-          <p class="field-help">Leg hier vast waar de speler fysiek nog in kan groeien, hoe dat aangepakt wordt en wanneer je dat opnieuw wilt beoordelen.</p>
-
-          <label class="field-label" for="fysiek_ontwikkelpunt">Waar kan deze speler nog in ontwikkelen?</label>
-          <textarea id="fysiek_ontwikkelpunt" name="fysiek_ontwikkelpunt" rows="4" placeholder="Beschrijf het fysieke ontwikkelpunt van de speler...">{% if programma and programma.fysiek_ontwikkelpunt %}{{ programma.fysiek_ontwikkelpunt }}{% endif %}</textarea>
-
-          <label class="field-label" for="ontwikkelaanpak" style="margin-top:14px;">Hoe gaat de speler dit ontwikkelen?</label>
-          <textarea id="ontwikkelaanpak" name="ontwikkelaanpak" rows="4" placeholder="Omschrijf de aanpak, inhoud en werkwijze voor de komende periode...">{% if programma and programma.ontwikkelaanpak %}{{ programma.ontwikkelaanpak }}{% endif %}</textarea>
-
-          <label class="field-label" for="evaluatie_datum" style="margin-top:14px;">Wanneer wordt dit opnieuw gevalueerd?</label>
-          <input id="evaluatie_datum" name="evaluatie_datum" type="date" value="{% if programma and programma.evaluatie_datum %}{{ programma.evaluatie_datum|date:'Y-m-d' }}{% endif %}">
-
-          <div class="button-row">
-            <button type="submit" class="btn-danger">Ontwikkelpunt opslaan</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </form>
-{% endif %}
-
 <script>
-  function activateInnerTab(target) {
-    document.querySelectorAll(".inner-tab").forEach((tab) => {
-      tab.classList.toggle("is-active", tab.dataset.tabTarget === target);
-    });
-    document.querySelectorAll(".tab-panel").forEach((panel) => {
-      panel.classList.toggle("is-active", panel.id === `tab-${target}`);
-    });
-  }
+  document.addEventListener("DOMContentLoaded", function () {
+    const buttons = document.querySelectorAll(".ind-tab-btn");
+    const panels = document.querySelectorAll(".ind-card[data-panel]");
 
-  document.querySelectorAll(".inner-tab").forEach((tab) => {
-    tab.addEventListener("click", function () {
-      activateInnerTab(this.dataset.tabTarget);
+    buttons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const target = button.dataset.tab;
+
+        buttons.forEach((btn) => {
+          const active = btn === button;
+          btn.classList.toggle("is-active", active);
+          btn.setAttribute("aria-selected", String(active));
+        });
+
+        panels.forEach((panel) => {
+          panel.classList.toggle("is-active", panel.dataset.panel === target);
+        });
+      });
     });
   });
-
-  function addExerciseRow() {
-    const table = document.getElementById("exercise-table");
-    const newRow = document.createElement("div");
-    newRow.className = "exercise-row";
-    newRow.innerHTML = `
-      <div class="exercise-field">
-        <label>Naam</label>
-        <input type="text" name="exercise_name[]" placeholder="Bijv. Split squat">
-      </div>
-      <div class="exercise-field">
-        <label>Duur</label>
-        <input type="text" name="exercise_duration[]" placeholder="Bijv. 3 x 8">
-      </div>
-      <div class="exercise-field">
-        <label>RPE</label>
-        <input type="number" name="exercise_rpe[]" min="0" max="10" placeholder="0-10">
-      </div>
-      <div class="exercise-field">
-        <label>Freq.</label>
-        <input type="text" name="exercise_frequency[]" placeholder="Bijv. 2x p/w">
-      </div>
-      <div class="exercise-field">
-        <label>Opmerkingen</label>
-        <input type="text" name="exercise_notes[]" placeholder="Belangrijk aandachtspunt">
-      </div>
-    `;
-    table.appendChild(newRow);
-  }
 </script>
-
 {% endblock %}
