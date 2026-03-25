@@ -4,6 +4,11 @@
 
 {% block content %}
 <div class="beweeganalyse-page">
+    <div class="ba-page-tabs" role="tablist" aria-label="Beweeganalyse navigatie">
+        <a href="{% url 'beweeganalyse' %}{% if selected_player %}?player_id={{ selected_player.id }}{% if selected_date %}&analysis_date={{ selected_date|date:'Y-m-d' }}{% endif %}{% endif %}" class="ba-page-tab active" aria-current="page">Beweeganalyse</a>
+        <a href="{% url 'individuele_programmas' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}" class="ba-page-tab">Individueel trainen</a>
+    </div>
+
     <h1>Beweeganalyse</h1>
     <p>Beoordelingsformulier per speler en datum.</p>
 
@@ -180,6 +185,37 @@
 .beweeganalyse-page p {
     margin-top: 0;
     color: #3f4d69;
+}
+
+.ba-page-tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.ba-page-tab {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid #c8d2e6;
+    background: #eef2fa;
+    color: #1f2a44;
+    text-decoration: none;
+    font-weight: 700;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.ba-page-tab:hover {
+    background: #e4ebf8;
+}
+
+.ba-page-tab.active {
+    background: #1f2a44;
+    color: #ffffff;
+    border-color: #1f2a44;
 }
 
 .ba-form {

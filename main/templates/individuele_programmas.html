@@ -13,6 +13,37 @@
     margin-bottom: 20px;
   }
 
+  .page-tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .page-tab {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid #cfd7e3;
+    background: #f4f7fb;
+    color: #0c2340;
+    text-decoration: none;
+    font-weight: 700;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .page-tab:hover {
+    background: #e8eef6;
+  }
+
+  .page-tab.is-active {
+    background: #0c2340;
+    color: #fff;
+    border-color: #0c2340;
+  }
+
   .card {
     background: #fff;
     border-radius: 16px;
@@ -302,6 +333,11 @@
   }
 
 </style>
+
+<div class="page-tabs" role="tablist" aria-label="Individueel navigatie">
+  <a href="{% url 'beweeganalyse' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}" class="page-tab">Beweeganalyse</a>
+  <a href="{% url 'individuele_programmas' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}" class="page-tab is-active" aria-current="page">Individueel trainen</a>
+</div>
 
 <h2 class="page-title">Individueel</h2>
 <p class="subtitle">Selecteer een speler om een dagprogramma of individueel krachtprogramma te bekijken of te maken.</p>
