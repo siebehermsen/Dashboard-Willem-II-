@@ -6,18 +6,16 @@
 {% block content %}
 <style>
   :root {
-    --ind-bg: #f3f5fb;
-    --ind-ink: #13213d;
+    --ind-bg: #f5f7fb;
+    --ind-card: #ffffff;
+    --ind-ink: #16233f;
+    --ind-muted: #62708a;
+    --ind-line: #dbe3f0;
     --ind-navy: #1f2a44;
-    --ind-navy-deep: #121b30;
     --ind-red: #b60000;
-    --ind-red-bright: #d71920;
-    --ind-white: #ffffff;
-    --ind-muted: #5f6d85;
-    --ind-line: rgba(19, 33, 61, 0.12);
-    --ind-shadow: 0 20px 45px rgba(13, 23, 43, 0.12);
+    --ind-shadow: 0 18px 42px rgba(17, 28, 52, 0.08);
     --ind-radius-xl: 28px;
-    --ind-radius-lg: 20px;
+    --ind-radius-lg: 18px;
   }
 
   .ind-page {
@@ -44,190 +42,220 @@
     color: var(--ind-navy);
     text-decoration: none;
     font-weight: 700;
-    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  }
-
-  .ind-page-tab:hover {
-    background: #e4ebf8;
   }
 
   .ind-page-tab.is-active {
     background: var(--ind-navy);
-    color: var(--ind-white);
+    color: #fff;
     border-color: var(--ind-navy);
   }
 
   .ind-hero {
     position: relative;
-    overflow: hidden;
-    min-height: 250px;
-    padding: 32px 36px;
+    background: var(--ind-card);
+    border: 1px solid rgba(22, 35, 63, 0.08);
     border-radius: 32px;
-    background:
-      radial-gradient(circle at 86% 20%, rgba(255, 255, 255, 0.12), transparent 18%),
-      radial-gradient(circle at 14% 78%, rgba(255, 255, 255, 0.06), transparent 26%),
-      linear-gradient(135deg, #1a243c 0%, #243250 54%, #314266 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: var(--ind-shadow);
-  }
-
-  .ind-hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.16));
-    pointer-events: none;
-  }
-
-  .ind-hero-content,
-  .ind-hero-logo {
-    position: relative;
-    z-index: 1;
+    padding: 32px 36px;
+    margin-bottom: 22px;
   }
 
   .ind-hero-logo {
     position: absolute;
-    top: 26px;
-    right: 28px;
-    width: 108px;
-    height: 108px;
+    top: 28px;
+    right: 30px;
+    width: 88px;
+    height: 88px;
     display: grid;
     place-items: center;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    background: #fbfcff;
+    border: 1px solid var(--ind-line);
   }
 
   .ind-hero-logo img {
-    width: 74px;
-    height: auto;
+    width: 58px;
     display: block;
   }
 
-  .ind-eyebrow,
-  .ind-player-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 38px;
-    padding: 0 16px;
-    border-radius: 999px;
-    color: rgba(255, 255, 255, 0.94);
-    background: rgba(255, 255, 255, 0.10);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    backdrop-filter: blur(8px);
-    font-size: 0.82rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    font-weight: 800;
-  }
-
-  .ind-player-chip {
-    margin-left: 10px;
-  }
-
   .ind-hero h1 {
+    margin: 0 0 12px;
     max-width: 760px;
-    margin: 18px 0 14px;
-    color: var(--ind-white);
-    font-size: clamp(2.5rem, 4vw, 4.4rem);
-    line-height: 0.94;
+    font-size: clamp(2.2rem, 4vw, 4rem);
+    line-height: 0.96;
     letter-spacing: -0.04em;
     text-transform: uppercase;
+    color: var(--ind-navy);
   }
 
   .ind-subtitle {
-    max-width: 780px;
+    max-width: 760px;
     margin: 0;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.05rem;
+    color: var(--ind-muted);
+    font-size: 1.02rem;
     line-height: 1.7;
+  }
+
+  .ind-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+  }
+
+  .ind-card {
+    background: var(--ind-card);
+    border: 1px solid rgba(22, 35, 63, 0.08);
+    border-radius: var(--ind-radius-xl);
+    box-shadow: var(--ind-shadow);
+    overflow: hidden;
+  }
+
+  .ind-card-head {
+    padding: 22px 24px 16px;
+    border-bottom: 1px solid var(--ind-line);
+  }
+
+  .ind-card-head h2,
+  .ind-card-head h3 {
+    margin: 0 0 6px;
+    color: var(--ind-navy);
+    letter-spacing: -0.02em;
+  }
+
+  .ind-card-head p {
+    margin: 0;
+    color: var(--ind-muted);
+    line-height: 1.6;
+  }
+
+  .ind-card-body {
+    padding: 22px 24px 24px;
+  }
+
+  .ind-form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .ind-field {
+    display: grid;
+    gap: 8px;
+  }
+
+  .ind-label {
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: var(--ind-navy);
+  }
+
+  .ind-select,
+  .ind-textarea {
+    width: 100%;
+    border: 1px solid #ccd6e5;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font: inherit;
+    color: var(--ind-ink);
+    background: #fff;
+    box-sizing: border-box;
+  }
+
+  .ind-select {
+    min-height: 46px;
+  }
+
+  .ind-textarea {
+    min-height: 128px;
+    resize: vertical;
+    line-height: 1.55;
+  }
+
+  .ind-help {
+    margin: 0;
+    color: var(--ind-muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .ind-btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .ind-btn {
+    min-height: 42px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ind-navy);
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .ind-btn.ind-btn-light {
+    background: #eef2fa;
+    color: var(--ind-navy);
+    border: 1px solid #c8d2e6;
+  }
+
+  .ind-current-focus {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: #f3f6fb;
+    border: 1px solid var(--ind-line);
+    color: var(--ind-navy);
+    font-size: 0.88rem;
+    font-weight: 700;
   }
 
   .ind-tab-nav {
     display: flex;
-    flex-wrap: nowrap;
     gap: 12px;
-    margin: 28px 0 18px;
     overflow-x: auto;
     padding-bottom: 6px;
+    margin-bottom: 18px;
     scrollbar-width: thin;
   }
 
   .ind-tab-btn {
     flex: 0 0 auto;
     appearance: none;
-    border: 1px solid rgba(31, 42, 68, 0.12);
+    border: 1px solid var(--ind-line);
     border-radius: 999px;
     padding: 12px 18px;
-    background: #ffffff;
+    background: #fff;
     color: var(--ind-navy);
     font: inherit;
-    font-size: 0.95rem;
-    font-weight: 800;
+    font-weight: 700;
     cursor: pointer;
-    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
-    box-shadow: 0 8px 18px rgba(13, 23, 43, 0.04);
-  }
-
-  .ind-tab-btn:hover {
-    transform: translateY(-1px);
-    border-color: rgba(31, 42, 68, 0.22);
-    background: #f9fbff;
   }
 
   .ind-tab-btn.is-active {
     background: var(--ind-navy);
-    color: var(--ind-white);
+    color: #fff;
     border-color: var(--ind-navy);
-    box-shadow: 0 12px 24px rgba(31, 42, 68, 0.16);
   }
 
-  .ind-panel-grid {
-    display: block;
-  }
-
-  .ind-card {
+  .ind-content-card {
     display: none;
-    background: rgba(255, 255, 255, 0.78);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    border-radius: var(--ind-radius-xl);
-    overflow: hidden;
-    box-shadow: var(--ind-shadow);
-    backdrop-filter: blur(10px);
   }
 
-  .ind-card.is-active {
+  .ind-content-card.is-active {
     display: block;
-  }
-
-  .ind-card-header {
-    padding: 24px 26px 18px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(245, 247, 252, 0.76));
-    border-bottom: 1px solid var(--ind-line);
-  }
-
-  .ind-card-header h3 {
-    margin: 0 0 8px;
-    font-size: 1.45rem;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-    color: var(--ind-navy);
-  }
-
-  .ind-card-header p {
-    margin: 0;
-    color: var(--ind-muted);
-    line-height: 1.65;
-    max-width: 760px;
   }
 
   .ind-section-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
-    padding: 24px;
+    gap: 18px;
+    padding: 22px 24px 24px;
   }
 
   .ind-section-grid.ind-single {
@@ -235,32 +263,23 @@
   }
 
   .ind-section {
-    min-height: 100%;
-    padding: 22px;
+    padding: 20px;
+    border: 1px solid #e6ebf4;
     border-radius: var(--ind-radius-lg);
-    background: linear-gradient(180deg, #ffffff, #f7f9fd);
-    border: 1px solid rgba(31, 42, 68, 0.09);
+    background: #fbfcff;
   }
 
   .ind-tag {
     display: inline-block;
     margin-bottom: 14px;
-    padding: 8px 12px;
+    padding: 7px 11px;
     border-radius: 999px;
+    background: #eef2fa;
+    color: var(--ind-navy);
     font-size: 0.76rem;
-    letter-spacing: 0.13em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     font-weight: 800;
-    color: var(--ind-white);
-    background: linear-gradient(135deg, #2a3a5e, #1f2a44);
-    box-shadow: 0 10px 18px rgba(31, 42, 68, 0.12);
-  }
-
-  .ind-section h4 {
-    margin: 0 0 12px;
-    font-size: 1.08rem;
-    letter-spacing: -0.01em;
-    color: var(--ind-navy);
   }
 
   .ind-section ul {
@@ -269,77 +288,73 @@
   }
 
   .ind-section li {
-    margin: 0 0 10px;
-    line-height: 1.65;
-    color: #253552;
+    margin-bottom: 10px;
+    line-height: 1.6;
+    color: #293958;
   }
 
   .ind-section li strong {
-    color: var(--ind-navy-deep);
+    color: var(--ind-navy);
   }
 
   .ind-pill-row {
     display: flex;
-    flex-wrap: wrap;
     gap: 10px;
-    margin-top: 16px;
+    flex-wrap: wrap;
+    margin-top: 14px;
   }
 
   .ind-pill {
     display: inline-flex;
     align-items: center;
-    min-height: 36px;
-    padding: 0 14px;
+    min-height: 34px;
+    padding: 0 12px;
     border-radius: 999px;
-    background: rgba(31, 42, 68, 0.06);
-    border: 1px solid rgba(31, 42, 68, 0.1);
+    background: #fff;
+    border: 1px solid #d7e0ee;
     color: var(--ind-navy);
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     font-weight: 700;
   }
 
-  @media (max-width: 1080px) {
-    .ind-hero {
-      padding: 28px;
-    }
+  .ind-message {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #edf7ee;
+    border: 1px solid #cfe7d3;
+    color: #20552b;
+  }
 
-    .ind-hero-logo {
-      position: static;
-      margin-bottom: 16px;
-    }
-
-    .ind-section-grid {
+  @media (max-width: 1100px) {
+    .ind-grid {
       grid-template-columns: 1fr;
     }
   }
 
-  @media (max-width: 700px) {
+  @media (max-width: 760px) {
     .ind-page-tabs {
       flex-direction: column;
     }
 
-    .ind-player-chip {
-      margin-top: 10px;
-      margin-left: 0;
-    }
-
     .ind-hero {
       padding: 24px 20px;
-      border-radius: 24px;
     }
 
-    .ind-card {
-      border-radius: 22px;
+    .ind-hero-logo {
+      position: static;
+      margin-bottom: 18px;
     }
 
-    .ind-card-header,
     .ind-section-grid {
+      grid-template-columns: 1fr;
+      padding: 18px;
+    }
+
+    .ind-card-head,
+    .ind-card-body {
       padding-left: 18px;
       padding-right: 18px;
-    }
-
-    .ind-section {
-      padding: 18px;
     }
   }
 </style>
@@ -354,191 +369,269 @@
     <div class="ind-hero-logo">
       <img src="{% static 'icons/Willem2-logo.png' %}" alt="Willem II logo">
     </div>
-
-    <div class="ind-hero-content">
-      <span class="ind-eyebrow">Willem II Academy</span>
-      {% if selected_player %}
-        <span class="ind-player-chip">Speler: {{ selected_player.name }}</span>
-      {% endif %}
-      <h1>Individuele Sprint-<br>en CoD-ontwikkeling</h1>
-      <p class="ind-subtitle">
-        Praktische coachpunten en oefenvormen voor acceleratie, hip lock, footplant, core control en change of direction.
-        De inhoud hieronder is opgezet als snelle werkpagina om tijdens het trainen direct tussen technische thema's te wisselen.
-      </p>
-    </div>
+    <h1>Individuele sprint- en CoD-ontwikkeling</h1>
+    <p class="ind-subtitle">
+      Selecteer een speler, kies het technische aandachtspunt en voeg direct een notitie toe. Onder de invoer kun je
+      per thema wisselen tussen de coachpunten en oefenvormen.
+    </p>
   </section>
 
-  <section class="ind-tab-nav" role="tablist" aria-label="Onderdelen individueel trainen">
-    <button class="ind-tab-btn is-active" type="button" role="tab" aria-selected="true" data-tab="sprint-acceleratie">Sprint Acceleratie & Posture</button>
-    <button class="ind-tab-btn" type="button" role="tab" aria-selected="false" data-tab="hip-lock">Hip Lock & Footplant</button>
-    <button class="ind-tab-btn" type="button" role="tab" aria-selected="false" data-tab="core-control">Core Control & Armcontrole</button>
-    <button class="ind-tab-btn" type="button" role="tab" aria-selected="false" data-tab="cod">CoD - Remmen, Posture & Heraccelereren</button>
-    <button class="ind-tab-btn" type="button" role="tab" aria-selected="false" data-tab="specifieke-hip-lock-cod">Specifieke Hip Lock CoD-vorm</button>
-  </section>
+  {% if messages %}
+    {% for message in messages %}
+      <div class="ind-message">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
 
-  <section class="ind-panel-grid">
-    <article class="ind-card is-active" data-panel="sprint-acceleratie">
-      <div class="ind-card-header">
-        <h3>Sprint Acceleratie & Posture</h3>
-        <p>Technische focus om spelers beter in hun val- en versnellingspositie te houden.</p>
+  <div class="ind-grid">
+    <section class="ind-card">
+      <div class="ind-card-head">
+        <h2>Speler en aandachtspunt</h2>
+        <p>Koppel per speler een specifiek ontwikkelpunt aan een notitie voor vandaag.</p>
       </div>
-      <div class="ind-section-grid">
-        <div class="ind-section">
-          <span class="ind-tag">Posture</span>
-          <ul>
-            <li><strong>Hip thrust-variant:</strong> nadruk op krachtige heupinzet als basis voor acceleratie.</li>
-            <li><strong>Resisted sprint met explosieve heupinzet:</strong> leer spelers actief vanuit de heup te versnellen.</li>
-            <li><strong>Posterior pelvic tilt:</strong> buikspanning en oblique-spanning organiseren voor betere romppositie.</li>
-            <li><strong>Weerstandspositie vasthouden:</strong> resisted sprint even statisch vasthouden in ideaal postuur.</li>
-            <li><strong>Naar voren blijven:</strong> speler mag in de beginfase niet te vroeg oprichten.</li>
-            <li><strong>Stok boven het hoofd:</strong> lijn blijven volgen en niet eerder omhoog komen dan gewenst.</li>
-            <li><strong>Zonder stok eindigen:</strong> terug naar de normale beweegvorm nadat de houding is aangeleerd.</li>
-          </ul>
+      <div class="ind-card-body">
+        <form method="get" class="ind-form">
+          <div class="ind-field">
+            <label class="ind-label" for="player_id">Speler</label>
+            <select class="ind-select" id="player_id" name="player_id" onchange="this.form.submit()">
+              <option value="">Selecteer een speler</option>
+              {% for player in players %}
+                <option value="{{ player.id }}" {% if selected_player and player.id == selected_player.id %}selected{% endif %}>
+                  {{ player.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
+          <noscript>
+            <div class="ind-btn-row">
+              <button type="submit" class="ind-btn ind-btn-light">Laden</button>
+            </div>
+          </noscript>
+        </form>
+
+        {% if selected_player %}
+          <form method="post" class="ind-form" style="margin-top:18px;">
+            {% csrf_token %}
+            <input type="hidden" name="focus_tab" id="focus-tab-input" value="{{ focus_tab }}">
+
+            <div class="ind-field">
+              <span class="ind-label">Geselecteerde speler</span>
+              <div class="ind-current-focus">{{ selected_player.name }}</div>
+            </div>
+
+            <div class="ind-field">
+              <span class="ind-label">Specifiek aandachtspunt</span>
+              <div class="ind-current-focus" id="current-focus-label">{{ focus_tab_label }}</div>
+            </div>
+
+            <div class="ind-field">
+              <label class="ind-label" for="focus_note">Notitie</label>
+              <textarea class="ind-textarea" id="focus_note" name="focus_note" placeholder="Bijv. speler verliest houding in eerste 5 meter, extra focus op heupinzet en voorwaartse lijn...">{% if day_program %}{{ day_program.focus_note }}{% endif %}</textarea>
+              <p class="ind-help">De actieve tab hieronder wordt mee opgeslagen als aandachtspunt voor deze speler.</p>
+            </div>
+
+            <div class="ind-btn-row">
+              <button type="submit" name="save_focus_note" value="1" class="ind-btn">Aandachtspunt opslaan</button>
+            </div>
+          </form>
+        {% else %}
+          <p class="ind-help" style="margin-top:18px;">Selecteer eerst een speler om een aandachtspunt en notitie op te slaan.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section>
+      <div class="ind-tab-nav" role="tablist" aria-label="Onderdelen individueel trainen">
+        <button class="ind-tab-btn {% if focus_tab == 'sprint-acceleratie' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'sprint-acceleratie' %}true{% else %}false{% endif %}" data-tab="sprint-acceleratie" data-label="Sprint Acceleratie & Posture">Sprint Acceleratie & Posture</button>
+        <button class="ind-tab-btn {% if focus_tab == 'hip-lock' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'hip-lock' %}true{% else %}false{% endif %}" data-tab="hip-lock" data-label="Hip Lock & Footplant">Hip Lock & Footplant</button>
+        <button class="ind-tab-btn {% if focus_tab == 'core-control' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'core-control' %}true{% else %}false{% endif %}" data-tab="core-control" data-label="Core Control & Armcontrole">Core Control & Armcontrole</button>
+        <button class="ind-tab-btn {% if focus_tab == 'cod' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'cod' %}true{% else %}false{% endif %}" data-tab="cod" data-label="CoD - Remmen, Posture & Heraccelereren">CoD - Remmen, Posture & Heraccelereren</button>
+        <button class="ind-tab-btn {% if focus_tab == 'specifieke-hip-lock-cod' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'specifieke-hip-lock-cod' %}true{% else %}false{% endif %}" data-tab="specifieke-hip-lock-cod" data-label="Specifieke Hip Lock CoD-vorm">Specifieke Hip Lock CoD-vorm</button>
+      </div>
+
+      <article class="ind-card ind-content-card {% if focus_tab == 'sprint-acceleratie' %}is-active{% endif %}" data-panel="sprint-acceleratie">
+        <div class="ind-card-head">
+          <h3>Sprint Acceleratie & Posture</h3>
+          <p>Technische focus om spelers beter in hun val- en versnellingspositie te houden.</p>
         </div>
-        <div class="ind-section">
-          <span class="ind-tag">Valmoment</span>
-          <ul>
-            <li><strong>Fall in-acceleratie:</strong> leer eerst vallen, daarna pas versnellen.</li>
-            <li><strong>Rondjoggen naar valvorm:</strong> vanuit rustig bewegen direct in de juiste acceleratiehoek terechtkomen.</li>
-            <li><strong>Verschillende richtingen:</strong> laat spelers deze overgang maken vanuit voorwaartse, zijwaartse en schuine invalshoeken.</li>
-          </ul>
-          <div class="ind-pill-row">
-            <span class="ind-pill">Heupinzet</span>
-            <span class="ind-pill">Valhoek</span>
-            <span class="ind-pill">Lichaamslijn</span>
+        <div class="ind-section-grid">
+          <div class="ind-section">
+            <span class="ind-tag">Posture</span>
+            <ul>
+              <li><strong>Hip thrust-variant:</strong> nadruk op krachtige heupinzet als basis voor acceleratie.</li>
+              <li><strong>Resisted sprint met explosieve heupinzet:</strong> leer spelers actief vanuit de heup te versnellen.</li>
+              <li><strong>Posterior pelvic tilt:</strong> buikspanning en oblique-spanning organiseren voor betere romppositie.</li>
+              <li><strong>Weerstandspositie vasthouden:</strong> resisted sprint even statisch vasthouden in ideaal postuur.</li>
+              <li><strong>Naar voren blijven:</strong> speler mag in de beginfase niet te vroeg oprichten.</li>
+              <li><strong>Stok boven het hoofd:</strong> lijn blijven volgen en niet eerder omhoog komen dan gewenst.</li>
+              <li><strong>Zonder stok eindigen:</strong> terug naar de normale beweegvorm nadat de houding is aangeleerd.</li>
+            </ul>
+          </div>
+          <div class="ind-section">
+            <span class="ind-tag">Valmoment</span>
+            <ul>
+              <li><strong>Fall in-acceleratie:</strong> leer eerst vallen, daarna pas versnellen.</li>
+              <li><strong>Rondjoggen naar valvorm:</strong> vanuit rustig bewegen direct in de juiste acceleratiehoek terechtkomen.</li>
+              <li><strong>Verschillende richtingen:</strong> laat spelers deze overgang maken vanuit voorwaartse, zijwaartse en schuine invalshoeken.</li>
+            </ul>
+            <div class="ind-pill-row">
+              <span class="ind-pill">Heupinzet</span>
+              <span class="ind-pill">Valhoek</span>
+              <span class="ind-pill">Lichaamslijn</span>
+            </div>
           </div>
         </div>
-      </div>
-    </article>
+      </article>
 
-    <article class="ind-card" data-panel="hip-lock">
-      <div class="ind-card-header">
-        <h3>Hip Lock & Footplant</h3>
-        <p>Oefenvormen voor kniepositie, scheenspanning, landing en het organiseren van contact met de grond.</p>
-      </div>
-      <div class="ind-section-grid">
-        <div class="ind-section">
-          <span class="ind-tag">Hip Lock</span>
-          <ul>
-            <li><strong>Wall drills:</strong> basis voor kniepositie, romphoek en actieve voet.</li>
-            <li><strong>Bounding:</strong> focus op lang in de lucht blijven en landing bewust uitstellen.</li>
-            <li><strong>Resisted sprints:</strong> extra nadruk op het vasthouden van de hip lock-positie tijdens acceleratie.</li>
-          </ul>
+      <article class="ind-card ind-content-card {% if focus_tab == 'hip-lock' %}is-active{% endif %}" data-panel="hip-lock">
+        <div class="ind-card-head">
+          <h3>Hip Lock & Footplant</h3>
+          <p>Oefenvormen voor kniepositie, scheenspanning, landing en het organiseren van contact met de grond.</p>
         </div>
-        <div class="ind-section">
-          <span class="ind-tag">Footplant</span>
-          <ul>
-            <li><strong>Meer scheenspanning in de beginfase:</strong> de teen moet actief en "aan" zijn.</li>
-            <li><strong>Droog oefenen van acceleratie:</strong> eerst zonder maximale snelheid focussen op voetplaatsing.</li>
-            <li><strong>Bounding starts vanuit stilstand:</strong> langere contacttijd als opstap naar uiteindelijk kortere contacttijd.</li>
-            <li><strong>Op de tenen blijven:</strong> voortdurend aandacht voor een actieve, stijve enkel.</li>
-            <li><strong>Pogo jumps in verschillende richtingen:</strong> geschikt richting de eindfase van sprintontwikkeling.</li>
-          </ul>
-        </div>
-      </div>
-    </article>
-
-    <article class="ind-card" data-panel="core-control">
-      <div class="ind-card-header">
-        <h3>Core Control & Armcontrole</h3>
-        <p>Extra interventies om rompsturing, natuurlijke hoeken en armactie in de sprint te verbeteren.</p>
-      </div>
-      <div class="ind-section-grid">
-        <div class="ind-section">
-          <span class="ind-tag">Core Control</span>
-          <ul>
-            <li><strong>Stok boven je hoofd:</strong> speler leert spanning houden zonder in een verkeerde eindpositie te komen.</li>
-            <li><strong>Farmer carries:</strong> controle van romp, bekken en stapritme onder belasting.</li>
-            <li><strong>Bal tegen het lichaam aan vasthouden:</strong> ondersteunt een natuurlijkere 12:05-houding.</li>
-            <li><strong>Transfer terug naar vrije beweging:</strong> na de constraint weer sprinten zonder hulpmiddel.</li>
-          </ul>
-          <div class="ind-pill-row">
-            <span class="ind-pill">Rompstijfheid</span>
-            <span class="ind-pill">Buikspanning</span>
-            <span class="ind-pill">Natuurlijke houding</span>
+        <div class="ind-section-grid">
+          <div class="ind-section">
+            <span class="ind-tag">Hip Lock</span>
+            <ul>
+              <li><strong>Wall drills:</strong> basis voor kniepositie, romphoek en actieve voet.</li>
+              <li><strong>Bounding:</strong> focus op lang in de lucht blijven en landing bewust uitstellen.</li>
+              <li><strong>Resisted sprints:</strong> extra nadruk op het vasthouden van de hip lock-positie tijdens acceleratie.</li>
+            </ul>
+          </div>
+          <div class="ind-section">
+            <span class="ind-tag">Footplant</span>
+            <ul>
+              <li><strong>Meer scheenspanning in de beginfase:</strong> de teen moet actief en "aan" zijn.</li>
+              <li><strong>Droog oefenen van acceleratie:</strong> eerst zonder maximale snelheid focussen op voetplaatsing.</li>
+              <li><strong>Bounding starts vanuit stilstand:</strong> langere contacttijd als opstap naar uiteindelijk kortere contacttijd.</li>
+              <li><strong>Op de tenen blijven:</strong> voortdurend aandacht voor een actieve, stijve enkel.</li>
+              <li><strong>Pogo jumps in verschillende richtingen:</strong> geschikt richting de eindfase van sprintontwikkeling.</li>
+            </ul>
           </div>
         </div>
-        <div class="ind-section">
-          <span class="ind-tag">Armcontrole</span>
-          <ul>
-            <li><strong>Gewichtjes vasthouden:</strong> maakt armactie bewust en gecontroleerd.</li>
-            <li><strong>Hesjes onder de oksels:</strong> mogen in de eerste 10 meter niet vallen; daarna wel.</li>
-            <li><strong>Doel:</strong> armactie compact houden zonder overmatige zijwaartse beweging.</li>
-          </ul>
-        </div>
-      </div>
-    </article>
+      </article>
 
-    <article class="ind-card" data-panel="cod">
-      <div class="ind-card-header">
-        <h3>CoD - Remmen, Posture & Heraccelereren</h3>
-        <p>Praktische coachpunten om spelers efficiënter te laten vertragen, laden en opnieuw te laten versnellen.</p>
-      </div>
-      <div class="ind-section-grid">
-        <div class="ind-section">
-          <span class="ind-tag">Posture in CoD</span>
-          <ul>
-            <li><strong>Posture in meerdere richtingen:</strong> van achter naar voren, zijwaarts en voorwaarts organiseren.</li>
-            <li><strong>Snel hoogteverschil creëren:</strong> op het laatste moment zo snel mogelijk zakken.</li>
-            <li><strong>Lineair remmen en weer versnellen:</strong> eventueel met weerstandsbanden toevoegen.</li>
-          </ul>
+      <article class="ind-card ind-content-card {% if focus_tab == 'core-control' %}is-active{% endif %}" data-panel="core-control">
+        <div class="ind-card-head">
+          <h3>Core Control & Armcontrole</h3>
+          <p>Extra interventies om rompsturing, natuurlijke hoeken en armactie in de sprint te verbeteren.</p>
         </div>
-        <div class="ind-section">
-          <span class="ind-tag">Valmoment & Rembeen</span>
-          <ul>
-            <li><strong>Valmoment over een stok:</strong> stimuleert juiste gewichtplaatsing op het rembeen.</li>
-            <li><strong>Kruispas maken:</strong> daarna been op 90 graden neerzetten voor controle in de remfase.</li>
-            <li><strong>Eventueel bal op het been:</strong> om voet- en beenpositie nog duidelijker af te dwingen.</li>
-            <li><strong>Impliciet trainen:</strong> in spelvorm op een reactiemoment het valmoment oproepen.</li>
-          </ul>
-        </div>
-      </div>
-    </article>
-
-    <article class="ind-card" data-panel="specifieke-hip-lock-cod">
-      <div class="ind-card-header">
-        <h3>Specifieke Hip Lock CoD-vorm</h3>
-        <p>Concrete veldvorm om rembeen, buitenste been en herplaatsing over een lijn te trainen.</p>
-      </div>
-      <div class="ind-section-grid ind-single">
-        <div class="ind-section">
-          <span class="ind-tag">Oefenvorm</span>
-          <ul>
-            <li>Speler remt met het <strong>rembeen vóór de lijn</strong> met pionnen.</li>
-            <li>Daarna stapt de speler met het <strong>buitenste been over de lijn</strong>.</li>
-            <li>Vóór het opnieuw plaatsen van de voet brengt hij zijn <strong>rembeen ook over de lijn</strong>.</li>
-            <li>Coaching ligt op <strong>controle in het remmoment</strong>, <strong>hip lock in de overgang</strong> en daarna <strong>snel opnieuw versnellen</strong>.</li>
-          </ul>
-          <div class="ind-pill-row">
-            <span class="ind-pill">Rembeencontrole</span>
-            <span class="ind-pill">Buitenste been actief</span>
-            <span class="ind-pill">Snelle herplaatsing</span>
-            <span class="ind-pill">Explosieve re-acceleratie</span>
+        <div class="ind-section-grid">
+          <div class="ind-section">
+            <span class="ind-tag">Core Control</span>
+            <ul>
+              <li><strong>Stok boven je hoofd:</strong> speler leert spanning houden zonder in een verkeerde eindpositie te komen.</li>
+              <li><strong>Farmer carries:</strong> controle van romp, bekken en stapritme onder belasting.</li>
+              <li><strong>Bal tegen het lichaam aan vasthouden:</strong> ondersteunt een natuurlijkere 12:05-houding.</li>
+              <li><strong>Transfer terug naar vrije beweging:</strong> na de constraint weer sprinten zonder hulpmiddel.</li>
+            </ul>
+            <div class="ind-pill-row">
+              <span class="ind-pill">Rompstijfheid</span>
+              <span class="ind-pill">Buikspanning</span>
+              <span class="ind-pill">Natuurlijke houding</span>
+            </div>
+          </div>
+          <div class="ind-section">
+            <span class="ind-tag">Armcontrole</span>
+            <ul>
+              <li><strong>Gewichtjes vasthouden:</strong> maakt armactie bewust en gecontroleerd.</li>
+              <li><strong>Hesjes onder de oksels:</strong> mogen in de eerste 10 meter niet vallen; daarna wel.</li>
+              <li><strong>Doel:</strong> armactie compact houden zonder overmatige zijwaartse beweging.</li>
+            </ul>
           </div>
         </div>
-      </div>
-    </article>
-  </section>
+      </article>
+
+      <article class="ind-card ind-content-card {% if focus_tab == 'cod' %}is-active{% endif %}" data-panel="cod">
+        <div class="ind-card-head">
+          <h3>CoD - Remmen, Posture & Heraccelereren</h3>
+          <p>Praktische coachpunten om spelers efficienter te laten vertragen, laden en opnieuw te laten versnellen.</p>
+        </div>
+        <div class="ind-section-grid">
+          <div class="ind-section">
+            <span class="ind-tag">Posture in CoD</span>
+            <ul>
+              <li><strong>Posture in meerdere richtingen:</strong> van achter naar voren, zijwaarts en voorwaarts organiseren.</li>
+              <li><strong>Snel hoogteverschil creeren:</strong> op het laatste moment zo snel mogelijk zakken.</li>
+              <li><strong>Lineair remmen en weer versnellen:</strong> eventueel met weerstandsbanden toevoegen.</li>
+            </ul>
+          </div>
+          <div class="ind-section">
+            <span class="ind-tag">Valmoment & Rembeen</span>
+            <ul>
+              <li><strong>Valmoment over een stok:</strong> stimuleert juiste gewichtplaatsing op het rembeen.</li>
+              <li><strong>Kruispas maken:</strong> daarna been op 90 graden neerzetten voor controle in de remfase.</li>
+              <li><strong>Eventueel bal op het been:</strong> om voet- en beenpositie nog duidelijker af te dwingen.</li>
+              <li><strong>Impliciet trainen:</strong> in spelvorm op een reactiemoment het valmoment oproepen.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="ind-card ind-content-card {% if focus_tab == 'specifieke-hip-lock-cod' %}is-active{% endif %}" data-panel="specifieke-hip-lock-cod">
+        <div class="ind-card-head">
+          <h3>Specifieke Hip Lock CoD-vorm</h3>
+          <p>Concrete veldvorm om rembeen, buitenste been en herplaatsing over een lijn te trainen.</p>
+        </div>
+        <div class="ind-section-grid ind-single">
+          <div class="ind-section">
+            <span class="ind-tag">Oefenvorm</span>
+            <ul>
+              <li>Speler remt met het <strong>rembeen voor de lijn</strong> met pionnen.</li>
+              <li>Daarna stapt de speler met het <strong>buitenste been over de lijn</strong>.</li>
+              <li>Voor het opnieuw plaatsen van de voet brengt hij zijn <strong>rembeen ook over de lijn</strong>.</li>
+              <li>Coaching ligt op <strong>controle in het remmoment</strong>, <strong>hip lock in de overgang</strong> en daarna <strong>snel opnieuw versnellen</strong>.</li>
+            </ul>
+            <div class="ind-pill-row">
+              <span class="ind-pill">Rembeencontrole</span>
+              <span class="ind-pill">Buitenste been actief</span>
+              <span class="ind-pill">Snelle herplaatsing</span>
+              <span class="ind-pill">Explosieve re-acceleratie</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </div>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const buttons = document.querySelectorAll(".ind-tab-btn");
-    const panels = document.querySelectorAll(".ind-card[data-panel]");
+    const panels = document.querySelectorAll(".ind-content-card[data-panel]");
+    const focusInput = document.getElementById("focus-tab-input");
+    const focusLabel = document.getElementById("current-focus-label");
+    const playerSelect = document.getElementById("player_id");
+    const getForm = playerSelect ? playerSelect.form : null;
+
+    function setActiveTab(target) {
+      buttons.forEach((btn) => {
+        const active = btn.dataset.tab === target;
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-selected", String(active));
+      });
+
+      panels.forEach((panel) => {
+        panel.classList.toggle("is-active", panel.dataset.panel === target);
+      });
+
+      const activeButton = document.querySelector('.ind-tab-btn[data-tab="' + target + '"]');
+      if (focusInput) {
+        focusInput.value = target;
+      }
+      if (focusLabel && activeButton) {
+        focusLabel.textContent = activeButton.dataset.label;
+      }
+      if (getForm) {
+        const hidden = getForm.querySelector('input[name="focus_tab"]');
+        if (hidden) {
+          hidden.value = target;
+        }
+      }
+    }
 
     buttons.forEach((button) => {
       button.addEventListener("click", function () {
-        const target = button.dataset.tab;
-
-        buttons.forEach((btn) => {
-          const active = btn === button;
-          btn.classList.toggle("is-active", active);
-          btn.setAttribute("aria-selected", String(active));
-        });
-
-        panels.forEach((panel) => {
-          panel.classList.toggle("is-active", panel.dataset.panel === target);
-        });
+        setActiveTab(button.dataset.tab);
       });
     });
   });
