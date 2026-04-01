@@ -24,30 +24,40 @@
     color: var(--ind-ink);
   }
 
-  .ind-page-tabs {
+  .ind-view-tabs {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
     margin-bottom: 18px;
   }
 
-  .ind-page-tab {
+  .ind-view-tab {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     min-height: 40px;
     padding: 0 16px;
     border-radius: 999px;
     border: 1px solid #c8d2e6;
     background: #eef2fa;
     color: var(--ind-navy);
-    text-decoration: none;
     font-weight: 700;
+    font: inherit;
+    cursor: pointer;
   }
 
-  .ind-page-tab.is-active {
+  .ind-view-tab.is-active {
     background: var(--ind-navy);
     color: #fff;
     border-color: var(--ind-navy);
+  }
+
+  .ind-view-panel {
+    display: none;
+  }
+
+  .ind-view-panel.is-active {
+    display: block;
   }
 
   .ind-hero {
@@ -195,6 +205,145 @@
     border: 1px solid #c8d2e6;
   }
 
+  .ind-back-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid #c8d2e6;
+    background: #eef2fa;
+    color: var(--ind-navy);
+    text-decoration: none;
+    font-weight: 700;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  }
+
+  .ind-back-link:hover {
+    background: #e6edf9;
+    box-shadow: 0 10px 22px rgba(31, 42, 68, 0.10);
+    transform: translateY(-1px);
+  }
+
+  .ind-player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .ind-player-card {
+    display: block;
+    text-decoration: none;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid #e3eaf4;
+    border-radius: 22px;
+    padding: 16px;
+    box-shadow: 0 12px 26px rgba(31, 42, 68, 0.08);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  .ind-player-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 30px rgba(31, 42, 68, 0.12);
+    border-color: #c8d6eb;
+  }
+
+  .ind-player-card.is-active {
+    border-color: rgba(182, 0, 0, 0.45);
+    box-shadow: 0 0 0 1px rgba(182, 0, 0, 0.08), 0 16px 30px rgba(31, 42, 68, 0.12);
+  }
+
+  .ind-player-photo {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #eef3fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .ind-player-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ind-player-photo-placeholder {
+    color: #7a879d;
+    font-weight: 700;
+    font-size: 0.98rem;
+    text-align: center;
+    padding: 18px;
+  }
+
+  .ind-player-name {
+    margin: 0;
+    color: var(--ind-navy);
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.25;
+  }
+
+  .ind-selected-shell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 22px;
+    align-items: stretch;
+    margin-bottom: 22px;
+  }
+
+  .ind-selected-card,
+  .ind-selected-meta {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid #e3eaf4;
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 12px 26px rgba(31, 42, 68, 0.08);
+  }
+
+  .ind-selected-card {
+    text-align: center;
+  }
+
+  .ind-selected-card .ind-player-photo {
+    margin-bottom: 14px;
+  }
+
+  .ind-selected-kicker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(31, 42, 68, 0.08);
+    color: var(--ind-navy);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .ind-selected-title {
+    margin: 0 0 10px;
+    color: var(--ind-navy);
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.02;
+  }
+
+  .ind-selected-text {
+    margin: 0;
+    color: var(--ind-muted);
+    line-height: 1.65;
+  }
+
   .ind-current-focus {
     display: inline-flex;
     align-items: center;
@@ -320,8 +469,12 @@
   }
 
   @media (max-width: 760px) {
-    .ind-page-tabs {
+    .ind-view-tabs {
       flex-direction: column;
+    }
+
+    .ind-selected-shell {
+      grid-template-columns: 1fr;
     }
 
     .ind-hero {
@@ -347,19 +500,22 @@
 </style>
 
 <div class="ind-page">
-  <div class="ind-page-tabs" role="tablist" aria-label="Individueel navigatie">
-    <a href="{% url 'beweeganalyse' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}" class="ind-page-tab">Beweeganalyse</a>
-    <a href="{% url 'individuele_programmas' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}" class="ind-page-tab is-active" aria-current="page">Individueel trainen</a>
+  <div class="ind-view-tabs" role="tablist" aria-label="Individuele onderdelen">
+    <button class="ind-view-tab is-active" type="button" role="tab" aria-selected="true" data-view-tab="dagprogramma">
+      Individueel dagprogramma
+    </button>
+    <button class="ind-view-tab" type="button" role="tab" aria-selected="false" data-view-tab="trainen">
+      Individueel trainen
+    </button>
   </div>
 
   <section class="ind-hero">
     <div class="ind-hero-logo">
       <img src="{% static 'icons/Willem2-logo.png' %}" alt="Willem II logo">
     </div>
-    <h1>Individuele sprint- en CoD-ontwikkeling</h1>
+    <h1>Individueel Programma</h1>
     <p class="ind-subtitle">
-      Selecteer een speler, kies het technische aandachtspunt en voeg direct een notitie toe. Onder de invoer kun je
-      per thema wisselen tussen de coachpunten en oefenvormen.
+      Selecteer een speler en wissel tussen het dagprogramma en de individuele trainingsinhoud.
     </p>
   </section>
 
@@ -369,64 +525,168 @@
     {% endfor %}
   {% endif %}
 
-  <section class="ind-card" style="margin-bottom:22px;">
-    <div class="ind-card-head">
-      <h2>Speler en aandachtspunt</h2>
-      <p>Koppel per speler een specifiek ontwikkelpunt aan een notitie voor vandaag.</p>
-    </div>
-    <div class="ind-card-body">
-      <form method="get" class="ind-form">
-        <div class="ind-field">
-          <label class="ind-label" for="player_id">Speler</label>
-          <select class="ind-select" id="player_id" name="player_id" onchange="this.form.submit()">
-            <option value="">Selecteer een speler</option>
-            {% for player in players %}
-              <option value="{{ player.id }}" {% if selected_player and player.id == selected_player.id %}selected{% endif %}>
-                {{ player.name }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-        <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
-        <noscript>
-          <div class="ind-btn-row">
-            <button type="submit" class="ind-btn ind-btn-light">Laden</button>
-          </div>
-        </noscript>
-      </form>
-
-      {% if selected_player %}
-        <form method="post" class="ind-form" style="margin-top:18px;">
-          {% csrf_token %}
-          <input type="hidden" name="focus_tab" id="focus-tab-input" value="{{ focus_tab }}">
-
+  {% if not selected_player %}
+    <section class="ind-card" style="margin-bottom:22px;">
+      <div class="ind-card-head">
+        <h2>Speler selecteren</h2>
+        <p>Kies eerst een speler. Daarna kun je hieronder schakelen tussen dagprogramma en individueel trainen.</p>
+      </div>
+      <div class="ind-card-body">
+        <form method="get" class="ind-form">
           <div class="ind-field">
-            <span class="ind-label">Geselecteerde speler</span>
-            <div class="ind-current-focus">{{ selected_player.name }}</div>
+            <label class="ind-label" for="player_id">Speler</label>
+            <select class="ind-select" id="player_id" name="player_id" onchange="this.form.submit()">
+              <option value="">Selecteer een speler</option>
+              {% for player in players %}
+                <option value="{{ player.id }}" {% if selected_player and player.id == selected_player.id %}selected{% endif %}>
+                  {{ player.name }}
+                </option>
+              {% endfor %}
+            </select>
           </div>
-
-          <div class="ind-field">
-            <span class="ind-label">Specifiek aandachtspunt</span>
-            <div class="ind-current-focus" id="current-focus-label">{{ focus_tab_label }}</div>
-          </div>
-
-          <div class="ind-field">
-            <label class="ind-label" for="focus_note">Notitie</label>
-            <textarea class="ind-textarea" id="focus_note" name="focus_note" placeholder="Bijv. speler verliest houding in eerste 5 meter, extra focus op heupinzet en voorwaartse lijn...">{% if day_program %}{{ day_program.focus_note }}{% endif %}</textarea>
-            <p class="ind-help">De actieve tab hieronder wordt mee opgeslagen als aandachtspunt voor deze speler.</p>
-          </div>
-
-          <div class="ind-btn-row">
-            <button type="submit" name="save_focus_note" value="1" class="ind-btn">Aandachtspunt opslaan</button>
-          </div>
+          <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
+          <noscript>
+            <div class="ind-btn-row">
+              <button type="submit" class="ind-btn ind-btn-light">Laden</button>
+            </div>
+          </noscript>
         </form>
-      {% else %}
-        <p class="ind-help" style="margin-top:18px;">Selecteer eerst een speler om een aandachtspunt en notitie op te slaan.</p>
-      {% endif %}
-    </div>
+
+        <p class="ind-help" style="margin-top:18px;">Selecteer eerst een speler om inhoud te beheren.</p>
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="ind-view-panel is-active" data-view-panel="dagprogramma">
+    {% if selected_player %}
+      <section class="ind-selected-shell" id="selected-player-workspace">
+        <article class="ind-selected-card">
+          <div class="ind-player-photo">
+            {% if selected_player.image %}
+              <img src="{{ selected_player.image.url }}" alt="{{ selected_player.name }}">
+            {% else %}
+              <div class="ind-player-photo-placeholder">Geen foto toegevoegd</div>
+            {% endif %}
+          </div>
+          <h4 class="ind-player-name">{{ selected_player.name }}</h4>
+        </article>
+
+        <article class="ind-selected-meta">
+          <div class="ind-selected-kicker">Eigen omgeving</div>
+          <h3 class="ind-selected-title">{{ selected_player.name }}</h3>
+          <p class="ind-selected-text">
+            Je werkt nu in het individuele dagprogramma van deze speler. Hieronder kun je direct het programma van
+            vandaag aanpassen.
+          </p>
+        </article>
+      </section>
+
+      <article class="ind-card" style="margin-bottom:22px;">
+        <div class="ind-card-head">
+          <h3>Individueel Dagprogramma</h3>
+          <p>Schrijf hier het programma voor vandaag uit voor de geselecteerde speler.</p>
+        </div>
+        <div class="ind-card-body">
+          <div class="ind-btn-row" style="margin-bottom:16px;">
+            <a href="{% url 'individuele_programmas' %}" class="ind-back-link">Terug naar spelers</a>
+          </div>
+          <form method="post" class="ind-form">
+            {% csrf_token %}
+            <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
+            <div class="ind-field">
+              <label class="ind-label" for="program_text">Dagprogramma</label>
+              <textarea class="ind-textarea" id="program_text" name="program_text" placeholder="Bijv. warming-up, veldblok, gymblok, herstel, aandachtspunten...">{% if day_program %}{{ day_program.program_text }}{% endif %}</textarea>
+            </div>
+            <div class="ind-btn-row">
+              <button type="submit" name="save_program" value="1" class="ind-btn">Dagprogramma opslaan</button>
+            </div>
+          </form>
+        </div>
+      </article>
+    {% else %}
+      <article class="ind-card">
+        <div class="ind-card-head">
+          <h3>Kies Een Speler</h3>
+          <p>Klik op een spelerkaart om direct zijn eigen omgeving voor het dagprogramma te openen.</p>
+        </div>
+      </article>
+    {% endif %}
+
+    {% if not selected_player %}
+      <article class="ind-card" style="margin-top:22px;">
+        <div class="ind-card-head">
+          <h3>Spelers</h3>
+          <p>Klik op een spelerkaart om direct de persoonlijke dagprogramma-omgeving van die speler te openen.</p>
+        </div>
+        <div class="ind-card-body">
+          <div class="ind-player-grid">
+            {% for player in players %}
+              <a
+                href="{% url 'individuele_programmas' %}?player_id={{ player.id }}&focus_tab={{ focus_tab }}#selected-player-workspace"
+                class="ind-player-card"
+              >
+                <div class="ind-player-photo">
+                  {% if player.image %}
+                    <img src="{{ player.image.url }}" alt="{{ player.name }}">
+                  {% else %}
+                    <div class="ind-player-photo-placeholder">Geen foto toegevoegd</div>
+                  {% endif %}
+                </div>
+                <h4 class="ind-player-name">{{ player.name }}</h4>
+              </a>
+            {% empty %}
+              <div class="ind-help">Er zijn nog geen spelers beschikbaar.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </article>
+    {% endif %}
   </section>
 
-  <section>
+  <section class="ind-view-panel" data-view-panel="trainen">
+    {% if selected_player %}
+      <section class="ind-card" style="margin-bottom:22px;">
+        <div class="ind-card-head">
+          <h2>Speler en aandachtspunt</h2>
+          <p>Koppel per speler een specifiek ontwikkelpunt aan een notitie voor vandaag.</p>
+        </div>
+        <div class="ind-card-body">
+          <form method="post" class="ind-form">
+            {% csrf_token %}
+            <input type="hidden" name="focus_tab" id="focus-tab-input" value="{{ focus_tab }}">
+
+            <div class="ind-field">
+              <span class="ind-label">Geselecteerde speler</span>
+              <div class="ind-current-focus">{{ selected_player.name }}</div>
+            </div>
+
+            <div class="ind-field">
+              <span class="ind-label">Specifiek aandachtspunt</span>
+              <div class="ind-current-focus" id="current-focus-label">{{ focus_tab_label }}</div>
+            </div>
+
+            <div class="ind-field">
+              <label class="ind-label" for="focus_note">Notitie</label>
+              <textarea class="ind-textarea" id="focus_note" name="focus_note" placeholder="Bijv. speler verliest houding in eerste 5 meter, extra focus op heupinzet en voorwaartse lijn...">{% if day_program %}{{ day_program.focus_note }}{% endif %}</textarea>
+              <p class="ind-help">De actieve tab hieronder wordt mee opgeslagen als aandachtspunt voor deze speler.</p>
+            </div>
+
+            <div class="ind-btn-row">
+              <button type="submit" name="save_focus_note" value="1" class="ind-btn">Aandachtspunt opslaan</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    {% else %}
+      <section class="ind-card" style="margin-bottom:22px;">
+        <div class="ind-card-head">
+          <h2>Individueel trainen</h2>
+          <p>Kies eerst een speler om aandachtspunten en trainingsinhoud te beheren.</p>
+        </div>
+      </section>
+    {% endif %}
+
+    <section>
     <div class="ind-tab-nav" role="tablist" aria-label="Onderdelen individueel trainen">
       <button class="ind-tab-btn {% if focus_tab == 'sprint-acceleratie' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'sprint-acceleratie' %}true{% else %}false{% endif %}" data-tab="sprint-acceleratie" data-label="Sprint Acceleratie & Posture">Sprint Acceleratie & Posture</button>
       <button class="ind-tab-btn {% if focus_tab == 'hip-lock' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'hip-lock' %}true{% else %}false{% endif %}" data-tab="hip-lock" data-label="Hip Lock & Footplant">Hip Lock & Footplant</button>
@@ -576,17 +836,32 @@
           </div>
         </div>
     </article>
+    </section>
   </section>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    const viewButtons = document.querySelectorAll(".ind-view-tab");
+    const viewPanels = document.querySelectorAll(".ind-view-panel[data-view-panel]");
     const buttons = document.querySelectorAll(".ind-tab-btn");
     const panels = document.querySelectorAll(".ind-content-card[data-panel]");
     const focusInput = document.getElementById("focus-tab-input");
     const focusLabel = document.getElementById("current-focus-label");
     const playerSelect = document.getElementById("player_id");
     const getForm = playerSelect ? playerSelect.form : null;
+
+    function setActiveView(target) {
+      viewButtons.forEach((btn) => {
+        const active = btn.dataset.viewTab === target;
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-selected", String(active));
+      });
+
+      viewPanels.forEach((panel) => {
+        panel.classList.toggle("is-active", panel.dataset.viewPanel === target);
+      });
+    }
 
     function setActiveTab(target) {
       buttons.forEach((btn) => {
@@ -617,6 +892,12 @@
     buttons.forEach((button) => {
       button.addEventListener("click", function () {
         setActiveTab(button.dataset.tab);
+      });
+    });
+
+    viewButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        setActiveView(button.dataset.viewTab);
       });
     });
   });

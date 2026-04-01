@@ -25,6 +25,20 @@
     </div>
 </header>
 
+<div class="page-toggle">
+    <a
+        href="{% url 'nutrition' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}"
+        class="toggle-btn active"
+    >
+        Voeding
+    </a>
+    <a
+        href="{% url 'huidplooimeting' %}{% if selected_player %}?player={{ selected_player.id }}{% endif %}"
+        class="toggle-btn"
+    >
+        Huidplooimeting
+    </a>
+</div>
 
 
 
@@ -32,7 +46,7 @@
 
 <!-- WEEKVOEDINGSSCHEMA -->
 <section class="week-section">
-    <h3>ðŸ“… Weekvoedingsschema</h3>
+    <h3>Weekvoedingsschema</h3>
     <p>Vandaag is het <strong>{{ current_day }}</strong></p>
 
     <form method="POST">
@@ -70,7 +84,7 @@
                             name="color_{{ day }}" 
                             class="status-select {% if entry and entry.color %}status-{{ entry.color }}{% endif %}"
                         >
-                            <option value="">â€”</option>
+                            <option value="">-</option>
                             <option value="green" {% if entry and entry.color == "green" %}selected{% endif %}>
                                 Groen
                             </option>
@@ -88,7 +102,7 @@
         </table>
 
         <button type="submit" class="primary-btn">
-            ðŸ’¾ Week opslaan
+            Week opslaan
         </button>
     </form>
 </section>
@@ -178,7 +192,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <!-- SPELERSELECTIE + INTAKE -->
 <section class="player-section">
-    <h3>ðŸ‘¥ Intake formulier voeding</h3>
+    <h3>Intake formulier voeding</h3>
 
     <!-- Spelerkeuze -->
     <form method="get" action="" class="player-form mb-3">
@@ -199,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <div class="player-card">
   <div class="player-card-top">
     <h3 class="player-name">{{ selected_player.name }}</h3>
-    <span class="player-subtitle">Intake gesprek â€“ voeding</span>
+    <span class="player-subtitle">Intake gesprek - voeding</span>
   </div>
 </div>
 
@@ -207,7 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
      INTAKE FORM
 ========================= -->
 <div class="focus-card">
-  <h4>ðŸ“ Intake formulier</h4>
+  <h4>Intake formulier</h4>
   <p class="intake-subtext">
     Vul de intake in en klik op <strong>Opslaan</strong>.
     De informatie wordt gekoppeld aan deze speler.
@@ -250,7 +264,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <hr class="intake-divider">
 
     <!-- Wat eet hij? -->
-    <h5 class="intake-section-title">ðŸ½ï¸ Wat eet hij gemiddeld?</h5>
+    <h5 class="intake-section-title">Wat eet hij gemiddeld?</h5>
 
     <div class="intake-field">
       <label class="intake-label"><strong>Ontbijt</strong></label>
@@ -313,7 +327,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <!-- Next meeting goal -->
     <div class="intake-field">
       <label class="intake-label">
-        <strong>Aandachtspunt â†’ doel volgende meeting</strong>
+        <strong>Aandachtspunt -> doel volgende meeting</strong>
       </label>
       <textarea name="next_meeting_goal"
                 class="form-control"
@@ -335,7 +349,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <!-- FIXED OPSLAAN KNOP (los van layout) -->
     <div class="intake-save-fixed">
       <button type="submit" class="btn btn-primary intake-save-btn">
-        ðŸ’¾ Opslaan intake
+        Opslaan intake
       </button>
     </div>
 

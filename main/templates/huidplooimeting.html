@@ -5,8 +5,18 @@
 
 <section class="skinfold-section {% if pdf_mode %}pdf-mode{% endif %}">
     <div class="page-toggle">
-        <a href="{% url 'nutrition' %}" class="toggle-btn">Voeding</a>
-        <a href="{% url 'huidplooimeting' %}" class="toggle-btn active">Huidplooimeting</a>
+        <a
+            href="{% url 'nutrition' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}"
+            class="toggle-btn"
+        >
+            Voeding
+        </a>
+        <a
+            href="{% url 'huidplooimeting' %}{% if selected_player %}?player={{ selected_player.id }}{% endif %}"
+            class="toggle-btn active"
+        >
+            Huidplooimeting
+        </a>
     </div>
     <h3>Antropometrische metingen</h3>
     <p class="subtext">

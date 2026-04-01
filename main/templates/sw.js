@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'willemii-pwa-v3';
+const CACHE_VERSION = 'willemii-pwa-v4';
 const OFFLINE_URL = '/offline/';
 const APP_SHELL_URLS = [
   OFFLINE_URL,
@@ -37,15 +37,9 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
-          return response;
-        })
+      fetch(request, { cache: 'no-store' })
         .catch(async () => {
-          const cachedPage = await caches.match(request);
-          return cachedPage || caches.match(OFFLINE_URL);
+          return caches.match(OFFLINE_URL);
         })
     );
     return;
