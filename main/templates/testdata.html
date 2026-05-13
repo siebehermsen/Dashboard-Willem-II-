@@ -15,7 +15,7 @@
 
 <section class="testdata-view-panel {% if active_testdata_tab == 'profiel' %}is-active{% endif %}" data-view-panel="profiel" {% if active_testdata_tab != 'profiel' %}hidden{% endif %}>
 <!-- ============================================ -->
-<!-- SPELERSELECTIE â€“ MOOIE KAART                 -->
+<!-- SPELERSELECTIE - MOOIE KAART                 -->
 <!-- ============================================ -->
 <section class="player-select-card">
     <h2 class="card-title">Testdata Analyse</h2>
@@ -92,7 +92,7 @@
     <!-- ========== RECHTERKOLOM (Donuts + Kwadrant) ========== -->
     <div class="metrics-row">
 
-        <!-- 2Ã—2 DONUTS -->
+        <!-- 2x2 DONUTS -->
         <div class="metrics-left">
             <div class="small-donuts">
 
@@ -161,7 +161,7 @@
             </div>
         </div>
 
-    </div> <!-- ðŸ”¥ ENIGE CORRECTE SLUITING VAN metrics-row -->
+    </div> <!-- ENIGE CORRECTE SLUITING VAN metrics-row -->
 
 </section> <!-- sluit player-profile-layout -->
 
@@ -175,7 +175,7 @@
         <canvas id="anthroChart"></canvas>
     </div>
 
-</div> <!-- âœ… deze was vergeten -->
+</div> <!-- deze was vergeten -->
 
 <!-- =============================== -->
 <!--  JSON DATA VIA DJANGO          -->
@@ -186,7 +186,7 @@
 
 
 <!-- =============================== -->
-<!--  CHART.JS LADEN (Ã‰Ã‰N KEER!)    -->
+<!--  CHART.JS LADEN (EEN KEER!)     -->
 <!-- =============================== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -625,9 +625,12 @@ new Chart(quadrantCtx, {
 <!-- ==================================================== -->
 <script>
 function makeDonut(id, value) {
+    if (typeof Chart === "undefined") return;
     if (value === null || value === undefined) return;
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
 
-    new Chart(document.getElementById(id), {
+    new Chart(canvas, {
         type: "doughnut",
         data: {
             datasets: [{
@@ -643,11 +646,19 @@ function makeDonut(id, value) {
     });
 }
 
-// Donuts activeren met Django-percentielen
-makeDonut("donut_sprint",  {{ percentiles.sprint_10|default:0 }});
-makeDonut("donut_cmj",     {{ percentiles.cmj|default:0 }});
-makeDonut("donut_isrt",    {{ percentiles.isrt|default:0 }});
-makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
+// Donuts activeren met Django-percentielen.
+// De templatewaarden staan in strings zodat de editor dit als geldige JavaScript leest.
+const donutPercentiles = {
+    sprint: Number("{{ percentiles.sprint_10|default:0 }}") || 0,
+    cmj: Number("{{ percentiles.cmj|default:0 }}") || 0,
+    isrt: Number("{{ percentiles.isrt|default:0 }}") || 0,
+    submax: Number("{{ percentiles.submax|default:0 }}") || 0
+};
+
+makeDonut("donut_sprint", donutPercentiles.sprint);
+makeDonut("donut_cmj", donutPercentiles.cmj);
+makeDonut("donut_isrt", donutPercentiles.isrt);
+makeDonut("donut_submax", donutPercentiles.submax);
 </script>
 
 
@@ -851,7 +862,7 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
 }
 
 /* ======================================= */
-/* DONUT GRID â€“ iets verder naar links     */
+/* DONUT GRID - iets verder naar links      */
 /* ======================================= */
 
 .small-donuts {
@@ -862,12 +873,12 @@ makeDonut("donut_submax",  {{ percentiles.submax|default:0 }});
     justify-content: start;      /* donuts links uitlijnen */
     align-items: start;
 
-    margin-left: -20px;          /* ðŸ”¥ sterkere linkerschuiving */
+    margin-left: -20px;          /* sterkere linkerschuiving */
 }
 
 
 /* ======================================= */
-/* DONUT CARD â€“ strak & clean              */
+/* DONUT CARD - strak & clean               */
 /* ======================================= */
 
 .donut-card {
@@ -1623,7 +1634,7 @@ html.app-ui.app-mode .anthro-card {
 .anthro-card {
     background: #ffffff;
     border-radius: 20px;
-    padding: 10px 0 20px 0;  /* ðŸ”¥ LINKS/RECHTS GEEN PADDING MEER */
+    padding: 10px 0 20px 0;  /* links/rechts geen padding meer */
     box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     margin-top: 25px;
     width: 100%;
@@ -1645,7 +1656,7 @@ html.app-ui.app-mode .anthro-card {
     height: 450px;
     position: relative;
 
-    padding: 0 !important;   /* ðŸ”¥ GEEN INTERNE RUIMTE */
+    padding: 0 !important;   /* geen interne ruimte */
     margin: 0 !important;
 }
 
@@ -1655,7 +1666,7 @@ html.app-ui.app-mode .anthro-card {
     height: 100% !important;
 
     display: block !important;
-    padding: 0 !important;   /* ðŸ”¥ VERZEKERT GEEN WITRUIMTE */
+    padding: 0 !important;   /* verzekert geen witruimte */
     margin: 0 !important;
 }
 
