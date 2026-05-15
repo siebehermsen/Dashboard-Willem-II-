@@ -491,8 +491,9 @@ def edit_weekday(request, pk):
 # ---------- WEEKPROGRAMMA VERWIJDEREN ----------
 def delete_weekday(request, pk):
     day = get_object_or_404(DayProgramEntry, pk=pk)
-    day.delete()
-    messages.success(request, "Trainingsdag succesvol verwijderd.")
+    if request.method == "POST":
+        day.delete()
+        messages.success(request, "Trainingsdag succesvol verwijderd.")
     return redirect("dashboard")
 
 
@@ -783,11 +784,13 @@ def nutrition_view(request):
                     parsed_date = None
                     messages.warning(request, "Datum kon niet worden gelezen. Gebruik het datumveld (YYYY-MM-DD).")
 
-            session = NutritionIntakeSession.objects.create(
+            session, _ = NutritionIntakeSession.objects.update_or_create(
                 player=p,
                 date=parsed_date,
-                goal=request.POST.get("goal", "").strip(),
-                next_meeting_goal=request.POST.get("next_meeting_goal", "").strip(),
+                defaults={
+                    "goal": request.POST.get("goal", "").strip(),
+                    "next_meeting_goal": request.POST.get("next_meeting_goal", "").strip(),
+                },
             )
             meal_values = {
                 "breakfast": request.POST.get("breakfast", "").strip(),
@@ -799,10 +802,10 @@ def nutrition_view(request):
                 "supplements": request.POST.get("supplements", "").strip(),
             }
             for meal_key, value in meal_values.items():
-                NutritionIntakeItem.objects.create(
+                NutritionIntakeItem.objects.update_or_create(
                     session=session,
                     meal_key=meal_key,
-                    value=value,
+                    defaults={"value": value},
                 )
 
             # Optioneel: nutrition_focus op Player model
