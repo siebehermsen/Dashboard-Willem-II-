@@ -12,6 +12,7 @@ venv/
 db.sqlite3
 media/
 staticfiles/
+backups/
 
 # OS
 .DS_Store

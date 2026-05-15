@@ -30,6 +30,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Avg
 from django import forms
 from datetime import datetime, timedelta
@@ -708,14 +709,15 @@ def nutrition_view(request):
         # 1) WEEKVOEDINGSSCHEMA SAVE
         # =============================
         if request.POST.get("nutrition_day") == "1":
-            for d in days:
-                meal = request.POST.get(f"meal_{d}", "").strip()
-                color = request.POST.get(f"color_{d}", "").strip() or None
+            with transaction.atomic():
+                for d in days:
+                    meal = request.POST.get(f"meal_{d}", "").strip()
+                    color = request.POST.get(f"color_{d}", "").strip() or None
 
-                NutritionDay.objects.update_or_create(
-                    day=d,
-                    defaults={"meal": meal, "color": color}
-                )
+                    NutritionDay.objects.update_or_create(
+                        day=d,
+                        defaults={"meal": meal, "color": color}
+                    )
 
             messages.success(request, "Weekvoedingsschema is opgeslagen.")
             if player_id:
@@ -735,28 +737,29 @@ def nutrition_view(request):
                     weight_date = datetime.now().date()
             else:
                 weight_date = datetime.now().date()
-            for player in players:
-                raw_weight = request.POST.get(f"weight_{player.id}", "").strip()
-                if raw_weight == "":
-                    continue
-                try:
-                    weight_val = float(raw_weight.replace(",", "."))
-                except ValueError:
-                    continue
+            with transaction.atomic():
+                for player in players:
+                    raw_weight = request.POST.get(f"weight_{player.id}", "").strip()
+                    if raw_weight == "":
+                        continue
+                    try:
+                        weight_val = float(raw_weight.replace(",", "."))
+                    except ValueError:
+                        continue
 
-                if weight_date == datetime.now().date():
-                    profile = _get_or_create_monitoring_profile(player)
-                    if profile.curr_weight is not None:
-                        profile.prev_weight = profile.curr_weight
-                    profile.curr_weight = weight_val
-                    profile.save(update_fields=["prev_weight", "curr_weight", "updated_at"])
+                    if weight_date == datetime.now().date():
+                        profile = _get_or_create_monitoring_profile(player)
+                        if profile.curr_weight is not None:
+                            profile.prev_weight = profile.curr_weight
+                        profile.curr_weight = weight_val
+                        profile.save(update_fields=["prev_weight", "curr_weight", "updated_at"])
 
-                WeightEntry.objects.update_or_create(
-                    player=player,
-                    date=weight_date,
-                    defaults={"weight": weight_val}
-                )
-                updated += 1
+                    WeightEntry.objects.update_or_create(
+                        player=player,
+                        date=weight_date,
+                        defaults={"weight": weight_val}
+                    )
+                    updated += 1
 
             if updated > 0:
                 messages.success(request, f"Gewichten opgeslagen voor {updated} speler(s).")
@@ -784,35 +787,36 @@ def nutrition_view(request):
                     parsed_date = None
                     messages.warning(request, "Datum kon niet worden gelezen. Gebruik het datumveld (YYYY-MM-DD).")
 
-            session, _ = NutritionIntakeSession.objects.update_or_create(
-                player=p,
-                date=parsed_date,
-                defaults={
-                    "goal": request.POST.get("goal", "").strip(),
-                    "next_meeting_goal": request.POST.get("next_meeting_goal", "").strip(),
-                },
-            )
-            meal_values = {
-                "breakfast": request.POST.get("breakfast", "").strip(),
-                "snack1": request.POST.get("snack1", "").strip(),
-                "lunch": request.POST.get("lunch", "").strip(),
-                "snack2": request.POST.get("snack2", "").strip(),
-                "dinner": request.POST.get("dinner", "").strip(),
-                "snack3": request.POST.get("snack3", "").strip(),
-                "supplements": request.POST.get("supplements", "").strip(),
-            }
-            for meal_key, value in meal_values.items():
-                NutritionIntakeItem.objects.update_or_create(
-                    session=session,
-                    meal_key=meal_key,
-                    defaults={"value": value},
+            with transaction.atomic():
+                session, _ = NutritionIntakeSession.objects.update_or_create(
+                    player=p,
+                    date=parsed_date,
+                    defaults={
+                        "goal": request.POST.get("goal", "").strip(),
+                        "next_meeting_goal": request.POST.get("next_meeting_goal", "").strip(),
+                    },
                 )
+                meal_values = {
+                    "breakfast": request.POST.get("breakfast", "").strip(),
+                    "snack1": request.POST.get("snack1", "").strip(),
+                    "lunch": request.POST.get("lunch", "").strip(),
+                    "snack2": request.POST.get("snack2", "").strip(),
+                    "dinner": request.POST.get("dinner", "").strip(),
+                    "snack3": request.POST.get("snack3", "").strip(),
+                    "supplements": request.POST.get("supplements", "").strip(),
+                }
+                for meal_key, value in meal_values.items():
+                    NutritionIntakeItem.objects.update_or_create(
+                        session=session,
+                        meal_key=meal_key,
+                        defaults={"value": value},
+                    )
 
-            # Optioneel: nutrition_focus op Player model
-            if "nutrition_focus" in request.POST:
-                profile = _get_or_create_monitoring_profile(p)
-                profile.nutrition_focus = request.POST.get("nutrition_focus", "").strip()
-                profile.save(update_fields=["nutrition_focus", "updated_at"])
+                # Optioneel: nutrition_focus op Player model
+                if "nutrition_focus" in request.POST:
+                    profile = _get_or_create_monitoring_profile(p)
+                    profile.nutrition_focus = request.POST.get("nutrition_focus", "").strip()
+                    profile.save(update_fields=["nutrition_focus", "updated_at"])
 
             messages.success(request, f"Intake voor {p.name} is opgeslagen.")
             return redirect(f"/nutrition/?player_id={p.id}")
@@ -959,21 +963,6 @@ def skinfold_view(request):
         if measurement_date is None:
             return
 
-        session, _ = AnthropometrySession.objects.update_or_create(
-            player=player_obj,
-            date=measurement_date,
-            defaults={
-                "body_mass": data_dict.get("body_mass"),
-                "length": data_dict.get("length"),
-                "fat_dw": data_dict.get("fat_dw"),
-                "fat_faulkner": data_dict.get("fat_faulkner"),
-                "fat_carter": data_dict.get("fat_carter"),
-                "fat_average": data_dict.get("fat_average"),
-            },
-        )
-
-        AnthropometryMeasurement.objects.filter(session=session).delete()
-
         def push_measurement(category, site_code, value, repetition):
             if value in (None, ""):
                 return
@@ -990,15 +979,31 @@ def skinfold_view(request):
                 value=numeric,
             )
 
-        for _site_label, field in skinfold_field_map.items():
-            push_measurement("skinfold", field, data_dict.get(f"{field}_m1"), 1)
-            push_measurement("skinfold", field, data_dict.get(f"{field}_m2"), 2)
-            push_measurement("skinfold", field, data_dict.get(f"{field}_m3"), 3)
+        with transaction.atomic():
+            session, _ = AnthropometrySession.objects.update_or_create(
+                player=player_obj,
+                date=measurement_date,
+                defaults={
+                    "body_mass": data_dict.get("body_mass"),
+                    "length": data_dict.get("length"),
+                    "fat_dw": data_dict.get("fat_dw"),
+                    "fat_faulkner": data_dict.get("fat_faulkner"),
+                    "fat_carter": data_dict.get("fat_carter"),
+                    "fat_average": data_dict.get("fat_average"),
+                },
+            )
 
-        for _site_label, field in girth_field_map.items():
-            push_measurement("girth", field, data_dict.get(f"{field}_m1"), 1)
-            push_measurement("girth", field, data_dict.get(f"{field}_m2"), 2)
-            push_measurement("girth", field, data_dict.get(f"{field}_m3"), 3)
+            AnthropometryMeasurement.objects.filter(session=session).delete()
+
+            for _site_label, field in skinfold_field_map.items():
+                push_measurement("skinfold", field, data_dict.get(f"{field}_m1"), 1)
+                push_measurement("skinfold", field, data_dict.get(f"{field}_m2"), 2)
+                push_measurement("skinfold", field, data_dict.get(f"{field}_m3"), 3)
+
+            for _site_label, field in girth_field_map.items():
+                push_measurement("girth", field, data_dict.get(f"{field}_m1"), 1)
+                push_measurement("girth", field, data_dict.get(f"{field}_m2"), 2)
+                push_measurement("girth", field, data_dict.get(f"{field}_m3"), 3)
 
     # ======================
     # POST ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ OPSLAAN
@@ -3037,17 +3042,18 @@ def hit_page(request):
             messages.warning(request, "Geen geldige spelersregels om ASR-planning op te slaan.")
             return redirect("/hit/")
 
-        plan = HitAsrPlanSession.objects.create(
-            session_date=plan_date,
-            mas_percent=round(mas_percent, 2),
-            reference_speed_kmh=round(reference_speed, 2) if reference_speed > 0 else None,
-        )
-        HitAsrPlanEntry.objects.bulk_create(
-            [
-                HitAsrPlanEntry(session=plan, **row)
-                for row in rows
-            ]
-        )
+        with transaction.atomic():
+            plan = HitAsrPlanSession.objects.create(
+                session_date=plan_date,
+                mas_percent=round(mas_percent, 2),
+                reference_speed_kmh=round(reference_speed, 2) if reference_speed > 0 else None,
+            )
+            HitAsrPlanEntry.objects.bulk_create(
+                [
+                    HitAsrPlanEntry(session=plan, **row)
+                    for row in rows
+                ]
+            )
         messages.success(request, f"ASR-planning opgeslagen ({len(rows)} spelers) voor {plan_date}.")
         return redirect("/hit/")
 

@@ -1,5 +1,29 @@
 # MySQL Backup / Restore Runbook (3NF)
 
+## Aanbevolen vaste flow
+
+Gebruik bij voorkeur het Django management command. Dat leest dezelfde database-instellingen als de site uit `.env`, maakt een consistente MySQL dump en zet die in `backups/`.
+
+```bash
+source venv/bin/activate
+python manage.py backup_database
+python manage.py verify_data_integrity
+```
+
+De backup-map staat in `.gitignore`, zodat databasebestanden niet per ongeluk naar GitHub gaan.
+
+Voor een leesbare `.sql` zonder gzip:
+
+```bash
+python manage.py backup_database --plain-sql
+```
+
+Voor een andere opslaglocatie, bijvoorbeeld een externe map:
+
+```bash
+python manage.py backup_database --output-dir ~/DatabaseBackups/willemii
+```
+
 ## 1) Full backup (schema + data)
 Run from terminal (not in MySQL prompt):
 
@@ -32,4 +56,3 @@ SELECT COUNT(*) FROM main_anthropometrymeasurement;
 SELECT COUNT(*) FROM main_nutritionintakesession;
 SELECT COUNT(*) FROM main_nutritionintakeitem;
 ```
-
