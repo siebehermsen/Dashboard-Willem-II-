@@ -1489,12 +1489,16 @@ setMatchMetric(selectedMetricMatchState, false);
         <article class="card chart-card report-card">
             <div class="chart-header">
                 <div>
-                    <h3>Belastingsmix</h3>
-                    <p class="subtext">Snelle context voor het weekbeeld.</p>
+                    <h3>Load per helft</h3>
+                    <p class="subtext">Wedstrijdload per speler, opgesplitst in eerste en tweede helft.</p>
+                </div>
+                <div class="report-metric-buttons" aria-label="Wedstrijdhelft">
+                    <button type="button" class="report-metric-btn active" data-report-half="first">Eerste helft</button>
+                    <button type="button" class="report-metric-btn" data-report-half="second">Tweede helft</button>
                 </div>
             </div>
             <div class="chart-area chart-area-small">
-                <canvas id="physicalSplitChart"></canvas>
+                <canvas id="physicalHalfLoadChart"></canvas>
             </div>
         </article>
     </section>
@@ -1555,8 +1559,9 @@ const reportDailyAccDec = {{ report_daily_acc_dec|safe }};
 const reportPlayerLabels = {{ report_player_labels|safe }};
 const reportPlayerLoad = {{ report_player_load|safe }};
 const reportPlayerDistance = {{ report_player_distance|safe }};
-const reportSplitLabels = {{ report_split_labels|safe }};
-const reportSplitValues = {{ report_split_values|safe }};
+const reportHalfPlayerLabels = {{ report_half_player_labels|safe }};
+const reportFirstHalfLoad = {{ report_first_half_load|safe }};
+const reportSecondHalfLoad = {{ report_second_half_load|safe }};
 
 const reportNumber = (value, digits = 0) => new Intl.NumberFormat("nl-NL", {
     maximumFractionDigits: digits
@@ -1728,22 +1733,56 @@ const initPhysicalReportCharts = () => {
         });
     }
 
-    const splitCanvas = document.getElementById("physicalSplitChart");
-    if (splitCanvas) {
-        new Chart(splitCanvas, {
-            type: "doughnut",
+    const halfLoadCanvas = document.getElementById("physicalHalfLoadChart");
+    let halfLoadChart = null;
+    const halfLoadConfig = {
+        first: {
+            label: "Load eerste helft",
+            data: reportFirstHalfLoad,
+            color: "#1f2a44"
+        },
+        second: {
+            label: "Load tweede helft",
+            data: reportSecondHalfLoad,
+            color: "#b60000"
+        }
+    };
+    const setHalfLoad = (halfKey) => {
+        const config = halfLoadConfig[halfKey] || halfLoadConfig.first;
+        if (!halfLoadChart) return;
+        halfLoadChart.data.datasets[0].label = config.label;
+        halfLoadChart.data.datasets[0].data = config.data;
+        halfLoadChart.data.datasets[0].backgroundColor = config.color;
+        halfLoadChart.update();
+    };
+    if (halfLoadCanvas) {
+        halfLoadChart = new Chart(halfLoadCanvas, {
+            type: "bar",
             data: {
-                labels: reportSplitLabels,
+                labels: reportHalfPlayerLabels,
                 datasets: [{
-                    data: reportSplitValues,
-                    backgroundColor: ["#1f2a44", "#b60000", "#6f7d95", "#d9e1ec"]
+                    label: halfLoadConfig.first.label,
+                    data: halfLoadConfig.first.data,
+                    backgroundColor: halfLoadConfig.first.color,
+                    borderRadius: 10
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: reportBaseOptions.plugins
+                ...reportBaseOptions,
+                indexAxis: "y",
+                plugins: {
+                    ...reportBaseOptions.plugins,
+                    legend: { display: false }
+                }
             }
+        });
+
+        document.querySelectorAll("[data-report-half]").forEach((button) => {
+            button.addEventListener("click", () => {
+                document.querySelectorAll("[data-report-half]").forEach((btn) => btn.classList.remove("active"));
+                button.classList.add("active");
+                setHalfLoad(button.dataset.reportHalf);
+            });
         });
     }
 };

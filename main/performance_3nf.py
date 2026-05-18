@@ -15,7 +15,17 @@ from .models import (
 
 
 TRAINING_CODES = ("total_distance", "hsd", "sprints", "load")
-MATCH_CODES = ("accelerations", "decelerations", "hsd", "his", "total_distance", "sprints", "load")
+MATCH_CODES = (
+    "accelerations",
+    "decelerations",
+    "hsd",
+    "his",
+    "total_distance",
+    "sprints",
+    "load",
+    "first_half_load",
+    "second_half_load",
+)
 TEST_CODES = ("sprint_10", "sprint_30", "cmj", "squat_jump", "isrt", "submax", "curr_weight", "length", "sum_skinfolds")
 
 

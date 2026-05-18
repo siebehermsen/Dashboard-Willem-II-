@@ -64,6 +64,7 @@ from .models import (
     BeweeganalysePunt,
     BeweeganalyseSessie,
     BeweeganalyseBeoordeling,
+    PerformanceMetricType,
     PlayerMonitoringProfile,
     PlayerPosition,
     StaffRole,
@@ -1896,6 +1897,8 @@ def fysiek_rapport(request):
                 "load": 0.0,
                 "accelerations": 0.0,
                 "decelerations": 0.0,
+                "first_half_load": 0.0,
+                "second_half_load": 0.0,
             },
         )
         data["total_distance"] += val(row, "total_distance")
@@ -1905,6 +1908,16 @@ def fysiek_rapport(request):
         data["load"] += val(row, "load")
         data["accelerations"] += val(row, "accelerations")
         data["decelerations"] += val(row, "decelerations")
+        if row in match_rows:
+            first_half = val(row, "first_half_load")
+            second_half = val(row, "second_half_load")
+            if first_half or second_half:
+                data["first_half_load"] += first_half
+                data["second_half_load"] += second_half
+            else:
+                fallback_half_load = val(row, "load") / 2
+                data["first_half_load"] += fallback_half_load
+                data["second_half_load"] += fallback_half_load
 
     player_report_rows = sorted(player_map.values(), key=lambda item: item["load"], reverse=True)
     top_player_rows = player_report_rows[:12]
@@ -1962,13 +1975,9 @@ def fysiek_rapport(request):
         "report_player_labels": json.dumps([row["name"] for row in top_player_rows]),
         "report_player_load": json.dumps([round(row["load"], 1) for row in top_player_rows]),
         "report_player_distance": json.dumps([round(row["total_distance"] / 1000, 2) for row in top_player_rows]),
-        "report_split_labels": json.dumps(["Training load", "Wedstrijd load", "HIR", "Sprints"]),
-        "report_split_values": json.dumps([
-            round(sum_metric(training_rows, "load"), 1),
-            round(sum_metric(match_rows, "load"), 1),
-            round(total_hsd / 1000, 2),
-            round(total_sprints, 0),
-        ]),
+        "report_half_player_labels": json.dumps([row["name"] for row in top_player_rows]),
+        "report_first_half_load": json.dumps([round(row["first_half_load"], 1) for row in top_player_rows]),
+        "report_second_half_load": json.dumps([round(row["second_half_load"], 1) for row in top_player_rows]),
     }
 
     return render(request, "Training.html", context)
@@ -4358,6 +4367,23 @@ def upload_wedstrijddata(request):
             except Exception:
                 return 0
 
+        def first_available_float(row, names):
+            normalized = {str(key).strip().lower(): value for key, value in row.items()}
+            for name in names:
+                raw_value = normalized.get(name.strip().lower())
+                if raw_value not in (None, ""):
+                    return safe_float(raw_value)
+            return 0.0
+
+        for code, label in (
+            ("first_half_load", "Load eerste helft"),
+            ("second_half_load", "Load tweede helft"),
+        ):
+            PerformanceMetricType.objects.get_or_create(
+                code=code,
+                defaults={"label": label, "unit": "au", "category": "load", "is_active": True},
+            )
+
         count = 0
 
         for row in reader:
@@ -4385,6 +4411,32 @@ def upload_wedstrijddata(request):
                     continue
 
                 week = match_date.isocalendar()[1]
+                first_half_load = first_available_float(row, [
+                    "First Half HML Distance",
+                    "HML Distance First Half",
+                    "HML Distance 1st Half",
+                    "1st Half HML Distance",
+                    "HML Distance (1st Half)",
+                    "HML Distance 1H",
+                    "First Half Load",
+                    "Load First Half",
+                    "Load 1st Half",
+                    "1st Half Load",
+                    "Eerste helft load",
+                ])
+                second_half_load = first_available_float(row, [
+                    "Second Half HML Distance",
+                    "HML Distance Second Half",
+                    "HML Distance 2nd Half",
+                    "2nd Half HML Distance",
+                    "HML Distance (2nd Half)",
+                    "HML Distance 2H",
+                    "Second Half Load",
+                    "Load Second Half",
+                    "Load 2nd Half",
+                    "2nd Half Load",
+                    "Tweede helft load",
+                ])
                 upsert_performance_session_metrics(
                     player=player,
                     session_kind='match',
@@ -4398,6 +4450,8 @@ def upload_wedstrijddata(request):
                         'total_distance': safe_float(row.get('Total Distance')),
                         'sprints': safe_int(row.get('Sprints')),
                         'load': safe_float(row.get('HML Distance')),
+                        'first_half_load': first_half_load,
+                        'second_half_load': second_half_load,
                     },
                     source_tag='main_upload_match',
                 )
