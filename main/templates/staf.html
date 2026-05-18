@@ -47,6 +47,12 @@
         line-height: 1.6;
     }
 
+    .staf-management-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+    }
+
     .staf-form-card,
     .staf-grid-card {
         background: #fff;
@@ -66,9 +72,8 @@
 
     .staf-form {
         display: grid;
-        grid-template-columns: 1.1fr 1fr 1fr auto;
+        grid-template-columns: 1fr;
         gap: 16px;
-        align-items: end;
     }
 
     .staf-field label {
@@ -78,7 +83,8 @@
         font-weight: 700;
     }
 
-    .staf-field input {
+    .staf-field input,
+    .staf-field select {
         width: 100%;
         box-sizing: border-box;
         border: 1px solid #cfd8e7;
@@ -89,6 +95,7 @@
     }
 
     .staf-submit {
+        justify-self: start;
         border: none;
         border-radius: 14px;
         padding: 13px 20px;
@@ -155,7 +162,44 @@
         text-align: center;
     }
 
+    .staf-section-note {
+        color: #61708a;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin: -8px 0 4px;
+    }
+
+    .staf-mini-list {
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 8px;
+        max-height: 220px;
+        overflow: auto;
+    }
+
+    .staf-mini-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: #f7f9fd;
+        color: #1f2a44;
+        font-weight: 700;
+    }
+
+    .staf-muted {
+        color: #77859c;
+        font-weight: 600;
+    }
+
     @media (max-width: 991px) {
+        .staf-management-grid {
+            grid-template-columns: 1fr;
+        }
+
         .staf-form {
             grid-template-columns: 1fr;
         }
@@ -167,28 +211,96 @@
         <div class="staf-kicker">Stafomgeving</div>
         <h1 class="staf-title">Staf</h1>
         <p class="staf-subtitle">
-            Voeg hier stafleden toe met een foto en hun functie. De kaarten worden automatisch netjes naast elkaar en onder elkaar geplaatst.
+            Beheer hier spelers, stafleden, functies en dashboardtoegang zonder naar de Django admin te hoeven.
         </p>
     </div>
 
-    <div class="staf-form-card">
-        <h3>Staflid toevoegen</h3>
-        <form method="post" enctype="multipart/form-data" class="staf-form">
-            {% csrf_token %}
-            <div class="staf-field">
-                <label for="staf-name">Naam</label>
-                <input id="staf-name" type="text" name="name" placeholder="Bijv. Siebe Hermsen" required>
-            </div>
-            <div class="staf-field">
-                <label for="staf-role">Functie</label>
-                <input id="staf-role" type="text" name="role_name" placeholder="Bijv. Performance coach" required>
-            </div>
-            <div class="staf-field">
-                <label for="staf-image">Foto</label>
-                <input id="staf-image" type="file" name="image" accept="image/*">
-            </div>
-            <button type="submit" class="staf-submit">Toevoegen</button>
-        </form>
+    <div class="staf-management-grid">
+        <div class="staf-form-card">
+            <h3>Speler toevoegen</h3>
+            <p class="staf-section-note">Nieuwe spelers krijgen automatisch een monitoringprofiel, zodat gewicht, voeding en testdata direct gekoppeld kunnen worden.</p>
+            <form method="post" enctype="multipart/form-data" class="staf-form">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="add_player">
+                <div class="staf-field">
+                    <label for="player-name">Naam speler</label>
+                    <input id="player-name" type="text" name="player_name" placeholder="Bijv. Nieuwe Speler" required>
+                </div>
+                <div class="staf-field">
+                    <label for="player-position">Positie</label>
+                    <input id="player-position" type="text" name="position_name" list="player-position-options" placeholder="Bijv. Buitenspeler">
+                    <datalist id="player-position-options">
+                        {% for position in player_positions %}
+                        <option value="{{ position.name }}"></option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="staf-field">
+                    <label for="player-image">Foto</label>
+                    <input id="player-image" type="file" name="player_image" accept="image/*">
+                </div>
+                <button type="submit" class="staf-submit">Speler toevoegen</button>
+            </form>
+
+            <ul class="staf-mini-list">
+                {% for player in players|slice:":8" %}
+                <li>
+                    <span>{{ player.name }}</span>
+                    <span class="staf-muted">{{ player.position_ref.name|default:"Geen positie" }}</span>
+                </li>
+                {% empty %}
+                <li><span>Nog geen spelers</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="staf-form-card">
+            <h3>Staflid toevoegen</h3>
+            <p class="staf-section-note">Koppel optioneel meteen een login en dashboardrol. Zonder gebruikersnaam wordt alleen het stafprofiel aangemaakt.</p>
+            <form method="post" enctype="multipart/form-data" class="staf-form">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="add_staff">
+                <div class="staf-field">
+                    <label for="staf-name">Naam</label>
+                    <input id="staf-name" type="text" name="name" placeholder="Bijv. Siebe Hermsen" required>
+                </div>
+                <div class="staf-field">
+                    <label for="staf-role">Functie</label>
+                    <input id="staf-role" type="text" name="role_name" list="staff-role-options" placeholder="Bijv. Performance coach" required>
+                    <datalist id="staff-role-options">
+                        {% for role in staff_roles %}
+                        <option value="{{ role.name }}"></option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="staf-field">
+                    <label for="staf-image">Foto</label>
+                    <input id="staf-image" type="file" name="image" accept="image/*">
+                </div>
+                <div class="staf-field">
+                    <label for="staf-username">Login gebruikersnaam</label>
+                    <input id="staf-username" type="text" name="username" placeholder="Optioneel">
+                </div>
+                <div class="staf-field">
+                    <label for="staf-email">E-mail</label>
+                    <input id="staf-email" type="email" name="email" placeholder="Optioneel">
+                </div>
+                <div class="staf-field">
+                    <label for="staf-password">Tijdelijk wachtwoord</label>
+                    <input id="staf-password" type="password" name="password" placeholder="Alleen invullen bij nieuwe login">
+                </div>
+                <div class="staf-field">
+                    <label for="dashboard-role">Dashboardrol</label>
+                    <select id="dashboard-role" name="dashboard_role">
+                        <option value="">Geen dashboardlogin/rol</option>
+                        {% for value, label in dashboard_role_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="staf-submit">Staflid toevoegen</button>
+            </form>
+        </div>
     </div>
 
     <div class="staf-grid-card">
@@ -205,6 +317,9 @@
                 </div>
                 <h4 class="staf-name">{{ member.name }}</h4>
                 <p class="staf-role">{{ member.role_ref.name|default:"Geen functie ingevuld" }}</p>
+                {% if member.user %}
+                <p class="staf-role staf-muted">{{ member.user.username }}</p>
+                {% endif %}
             </article>
             {% empty %}
             <article class="staf-card">

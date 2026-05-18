@@ -72,6 +72,6 @@ class DayProgramEntryAdmin(admin.ModelAdmin):
 # ---------- STAFFLEDEN ----------
 @admin.register(Staff)
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ("name", "role_ref")
-    search_fields = ("name", "role_ref__name")
+    list_display = ("name", "role_ref", "user")
+    search_fields = ("name", "role_ref__name", "user__username", "user__email")
     ordering = ("name",)

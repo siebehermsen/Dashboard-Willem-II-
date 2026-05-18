@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
@@ -18,9 +19,12 @@ from .models import (
     PlayerMonitoringProfile,
     RPEEntry,
     RPETrainingType,
+    Staff,
+    StaffRole,
     WeightEntry,
     WellnessEntry,
 )
+from .permissions import ROLE_ADMIN, ROLE_READ_ONLY
 
 
 @override_settings(
@@ -36,6 +40,8 @@ class DashboardPersistenceTests(TestCase):
             password="test-pass",
             is_staff=True,
         )
+        admin_group = Group.objects.create(name=ROLE_ADMIN)
+        cls.user.groups.add(admin_group)
         cls.player = Player.objects.create(name="Test Speler")
         PlayerMonitoringProfile.objects.create(player=cls.player)
         cls.other_player = Player.objects.create(name="Andere Speler")
@@ -266,3 +272,57 @@ class DashboardPersistenceTests(TestCase):
 
         self.assertEqual(post_response.status_code, 302)
         self.assertFalse(DayProgramEntry.objects.filter(id=day.id).exists())
+
+    def test_staf_page_admin_can_create_player(self):
+        response = self.client.post(
+            reverse("staf"),
+            {
+                "form_type": "add_player",
+                "player_name": "Nieuwe Testspeler",
+                "position_name": "Buitenspeler",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        player = Player.objects.get(name="Nieuwe Testspeler")
+        self.assertEqual(player.position_ref.name, "Buitenspeler")
+        self.assertTrue(hasattr(player, "monitoring_profile"))
+
+    def test_staf_page_admin_can_create_staff_user_with_dashboard_role(self):
+        response = self.client.post(
+            reverse("staf"),
+            {
+                "form_type": "add_staff",
+                "name": "Medische Tester",
+                "role_name": "Fysiotherapeut",
+                "username": "medisch",
+                "email": "medisch@example.test",
+                "password": "temporary-pass-123",
+                "dashboard_role": "Medisch",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        staff = Staff.objects.select_related("role_ref", "user").get(name="Medische Tester")
+        self.assertEqual(staff.role_ref.name, "Fysiotherapeut")
+        self.assertEqual(staff.user.username, "medisch")
+        self.assertTrue(staff.user.groups.filter(name="Medisch").exists())
+
+    def test_read_only_user_can_view_but_not_post(self):
+        read_only = get_user_model().objects.create_user(username="readonly", password="test-pass")
+        group = Group.objects.create(name=ROLE_READ_ONLY)
+        read_only.groups.add(group)
+        self.client.force_login(read_only)
+
+        get_response = self.client.get(reverse("dashboard"))
+        post_response = self.client.post(
+            reverse("wellness"),
+            {
+                "player_id": self.player.id,
+                "date": "2026-05-15",
+                "sleep": "4",
+            },
+        )
+
+        self.assertEqual(get_response.status_code, 200)
+        self.assertEqual(post_response.status_code, 403)

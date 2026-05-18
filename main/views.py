@@ -29,7 +29,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth import logout
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Avg
 from django import forms
@@ -63,7 +65,10 @@ from .models import (
     BeweeganalyseSessie,
     BeweeganalyseBeoordeling,
     PlayerMonitoringProfile,
+    PlayerPosition,
+    StaffRole,
 )
+from .permissions import ROLE_CHOICES, ROLE_ADMIN, role_required
 from .performance_3nf import fetch_performance_rows, mean, upsert_performance_session_metrics
 
 
@@ -3777,21 +3782,88 @@ def beleid(request):
 
 
 @login_required
+@role_required(ROLE_ADMIN)
 def staf(request):
-    staff_members = Staff.objects.select_related("role_ref").all().order_by("name")
+    staff_members = Staff.objects.select_related("role_ref", "user").all().order_by("name")
+    players = Player.objects.select_related("position_ref").all().order_by("name")
+    staff_roles = StaffRole.objects.filter(is_active=True).order_by("name")
+    player_positions = PlayerPosition.objects.filter(is_active=True).order_by("name")
 
     if request.method == "POST":
-        name = (request.POST.get("name") or "").strip()
-        role_name = (request.POST.get("role_name") or "").strip()
-        image = request.FILES.get("image")
+        form_type = (request.POST.get("form_type") or "").strip()
 
-        if name and role_name:
+        if form_type == "add_player":
+            name = (request.POST.get("player_name") or "").strip()
+            position_name = (request.POST.get("position_name") or "").strip()
+            image = request.FILES.get("player_image")
+
+            if not name:
+                messages.error(request, "Vul een spelernaam in.")
+                return redirect("staf")
+            if Player.objects.filter(name__iexact=name).exists():
+                messages.error(request, f"Speler {name} bestaat al.")
+                return redirect("staf")
+
+            position_obj = None
+            if position_name:
+                position_obj, _ = PlayerPosition.objects.get_or_create(name=position_name)
+
+            player = Player.objects.create(
+                name=name,
+                position_ref=position_obj,
+                image=image if image else None,
+            )
+            PlayerMonitoringProfile.objects.get_or_create(player=player)
+            messages.success(request, f"Speler {player.name} toegevoegd.")
+            return redirect("staf")
+
+        if form_type == "add_staff":
+            name = (request.POST.get("name") or "").strip()
+            role_name = (request.POST.get("role_name") or "").strip()
+            image = request.FILES.get("image")
+            username = (request.POST.get("username") or "").strip()
+            email = (request.POST.get("email") or "").strip()
+            password = request.POST.get("password") or ""
+            dashboard_role = (request.POST.get("dashboard_role") or "").strip()
+
+            if not name or not role_name:
+                messages.error(request, "Vul zowel naam als functie in.")
+                return redirect("staf")
+
             try:
+                with transaction.atomic():
+                    user = None
+                    if username:
+                        User = get_user_model()
+                        user, created = User.objects.get_or_create(
+                            username=username,
+                            defaults={
+                                "email": email,
+                                "first_name": name.split(" ", 1)[0],
+                                "last_name": name.split(" ", 1)[1] if " " in name else "",
+                            },
+                        )
+                        if email and user.email != email:
+                            user.email = email
+                        if password:
+                            user.set_password(password)
+                        elif created:
+                            user.set_unusable_password()
+                        user.is_staff = dashboard_role == ROLE_ADMIN
+                        user.is_active = True
+                        user.save()
+
+                        if dashboard_role:
+                            group, _ = Group.objects.get_or_create(name=dashboard_role)
+                            user.groups.remove(*Group.objects.filter(name__in=[role for role, _label in ROLE_CHOICES]))
+                            user.groups.add(group)
+
                 role_obj, _ = StaffRole.objects.get_or_create(name=role_name)
                 Staff.objects.create(
                     name=name,
                     role_ref=role_obj,
                     image=image if image else None,
+                    user=user,
                 )
                 messages.success(request, "Staflid toegevoegd.")
             except Exception:
@@ -3800,11 +3872,16 @@ def staf(request):
                     "Uploaden van de foto is mislukt. Gebruik bij voorkeur een JPG, PNG of WEBP-bestand en probeer opnieuw.",
                 )
             return redirect("staf")
-        messages.error(request, "Vul zowel naam als functie in.")
+
+        messages.error(request, "Onbekend formulier.")
         return redirect("staf")
 
     return render(request, "staf.html", {
         "staff_members": staff_members,
+        "players": players,
+        "staff_roles": staff_roles,
+        "player_positions": player_positions,
+        "dashboard_role_choices": ROLE_CHOICES,
     })
 
 

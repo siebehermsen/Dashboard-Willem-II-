@@ -855,6 +855,7 @@ class Staff(models.Model):
     name = models.CharField(max_length=100)
     role_ref = models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='staff_members', to='main.staffrole')
     image = models.FileField(blank=True, null=True, upload_to='staff_images/')
+    user = models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='staff_profile', to=settings.AUTH_USER_MODEL)
 
     class Meta:
         verbose_name = 'Staflid'

@@ -6,6 +6,7 @@ from main import views
 from django.conf import settings
 from django.conf.urls.static import static
 from main.views import skinfold_view, huidplooimeting_pdf
+from main.permissions import ROLE_ADMIN, ROLE_MEDICAL, ROLE_PERFORMANCE, ROLE_TRAINER, role_required
 
 
 
@@ -24,53 +25,53 @@ urlpatterns = [
 
     # ---------- BASIS ----------
     path("admin/", admin.site.urls),
-    path("dashboard/", views.dashboard, name="dashboard"),
+    path("dashboard/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, ROLE_TRAINER, allow_read_only_get=True)(views.dashboard), name="dashboard"),
     path("", RedirectView.as_view(pattern_name="login", permanent=False), name="home"),
 
-    path("add_rehab/", views.add_rehab, name="add_rehab"),
-    path("add-birthday/", views.add_birthday, name="add_birthday"),
-    path("delete-birthday/<int:pk>/", views.delete_birthday, name="delete_birthday"),
-    path("add-youth-guest/", views.add_youth_guest, name="add_youth_guest"),
-    path("delete-youth-guest/<int:pk>/", views.delete_youth_guest, name="delete_youth_guest"),
+    path("add_rehab/", role_required(ROLE_ADMIN, ROLE_MEDICAL)(views.add_rehab), name="add_rehab"),
+    path("add-birthday/", role_required(ROLE_ADMIN, ROLE_TRAINER)(views.add_birthday), name="add_birthday"),
+    path("delete-birthday/<int:pk>/", role_required(ROLE_ADMIN, ROLE_TRAINER)(views.delete_birthday), name="delete_birthday"),
+    path("add-youth-guest/", role_required(ROLE_ADMIN, ROLE_TRAINER)(views.add_youth_guest), name="add_youth_guest"),
+    path("delete-youth-guest/<int:pk>/", role_required(ROLE_ADMIN, ROLE_TRAINER)(views.delete_youth_guest), name="delete_youth_guest"),
 
     # ---------- WEEKPROGRAMMA ----------
-    path("add-weekday/", views.add_weekday, name="add_weekday"),
-    path("edit-weekday/<int:pk>/", views.edit_weekday, name="edit_weekday"),
-    path("delete-weekday/<int:pk>/", views.delete_weekday, name="delete_weekday"),
+    path("add-weekday/", role_required(ROLE_ADMIN, ROLE_TRAINER)(views.add_weekday), name="add_weekday"),
+    path("edit-weekday/<int:pk>/", role_required(ROLE_ADMIN, ROLE_TRAINER)(views.edit_weekday), name="edit_weekday"),
+    path("delete-weekday/<int:pk>/", role_required(ROLE_ADMIN, ROLE_TRAINER)(views.delete_weekday), name="delete_weekday"),
 
     # ---------- REVALIDATIE ----------
-    path("revalidatie/", views.revalidatie, name="revalidatie"),
-    path("revalidatie-gym/", views.revalidatie_gym, name="revalidatie_gym"),
+    path("revalidatie/", role_required(ROLE_ADMIN, ROLE_MEDICAL, allow_read_only_get=True)(views.revalidatie), name="revalidatie"),
+    path("revalidatie-gym/", role_required(ROLE_ADMIN, ROLE_MEDICAL, allow_read_only_get=True)(views.revalidatie_gym), name="revalidatie_gym"),
 
     # ---------- PAGINA’S ----------
-    path("nutrition/", views.nutrition_view, name="nutrition"),
-    path("nutrition/huidplooien/", views.skinfold_view, name="skinfolds"),
-    path("training/", views.training, name="training"),
-    path("huidplooimeting/", views.skinfold_view, name="huidplooimeting"),
-    path("wedstrijd/", views.wedstrijddata, name="wedstrijddata"),
-    path("upload_wedstrijddata/", views.upload_wedstrijddata, name="upload_wedstrijddata"),
-    path("testdata/", views.testdata, name="testdata"),
-    path("wellness/", views.wellness, name="wellness"),
-    path("individuele_programmas/", views.individuele_programmas, name="individuele_programmas"),
-    path("individueel_programma_opslaan/<int:player_id>/", views.individueel_programma_opslaan, name="individueel_programma_opslaan"),
-    path("rpe/", views.rpe_view, name="rpe"),
-    path('hit/', views.hit_page, name='hit'),
-    path("aanwezigheden/", views.aanwezigheden_pagina, name="aanwezigheden"),
-    path("aanwezigheden/update/<int:record_id>/", views.aanwezigheden_update, name="aanwezigheden_update"),
-    path("overig/", views.overig, name="overig"),
+    path("nutrition/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, allow_read_only_get=True)(views.nutrition_view), name="nutrition"),
+    path("nutrition/huidplooien/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, allow_read_only_get=True)(views.skinfold_view), name="skinfolds"),
+    path("training/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.training), name="training"),
+    path("huidplooimeting/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, allow_read_only_get=True)(views.skinfold_view), name="huidplooimeting"),
+    path("wedstrijd/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.wedstrijddata), name="wedstrijddata"),
+    path("upload_wedstrijddata/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE)(views.upload_wedstrijddata), name="upload_wedstrijddata"),
+    path("testdata/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, allow_read_only_get=True)(views.testdata), name="testdata"),
+    path("wellness/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, ROLE_TRAINER, allow_read_only_get=True)(views.wellness), name="wellness"),
+    path("individuele_programmas/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.individuele_programmas), name="individuele_programmas"),
+    path("individueel_programma_opslaan/<int:player_id>/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER)(views.individueel_programma_opslaan), name="individueel_programma_opslaan"),
+    path("rpe/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.rpe_view), name="rpe"),
+    path('hit/', role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.hit_page), name='hit'),
+    path("aanwezigheden/", role_required(ROLE_ADMIN, ROLE_TRAINER, allow_read_only_get=True)(views.aanwezigheden_pagina), name="aanwezigheden"),
+    path("aanwezigheden/update/<int:record_id>/", role_required(ROLE_ADMIN, ROLE_TRAINER)(views.aanwezigheden_update), name="aanwezigheden_update"),
+    path("overig/", role_required(ROLE_ADMIN, ROLE_TRAINER, allow_read_only_get=True)(views.overig), name="overig"),
     path("staf/", views.staf, name="staf"),
-    path("beleid/", views.beleid, name="beleid"),
-    path("beweeganalyse/", views.beweeganalyse, name="beweeganalyse"),
-    path("huidplooimeting/pdf/", huidplooimeting_pdf, name="huidplooimeting_pdf"),
+    path("beleid/", role_required(ROLE_ADMIN, ROLE_TRAINER, allow_read_only_get=True)(views.beleid), name="beleid"),
+    path("beweeganalyse/", role_required(ROLE_ADMIN, ROLE_MEDICAL, ROLE_PERFORMANCE, allow_read_only_get=True)(views.beweeganalyse), name="beweeganalyse"),
+    path("huidplooimeting/pdf/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, allow_read_only_get=True)(huidplooimeting_pdf), name="huidplooimeting_pdf"),
 
 
     # ---------- DATA ----------
-    path("seed_data/", views.seed_data, name="seed_data"),
-    path("player/<int:player_id>/data/", views.player_data, name="player_data"),
-    path("player/<int:player_id>/weights/", views.weight_data, name="weight_data"),
+    path("seed_data/", role_required(ROLE_ADMIN)(views.seed_data), name="seed_data"),
+    path("player/<int:player_id>/data/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, ROLE_TRAINER, allow_read_only_get=True)(views.player_data), name="player_data"),
+    path("player/<int:player_id>/weights/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, ROLE_TRAINER, allow_read_only_get=True)(views.weight_data), name="weight_data"),
 
     # ---------- UPLOAD ----------
-    path("upload/", views.upload_file, name="upload_file"),
+    path("upload/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE)(views.upload_file), name="upload_file"),
 ]
 
 # ---------- MEDIA BESTANDEN ----------
