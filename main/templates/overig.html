@@ -19,18 +19,20 @@
         font-size: 1rem;
     }
 
+    .overig-shell {
+        max-width: 1180px;
+        margin: 0 auto;
+    }
+
     .overig-hero {
         position: relative;
         overflow: hidden;
-        background:
-            radial-gradient(1200px 260px at -10% -40%, rgba(182, 0, 0, 0.12), transparent 60%),
-            radial-gradient(900px 220px at 110% 0%, rgba(31, 42, 68, 0.14), transparent 58%),
-            linear-gradient(180deg, #ffffff 0%, #f7f9fd 100%);
-        border: 1px solid rgba(31, 42, 68, 0.08);
-        border-radius: 28px;
-        padding: 34px 36px 30px;
-        box-shadow: 0 18px 38px rgba(31, 42, 68, 0.08);
-        margin-bottom: 26px;
+        background: #fff;
+        border: 1px solid #e1e8f2;
+        border-radius: 18px;
+        padding: 26px 28px;
+        box-shadow: 0 10px 24px rgba(31, 42, 68, 0.06);
+        margin-bottom: 18px;
     }
 
     .overig-kicker {
@@ -45,14 +47,23 @@
         font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
+    }
+
+    .overig-hero .section-title {
+        margin-bottom: 8px;
+    }
+
+    .overig-hero .subtitle {
+        margin-bottom: 0;
+        max-width: 780px;
+        line-height: 1.55;
     }
 
     .overig-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        column-gap: 22px;
-        row-gap: 28px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
         align-items: start;
     }
 
@@ -67,92 +78,86 @@
        DASHBOARD-KAARTEN
      ============================= */
     .overig-card {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 16px;
         background: white;
-        border-radius: 18px;
-        padding: 20px 20px 18px;
+        border-radius: 14px;
+        padding: 18px;
         text-align: left;
-        border: 1px solid rgba(31,42,68,0.08);
-        box-shadow: 0 8px 18px rgba(31,42,68,0.07);
-        transition: all 0.28s ease;
+        border: 1px solid #e1e8f2;
+        box-shadow: 0 8px 18px rgba(31, 42, 68, 0.05);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
         cursor: pointer;
         height: 100%;
-        min-height: 260px;
+        min-height: 112px;
         position: relative;
         overflow: hidden;
     }
+
     .overig-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 18px 30px rgba(31,42,68,0.14);
+        transform: translateY(-2px);
+        border-color: #cbd7e8;
+        box-shadow: 0 12px 24px rgba(31, 42, 68, 0.08);
     }
 
     .overig-card::after {
-        content: "";
-        position: absolute;
-        inset: auto -40px -40px auto;
-        width: 130px;
-        height: 130px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(182, 0, 0, 0.12), transparent 68%);
-        pointer-events: none;
+        display: none;
     }
 
     .card-tag {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         border-radius: 12px;
-        background: linear-gradient(135deg, #1f2a44, #314d7f);
-        color: #fff;
-        font-size: 1rem;
-        margin-bottom: 14px;
-        box-shadow: 0 8px 18px rgba(31,42,68,0.18);
+        background: #eef2f8;
+        color: #1f2a44;
+        font-size: 0.78rem;
+        font-weight: 800;
     }
 
     .overig-card h4 {
-        margin: 0 0 8px;
+        margin: 0 0 5px;
         font-weight: 800;
-        font-size: 0.98rem;
+        font-size: 1rem;
         color: #1f2a44;
-        line-height: 1.2;
+        line-height: 1.25;
     }
 
     .overig-card p {
         margin: 0;
-        color: #6c757d;
-        font-size: 0.84rem;
+        color: #667386;
+        font-size: 0.88rem;
         line-height: 1.45;
-        max-width: 26ch;
+        max-width: 54ch;
     }
 
     .card-cta {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        margin-top: 14px;
-        font-size: 0.84rem;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: #f7eaea;
+        margin-top: 0;
+        font-size: 1.1rem;
         font-weight: 700;
         color: #b60000;
     }
 
     @media (max-width: 1199px) {
         .overig-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            column-gap: 20px;
-            row-gap: 24px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 
     @media (max-width: 991px) {
         .overig-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            column-gap: 18px;
-            row-gap: 22px;
-        }
-
-        .overig-card {
-            min-height: 240px;
+            grid-template-columns: 1fr;
         }
     }
 
@@ -163,11 +168,16 @@
         }
 
         .overig-card {
+            grid-template-columns: auto minmax(0, 1fr);
             min-height: 0;
         }
 
+        .card-cta {
+            display: none;
+        }
+
         .overig-hero {
-            padding: 26px 22px 22px;
+            padding: 22px;
         }
     }
 
@@ -217,6 +227,7 @@
      MENU PAGINA
 ============================== -->
 {% if page == "menu" %}
+<div class="overig-shell">
     <section class="overig-hero">
         <div class="overig-kicker">Overig omgeving</div>
         <h2 class="section-title">Overig</h2>
@@ -227,57 +238,70 @@
         <a href="/overig/?page=pop" class="text-decoration-none text-dark">
             <div class="overig-card">
                 <div class="card-tag">PG</div>
-                <h4>POP Gesprekken</h4>
-                <p>Bekijk of vul POP-gesprekken in en leg concrete ontwikkelafspraken vast.</p>
-                <span class="card-cta">Open pagina <span>&rsaquo;</span></span>
+                <div>
+                    <h4>POP Gesprekken</h4>
+                    <p>Gesprekken, ontwikkelafspraken en opvolging per speler.</p>
+                </div>
+                <span class="card-cta">&rsaquo;</span>
             </div>
         </a>
 
         <a href="/overig/?page=hp" class="text-decoration-none text-dark">
             <div class="overig-card">
                 <div class="card-tag">HP</div>
-                <h4>High Potentials</h4>
-                <p>Overzicht van spelers met potentie, testdata, aandachtspunten en werkplannen.</p>
-                <span class="card-cta">Open pagina <span>&rsaquo;</span></span>
+                <div>
+                    <h4>High Potentials</h4>
+                    <p>Potentie, testdata, aandachtspunten en werkplannen.</p>
+                </div>
+                <span class="card-cta">&rsaquo;</span>
             </div>
         </a>
 
         <a href="/overig/?page=groei" class="text-decoration-none text-dark">
             <div class="overig-card">
                 <div class="card-tag">GB</div>
-                <h4>Groei, Bio-leeftijd en Dispensatie</h4>
-                <p>Volg groeiprofielen, bio-leeftijd, meetpunten en dispensatie-afwegingen per speler.</p>
-                <span class="card-cta">Open pagina <span>&rsaquo;</span></span>
+                <div>
+                    <h4>Groei en bio-leeftijd</h4>
+                    <p>Groeiprofielen, meetpunten en dispensatie-afwegingen.</p>
+                </div>
+                <span class="card-cta">&rsaquo;</span>
             </div>
         </a>
 
         <a href="/overig/?page=notities" class="text-decoration-none text-dark">
             <div class="overig-card">
                 <div class="card-tag">ON</div>
-                <h4>Overige Notities</h4>
-                <p>Schrijf en bekijk losse notities over spelers, observaties en praktische afspraken.</p>
-                <span class="card-cta">Open pagina <span>&rsaquo;</span></span>
+                <div>
+                    <h4>Overige notities</h4>
+                    <p>Losse observaties, praktische afspraken en korte updates.</p>
+                </div>
+                <span class="card-cta">&rsaquo;</span>
             </div>
         </a>
 
         <a href="/overig/?page=jeugd" class="text-decoration-none text-dark">
             <div class="overig-card">
                 <div class="card-tag">JW</div>
-                <h4>Jeugd Willem II</h4>
-                <p>Materialen, werkwijze en ontwikkelstructuren voor de jeugdopleiding en begeleiding.</p>
-                <span class="card-cta">Open pagina <span>&rsaquo;</span></span>
+                <div>
+                    <h4>Jeugd Willem II</h4>
+                    <p>Materialen, werkwijze en ontwikkelstructuren.</p>
+                </div>
+                <span class="card-cta">&rsaquo;</span>
             </div>
         </a>
 
         <a href="/overig/?page=vakantieprogramma" class="text-decoration-none text-dark">
             <div class="overig-card">
                 <div class="card-tag">VP</div>
-                <h4>Vakantieprogramma</h4>
-                <p>Leg trainingsrichtlijnen, individuele opdrachten en afspraken vast voor periodes buiten het reguliere programma.</p>
-                <span class="card-cta">Open pagina <span>&rsaquo;</span></span>
+                <div>
+                    <h4>Vakantieprogramma</h4>
+                    <p>Trainingsrichtlijnen, opdrachten en afspraken buiten het reguliere programma.</p>
+                </div>
+                <span class="card-cta">&rsaquo;</span>
             </div>
         </a>
     </div>
+</div>
 {% endif %}
 
 
