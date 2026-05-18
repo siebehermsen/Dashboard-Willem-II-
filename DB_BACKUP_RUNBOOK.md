@@ -6,11 +6,41 @@ Gebruik bij voorkeur het Django management command. Dat leest dezelfde database-
 
 ```bash
 source venv/bin/activate
-python manage.py backup_database
+python manage.py backup_database --keep-days 30
 python manage.py verify_data_integrity
 ```
 
 De backup-map staat in `.gitignore`, zodat databasebestanden niet per ongeluk naar GitHub gaan.
+
+`--keep-days 30` bewaart de laatste 30 dagen en ruimt oudere backups automatisch op. Gebruik `--keep-days 0` als je nooit automatisch wilt opruimen.
+
+## Automatische server-backup met cron
+
+Open op de server de root crontab:
+
+```bash
+crontab -e
+```
+
+Voeg deze regel toe om elke nacht om 03:15 een backup te maken:
+
+```cron
+15 3 * * * cd /var/www/Dashboard-Willem-II- && /var/www/Dashboard-Willem-II-/venv/bin/python manage.py backup_database --output-dir /var/backups/willemii-dashboard --keep-days 30 >> /var/log/willemii-dashboard-backup.log 2>&1
+```
+
+Maak de backupmap alvast aan:
+
+```bash
+mkdir -p /var/backups/willemii-dashboard
+```
+
+Handmatig testen:
+
+```bash
+cd /var/www/Dashboard-Willem-II-
+/var/www/Dashboard-Willem-II-/venv/bin/python manage.py backup_database --output-dir /var/backups/willemii-dashboard --keep-days 30
+python manage.py verify_data_integrity
+```
 
 Voor een leesbare `.sql` zonder gzip:
 

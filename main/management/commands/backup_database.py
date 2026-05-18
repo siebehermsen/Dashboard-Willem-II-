@@ -2,7 +2,7 @@ import gzip
 import os
 import shutil
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from django.conf import settings
@@ -22,6 +22,12 @@ class Command(BaseCommand):
             "--plain-sql",
             action="store_true",
             help="Schrijf .sql in plaats van .sql.gz.",
+        )
+        parser.add_argument(
+            "--keep-days",
+            type=int,
+            default=30,
+            help="Verwijder backups van deze database ouder dan dit aantal dagen. Gebruik 0 om opruimen uit te zetten.",
         )
 
     def handle(self, *args, **options):
@@ -80,3 +86,16 @@ class Command(BaseCommand):
 
         size_mb = output_path.stat().st_size / (1024 * 1024)
         self.stdout.write(self.style.SUCCESS(f"Backup opgeslagen: {output_path} ({size_mb:.2f} MB)"))
+
+        keep_days = options["keep_days"]
+        if keep_days and keep_days > 0:
+            cutoff = datetime.now() - timedelta(days=keep_days)
+            removed = 0
+            for candidate in output_dir.glob(f"{name}_*.sql*"):
+                if candidate == output_path or not candidate.is_file():
+                    continue
+                modified_at = datetime.fromtimestamp(candidate.stat().st_mtime)
+                if modified_at < cutoff:
+                    candidate.unlink()
+                    removed += 1
+            self.stdout.write(self.style.SUCCESS(f"Oude backups opgeruimd: {removed} ouder dan {keep_days} dagen."))
