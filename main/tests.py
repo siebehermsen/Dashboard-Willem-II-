@@ -24,7 +24,7 @@ from .models import (
     WeightEntry,
     WellnessEntry,
 )
-from .permissions import ROLE_ADMIN, ROLE_READ_ONLY
+from .permissions import ROLE_ADMIN, ROLE_READ_ONLY, ROLE_TRAINER
 
 
 @override_settings(
@@ -307,6 +307,39 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(staff.role_ref.name, "Fysiotherapeut")
         self.assertEqual(staff.user.username, "medisch")
         self.assertTrue(staff.user.groups.filter(name="Medisch").exists())
+
+    def test_staf_page_admin_can_update_staff_login_role_password_and_status(self):
+        role = StaffRole.objects.create(name="Assistent")
+        user = get_user_model().objects.create_user(
+            username="coach",
+            email="old@example.test",
+            password="old-pass",
+        )
+        staff = Staff.objects.create(name="Oude Naam", role_ref=role, user=user)
+
+        response = self.client.post(
+            reverse("staf"),
+            {
+                "form_type": "edit_staff",
+                "staff_id": staff.id,
+                "name": "Nieuwe Naam",
+                "role_name": "Trainer",
+                "username": "coach",
+                "email": "coach@example.test",
+                "password": "new-pass-123",
+                "dashboard_role": ROLE_TRAINER,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        staff.refresh_from_db()
+        user.refresh_from_db()
+        self.assertEqual(staff.name, "Nieuwe Naam")
+        self.assertEqual(staff.role_ref.name, "Trainer")
+        self.assertEqual(user.email, "coach@example.test")
+        self.assertTrue(user.check_password("new-pass-123"))
+        self.assertFalse(user.is_active)
+        self.assertTrue(user.groups.filter(name=ROLE_TRAINER).exists())
 
     def test_read_only_user_can_view_but_not_post(self):
         read_only = get_user_model().objects.create_user(username="readonly", password="test-pass")

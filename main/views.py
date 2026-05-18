@@ -72,6 +72,34 @@ from .permissions import ROLE_CHOICES, ROLE_ADMIN, role_required
 from .performance_3nf import fetch_performance_rows, mean, upsert_performance_session_metrics
 
 
+def _dashboard_role_values():
+    return {role for role, _label in ROLE_CHOICES}
+
+
+def _dashboard_role_label(role_name):
+    return dict(ROLE_CHOICES).get(role_name, "")
+
+
+def _user_dashboard_role(user):
+    if not user:
+        return ""
+    role_values = _dashboard_role_values()
+    for group in user.groups.all():
+        if group.name in role_values:
+            return group.name
+    return ""
+
+
+def _sync_user_dashboard_role(user, dashboard_role):
+    role_values = _dashboard_role_values()
+    user.groups.remove(*Group.objects.filter(name__in=role_values))
+    if dashboard_role:
+        group, _ = Group.objects.get_or_create(name=dashboard_role)
+        user.groups.add(group)
+    user.is_staff = dashboard_role == ROLE_ADMIN or user.is_superuser
+    user.save()
+
+
 def logout_view(request):
     logout(request)
     return redirect("login")
@@ -3788,6 +3816,7 @@ def staf(request):
     players = Player.objects.select_related("position_ref").all().order_by("name")
     staff_roles = StaffRole.objects.filter(is_active=True).order_by("name")
     player_positions = PlayerPosition.objects.filter(is_active=True).order_by("name")
+    dashboard_roles = _dashboard_role_values()
 
     if request.method == "POST":
         form_type = (request.POST.get("form_type") or "").strip()
@@ -3829,6 +3858,9 @@ def staf(request):
             if not name or not role_name:
                 messages.error(request, "Vul zowel naam als functie in.")
                 return redirect("staf")
+            if dashboard_role and dashboard_role not in dashboard_roles:
+                messages.error(request, "Kies een geldige dashboardrol.")
+                return redirect("staf")
 
             try:
                 with transaction.atomic():
@@ -3852,11 +3884,7 @@ def staf(request):
                         user.is_staff = dashboard_role == ROLE_ADMIN
                         user.is_active = True
                         user.save()
-
-                        if dashboard_role:
-                            group, _ = Group.objects.get_or_create(name=dashboard_role)
-                            user.groups.remove(*Group.objects.filter(name__in=[role for role, _label in ROLE_CHOICES]))
-                            user.groups.add(group)
+                        _sync_user_dashboard_role(user, dashboard_role)
 
                 role_obj, _ = StaffRole.objects.get_or_create(name=role_name)
                 Staff.objects.create(
@@ -3873,11 +3901,95 @@ def staf(request):
                 )
             return redirect("staf")
 
+        if form_type == "edit_staff":
+            staff_member = get_object_or_404(Staff.objects.select_related("user"), id=request.POST.get("staff_id"))
+            name = (request.POST.get("name") or "").strip()
+            role_name = (request.POST.get("role_name") or "").strip()
+            image = request.FILES.get("image")
+            username = (request.POST.get("username") or "").strip()
+            email = (request.POST.get("email") or "").strip()
+            password = request.POST.get("password") or ""
+            dashboard_role = (request.POST.get("dashboard_role") or "").strip()
+            is_active = request.POST.get("is_active") == "on"
+
+            if not name or not role_name:
+                messages.error(request, "Vul zowel naam als functie in.")
+                return redirect("staf")
+            if dashboard_role and dashboard_role not in dashboard_roles:
+                messages.error(request, "Kies een geldige dashboardrol.")
+                return redirect("staf")
+            if dashboard_role and not username:
+                messages.error(request, "Vul een gebruikersnaam in om een dashboardrol te koppelen.")
+                return redirect("staf")
+
+            try:
+                with transaction.atomic():
+                    role_obj, _ = StaffRole.objects.get_or_create(name=role_name)
+                    staff_member.name = name
+                    staff_member.role_ref = role_obj
+                    if image:
+                        staff_member.image = image
+
+                    user = staff_member.user
+                    if username:
+                        User = get_user_model()
+                        matching_user = User.objects.filter(username=username).first()
+                        if user and matching_user and matching_user.id != user.id:
+                            messages.error(request, f"Gebruikersnaam {username} is al in gebruik.")
+                            return redirect("staf")
+                        if user is None:
+                            if matching_user and hasattr(matching_user, "staff_profile"):
+                                messages.error(request, f"Gebruikersnaam {username} is al gekoppeld aan een ander staflid.")
+                                return redirect("staf")
+                            user = matching_user or User(username=username)
+                        user.username = username
+                        user.email = email
+                        user.first_name = name.split(" ", 1)[0]
+                        user.last_name = name.split(" ", 1)[1] if " " in name else ""
+                        if password:
+                            user.set_password(password)
+                        elif user.pk is None:
+                            user.set_unusable_password()
+                        user.is_active = is_active
+                        user.save()
+                        _sync_user_dashboard_role(user, dashboard_role)
+                        staff_member.user = user
+                    elif user:
+                        user.email = email
+                        user.first_name = name.split(" ", 1)[0]
+                        user.last_name = name.split(" ", 1)[1] if " " in name else ""
+                        if password:
+                            user.set_password(password)
+                        user.is_active = is_active
+                        user.save()
+                        _sync_user_dashboard_role(user, dashboard_role)
+
+                    staff_member.save()
+                messages.success(request, "Staflid bijgewerkt.")
+            except Exception:
+                messages.error(
+                    request,
+                    "Staflid bijwerken is mislukt. Controleer de gegevens en probeer opnieuw.",
+                )
+            return redirect("staf")
+
         messages.error(request, "Onbekend formulier.")
         return redirect("staf")
 
+    staff_member_rows = []
+    for member in staff_members:
+        dashboard_role = _user_dashboard_role(member.user)
+        staff_member_rows.append(
+            SimpleNamespace(
+                member=member,
+                dashboard_role=dashboard_role,
+                dashboard_role_label=_dashboard_role_label(dashboard_role),
+            )
+        )
+
     return render(request, "staf.html", {
         "staff_members": staff_members,
+        "staff_member_rows": staff_member_rows,
         "players": players,
         "staff_roles": staff_roles,
         "player_positions": player_positions,
