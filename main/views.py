@@ -1847,6 +1847,119 @@ def wedstrijddata(request):
 
     return render(request, "Training.html", context)
 
+
+def fysiek_rapport(request):
+    import json
+
+    players = Player.objects.select_related("monitoring_profile", "position_ref").all().order_by("name")
+    training_rows_all = fetch_performance_rows("training")
+    match_rows_all = fetch_performance_rows("match")
+    all_dates = [row["session_date"] for row in training_rows_all + match_rows_all if row.get("session_date")]
+    report_end = max(all_dates) if all_dates else timezone.localdate()
+    report_start = report_end - timedelta(days=6)
+
+    def in_report_week(row):
+        session_date = row.get("session_date")
+        return session_date and report_start <= session_date <= report_end
+
+    training_rows = [row for row in training_rows_all if in_report_week(row)]
+    match_rows = [row for row in match_rows_all if in_report_week(row)]
+    combined_rows = [*training_rows, *match_rows]
+
+    def val(row, key):
+        return float(row.get(key) or 0)
+
+    def sum_metric(rows, key):
+        return sum(val(row, key) for row in rows)
+
+    total_load = sum_metric(combined_rows, "load")
+    total_distance = sum_metric(combined_rows, "total_distance")
+    total_hsd = sum_metric(combined_rows, "hsd")
+    total_sprints = sum_metric(combined_rows, "sprints")
+    match_his = sum_metric(match_rows, "his")
+    match_acc = sum_metric(match_rows, "accelerations")
+    match_dec = sum_metric(match_rows, "decelerations")
+
+    active_player_ids = {row["player_id"] for row in combined_rows}
+    avg_load_per_player = total_load / len(active_player_ids) if active_player_ids else 0
+
+    player_map = {}
+    for row in combined_rows:
+        data = player_map.setdefault(
+            row["player_name"],
+            {
+                "name": row["player_name"],
+                "total_distance": 0.0,
+                "hsd": 0.0,
+                "his": 0.0,
+                "sprints": 0.0,
+                "load": 0.0,
+                "accelerations": 0.0,
+                "decelerations": 0.0,
+            },
+        )
+        data["total_distance"] += val(row, "total_distance")
+        data["hsd"] += val(row, "hsd")
+        data["his"] += val(row, "his")
+        data["sprints"] += val(row, "sprints")
+        data["load"] += val(row, "load")
+        data["accelerations"] += val(row, "accelerations")
+        data["decelerations"] += val(row, "decelerations")
+
+    player_report_rows = sorted(player_map.values(), key=lambda item: item["load"], reverse=True)
+    top_player_rows = player_report_rows[:12]
+
+    day_names = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"]
+    daily_labels = []
+    daily_training_load = []
+    daily_match_load = []
+    daily_total_distance = []
+    for offset in range(7):
+        current_date = report_start + timedelta(days=offset)
+        daily_labels.append(f"{day_names[current_date.weekday()]} {current_date.strftime('%d-%m')}")
+        day_training_rows = [row for row in training_rows if row["session_date"] == current_date]
+        day_match_rows = [row for row in match_rows if row["session_date"] == current_date]
+        daily_training_load.append(round(sum_metric(day_training_rows, "load"), 1))
+        daily_match_load.append(round(sum_metric(day_match_rows, "load"), 1))
+        daily_total_distance.append(round((sum_metric(day_training_rows, "total_distance") + sum_metric(day_match_rows, "total_distance")) / 1000, 2))
+
+    report_summary = {
+        "range_label": f"{report_start.strftime('%d-%m-%Y')} t/m {report_end.strftime('%d-%m-%Y')}",
+        "training_sessions": len(training_rows),
+        "match_sessions": len(match_rows),
+        "active_players": len(active_player_ids),
+        "total_load": round(total_load, 0),
+        "total_distance_km": round(total_distance / 1000, 1),
+        "total_hsd_km": round(total_hsd / 1000, 1),
+        "match_his_km": round(match_his / 1000, 1),
+        "total_sprints": round(total_sprints, 0),
+        "avg_load_per_player": round(avg_load_per_player, 0),
+        "match_acc_dec": round(match_acc + match_dec, 0),
+    }
+
+    context = {
+        "players": players,
+        "active_page": "rapport",
+        "report_summary": report_summary,
+        "player_report_rows": player_report_rows[:10],
+        "report_daily_labels": json.dumps(daily_labels),
+        "report_daily_training_load": json.dumps(daily_training_load),
+        "report_daily_match_load": json.dumps(daily_match_load),
+        "report_daily_total_distance": json.dumps(daily_total_distance),
+        "report_player_labels": json.dumps([row["name"] for row in top_player_rows]),
+        "report_player_load": json.dumps([round(row["load"], 1) for row in top_player_rows]),
+        "report_player_distance": json.dumps([round(row["total_distance"] / 1000, 2) for row in top_player_rows]),
+        "report_split_labels": json.dumps(["Training load", "Wedstrijd load", "HIR", "Sprints"]),
+        "report_split_values": json.dumps([
+            round(sum_metric(training_rows, "load"), 1),
+            round(sum_metric(match_rows, "load"), 1),
+            round(total_hsd / 1000, 2),
+            round(total_sprints, 0),
+        ]),
+    }
+
+    return render(request, "Training.html", context)
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Avg, Min, Max
 
@@ -3240,10 +3353,27 @@ def overig(request):
     # POP GESPREKKEN
     # ======================================
     if page == "pop":
+        if request.method == "POST":
+            for section in ("situatie", "doelen", "reflectie", "actieplan"):
+                text = request.POST.get(section, "")
+                OverigNote.objects.create(
+                    note_type="section",
+                    page_key="pop",
+                    section_key=section,
+                    text=text.strip(),
+                )
+            return redirect("/overig/?page=pop")
+
         return render(request, 'overig.html', {
             'page': 'pop',
             'players': players,
             'staff': staff_members,
+            "pop_texts": {
+                "situatie": section_text("pop", "situatie"),
+                "doelen": section_text("pop", "doelen"),
+                "reflectie": section_text("pop", "reflectie"),
+                "actieplan": section_text("pop", "actieplan"),
+            },
         })
 
     # ======================================

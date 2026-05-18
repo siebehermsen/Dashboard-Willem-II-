@@ -11,6 +11,7 @@ from .models import (
     DayProgramEntry,
     NutritionIntakeItem,
     NutritionIntakeSession,
+    OverigNote,
     PerformanceMetric,
     PerformanceMetricType,
     PerformanceSession,
@@ -363,6 +364,39 @@ class DashboardPersistenceTests(TestCase):
         self.assertTrue(user.check_password("new-pass-123"))
         self.assertFalse(user.is_active)
         self.assertTrue(user.groups.filter(name=ROLE_TRAINER).exists())
+
+    def test_overig_structured_pages_persist_sections(self):
+        pop_response = self.client.post(
+            reverse("overig") + "?page=pop",
+            {
+                "situatie": "Sterke uitgangspositie",
+                "doelen": "Eerste meters verbeteren",
+                "reflectie": "Speler herkent focuspunt",
+                "actieplan": "Wekelijks opvolgen",
+            },
+        )
+        hp_response = self.client.post(
+            reverse("overig") + "?page=hp",
+            {"section": "focus", "text": "Speler A extra volgen"},
+        )
+        jeugd_response = self.client.post(
+            reverse("overig") + "?page=jeugd",
+            {"section": "leerlijn", "text": "Heldere ontwikkellijn"},
+        )
+
+        self.assertEqual(pop_response.status_code, 302)
+        self.assertEqual(hp_response.status_code, 302)
+        self.assertEqual(jeugd_response.status_code, 302)
+        self.assertTrue(OverigNote.objects.filter(page_key="pop", section_key="actieplan").exists())
+        self.assertTrue(OverigNote.objects.filter(page_key="hp", section_key="focus").exists())
+        self.assertTrue(OverigNote.objects.filter(page_key="jeugd", section_key="leerlijn").exists())
+
+    def test_fysiek_rapport_page_loads_without_uploaded_data(self):
+        response = self.client.get(reverse("fysiek_rapport"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Fysiek rapport")
+        self.assertContains(response, "Weekoverzicht fysieke belasting")
 
     def test_read_only_user_can_view_but_not_post(self):
         read_only = get_user_model().objects.create_user(username="readonly", password="test-pass")

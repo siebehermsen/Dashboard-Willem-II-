@@ -41,11 +41,17 @@
        class="data-tab {% if active_page == 'wedstrijd' %}active{% endif %}">
         Wedstrijddata
     </a>
+
+    <a href="{% url 'fysiek_rapport' %}"
+       class="data-tab {% if active_page == 'rapport' %}active{% endif %}">
+        Fysiek rapport
+    </a>
 </div>
 
 
 </div>
 
+{% if active_page != "rapport" %}
 <!-- UPLOADFORMULIER -->
 <section class="card fade-in" style="margin-bottom: 25px;">
     <h3>Upload StatsSports CSV-bestand</h3>
@@ -69,6 +75,7 @@
         </form>
     {% endif %}
 </section>
+{% endif %}
 
 {% if active_page == "training" %}
 <section class="card fade-in weektargets-card">
@@ -1394,6 +1401,264 @@ setMatchMetric(selectedMetricMatchState, false);
 
 {% endif %}
 
+{% if active_page == "rapport" %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<section class="physical-report-shell">
+    <div class="physical-report-head">
+        <div>
+            <span class="report-kicker">Fysiek rapport</span>
+            <h2>Weekoverzicht fysieke belasting</h2>
+            <p>Samenvatting van training- en wedstrijddata over {{ report_summary.range_label }}. Ontworpen als compact overzicht voor staf en hoofdtrainer.</p>
+        </div>
+        <button type="button" class="report-print-btn" onclick="window.print()">Print / PDF</button>
+    </div>
+
+    <section class="report-kpi-grid">
+        <article class="report-kpi-card">
+            <span>Totale load</span>
+            <strong>{{ report_summary.total_load|floatformat:0 }}</strong>
+        </article>
+        <article class="report-kpi-card">
+            <span>Totale afstand</span>
+            <strong>{{ report_summary.total_distance_km|floatformat:1 }} km</strong>
+        </article>
+        <article class="report-kpi-card">
+            <span>HIR / D15</span>
+            <strong>{{ report_summary.total_hsd_km|floatformat:1 }} km</strong>
+        </article>
+        <article class="report-kpi-card">
+            <span>Sprints</span>
+            <strong>{{ report_summary.total_sprints|floatformat:0 }}</strong>
+        </article>
+        <article class="report-kpi-card">
+            <span>Spelers met data</span>
+            <strong>{{ report_summary.active_players }}</strong>
+        </article>
+        <article class="report-kpi-card">
+            <span>Load per speler</span>
+            <strong>{{ report_summary.avg_load_per_player|floatformat:0 }}</strong>
+        </article>
+    </section>
+
+    <section class="report-grid">
+        <article class="card chart-card report-card">
+            <div class="chart-header">
+                <div>
+                    <h3>Dagbelasting afgelopen week</h3>
+                    <p class="subtext">Training en wedstrijdload gestapeld per dag.</p>
+                </div>
+            </div>
+            <div class="chart-area chart-area-small">
+                <canvas id="physicalDailyLoadChart"></canvas>
+            </div>
+        </article>
+
+        <article class="card chart-card report-card">
+            <div class="chart-header">
+                <div>
+                    <h3>Top spelers load</h3>
+                    <p class="subtext">Hoogste gecombineerde load uit training en wedstrijd.</p>
+                </div>
+            </div>
+            <div class="chart-area chart-area-small">
+                <canvas id="physicalPlayerLoadChart"></canvas>
+            </div>
+        </article>
+
+        <article class="card chart-card report-card">
+            <div class="chart-header">
+                <div>
+                    <h3>Afstand per dag</h3>
+                    <p class="subtext">Totale teamafstand in kilometers.</p>
+                </div>
+            </div>
+            <div class="chart-area chart-area-small">
+                <canvas id="physicalDistanceChart"></canvas>
+            </div>
+        </article>
+
+        <article class="card chart-card report-card">
+            <div class="chart-header">
+                <div>
+                    <h3>Belastingsmix</h3>
+                    <p class="subtext">Snelle context voor het weekbeeld.</p>
+                </div>
+            </div>
+            <div class="chart-area chart-area-small">
+                <canvas id="physicalSplitChart"></canvas>
+            </div>
+        </article>
+    </section>
+
+    <section class="card fade-in report-table-card">
+        <div class="chart-header">
+            <div>
+                <h3>Spelersoverzicht</h3>
+                <p class="subtext">Gecombineerde training- en wedstrijdwaarden van de rapportweek.</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Speler</th>
+                        <th>Load</th>
+                        <th>Afstand</th>
+                        <th>D15</th>
+                        <th>HIS</th>
+                        <th>Sprints</th>
+                        <th>Acc</th>
+                        <th>Dec</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in player_report_rows %}
+                    <tr>
+                        <td><strong>{{ row.name }}</strong></td>
+                        <td>{{ row.load|floatformat:0 }}</td>
+                        <td>{{ row.total_distance|floatformat:0 }}</td>
+                        <td>{{ row.hsd|floatformat:0 }}</td>
+                        <td>{{ row.his|floatformat:0 }}</td>
+                        <td>{{ row.sprints|floatformat:0 }}</td>
+                        <td>{{ row.accelerations|floatformat:0 }}</td>
+                        <td>{{ row.decelerations|floatformat:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8">Geen training- of wedstrijddata gevonden voor deze rapportweek.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>
+
+<script>
+const reportDailyLabels = {{ report_daily_labels|safe }};
+const reportDailyTrainingLoad = {{ report_daily_training_load|safe }};
+const reportDailyMatchLoad = {{ report_daily_match_load|safe }};
+const reportDailyDistance = {{ report_daily_total_distance|safe }};
+const reportPlayerLabels = {{ report_player_labels|safe }};
+const reportPlayerLoad = {{ report_player_load|safe }};
+const reportPlayerDistance = {{ report_player_distance|safe }};
+const reportSplitLabels = {{ report_split_labels|safe }};
+const reportSplitValues = {{ report_split_values|safe }};
+
+const reportNumber = (value, digits = 0) => new Intl.NumberFormat("nl-NL", {
+    maximumFractionDigits: digits
+}).format(value ?? 0);
+
+const reportBaseOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: "bottom",
+            labels: { usePointStyle: true, pointStyle: "circle", padding: 16 }
+        },
+        tooltip: {
+            callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${reportNumber(ctx.raw, 1)}`
+            }
+        }
+    },
+    scales: {
+        x: { grid: { display: false } },
+        y: {
+            beginAtZero: true,
+            grid: { color: "rgba(31, 42, 68, 0.08)" },
+            ticks: { callback: (value) => reportNumber(value) }
+        }
+    }
+};
+
+const initPhysicalReportCharts = () => {
+    const dailyLoadCanvas = document.getElementById("physicalDailyLoadChart");
+    if (dailyLoadCanvas) {
+        new Chart(dailyLoadCanvas, {
+            type: "bar",
+            data: {
+                labels: reportDailyLabels,
+                datasets: [
+                    { label: "Training load", data: reportDailyTrainingLoad, backgroundColor: "#1f2a44", stack: "load" },
+                    { label: "Wedstrijd load", data: reportDailyMatchLoad, backgroundColor: "#b60000", stack: "load" }
+                ]
+            },
+            options: {
+                ...reportBaseOptions,
+                scales: {
+                    ...reportBaseOptions.scales,
+                    x: { ...reportBaseOptions.scales.x, stacked: true },
+                    y: { ...reportBaseOptions.scales.y, stacked: true }
+                }
+            }
+        });
+    }
+
+    const playerLoadCanvas = document.getElementById("physicalPlayerLoadChart");
+    if (playerLoadCanvas) {
+        new Chart(playerLoadCanvas, {
+            type: "bar",
+            data: {
+                labels: reportPlayerLabels,
+                datasets: [{ label: "Load", data: reportPlayerLoad, backgroundColor: "#1f2a44" }]
+            },
+            options: {
+                ...reportBaseOptions,
+                indexAxis: "y"
+            }
+        });
+    }
+
+    const distanceCanvas = document.getElementById("physicalDistanceChart");
+    if (distanceCanvas) {
+        new Chart(distanceCanvas, {
+            type: "line",
+            data: {
+                labels: reportDailyLabels,
+                datasets: [{
+                    label: "Afstand (km)",
+                    data: reportDailyDistance,
+                    borderColor: "#b60000",
+                    backgroundColor: "rgba(182, 0, 0, 0.12)",
+                    fill: true,
+                    tension: 0.35
+                }]
+            },
+            options: reportBaseOptions
+        });
+    }
+
+    const splitCanvas = document.getElementById("physicalSplitChart");
+    if (splitCanvas) {
+        new Chart(splitCanvas, {
+            type: "doughnut",
+            data: {
+                labels: reportSplitLabels,
+                datasets: [{
+                    data: reportSplitValues,
+                    backgroundColor: ["#1f2a44", "#b60000", "#6f7d95", "#d9e1ec"]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: reportBaseOptions.plugins
+            }
+        });
+    }
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initPhysicalReportCharts);
+} else {
+    initPhysicalReportCharts();
+}
+</script>
+{% endif %}
+
 <style>
 /* =======================================================================
    ALGEMENE STYLING
@@ -1487,6 +1752,147 @@ main.container {
 
 .chart-card-ewma {
     display: none;
+}
+
+.physical-report-shell {
+    display: grid;
+    gap: 24px;
+}
+
+.physical-report-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    background: #fff;
+    border: 1px solid #e1e8f2;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 10px 26px rgba(31, 42, 68, 0.06);
+}
+
+.report-kicker {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 11px;
+    border-radius: 999px;
+    background: #eef2f8;
+    color: #1f2a44;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.physical-report-head h2 {
+    margin: 0 0 8px;
+    color: #1f2a44;
+    font-size: 1.85rem;
+    font-weight: 800;
+}
+
+.physical-report-head p {
+    margin: 0;
+    color: #61708a;
+    line-height: 1.6;
+    max-width: 78ch;
+}
+
+.report-print-btn {
+    border: 0;
+    border-radius: 12px;
+    padding: 11px 16px;
+    background: #b60000;
+    color: #fff;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(182, 0, 0, 0.16);
+    white-space: nowrap;
+}
+
+.report-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.report-kpi-card {
+    background: #fff;
+    border: 1px solid #e1e8f2;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 8px 18px rgba(31, 42, 68, 0.05);
+}
+
+.report-kpi-card span {
+    display: block;
+    color: #61708a;
+    font-size: 0.84rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.report-kpi-card strong {
+    display: block;
+    color: #1f2a44;
+    font-size: 1.45rem;
+    font-weight: 900;
+}
+
+.report-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.report-card,
+.report-table-card {
+    margin-bottom: 0;
+}
+
+@media (max-width: 1100px) {
+    .report-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 800px) {
+    .physical-report-head {
+        flex-direction: column;
+    }
+
+    .report-kpi-grid,
+    .report-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media print {
+    .data-tabs-container,
+    .report-print-btn,
+    .sidebar,
+    nav {
+        display: none !important;
+    }
+
+    body {
+        background: #fff;
+    }
+
+    main.container {
+        max-width: none;
+        padding: 0;
+    }
+
+    .card,
+    .physical-report-head,
+    .report-kpi-card {
+        box-shadow: none;
+        break-inside: avoid;
+    }
 }
 
 .subtext {
