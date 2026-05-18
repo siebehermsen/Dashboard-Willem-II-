@@ -6,6 +6,39 @@
     .staf-shell {
         display: grid;
         gap: 26px;
+        scrollbar-color: #aeb7c6 #edf1f7;
+        scrollbar-width: thin;
+    }
+
+    .staf-shell::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .staf-shell::-webkit-scrollbar-track {
+        background: #edf1f7;
+    }
+
+    .staf-shell::-webkit-scrollbar-thumb {
+        background: #aeb7c6;
+        border-radius: 999px;
+    }
+
+    body {
+        scrollbar-color: #aeb7c6 #edf1f7;
+        scrollbar-width: thin;
+    }
+
+    body::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    body::-webkit-scrollbar-track {
+        background: #edf1f7;
+    }
+
+    body::-webkit-scrollbar-thumb {
+        background: #aeb7c6;
+        border-radius: 999px;
     }
 
     .staf-hero {
@@ -167,6 +200,11 @@
         padding: 20px;
     }
 
+    .staf-player-card {
+        display: flex;
+        flex-direction: column;
+    }
+
     .staf-name {
         margin: 0 0 8px;
         color: #1f2a44;
@@ -192,6 +230,29 @@
     }
 
     .staf-login-state.is-blocked {
+        color: #b60000;
+    }
+
+    .staf-section-anchor {
+        scroll-margin-top: 24px;
+    }
+
+    .staf-status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 8px auto 0;
+        min-height: 28px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: #edf4ee;
+        color: #2f6f3b;
+        font-size: 0.78rem;
+        font-weight: 800;
+    }
+
+    .staf-status-pill.is-archived {
+        background: #f6e9e9;
         color: #b60000;
     }
 
@@ -338,20 +399,6 @@
         </div>
     </div>
 
-    <div class="staf-grid-card">
-        <h3>Spelers</h3>
-        <ul class="staf-mini-list">
-            {% for player in players|slice:":12" %}
-            <li>
-                <span>{{ player.name }}</span>
-                <span class="staf-muted">{{ player.position_ref.name|default:"Geen positie" }}</span>
-            </li>
-            {% empty %}
-            <li><span>Nog geen spelers</span></li>
-            {% endfor %}
-        </ul>
-    </div>
-
     <div id="player-modal" class="staf-modal" aria-hidden="true">
         <div class="staf-modal-panel" role="dialog" aria-modal="true" aria-labelledby="player-modal-title">
             <div class="staf-modal-header">
@@ -478,6 +525,39 @@
         </div>
     </div>
 
+    <div class="staf-grid-card staf-section-anchor" id="spelers">
+        <h3>Spelers</h3>
+        <div class="staf-grid">
+            {% for player in players %}
+            <article class="staf-card staf-player-card">
+                <div class="staf-photo">
+                    {% if player.image %}
+                    <img src="{{ player.image.url }}" alt="{{ player.name }}">
+                    {% else %}
+                    <div class="staf-photo-placeholder">Geen foto toegevoegd</div>
+                    {% endif %}
+                </div>
+                <h4 class="staf-name">{{ player.name }}</h4>
+                <p class="staf-role">{{ player.position_ref.name|default:"Geen positie ingevuld" }}</p>
+                <span class="staf-status-pill {% if not player.is_active %}is-archived{% endif %}">
+                    {% if player.is_active %}Actief{% else %}Gearchiveerd{% endif %}
+                </span>
+                <div class="staf-card-actions">
+                    <button type="button" class="staf-edit-button" data-staf-modal-open="player-edit-modal-{{ player.id }}">Bewerken</button>
+                </div>
+            </article>
+            {% empty %}
+            <article class="staf-card">
+                <div class="staf-photo">
+                    <div class="staf-photo-placeholder">Nog geen spelers toegevoegd</div>
+                </div>
+                <h4 class="staf-name">Voeg een speler toe</h4>
+                <p class="staf-role">Naam, positie en foto komen hier te staan</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+
     {% for row in staff_member_rows %}
     <div id="staff-edit-modal-{{ row.member.id }}" class="staf-modal" aria-hidden="true">
         <div class="staf-modal-panel" role="dialog" aria-modal="true" aria-labelledby="staff-edit-modal-title-{{ row.member.id }}">
@@ -528,6 +608,42 @@
                 <label class="staf-checkbox-field" for="staf-edit-active-{{ row.member.id }}">
                     <input id="staf-edit-active-{{ row.member.id }}" type="checkbox" name="is_active" {% if not row.member.user or row.member.user.is_active %}checked{% endif %}>
                     Login actief
+                </label>
+                <button type="submit" class="staf-submit">Wijzigingen opslaan</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% for player in players %}
+    <div id="player-edit-modal-{{ player.id }}" class="staf-modal" aria-hidden="true">
+        <div class="staf-modal-panel" role="dialog" aria-modal="true" aria-labelledby="player-edit-modal-title-{{ player.id }}">
+            <div class="staf-modal-header">
+                <div>
+                    <h3 id="player-edit-modal-title-{{ player.id }}">Speler bewerken</h3>
+                    <p class="staf-section-note">Wijzig profiel, positie, foto of archiveer de speler.</p>
+                </div>
+                <button type="button" class="staf-modal-close" data-staf-modal-close aria-label="Sluiten">&times;</button>
+            </div>
+            <form method="post" enctype="multipart/form-data" class="staf-form">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="edit_player">
+                <input type="hidden" name="player_id" value="{{ player.id }}">
+                <div class="staf-field">
+                    <label for="player-edit-name-{{ player.id }}">Naam speler</label>
+                    <input id="player-edit-name-{{ player.id }}" type="text" name="player_name" value="{{ player.name }}" required>
+                </div>
+                <div class="staf-field">
+                    <label for="player-edit-position-{{ player.id }}">Positie</label>
+                    <input id="player-edit-position-{{ player.id }}" type="text" name="position_name" list="player-position-options" value="{{ player.position_ref.name|default:'' }}">
+                </div>
+                <div class="staf-field">
+                    <label for="player-edit-image-{{ player.id }}">Foto vervangen</label>
+                    <input id="player-edit-image-{{ player.id }}" type="file" name="player_image" accept="image/*">
+                </div>
+                <label class="staf-checkbox-field" for="player-edit-active-{{ player.id }}">
+                    <input id="player-edit-active-{{ player.id }}" type="checkbox" name="is_active" {% if player.is_active %}checked{% endif %}>
+                    Speler actief
                 </label>
                 <button type="submit" class="staf-submit">Wijzigingen opslaan</button>
             </form>

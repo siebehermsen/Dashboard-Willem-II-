@@ -17,6 +17,7 @@ from .models import (
     PerformanceSessionKind,
     Player,
     PlayerMonitoringProfile,
+    PlayerPosition,
     RPEEntry,
     RPETrainingType,
     Staff,
@@ -286,6 +287,28 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(response.status_code, 302)
         player = Player.objects.get(name="Nieuwe Testspeler")
         self.assertEqual(player.position_ref.name, "Buitenspeler")
+        self.assertTrue(player.is_active)
+        self.assertTrue(hasattr(player, "monitoring_profile"))
+
+    def test_staf_page_admin_can_update_and_archive_player(self):
+        position = PlayerPosition.objects.create(name="Middenvelder")
+        player = Player.objects.create(name="Oude Speler", position_ref=position)
+
+        response = self.client.post(
+            reverse("staf"),
+            {
+                "form_type": "edit_player",
+                "player_id": player.id,
+                "player_name": "Nieuwe Speler",
+                "position_name": "Buitenspeler",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        player.refresh_from_db()
+        self.assertEqual(player.name, "Nieuwe Speler")
+        self.assertEqual(player.position_ref.name, "Buitenspeler")
+        self.assertFalse(player.is_active)
         self.assertTrue(hasattr(player, "monitoring_profile"))
 
     def test_staf_page_admin_can_create_staff_user_with_dashboard_role(self):

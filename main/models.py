@@ -673,6 +673,7 @@ class Player(models.Model):
     name = models.CharField(max_length=100, verbose_name='Naam speler')
     image = models.ImageField(blank=True, null=True, upload_to='player_images/', verbose_name='Profielfoto')
     position_ref = models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='players', to='main.playerposition', verbose_name='Positie')
+    is_active = models.BooleanField(default=True, verbose_name='Actief')
 
     class Meta:
         pass

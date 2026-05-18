@@ -3841,9 +3841,37 @@ def staf(request):
                 name=name,
                 position_ref=position_obj,
                 image=image if image else None,
+                is_active=True,
             )
             PlayerMonitoringProfile.objects.get_or_create(player=player)
             messages.success(request, f"Speler {player.name} toegevoegd.")
+            return redirect("staf")
+
+        if form_type == "edit_player":
+            player = get_object_or_404(Player.objects.select_related("position_ref"), id=request.POST.get("player_id"))
+            name = (request.POST.get("player_name") or "").strip()
+            position_name = (request.POST.get("position_name") or "").strip()
+            image = request.FILES.get("player_image")
+
+            if not name:
+                messages.error(request, "Vul een spelernaam in.")
+                return redirect("staf")
+            if Player.objects.exclude(id=player.id).filter(name__iexact=name).exists():
+                messages.error(request, f"Speler {name} bestaat al.")
+                return redirect("staf")
+
+            position_obj = None
+            if position_name:
+                position_obj, _ = PlayerPosition.objects.get_or_create(name=position_name)
+
+            player.name = name
+            player.position_ref = position_obj
+            player.is_active = request.POST.get("is_active") == "on"
+            if image:
+                player.image = image
+            player.save()
+            PlayerMonitoringProfile.objects.get_or_create(player=player)
+            messages.success(request, f"Speler {player.name} bijgewerkt.")
             return redirect("staf")
 
         if form_type == "add_staff":
