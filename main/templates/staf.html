@@ -322,11 +322,11 @@
                 <input type="hidden" name="form_type" value="add_player">
                 <div class="staf-field">
                     <label for="player-name">Naam speler</label>
-                    <input id="player-name" type="text" name="player_name" placeholder="Bijv. Nieuwe Speler" required>
+                    <input id="player-name" type="text" name="player_name" required>
                 </div>
                 <div class="staf-field">
                     <label for="player-position">Positie</label>
-                    <input id="player-position" type="text" name="position_name" list="player-position-options" placeholder="Bijv. Buitenspeler">
+                    <input id="player-position" type="text" name="position_name" list="player-position-options">
                     <datalist id="player-position-options">
                         {% for position in player_positions %}
                         <option value="{{ position.name }}"></option>
@@ -356,11 +356,11 @@
                 <input type="hidden" name="form_type" value="add_staff">
                 <div class="staf-field">
                     <label for="staf-name">Naam</label>
-                    <input id="staf-name" type="text" name="name" placeholder="Bijv. Siebe Hermsen" required>
+                    <input id="staf-name" type="text" name="name" required>
                 </div>
                 <div class="staf-field">
                     <label for="staf-role">Functie</label>
-                    <input id="staf-role" type="text" name="role_name" list="staff-role-options" placeholder="Bijv. Performance coach" required>
+                    <input id="staf-role" type="text" name="role_name" list="staff-role-options" required>
                     <datalist id="staff-role-options">
                         {% for role in staff_roles %}
                         <option value="{{ role.name }}"></option>
@@ -373,15 +373,15 @@
                 </div>
                 <div class="staf-field">
                     <label for="staf-username">Login gebruikersnaam</label>
-                    <input id="staf-username" type="text" name="username" placeholder="Optioneel">
+                    <input id="staf-username" type="text" name="username">
                 </div>
                 <div class="staf-field">
                     <label for="staf-email">E-mail</label>
-                    <input id="staf-email" type="email" name="email" placeholder="Optioneel">
+                    <input id="staf-email" type="email" name="email">
                 </div>
                 <div class="staf-field">
                     <label for="staf-password">Tijdelijk wachtwoord</label>
-                    <input id="staf-password" type="password" name="password" placeholder="Alleen invullen bij nieuwe login">
+                    <input id="staf-password" type="password" name="password">
                 </div>
                 <div class="staf-field">
                     <label for="dashboard-role">Dashboardrol</label>
