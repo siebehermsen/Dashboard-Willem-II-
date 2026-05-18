@@ -1445,8 +1445,16 @@ setMatchMetric(selectedMetricMatchState, false);
         <article class="card chart-card report-card">
             <div class="chart-header">
                 <div>
-                    <h3>Dagbelasting afgelopen week</h3>
-                    <p class="subtext">Training en wedstrijdload gestapeld per dag.</p>
+                    <h3>Weekbelasting</h3>
+                    <p class="subtext">Dagen naast elkaar. Wissel hieronder tussen load, afstand en intensiteit.</p>
+                </div>
+                <div class="report-metric-buttons" aria-label="Weekbelasting metric">
+                    <button type="button" class="report-metric-btn active" data-report-week-metric="load">Load</button>
+                    <button type="button" class="report-metric-btn" data-report-week-metric="distance">Afstand</button>
+                    <button type="button" class="report-metric-btn" data-report-week-metric="hsd">D15</button>
+                    <button type="button" class="report-metric-btn" data-report-week-metric="his">HIS</button>
+                    <button type="button" class="report-metric-btn" data-report-week-metric="sprints">Sprints</button>
+                    <button type="button" class="report-metric-btn" data-report-week-metric="accdec">Acc+Dec</button>
                 </div>
             </div>
             <div class="chart-area chart-area-small">
@@ -1540,6 +1548,10 @@ const reportDailyLabels = {{ report_daily_labels|safe }};
 const reportDailyTrainingLoad = {{ report_daily_training_load|safe }};
 const reportDailyMatchLoad = {{ report_daily_match_load|safe }};
 const reportDailyDistance = {{ report_daily_total_distance|safe }};
+const reportDailyHsd = {{ report_daily_hsd|safe }};
+const reportDailyHis = {{ report_daily_his|safe }};
+const reportDailySprints = {{ report_daily_sprints|safe }};
+const reportDailyAccDec = {{ report_daily_acc_dec|safe }};
 const reportPlayerLabels = {{ report_player_labels|safe }};
 const reportPlayerLoad = {{ report_player_load|safe }};
 const reportPlayerDistance = {{ report_player_distance|safe }};
@@ -1576,24 +1588,109 @@ const reportBaseOptions = {
 
 const initPhysicalReportCharts = () => {
     const dailyLoadCanvas = document.getElementById("physicalDailyLoadChart");
+    let weekLoadChart = null;
+    const reportWeekMetrics = {
+        load: {
+            label: "Load",
+            data: reportDailyTrainingLoad.map((value, index) => Number(value || 0) + Number(reportDailyMatchLoad[index] || 0)),
+            color: "#1f2a44",
+            unit: "",
+            decimals: 0
+        },
+        distance: {
+            label: "Afstand",
+            data: reportDailyDistance,
+            color: "#b60000",
+            unit: " km",
+            decimals: 1
+        },
+        hsd: {
+            label: "D15 / HIR",
+            data: reportDailyHsd,
+            color: "#314d7f",
+            unit: " km",
+            decimals: 1
+        },
+        his: {
+            label: "HIS",
+            data: reportDailyHis,
+            color: "#8b1d1d",
+            unit: " km",
+            decimals: 1
+        },
+        sprints: {
+            label: "Sprints",
+            data: reportDailySprints,
+            color: "#6f7d95",
+            unit: "",
+            decimals: 0
+        },
+        accdec: {
+            label: "Acc + Dec",
+            data: reportDailyAccDec,
+            color: "#9aa6b8",
+            unit: "",
+            decimals: 0
+        }
+    };
+
+    const setWeekMetric = (metricKey) => {
+        const config = reportWeekMetrics[metricKey] || reportWeekMetrics.load;
+        if (!weekLoadChart) return;
+        weekLoadChart.data.datasets[0].label = config.label;
+        weekLoadChart.data.datasets[0].data = config.data;
+        weekLoadChart.data.datasets[0].backgroundColor = config.color;
+        weekLoadChart.data.datasets[0].unit = config.unit;
+        weekLoadChart.data.datasets[0].decimals = config.decimals;
+        weekLoadChart.options.scales.y.title.text = config.label + (config.unit ? ` (${config.unit.trim()})` : "");
+        weekLoadChart.update();
+    };
+
     if (dailyLoadCanvas) {
-        new Chart(dailyLoadCanvas, {
+        weekLoadChart = new Chart(dailyLoadCanvas, {
             type: "bar",
             data: {
                 labels: reportDailyLabels,
-                datasets: [
-                    { label: "Training load", data: reportDailyTrainingLoad, backgroundColor: "#1f2a44", stack: "load" },
-                    { label: "Wedstrijd load", data: reportDailyMatchLoad, backgroundColor: "#b60000", stack: "load" }
-                ]
+                datasets: [{
+                    label: reportWeekMetrics.load.label,
+                    data: reportWeekMetrics.load.data,
+                    backgroundColor: reportWeekMetrics.load.color,
+                    borderRadius: 10,
+                    unit: reportWeekMetrics.load.unit,
+                    decimals: reportWeekMetrics.load.decimals
+                }]
             },
             options: {
                 ...reportBaseOptions,
+                plugins: {
+                    ...reportBaseOptions.plugins,
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const unit = ctx.dataset.unit || "";
+                                const decimals = ctx.dataset.decimals || 0;
+                                return `${ctx.dataset.label}: ${reportNumber(ctx.raw, decimals)}${unit}`;
+                            }
+                        }
+                    }
+                },
                 scales: {
                     ...reportBaseOptions.scales,
-                    x: { ...reportBaseOptions.scales.x, stacked: true },
-                    y: { ...reportBaseOptions.scales.y, stacked: true }
+                    y: {
+                        ...reportBaseOptions.scales.y,
+                        title: { display: true, text: "Load" }
+                    }
                 }
             }
+        });
+
+        document.querySelectorAll("[data-report-week-metric]").forEach((button) => {
+            button.addEventListener("click", () => {
+                document.querySelectorAll("[data-report-week-metric]").forEach((btn) => btn.classList.remove("active"));
+                button.classList.add("active");
+                setWeekMetric(button.dataset.reportWeekMetric);
+            });
         });
     }
 
@@ -1853,6 +1950,32 @@ main.container {
     margin-bottom: 0;
 }
 
+.report-metric-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.report-metric-btn {
+    border: 1px solid #d7dfec;
+    border-radius: 999px;
+    min-height: 34px;
+    padding: 0 12px;
+    background: #eef2f8;
+    color: #1f2a44;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.report-metric-btn.active {
+    border-color: #1f2a44;
+    background: #1f2a44;
+    color: #fff;
+}
+
 @media (max-width: 1100px) {
     .report-kpi-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1867,6 +1990,10 @@ main.container {
     .report-kpi-grid,
     .report-grid {
         grid-template-columns: 1fr;
+    }
+
+    .report-metric-buttons {
+        justify-content: flex-start;
     }
 }
 

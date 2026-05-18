@@ -1914,14 +1914,23 @@ def fysiek_rapport(request):
     daily_training_load = []
     daily_match_load = []
     daily_total_distance = []
+    daily_hsd = []
+    daily_his = []
+    daily_sprints = []
+    daily_acc_dec = []
     for offset in range(7):
         current_date = report_start + timedelta(days=offset)
         daily_labels.append(f"{day_names[current_date.weekday()]} {current_date.strftime('%d-%m')}")
         day_training_rows = [row for row in training_rows if row["session_date"] == current_date]
         day_match_rows = [row for row in match_rows if row["session_date"] == current_date]
+        day_combined_rows = [*day_training_rows, *day_match_rows]
         daily_training_load.append(round(sum_metric(day_training_rows, "load"), 1))
         daily_match_load.append(round(sum_metric(day_match_rows, "load"), 1))
-        daily_total_distance.append(round((sum_metric(day_training_rows, "total_distance") + sum_metric(day_match_rows, "total_distance")) / 1000, 2))
+        daily_total_distance.append(round(sum_metric(day_combined_rows, "total_distance") / 1000, 2))
+        daily_hsd.append(round(sum_metric(day_combined_rows, "hsd") / 1000, 2))
+        daily_his.append(round(sum_metric(day_match_rows, "his") / 1000, 2))
+        daily_sprints.append(round(sum_metric(day_combined_rows, "sprints"), 0))
+        daily_acc_dec.append(round(sum_metric(day_match_rows, "accelerations") + sum_metric(day_match_rows, "decelerations"), 0))
 
     report_summary = {
         "range_label": f"{report_start.strftime('%d-%m-%Y')} t/m {report_end.strftime('%d-%m-%Y')}",
@@ -1946,6 +1955,10 @@ def fysiek_rapport(request):
         "report_daily_training_load": json.dumps(daily_training_load),
         "report_daily_match_load": json.dumps(daily_match_load),
         "report_daily_total_distance": json.dumps(daily_total_distance),
+        "report_daily_hsd": json.dumps(daily_hsd),
+        "report_daily_his": json.dumps(daily_his),
+        "report_daily_sprints": json.dumps(daily_sprints),
+        "report_daily_acc_dec": json.dumps(daily_acc_dec),
         "report_player_labels": json.dumps([row["name"] for row in top_player_rows]),
         "report_player_load": json.dumps([round(row["load"], 1) for row in top_player_rows]),
         "report_player_distance": json.dumps([round(row["total_distance"] / 1000, 2) for row in top_player_rows]),
