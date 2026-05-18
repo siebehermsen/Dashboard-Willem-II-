@@ -47,10 +47,31 @@
         line-height: 1.6;
     }
 
-    .staf-management-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 22px;
+    .staf-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 22px;
+    }
+
+    .staf-action-button {
+        border: 1px solid #d7dfec;
+        border-radius: 12px;
+        padding: 11px 16px;
+        background: #fff;
+        color: #1f2a44;
+        font: inherit;
+        font-size: 0.95rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 8px 18px rgba(31, 42, 68, 0.08);
+    }
+
+    .staf-action-button.primary {
+        border-color: #b60000;
+        background: #b60000;
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(182, 0, 0, 0.16);
     }
 
     .staf-form-card,
@@ -195,9 +216,63 @@
         font-weight: 600;
     }
 
+    .staf-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(12, 18, 32, 0.48);
+    }
+
+    .staf-modal.is-open {
+        display: flex;
+    }
+
+    .staf-modal-panel {
+        width: min(680px, 100%);
+        max-height: calc(100vh - 48px);
+        overflow: auto;
+        background: #fff;
+        border: 1px solid #dfe7f2;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 24px 70px rgba(12, 18, 32, 0.24);
+    }
+
+    .staf-modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+    }
+
+    .staf-modal-header h3 {
+        margin: 0 0 6px;
+        color: #1f2a44;
+        font-size: 1.35rem;
+        font-weight: 800;
+    }
+
+    .staf-modal-close {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 auto;
+        border: 1px solid #d7dfec;
+        border-radius: 12px;
+        background: #fff;
+        color: #1f2a44;
+        font-size: 1.4rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+
     @media (max-width: 991px) {
-        .staf-management-grid {
-            grid-template-columns: 1fr;
+        .staf-modal {
+            align-items: flex-start;
         }
 
         .staf-form {
@@ -213,12 +288,35 @@
         <p class="staf-subtitle">
             Beheer hier spelers, stafleden, functies en dashboardtoegang zonder naar de Django admin te hoeven.
         </p>
+        <div class="staf-actions" aria-label="Staf acties">
+            <button type="button" class="staf-action-button primary" data-staf-modal-open="player-modal">Voeg speler toe</button>
+            <button type="button" class="staf-action-button" data-staf-modal-open="staff-modal">Voeg staflid toe</button>
+        </div>
     </div>
 
-    <div class="staf-management-grid">
-        <div class="staf-form-card">
-            <h3>Speler toevoegen</h3>
-            <p class="staf-section-note">Nieuwe spelers krijgen automatisch een monitoringprofiel, zodat gewicht, voeding en testdata direct gekoppeld kunnen worden.</p>
+    <div class="staf-grid-card">
+        <h3>Spelers</h3>
+        <ul class="staf-mini-list">
+            {% for player in players|slice:":12" %}
+            <li>
+                <span>{{ player.name }}</span>
+                <span class="staf-muted">{{ player.position_ref.name|default:"Geen positie" }}</span>
+            </li>
+            {% empty %}
+            <li><span>Nog geen spelers</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div id="player-modal" class="staf-modal" aria-hidden="true">
+        <div class="staf-modal-panel" role="dialog" aria-modal="true" aria-labelledby="player-modal-title">
+            <div class="staf-modal-header">
+                <div>
+                    <h3 id="player-modal-title">Speler toevoegen</h3>
+                    <p class="staf-section-note">Nieuwe spelers krijgen automatisch een monitoringprofiel.</p>
+                </div>
+                <button type="button" class="staf-modal-close" data-staf-modal-close aria-label="Sluiten">&times;</button>
+            </div>
             <form method="post" enctype="multipart/form-data" class="staf-form">
                 {% csrf_token %}
                 <input type="hidden" name="form_type" value="add_player">
@@ -241,22 +339,18 @@
                 </div>
                 <button type="submit" class="staf-submit">Speler toevoegen</button>
             </form>
-
-            <ul class="staf-mini-list">
-                {% for player in players|slice:":8" %}
-                <li>
-                    <span>{{ player.name }}</span>
-                    <span class="staf-muted">{{ player.position_ref.name|default:"Geen positie" }}</span>
-                </li>
-                {% empty %}
-                <li><span>Nog geen spelers</span></li>
-                {% endfor %}
-            </ul>
         </div>
+    </div>
 
-        <div class="staf-form-card">
-            <h3>Staflid toevoegen</h3>
-            <p class="staf-section-note">Koppel optioneel meteen een login en dashboardrol. Zonder gebruikersnaam wordt alleen het stafprofiel aangemaakt.</p>
+    <div id="staff-modal" class="staf-modal" aria-hidden="true">
+        <div class="staf-modal-panel" role="dialog" aria-modal="true" aria-labelledby="staff-modal-title">
+            <div class="staf-modal-header">
+                <div>
+                    <h3 id="staff-modal-title">Staflid toevoegen</h3>
+                    <p class="staf-section-note">Koppel optioneel meteen een login en dashboardrol.</p>
+                </div>
+                <button type="button" class="staf-modal-close" data-staf-modal-close aria-label="Sluiten">&times;</button>
+            </div>
             <form method="post" enctype="multipart/form-data" class="staf-form">
                 {% csrf_token %}
                 <input type="hidden" name="form_type" value="add_staff">
@@ -333,4 +427,45 @@
         </div>
     </div>
 </section>
+
+<script>
+    (() => {
+        const openButtons = document.querySelectorAll('[data-staf-modal-open]');
+        const closeButtons = document.querySelectorAll('[data-staf-modal-close]');
+        const modals = document.querySelectorAll('.staf-modal');
+
+        const closeModal = (modal) => {
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+        };
+
+        const openModal = (modalId) => {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            const firstInput = modal.querySelector('form input:not([type="hidden"]), form select');
+            if (firstInput) firstInput.focus();
+        };
+
+        openButtons.forEach((button) => {
+            button.addEventListener('click', () => openModal(button.dataset.stafModalOpen));
+        });
+
+        closeButtons.forEach((button) => {
+            button.addEventListener('click', () => closeModal(button.closest('.staf-modal')));
+        });
+
+        modals.forEach((modal) => {
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeModal(modal);
+            });
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') return;
+            modals.forEach(closeModal);
+        });
+    })();
+</script>
 {% endblock %}
