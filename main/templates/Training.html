@@ -1477,8 +1477,16 @@ setMatchMetric(selectedMetricMatchState, false);
         <article class="card chart-card report-card">
             <div class="chart-header">
                 <div>
-                    <h3>Afstand per dag</h3>
-                    <p class="subtext">Totale teamafstand in kilometers.</p>
+                    <h3>Afstand per sessie</h3>
+                    <p class="subtext">Trainingen en wedstrijden apart naast elkaar. Wissel tussen load en intensiteitsmetrics.</p>
+                </div>
+                <div class="report-metric-buttons" aria-label="Sessie metric">
+                    <button type="button" class="report-metric-btn active" data-report-session-metric="distance">Afstand</button>
+                    <button type="button" class="report-metric-btn" data-report-session-metric="load">Load</button>
+                    <button type="button" class="report-metric-btn" data-report-session-metric="hsd">D15</button>
+                    <button type="button" class="report-metric-btn" data-report-session-metric="his">HIS</button>
+                    <button type="button" class="report-metric-btn" data-report-session-metric="sprints">Sprints</button>
+                    <button type="button" class="report-metric-btn" data-report-session-metric="accdec">Acc+Dec</button>
                 </div>
             </div>
             <div class="chart-area chart-area-small">
@@ -1556,6 +1564,13 @@ const reportDailyHsd = {{ report_daily_hsd|safe }};
 const reportDailyHis = {{ report_daily_his|safe }};
 const reportDailySprints = {{ report_daily_sprints|safe }};
 const reportDailyAccDec = {{ report_daily_acc_dec|safe }};
+const reportSessionLabels = {{ report_session_labels|safe }};
+const reportSessionLoad = {{ report_session_load|safe }};
+const reportSessionDistance = {{ report_session_distance|safe }};
+const reportSessionHsd = {{ report_session_hsd|safe }};
+const reportSessionHis = {{ report_session_his|safe }};
+const reportSessionSprints = {{ report_session_sprints|safe }};
+const reportSessionAccDec = {{ report_session_acc_dec|safe }};
 const reportPlayerLabels = {{ report_player_labels|safe }};
 const reportPlayerLoad = {{ report_player_load|safe }};
 const reportPlayerDistance = {{ report_player_distance|safe }};
@@ -1715,21 +1730,116 @@ const initPhysicalReportCharts = () => {
     }
 
     const distanceCanvas = document.getElementById("physicalDistanceChart");
+    let sessionMetricChart = null;
+    const reportSessionMetrics = {
+        distance: {
+            label: "Afstand",
+            data: reportSessionDistance,
+            color: "#b60000",
+            unit: " km",
+            decimals: 1
+        },
+        load: {
+            label: "Load",
+            data: reportSessionLoad,
+            color: "#1f2a44",
+            unit: "",
+            decimals: 0
+        },
+        hsd: {
+            label: "D15 / HIR",
+            data: reportSessionHsd,
+            color: "#314d7f",
+            unit: " km",
+            decimals: 1
+        },
+        his: {
+            label: "HIS",
+            data: reportSessionHis,
+            color: "#8b1d1d",
+            unit: " km",
+            decimals: 1
+        },
+        sprints: {
+            label: "Sprints",
+            data: reportSessionSprints,
+            color: "#6f7d95",
+            unit: "",
+            decimals: 0
+        },
+        accdec: {
+            label: "Acc + Dec",
+            data: reportSessionAccDec,
+            color: "#9aa6b8",
+            unit: "",
+            decimals: 0
+        }
+    };
+
+    const setSessionMetric = (metricKey) => {
+        const config = reportSessionMetrics[metricKey] || reportSessionMetrics.distance;
+        if (!sessionMetricChart) return;
+        sessionMetricChart.data.datasets[0].label = config.label;
+        sessionMetricChart.data.datasets[0].data = config.data;
+        sessionMetricChart.data.datasets[0].backgroundColor = config.color;
+        sessionMetricChart.data.datasets[0].unit = config.unit;
+        sessionMetricChart.data.datasets[0].decimals = config.decimals;
+        sessionMetricChart.options.scales.y.title.text = config.label + (config.unit ? ` (${config.unit.trim()})` : "");
+        sessionMetricChart.update();
+    };
+
     if (distanceCanvas) {
-        new Chart(distanceCanvas, {
-            type: "line",
+        sessionMetricChart = new Chart(distanceCanvas, {
+            type: "bar",
             data: {
-                labels: reportDailyLabels,
+                labels: reportSessionLabels,
                 datasets: [{
-                    label: "Afstand (km)",
-                    data: reportDailyDistance,
-                    borderColor: "#b60000",
-                    backgroundColor: "rgba(182, 0, 0, 0.12)",
-                    fill: true,
-                    tension: 0.35
+                    label: reportSessionMetrics.distance.label,
+                    data: reportSessionMetrics.distance.data,
+                    backgroundColor: reportSessionMetrics.distance.color,
+                    borderRadius: 10,
+                    unit: reportSessionMetrics.distance.unit,
+                    decimals: reportSessionMetrics.distance.decimals
                 }]
             },
-            options: reportBaseOptions
+            options: {
+                ...reportBaseOptions,
+                plugins: {
+                    ...reportBaseOptions.plugins,
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const unit = ctx.dataset.unit || "";
+                                const decimals = ctx.dataset.decimals || 0;
+                                return `${ctx.dataset.label}: ${reportNumber(ctx.raw, decimals)}${unit}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    ...reportBaseOptions.scales,
+                    x: {
+                        ...reportBaseOptions.scales.x,
+                        ticks: {
+                            maxRotation: 35,
+                            minRotation: 25
+                        }
+                    },
+                    y: {
+                        ...reportBaseOptions.scales.y,
+                        title: { display: true, text: "Afstand (km)" }
+                    }
+                }
+            }
+        });
+
+        document.querySelectorAll("[data-report-session-metric]").forEach((button) => {
+            button.addEventListener("click", () => {
+                document.querySelectorAll("[data-report-session-metric]").forEach((btn) => btn.classList.remove("active"));
+                button.classList.add("active");
+                setSessionMetric(button.dataset.reportSessionMetric);
+            });
         });
     }
 

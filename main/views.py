@@ -1931,6 +1931,7 @@ def fysiek_rapport(request):
     daily_his = []
     daily_sprints = []
     daily_acc_dec = []
+    session_buckets = []
     for offset in range(7):
         current_date = report_start + timedelta(days=offset)
         daily_labels.append(f"{day_names[current_date.weekday()]} {current_date.strftime('%d-%m')}")
@@ -1944,6 +1945,20 @@ def fysiek_rapport(request):
         daily_his.append(round(sum_metric(day_match_rows, "his") / 1000, 2))
         daily_sprints.append(round(sum_metric(day_combined_rows, "sprints"), 0))
         daily_acc_dec.append(round(sum_metric(day_match_rows, "accelerations") + sum_metric(day_match_rows, "decelerations"), 0))
+        for label, rows_for_session in (("Training", day_training_rows), ("Wedstrijd", day_match_rows)):
+            if not rows_for_session:
+                continue
+            session_buckets.append(
+                {
+                    "label": f"{day_names[current_date.weekday()]} {current_date.strftime('%d-%m')} {label}",
+                    "load": round(sum_metric(rows_for_session, "load"), 1),
+                    "distance": round(sum_metric(rows_for_session, "total_distance") / 1000, 2),
+                    "hsd": round(sum_metric(rows_for_session, "hsd") / 1000, 2),
+                    "his": round(sum_metric(rows_for_session, "his") / 1000, 2),
+                    "sprints": round(sum_metric(rows_for_session, "sprints"), 0),
+                    "accdec": round(sum_metric(rows_for_session, "accelerations") + sum_metric(rows_for_session, "decelerations"), 0),
+                }
+            )
 
     report_summary = {
         "range_label": f"{report_start.strftime('%d-%m-%Y')} t/m {report_end.strftime('%d-%m-%Y')}",
@@ -1972,6 +1987,13 @@ def fysiek_rapport(request):
         "report_daily_his": json.dumps(daily_his),
         "report_daily_sprints": json.dumps(daily_sprints),
         "report_daily_acc_dec": json.dumps(daily_acc_dec),
+        "report_session_labels": json.dumps([row["label"] for row in session_buckets]),
+        "report_session_load": json.dumps([row["load"] for row in session_buckets]),
+        "report_session_distance": json.dumps([row["distance"] for row in session_buckets]),
+        "report_session_hsd": json.dumps([row["hsd"] for row in session_buckets]),
+        "report_session_his": json.dumps([row["his"] for row in session_buckets]),
+        "report_session_sprints": json.dumps([row["sprints"] for row in session_buckets]),
+        "report_session_acc_dec": json.dumps([row["accdec"] for row in session_buckets]),
         "report_player_labels": json.dumps([row["name"] for row in top_player_rows]),
         "report_player_load": json.dumps([round(row["load"], 1) for row in top_player_rows]),
         "report_player_distance": json.dumps([round(row["total_distance"] / 1000, 2) for row in top_player_rows]),
