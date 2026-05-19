@@ -456,6 +456,14 @@ class DashboardPersistenceTests(TestCase):
         action.refresh_from_db()
         self.assertTrue(action.is_done)
 
+    def test_individual_page_shows_central_player_profile(self):
+        response = self.client.get(reverse("individuele_programmas") + f"?player_id={self.player.id}")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Centraal spelerprofiel")
+        self.assertContains(response, "GPS 7d")
+        self.assertContains(response, "MDO")
+
     def test_read_only_user_can_view_but_not_post(self):
         read_only = get_user_model().objects.create_user(username="readonly", password="test-pass")
         group = Group.objects.create(name=ROLE_READ_ONLY)

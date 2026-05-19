@@ -2742,6 +2742,7 @@ def individuele_programmas(request):
         "mdo_action_points": [],
         "mdo_open_action_count": 0,
         "mdo_overdue_action_count": 0,
+        "player_profile_overview": {},
         "mdo_week_rows": [],
         "mdo_wellness_rows": [],
         "mdo_kpis": {
@@ -3073,6 +3074,60 @@ def individuele_programmas(request):
             "mdo_sprints_json": json.dumps(mdo_sprints_values),
             "mdo_acwr_json": json.dumps(mdo_acwr_values),
         }
+
+        latest_wellness = WellnessEntry.objects.filter(player=selected_player).order_by("-date").first()
+        latest_rpe = RPEEntry.objects.filter(player=selected_player).order_by("-date").first()
+        latest_speed_test = PlayerSpeedTest.objects.filter(player=selected_player).order_by("-test_date").first()
+        latest_team_assignment = (
+            selected_player.team_assignments
+            .select_related("team")
+            .order_by("-start_date")
+            .first()
+        )
+        open_injuries = list(
+            InjuryCase.objects
+            .select_related("injury_type_ref", "phase_ref", "status_ref")
+            .filter(player=selected_player, closed_on__isnull=True)
+            .order_by("-started_on", "-created_at")[:3]
+        )
+        latest_test_rows = fetch_performance_rows("test", selected_player)
+        latest_test_rows.sort(key=lambda row: row.get("session_date") or date.min, reverse=True)
+        latest_test = latest_test_rows[0] if latest_test_rows else None
+
+        profile_wellness_values = []
+        if latest_wellness:
+            profile_wellness_values = [
+                value for value in (
+                    latest_wellness.sleep,
+                    latest_wellness.mood,
+                    latest_wellness.fitness,
+                    latest_wellness.soreness,
+                )
+                if value is not None
+            ]
+        profile_wellness_avg = (
+            round(sum(profile_wellness_values) / len(profile_wellness_values), 1)
+            if profile_wellness_values
+            else None
+        )
+        player_profile_overview = {
+            "team": latest_team_assignment.team.name if latest_team_assignment else "",
+            "position": selected_player.position_ref.name if selected_player.position_ref else "",
+            "latest_wellness": latest_wellness,
+            "latest_wellness_avg": profile_wellness_avg,
+            "latest_rpe": latest_rpe,
+            "latest_gps_date": latest_session_date if current_week_rows else None,
+            "week_load": mdo_context["mdo_kpis"]["load"],
+            "week_distance_km": mdo_context["mdo_kpis"]["distance_km"],
+            "latest_test": latest_test,
+            "latest_speed_test": latest_speed_test,
+            "open_injuries": open_injuries,
+            "open_injury_count": len(open_injuries),
+            "latest_program": programma,
+            "latest_mdo_note": mdo_notes[0] if mdo_notes else None,
+            "open_action_count": mdo_open_action_count,
+        }
+        mdo_context["player_profile_overview"] = player_profile_overview
 
     context = {
         "players": players,

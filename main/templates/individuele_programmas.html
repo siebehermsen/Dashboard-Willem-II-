@@ -357,6 +357,114 @@
     font-weight: 700;
   }
 
+  .ind-profile-overview {
+    display: grid;
+    gap: 18px;
+  }
+
+  .ind-profile-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .ind-profile-head-main {
+    min-width: 0;
+  }
+
+  .ind-profile-title {
+    margin: 0 0 8px;
+    color: var(--ind-navy);
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+  }
+
+  .ind-profile-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .ind-profile-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 11px;
+    border-radius: 999px;
+    background: #eef2fa;
+    color: var(--ind-navy);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .ind-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(130px, 1fr));
+    gap: 12px;
+  }
+
+  .ind-profile-tile {
+    min-height: 96px;
+    border: 1px solid #e1e7f1;
+    border-radius: 18px;
+    background: #f8fbff;
+    padding: 14px;
+  }
+
+  .ind-profile-tile span {
+    display: block;
+    color: var(--ind-muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .ind-profile-tile strong {
+    display: block;
+    margin-top: 10px;
+    color: var(--ind-navy);
+    font-size: 1.35rem;
+    line-height: 1.05;
+  }
+
+  .ind-profile-tile small {
+    display: block;
+    margin-top: 6px;
+    color: var(--ind-muted);
+    font-size: 0.86rem;
+    line-height: 1.35;
+  }
+
+  .ind-profile-lower {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .ind-profile-panel {
+    border: 1px solid #e1e7f1;
+    border-radius: 18px;
+    background: #fff;
+    padding: 14px;
+  }
+
+  .ind-profile-panel h4 {
+    margin: 0 0 8px;
+    color: var(--ind-navy);
+    font-size: 1rem;
+  }
+
+  .ind-profile-panel p {
+    margin: 0;
+    color: var(--ind-muted);
+    line-height: 1.55;
+  }
+
   .ind-tab-nav {
     display: flex;
     gap: 12px;
@@ -900,6 +1008,16 @@
       padding: 18px;
     }
 
+    .ind-profile-head,
+    .ind-profile-lower {
+      grid-template-columns: 1fr;
+      display: grid;
+    }
+
+    .ind-profile-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .ind-card-head,
     .ind-card-body {
       padding-left: 18px;
@@ -1007,12 +1125,82 @@
         </article>
 
         <article class="ind-selected-meta">
-          <div class="ind-selected-kicker">Eigen omgeving</div>
-          <h3 class="ind-selected-title">{{ selected_player.name }}</h3>
-          <p class="ind-selected-text">
-            Je werkt nu in het individuele dagprogramma van deze speler. Hieronder kun je direct het programma van
-            vandaag aanpassen.
-          </p>
+          <div class="ind-profile-overview">
+            <div class="ind-profile-head">
+              <div class="ind-profile-head-main">
+                <div class="ind-selected-kicker">Centraal spelerprofiel</div>
+                <h3 class="ind-profile-title">{{ selected_player.name }}</h3>
+                <div class="ind-profile-chips">
+                  <span class="ind-profile-chip">
+                    {% if player_profile_overview.position %}{{ player_profile_overview.position }}{% else %}Geen positie{% endif %}
+                  </span>
+                  <span class="ind-profile-chip">
+                    {% if player_profile_overview.team %}{{ player_profile_overview.team }}{% else %}Geen team{% endif %}
+                  </span>
+                  <span class="ind-profile-chip">
+                    {{ player_profile_overview.open_action_count }} open actiepunt{% if player_profile_overview.open_action_count != 1 %}en{% endif %}
+                  </span>
+                </div>
+              </div>
+              <a href="{% url 'individuele_programmas' %}?player_id={{ selected_player.id }}&focus_tab={{ focus_tab }}&view=mdo" class="ind-back-link">Open MDO</a>
+            </div>
+
+            <div class="ind-profile-grid">
+              <div class="ind-profile-tile">
+                <span>Wellness</span>
+                <strong>{% if player_profile_overview.latest_wellness_avg %}{{ player_profile_overview.latest_wellness_avg|floatformat:1 }}{% else %}-{% endif %}</strong>
+                <small>{% if player_profile_overview.latest_wellness %}{{ player_profile_overview.latest_wellness.date|date:"d-m-Y" }}{% else %}Geen recente invoer{% endif %}</small>
+              </div>
+              <div class="ind-profile-tile">
+                <span>RPE</span>
+                <strong>{% if player_profile_overview.latest_rpe %}{{ player_profile_overview.latest_rpe.rpe }}{% else %}-{% endif %}</strong>
+                <small>{% if player_profile_overview.latest_rpe %}Load {{ player_profile_overview.latest_rpe.session_load|default:"-" }}{% else %}Geen recente invoer{% endif %}</small>
+              </div>
+              <div class="ind-profile-tile">
+                <span>GPS 7d</span>
+                <strong>{{ player_profile_overview.week_load|floatformat:0 }}</strong>
+                <small>{{ player_profile_overview.week_distance_km|floatformat:1 }} km totaal</small>
+              </div>
+              <div class="ind-profile-tile">
+                <span>Blessures</span>
+                <strong>{{ player_profile_overview.open_injury_count }}</strong>
+                <small>open casus{% if player_profile_overview.open_injury_count != 1 %}sen{% endif %}</small>
+              </div>
+            </div>
+
+            <div class="ind-profile-lower">
+              <div class="ind-profile-panel">
+                <h4>Testdata</h4>
+                {% if player_profile_overview.latest_speed_test %}
+                  <p>MSS {{ player_profile_overview.latest_speed_test.mss_kmh }} km/u &middot; MAS {{ player_profile_overview.latest_speed_test.mas_kmh }} km/u</p>
+                {% elif player_profile_overview.latest_test %}
+                  <p>Laatste test: {{ player_profile_overview.latest_test.session_date|date:"d-m-Y" }}</p>
+                {% else %}
+                  <p>Geen recente testdata gevonden.</p>
+                {% endif %}
+              </div>
+              <div class="ind-profile-panel">
+                <h4>Individueel programma</h4>
+                {% if player_profile_overview.latest_program %}
+                  <p>{% if player_profile_overview.latest_program.doel %}{{ player_profile_overview.latest_program.doel }}{% else %}Programma aangemaakt{% endif %}</p>
+                {% elif day_program and day_program.program_text %}
+                  <p>{{ day_program.program_text|truncatechars:90 }}</p>
+                {% else %}
+                  <p>Nog geen programma ingevuld.</p>
+                {% endif %}
+              </div>
+              <div class="ind-profile-panel">
+                <h4>MDO</h4>
+                {% if player_profile_overview.latest_mdo_note %}
+                  <p>{{ player_profile_overview.latest_mdo_note.text|truncatechars:100 }}</p>
+                {% elif player_profile_overview.open_action_count %}
+                  <p>{{ player_profile_overview.open_action_count }} actiepunt{% if player_profile_overview.open_action_count != 1 %}en{% endif %} open.</p>
+                {% else %}
+                  <p>Geen recente MDO-opmerking of open actiepunt.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
         </article>
       </section>
 
