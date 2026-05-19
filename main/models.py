@@ -698,6 +698,33 @@ class PlayerMonitoringProfile(models.Model):
     def __str__(self):
         return getattr(self, 'name', f'{self.__class__.__name__} {self.pk}')
 
+class MDOActionPoint(models.Model):
+    STATUS_CHOICES = [
+        ("green", "Groen"),
+        ("orange", "Oranje"),
+        ("red", "Rood"),
+    ]
+
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    player = models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mdo_action_points', to='main.player')
+    title = models.CharField(max_length=180)
+    owner = models.CharField(blank=True, default='', max_length=120)
+    deadline = models.DateField(blank=True, null=True)
+    status_color = models.CharField(choices=STATUS_CHOICES, default="orange", max_length=20)
+    is_done = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['is_done', 'deadline', '-created_at']
+        indexes = [
+            models.Index(fields=['player', 'is_done', 'deadline'], name='main_mdo_player_done_dead_idx'),
+            models.Index(fields=['status_color'], name='main_mdo_status_color_idx'),
+        ]
+
+    def __str__(self):
+        return self.title
+
 class PlayerPosition(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     name = models.CharField(max_length=50, unique=True)

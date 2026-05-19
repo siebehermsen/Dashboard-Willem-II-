@@ -9,6 +9,7 @@ from .models import (
     AttendanceRecord,
     AttendanceStatus,
     DayProgramEntry,
+    MDOActionPoint,
     NutritionIntakeItem,
     NutritionIntakeSession,
     OverigNote,
@@ -422,6 +423,38 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, "Multidisciplinair overleg")
         self.assertContains(page, "Weekstart fysieke status")
+
+    def test_mdo_action_point_can_be_saved_and_completed(self):
+        response = self.client.post(
+            reverse("individuele_programmas") + f"?player_id={self.player.id}&view=mdo",
+            {
+                "save_mdo_action": "1",
+                "view": "mdo",
+                "mdo_action_title": "Herstelprotocol bespreken",
+                "mdo_action_owner": "Performance",
+                "mdo_action_deadline": "2026-05-22",
+                "mdo_action_status": "red",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        action = MDOActionPoint.objects.get(player=self.player, title="Herstelprotocol bespreken")
+        self.assertEqual(action.owner, "Performance")
+        self.assertEqual(action.status_color, "red")
+        self.assertFalse(action.is_done)
+
+        complete_response = self.client.post(
+            reverse("individuele_programmas") + f"?player_id={self.player.id}&view=mdo",
+            {
+                "complete_mdo_action": "1",
+                "view": "mdo",
+                "action_id": action.id,
+            },
+        )
+
+        self.assertEqual(complete_response.status_code, 302)
+        action.refresh_from_db()
+        self.assertTrue(action.is_done)
 
     def test_read_only_user_can_view_but_not_post(self):
         read_only = get_user_model().objects.create_user(username="readonly", password="test-pass")

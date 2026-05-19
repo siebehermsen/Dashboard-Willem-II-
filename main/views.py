@@ -1396,7 +1396,7 @@ def training(request):
         selected_metric = "load"
     selected_metric_field = metric_field_map[selected_metric]
 
-    players = Player.objects.select_related("monitoring_profile", "position_ref").all().order_by("name")
+    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
     week_targets, _ = TrainingWeekTarget.objects.get_or_create(
         name="Geplande weektargets training"
     )
@@ -2695,6 +2695,7 @@ from .models import (
     IndividualDayPlan,
     IndividualDayPlanNote,
     IndividualDayPlanNoteType,
+    MDOActionPoint,
     OverigNote,
     Player,
     Programma,
@@ -2714,7 +2715,7 @@ def individuele_programmas(request):
     - laatste individuele programma + oefeningen worden getoond
     """
 
-    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    players = Player.objects.select_related("monitoring_profile", "position_ref").all().order_by("name")
 
     # Haal geselecteerde speler uit URL parameters
     player_id = request.GET.get("player_id")
@@ -2738,6 +2739,9 @@ def individuele_programmas(request):
     video_previews = []
     mdo_context = {
         "mdo_notes": [],
+        "mdo_action_points": [],
+        "mdo_open_action_count": 0,
+        "mdo_overdue_action_count": 0,
         "mdo_week_rows": [],
         "mdo_wellness_rows": [],
         "mdo_kpis": {
@@ -2788,7 +2792,7 @@ def individuele_programmas(request):
         return {"url": raw_url, "embed_url": None}
 
     if player_id:
-        selected_player = get_object_or_404(Player.objects.select_related("monitoring_profile"), id=player_id)
+        selected_player = get_object_or_404(Player.objects.select_related("monitoring_profile", "position_ref"), id=player_id)
 
         # Dagprogramma ophalen of aanmaken (3NF: plan + note)
         plan, _ = IndividualDayPlan.objects.get_or_create(
@@ -2890,6 +2894,33 @@ def individuele_programmas(request):
                     messages.success(request, "MDO-opmerking opgeslagen.")
                 else:
                     messages.error(request, "Vul eerst een opmerking in.")
+                active_view = "mdo"
+            elif "save_mdo_action" in request.POST:
+                action_title = (request.POST.get("mdo_action_title") or "").strip()
+                action_owner = (request.POST.get("mdo_action_owner") or "").strip()
+                action_status = (request.POST.get("mdo_action_status") or "orange").strip().lower()
+                if action_status not in {"green", "orange", "red"}:
+                    action_status = "orange"
+                action_deadline = parse_date(request.POST.get("mdo_action_deadline") or "")
+                if action_title:
+                    MDOActionPoint.objects.create(
+                        player=selected_player,
+                        title=action_title,
+                        owner=action_owner,
+                        deadline=action_deadline,
+                        status_color=action_status,
+                    )
+                    messages.success(request, "MDO-actiepunt opgeslagen.")
+                else:
+                    messages.error(request, "Vul eerst een actiepunt in.")
+                active_view = "mdo"
+            elif "complete_mdo_action" in request.POST:
+                action_id = request.POST.get("action_id")
+                action = MDOActionPoint.objects.filter(player=selected_player, id=action_id).first()
+                if action:
+                    action.is_done = True
+                    action.save(update_fields=["is_done", "updated_at"])
+                    messages.success(request, "Actiepunt afgerond.")
                 active_view = "mdo"
             return redirect(f"/individuele_programmas/?player_id={player_id}&focus_tab={focus_tab}&view={active_view}")
 
@@ -3012,8 +3043,18 @@ def individuele_programmas(request):
             section_key=f"player:{selected_player.id}",
             created_at__date__gte=three_months_ago,
         ).order_by("-created_at", "-id")[:8]
+        mdo_action_points = MDOActionPoint.objects.filter(player=selected_player).order_by("is_done", "deadline", "-created_at")[:12]
+        mdo_open_action_count = MDOActionPoint.objects.filter(player=selected_player, is_done=False).count()
+        mdo_overdue_action_count = MDOActionPoint.objects.filter(
+            player=selected_player,
+            is_done=False,
+            deadline__lt=today,
+        ).count()
         mdo_context = {
             "mdo_notes": mdo_notes,
+            "mdo_action_points": mdo_action_points,
+            "mdo_open_action_count": mdo_open_action_count,
+            "mdo_overdue_action_count": mdo_overdue_action_count,
             "mdo_week_rows": mdo_week_rows,
             "mdo_wellness_rows": mdo_wellness_rows,
             "mdo_kpis": {
