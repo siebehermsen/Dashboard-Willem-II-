@@ -220,6 +220,196 @@
         margin-top: 8px;
     }
 
+    .overig-workspace {
+        max-width: 1180px;
+        margin: 0 auto 34px;
+    }
+
+    .overig-topbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+        margin-bottom: 18px;
+    }
+
+    .overig-back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid #d7dfec;
+        background: #fff;
+        color: #1f2a44;
+        text-decoration: none;
+        font-weight: 800;
+        box-shadow: 0 8px 18px rgba(31, 42, 68, 0.05);
+        white-space: nowrap;
+    }
+
+    .overig-page-hero {
+        background: #fff;
+        border: 1px solid #e1e8f2;
+        border-radius: 18px;
+        padding: 26px 28px;
+        box-shadow: 0 10px 24px rgba(31, 42, 68, 0.06);
+        flex: 1;
+    }
+
+    .overig-page-hero h3 {
+        margin: 0 0 8px;
+        color: #1f2a44;
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1.15;
+    }
+
+    .overig-page-hero p {
+        margin: 0;
+        color: #61708a;
+        line-height: 1.6;
+        max-width: 78ch;
+    }
+
+    .overig-panel {
+        background: #fff;
+        border: 1px solid #e1e8f2;
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 10px 24px rgba(31, 42, 68, 0.05);
+    }
+
+    .overig-panel h4 {
+        margin: 0 0 8px;
+        color: #1f2a44;
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    .overig-panel p {
+        margin: 0 0 14px;
+        color: #61708a;
+        line-height: 1.55;
+    }
+
+    .overig-page-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .overig-page-grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .overig-full {
+        grid-column: 1 / -1;
+    }
+
+    .overig-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .overig-field label {
+        display: block;
+        margin-bottom: 7px;
+        color: #1f2a44;
+        font-weight: 800;
+    }
+
+    .overig-field select,
+    .overig-textarea {
+        width: 100%;
+        border: 1px solid #cfd8e7;
+        border-radius: 12px;
+        background: #fbfdff;
+        color: #1f2a44;
+        font: inherit;
+        box-sizing: border-box;
+    }
+
+    .overig-field select {
+        min-height: 44px;
+        padding: 0 12px;
+    }
+
+    .overig-textarea {
+        min-height: 150px;
+        padding: 13px 14px;
+        resize: vertical;
+        line-height: 1.55;
+    }
+
+    .overig-textarea.compact {
+        min-height: 118px;
+    }
+
+    .overig-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+    }
+
+    .overig-btn {
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 16px;
+        background: #1f2a44;
+        color: #fff;
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .overig-btn.red {
+        background: #b60000;
+    }
+
+    .overig-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .overig-list-card {
+        border: 1px solid #e5ebf4;
+        border-radius: 14px;
+        background: #f8fbff;
+        padding: 14px 16px;
+    }
+
+    .overig-list-card p {
+        margin: 0 0 8px;
+        color: #1f2a44;
+    }
+
+    .overig-meta {
+        color: #7a879d;
+        font-size: 0.86rem;
+        font-weight: 700;
+    }
+
+    @media (max-width: 991px) {
+        .overig-topbar {
+            flex-direction: column-reverse;
+        }
+
+        .overig-page-grid,
+        .overig-page-grid.three,
+        .overig-form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .overig-page-hero {
+            width: 100%;
+        }
+    }
+
 </style>
 
 <div class="container mt-4">
@@ -309,98 +499,46 @@
        NOTITIES ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ VERBETERDE UI
 ============================== -->
 {% if page == "notities" %}
-<a href="/overig/" class="btn btn-secondary mb-3 back-btn">&larr; Terug</a>
-
-<style>
-    .notes-wrapper {
-        background: white;
-        padding: 40px 45px;
-        border-radius: 18px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        margin-bottom: 35px;
-    }
-
-    .notes-title {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #1f2a44;
-        margin-bottom: 12px;
-    }
-
-    .notes-subtitle {
-        font-size: 1rem;
-        color: #6c757d;
-        margin-bottom: 25px;
-    }
-
-    .notes-input {
-        width: 100%;
-        min-height: 160px;
-        padding: 18px;
-        border-radius: 14px;
-        border: 1px solid #ced4da;
-        font-size: 1.05rem;
-        background: #f8f9fa;
-        resize: vertical;
-    }
-
-    .notes-card {
-        background: #ffffff;
-        border-radius: 14px;
-        padding: 22px 26px;
-        border: 1px solid #e5e7eb;
-        margin-bottom: 16px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
-
-    .notes-date {
-        font-size: 0.85rem;
-        color: #8a8a8a;
-    }
-
-    .notes-divider {
-        width: 100%;
-        height: 1px;
-        background: #e5e7eb;
-        margin: 35px 0;
-    }
-
-    .notes-card p {
-        font-size: 1.05rem;
-        margin-bottom: 6px;
-    }
-</style>
-
-<!-- ============================
-       NIEUWE NOTITIE BLOK
-============================== -->
-<div class="notes-wrapper">
-    <h3 class="notes-title">Nieuwe notitie</h3>
-    <p class="notes-subtitle">Voeg een persoonlijke notitie toe. Dit kan over spelers, observaties of belangrijke aandachtspunten gaan.</p>
-
-    <form method="POST">
-        {% csrf_token %}
-        <textarea class="notes-input" name="text" placeholder="Schrijf hier jouw notitie..." required></textarea>
-        <button class="btn btn-primary mt-3 px-4 py-2" style="font-size:1rem;">Opslaan</button>
-    </form>
-</div>
-
-<!-- ============================
-       EERDERE NOTITIES
-============================== -->
-<div class="notes-wrapper">
-    <h3 class="notes-title">Eerdere notities</h3>
-    <p class="notes-subtitle">Jouw opgeslagen notities. De nieuwste staan bovenaan.</p>
-
-    {% for item in items %}
-        <div class="notes-card">
-            <p>{{ item.text }}</p>
-            <div class="notes-date">{{ item.created_at|date:"d-m-Y H:i" }}</div>
+<section class="overig-workspace">
+    <div class="overig-topbar">
+        <div class="overig-page-hero">
+            <h3>Overige notities</h3>
+            <p>Leg korte observaties, praktische afspraken en losse aandachtspunten vast zonder dat ze direct in een groter dossier hoeven.</p>
         </div>
-    {% empty %}
-        <p class="text-muted">Nog geen notities.</p>
-    {% endfor %}
-</div>
+        <a href="/overig/" class="overig-back-link">Terug</a>
+    </div>
+
+    <div class="overig-page-grid">
+        <div class="overig-panel">
+            <h4>Nieuwe notitie</h4>
+            <p>Gebruik dit voor snelle updates die later makkelijk terug te lezen moeten zijn.</p>
+            <form method="POST">
+                {% csrf_token %}
+                <textarea class="overig-textarea" name="text" required></textarea>
+                <div class="overig-actions">
+                    <button class="overig-btn red" type="submit">Notitie opslaan</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="overig-panel">
+            <h4>Eerdere notities</h4>
+            <p>Nieuwste notities staan bovenaan.</p>
+            <div class="overig-list">
+                {% for item in items %}
+                    <div class="overig-list-card">
+                        <p>{{ item.text }}</p>
+                        <div class="overig-meta">{{ item.created_at|date:"d-m-Y H:i" }}</div>
+                    </div>
+                {% empty %}
+                    <div class="overig-list-card">
+                        <p>Nog geen notities opgeslagen.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
 
 {% endif %}
 
@@ -409,259 +547,126 @@
      POP PAGINA
 ============================== -->
 {% if page == "pop" %}
-    <a href="/overig/" class="btn btn-secondary mb-3 back-btn">&larr; Terug</a>
-
-    <style>
-        .pop-section {
-            background: white;
-            border-radius: 18px;
-            padding: 40px 45px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            margin-bottom: 35px;
-        }
-        .pop-divider {
-            height: 1px;
-            width: 100%;
-            background: #e5e7eb;
-            margin: 32px 0;
-        }
-        .pop-textarea {
-            width: 100% !important;
-            min-height: 180px !important;
-            padding: 16px;
-            border-radius: 12px;
-            resize: vertical;
-            margin-top: 12px;
-            margin-bottom: 22px;
-        }
-
-        /* Nieuwe styling voor 2 kolommen */
-        .pop-select-row {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-            margin-bottom: 30px;
-        }
-        .pop-select-box {
-            flex: 1;
-            min-width: 260px;
-        }
-
-        .player-select {
-            width: 100%;
-            padding: 10px;
-            font-size: 1rem;
-            border-radius: 10px;
-            margin-top: 6px;
-        }
-    </style>
+<section class="overig-workspace">
+    <div class="overig-topbar">
+        <div class="overig-page-hero">
+            <h3>POP gesprekken</h3>
+            <p>Een vaste gespreksstructuur voor ontwikkeling, reflectie en concrete vervolgafspraken met speler en staf.</p>
+        </div>
+        <a href="/overig/" class="overig-back-link">Terug</a>
+    </div>
 
     <form method="POST">
         {% csrf_token %}
-
-        <div class="pop-section">
-            <h3 class="fw-bold">POP Gesprekken</h3>
-            <p class="text-muted">Persoonlijk ontwikkelingsplan van de speler of staflid.</p>
-
-            <!-- ============================================
-                 SPELER + STAFLID SELECTIE (NIEUWE FUNCTIE)
-            =============================================== -->
-            <div class="pop-select-row">
-
-                <!-- Speler dropdown -->
-                <div class="pop-select-box">
-                    <label for="player" class="fw-bold">Selecteer speler</label>
-                    <select name="player" id="player" class="form-select player-select">
+        <div class="overig-page-grid">
+            <div class="overig-panel overig-full">
+                <h4>Gesprek koppelen</h4>
+                <p>Kies de speler en het staflid dat het gesprek begeleidt.</p>
+                <div class="overig-form-grid">
+                    <div class="overig-field">
+                        <label for="player">Speler</label>
+                        <select name="player" id="player">
                         <option value="">-- Kies een speler --</option>
                         {% for p in players %}
                             <option value="{{ p.id }}">{{ p.name }}</option>
                         {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Staflid dropdown -->
-                <div class="pop-select-box">
-                    <label for="staff" class="fw-bold">Selecteer staflid</label>
-                    <select name="staff" id="staff" class="form-select player-select">
+                        </select>
+                    </div>
+                    <div class="overig-field">
+                        <label for="staff">Staflid</label>
+                        <select name="staff" id="staff">
                         <option value="">-- Kies een staflid --</option>
                         {% for s in staff %}
                             <option value="{{ s.id }}">{{ s.name }}</option>
                         {% endfor %}
-                    </select>
+                        </select>
+                    </div>
                 </div>
-
             </div>
 
-            <div class="pop-divider"></div>
+            <div class="overig-panel">
+                <h4>Huidige situatie</h4>
+                <p>Waar staat de speler nu, wat gaat goed en wat vraagt aandacht?</p>
+                <textarea name="situatie" class="overig-textarea">{{ pop_texts.situatie }}</textarea>
+            </div>
 
-            <h4>Waar sta ik nu?</h4>
-            <textarea name="waar_sta_ik_nu" class="pop-textarea"></textarea>
+            <div class="overig-panel">
+                <h4>Doelen en ontwikkelpunten</h4>
+                <p>Maak doelen concreet en koppel ze aan gedrag op training of wedstrijd.</p>
+                <textarea name="doelen" class="overig-textarea">{{ pop_texts.doelen }}</textarea>
+            </div>
 
-            <div class="pop-divider"></div>
+            <div class="overig-panel">
+                <h4>Reflectie</h4>
+                <p>Wat neemt de speler zelf waar en welke feedback komt terug vanuit staf?</p>
+                <textarea name="reflectie" class="overig-textarea">{{ pop_texts.reflectie }}</textarea>
+            </div>
 
-            <h4>Doelen & ontwikkelpunten</h4>
-            <textarea name="doelen" class="pop-textarea"></textarea>
-
-            <div class="pop-divider"></div>
-
-            <h4>Reflectie</h4>
-            <textarea name="reflectie" class="pop-textarea"></textarea>
-
-            <div class="pop-divider"></div>
-
-            <h4>Actieplan</h4>
-            <textarea name="actieplan" class="pop-textarea"></textarea>
-
-            <button class="btn btn-primary mt-3">Opslaan</button>
+            <div class="overig-panel">
+                <h4>Actieplan</h4>
+                <p>Leg de eerstvolgende acties, eigenaar en evaluatiemoment vast.</p>
+                <textarea name="actieplan" class="overig-textarea">{{ pop_texts.actieplan }}</textarea>
+            </div>
+        </div>
+        <div class="overig-actions">
+            <button class="overig-btn red" type="submit">POP opslaan</button>
         </div>
     </form>
+</section>
 {% endif %}
 
 
 {% if page == "hp" %}
-<a href="/overig/" class="btn btn-secondary mb-3 back-btn">&larr; Terug</a>
-
-<style>
-    .hp-section {
-        background: white;
-        padding: 40px 45px;
-        border-radius: 18px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        margin-bottom: 35px;
-    }
-    .hp-divider {
-        height: 1px;
-        background: #e5e7eb;
-        margin: 35px 0;
-    }
-    .hp-block-title {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #1f2a44;
-        margin-bottom: 8px;
-    }
-    .hp-subtitle {
-        color: #6b7280;
-        font-size: 0.95rem;
-        margin-bottom: 20px;
-    }
-    .hp-input {
-        width: 100%;
-        padding: 16px;
-        border-radius: 12px;
-        border: 1px solid #dadada;
-        min-height: 150px;
-        resize: vertical;
-        background: #fff;
-        margin-bottom: 18px;
-        font-size: 0.95rem;
-    }
-    .hp-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 18px;
-        margin-bottom: 18px;
-    }
-    .hp-card {
-        background: #f9fafb;
-        border-radius: 16px;
-        border: 1px solid #e5e7eb;
-        padding: 20px;
-    }
-    .hp-save-btn {
-        background: #1f2a44;
-        color: white;
-        border: none;
-        padding: 10px 18px;
-        border-radius: 10px;
-        font-size: 0.95rem;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-    .hp-save-btn:hover {
-        background: #e74c3c;
-    }
-</style>
-
-<div class="hp-section">
-
-    <!-- ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â TITEL -->
-    <h3 class="hp-block-title">High Potentials</h3>
-    <p class="hp-subtitle">Vul hieronder alles in over talentprofielen, testdata, aandachtspunten en ontwikkelplannen.</p>
-
-    <div class="hp-divider"></div>
-
-    <h4 class="hp-block-title">1. Overzicht spelers & sterke punten</h4>
-    <p class="hp-subtitle">Beschrijf hier de spelers die jij als high potential ziet en waarom.</p>
-
-    <textarea class="hp-input" id="hp_overview" placeholder="Voorbeeld:
-- Speler X: explosief profiel, aanvallend sterk
-- Speler Y: groot loopvermogen, hoge belastbaarheid
-- Speler Z: spelintelligentie, creatief in kleine ruimtes"></textarea>
-
-    <button class="hp-save-btn">Opslaan</button>
-
-    <div class="hp-divider"></div>
-
-    <h4 class="hp-block-title">2. Testdata per speler</h4>
-    <p class="hp-subtitle">Noteer sprint-, kracht- en conditiemetingen.</p>
-
-    <div class="hp-card">
-        <div class="hp-grid">
-            <textarea class="hp-input" id="hp_sprint" placeholder="Sprinttijden (bijv. 5m / 10m / 30m)..."></textarea>
-            <textarea class="hp-input" id="hp_strength" placeholder="Krachtmetingen (CMJ, squat, nordic)..."></textarea>
+<section class="overig-workspace">
+    <div class="overig-topbar">
+        <div class="overig-page-hero">
+            <h3>High potentials</h3>
+            <p>Maak talentprofielen overzichtelijk: waarom iemand opvalt, welke data dit ondersteunt en welke begeleiding daarbij hoort.</p>
         </div>
-
-        <textarea class="hp-input" id="hp_condition" placeholder="Conditietesten (YoYo, HR herstel, RSA)..."></textarea>
-
-        <button class="hp-save-btn">Opslaan</button>
+        <a href="/overig/" class="overig-back-link">Terug</a>
     </div>
 
-    <div class="hp-divider"></div>
+    <div class="overig-page-grid three">
+        <div class="overig-panel">
+            <h4>Focusspelers</h4>
+            <p>Wie volgen we extra scherp en wat maakt het profiel interessant?</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="focus">
+                <textarea class="overig-textarea" name="text">{{ hp_texts.focus }}</textarea>
+                <div class="overig-actions">
+                    <button type="submit" class="overig-btn red">Opslaan</button>
+                </div>
+            </form>
+        </div>
 
-    <h4 class="hp-block-title">3. Aandachtspunten in het veld</h4>
-    <p class="hp-subtitle">Technische, tactische en fysieke ontwikkelpunten in trainingen en wedstrijden.</p>
+        <div class="overig-panel">
+            <h4>Ontwikkelkaders</h4>
+            <p>Technisch, tactisch, fysiek en mentaal: wat is de lijn per speler?</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="kaders">
+                <textarea class="overig-textarea" name="text">{{ hp_texts.kaders }}</textarea>
+                <div class="overig-actions">
+                    <button type="submit" class="overig-btn">Opslaan</button>
+                </div>
+            </form>
+        </div>
 
-    <textarea class="hp-input" id="hp_field" placeholder="Voorbeeld:
-- Timing loopacties
-- 1v1 gedrag
-- Scanning
-- Explosiviteit eerste meters"></textarea>
-
-    <button class="hp-save-btn">Opslaan</button>
-
-    <div class="hp-divider"></div>
-
-    <h4 class="hp-block-title">4. Aandachtspunten buiten het veld</h4>
-    <p class="hp-subtitle">Voeding, herstel, gedrag, mindset, professionaliteit.</p>
-
-    <textarea class="hp-input" id="hp_off_field" placeholder="Voorbeeld:
-- Consistent ontbijten
-- Beter slapen
-- Herstelroutine na training
-- Mentale weerbaarheid"></textarea>
-
-    <button class="hp-save-btn">Opslaan</button>
-
-    <div class="hp-divider"></div>
-
-    <h4 class="hp-block-title">5. Werkplan per speler</h4>
-    <p class="hp-subtitle">Jouw strategie, aanpak en planning.</p>
-
-    <textarea class="hp-input" id="hp_plan" placeholder="Jouw werkplan..."></textarea>
-
-    <button class="hp-save-btn">Opslaan</button>
-
-    <div class="hp-divider"></div>
-
-    <h4 class="hp-block-title">6. Individuele ontwikkelplannen</h4>
-    <p class="hp-subtitle">Langetermijnontwikkelingen en groeilijnen.</p>
-
-    <textarea class="hp-input" id="hp_development" placeholder="Bijv. voortgang op sprint, techniek, mindset en fysieke waarden..."></textarea>
-
-    <button class="hp-save-btn">Opslaan</button>
-
-</div>
+        <div class="overig-panel">
+            <h4>Monitoring</h4>
+            <p>Welke testdata, signalen of afspraken bepalen de volgende stap?</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="monitoring">
+                <textarea class="overig-textarea" name="text">{{ hp_texts.monitoring }}</textarea>
+                <div class="overig-actions">
+                    <button type="submit" class="overig-btn">Opslaan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
 
 {% endif %}
 
@@ -671,176 +676,81 @@
      JEUGD WILLEM II PAGINA
 ============================= -->
 {% if page == "jeugd" %}
-<a href="/overig/" class="btn btn-secondary mb-3 back-btn">&larr; Terug</a>
+<section class="overig-workspace">
+    <div class="overig-topbar">
+        <div class="overig-page-hero">
+            <h3>Jeugd Willem II</h3>
+            <p>Bundel werkwijze, begeleiding en ontwikkelstructuur voor jeugdspelers op een vaste plek voor staf en begeleiding.</p>
+        </div>
+        <a href="/overig/" class="overig-back-link">Terug</a>
+    </div>
 
-<style>
-    .jeugd-section {
-        background: white;
-        padding: 40px 45px;
-        border-radius: 18px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        margin-bottom: 35px;
-    }
+    <div class="overig-page-grid">
+        <div class="overig-panel">
+            <h4>Leerlijn en werkwijze</h4>
+            <p>Opleidingsvisie, speelwijze, kernwaarden en dagelijkse afspraken.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="leerlijn">
+                <textarea class="overig-textarea" name="text">{{ jeugd_texts.leerlijn }}</textarea>
+                <div class="overig-actions">
+                    <button type="submit" class="overig-btn red">Opslaan</button>
+                </div>
+            </form>
+        </div>
 
-    .jeugd-title {
-        font-weight: 800;
-        font-size: 2rem;
-        color: #1f2a44;
-        margin-bottom: 8px;
-    }
+        <div class="overig-panel">
+            <h4>Individuele begeleiding</h4>
+            <p>POP-momenten, extra begeleiding, communicatie en rollen rondom de speler.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="individueel">
+                <textarea class="overig-textarea" name="text">{{ jeugd_texts.individueel }}</textarea>
+                <div class="overig-actions">
+                    <button type="submit" class="overig-btn">Opslaan</button>
+                </div>
+            </form>
+        </div>
 
-    .jeugd-subtitle {
-        color: #6c757d;
-        font-size: 1rem;
-        margin-bottom: 30px;
-    }
+        <div class="overig-panel">
+            <h4>Processen en afspraken</h4>
+            <p>Selectie, doorstroom, oudercommunicatie en afstemming tussen teams.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="processen">
+                <textarea class="overig-textarea" name="text">{{ jeugd_texts.processen }}</textarea>
+                <div class="overig-actions">
+                    <button type="submit" class="overig-btn">Opslaan</button>
+                </div>
+            </form>
+        </div>
 
-    .jeugd-block-title {
-        font-size: 1.35rem;
-        font-weight: 700;
-        color: #1f2a44;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-    }
-
-    .jeugd-icon {
-        font-size: 1.4rem;
-        margin-right: 8px;
-    }
-
-    .jeugd-text {
-        color: #6c757d;
-        line-height: 1.55;
-        margin-bottom: 14px;
-    }
-
-    .jeugd-divider {
-        height: 1px;
-        background: #e5e7eb;
-        width: 100%;
-        margin: 32px 0;
-    }
-
-    .jeugd-input {
-        width: 100%;
-        min-height: 160px;
-        padding: 16px;
-        font-size: 1rem;
-        border-radius: 12px;
-        border: 1px solid #d4d4d4;
-        resize: vertical;
-        margin-bottom: 25px;
-    }
-</style>
-
-<div class="jeugd-section">
-
-    <h3 class="jeugd-title">Jeugd Willem II</h3>
-    <p class="jeugd-subtitle">Informatie, werkwijze en ontwikkelstructuren voor de academie.</p>
-
-    <div class="jeugd-divider"></div>
-
-    
-    <!-- ============================
-         1. WERKWIJZE ACADEMIE
-    ============================= -->
-    <h4 class="jeugd-block-title">
-        <span class="jeugd-icon">1.</span>Werkwijze binnen de Academie
-    </h4>
-    <p class="jeugd-text">
-        Beschrijf hier de kernwaarden, ontwikkelvisie, speelwijze en dagelijkse werkwijze binnen de academie.
-    </p>
-    <textarea class="jeugd-input" placeholder="Voorbeeld:
-- Hoe trainen we binnen de academie?
-- Wat verwachten we per leeftijdscategorie?
-- Hoe ziet de speelwijze eruit?
-- Gedrag, normen & waarden..."></textarea>
-
-
-    <div class="jeugd-divider"></div>
-
-
-    <!-- ============================
-         2. PROFPLAN ACADEMIE
-    ============================= -->
-    <h4 class="jeugd-block-title">
-        <span class="jeugd-icon">2.</span>Profplan Academie
-    </h4>
-    <p class="jeugd-text">
-        Gebruik dit gedeelte om het langere ontwikkelplan van de jeugdopleiding vast te leggen.
-    </p>
-    <textarea class="jeugd-input" placeholder="Voorbeeld:
-- Opleidingsplan per leeftijdsfase
-- Technische/tactische ontwikkellijnen
-- Langetermijnontwikkeling van spelers
-- Beleid rondom groei & selectie..."></textarea>
-
-
-    <div class="jeugd-divider"></div>
-
-
-    <!-- ============================
-         3. INDIVIDUELE BEGELEIDING
-    ============================= -->
-    <h4 class="jeugd-block-title">
-        <span class="jeugd-icon">3.</span>Individuele begeleiding binnen de Academie
-    </h4>
-    <p class="jeugd-text">
-        Beschrijf hier de manier waarop spelers individueel begeleid worden, inclusief rollen van trainers, coordinatoren,
-        fysieke staf en mental coaches.
-    </p>
-    <textarea class="jeugd-input" placeholder="Voorbeeld:
-- Hoe zien POP-momenten eruit?
-- Rol van connection coach / individueel traject
-- Extra trainingen, techniektraining, videoanalyse
-- Communicatie met ouders..."></textarea>
-
-
-    <div class="jeugd-divider"></div>
-
-
-    <!-- ============================
-         4. KORTE TERMIJN DOELEN
-    ============================= -->
-    <h4 class="jeugd-block-title">
-        <span class="jeugd-icon">4.</span>Korte termijn doelen (4-8 weken)
-    </h4>
-    <p class="jeugd-text">
-        Formuleer hier concrete doelen voor de spelersgroep of individuele trajecten binnen de komende weken.
-    </p>
-    <textarea class="jeugd-input" placeholder="Voorbeeld:
-- Ontwikkelpunt X verbeteren
-- Werkpunten vanuit trainer
-- Teamdoelen komende wedstrijden
-- Afspraken voor trainingen..."></textarea>
-
-
-    <div class="jeugd-divider"></div>
-
-
-    <!-- ============================
-         5. LANGE TERMIJN DOELEN
-    ============================= -->
-    <h4 class="jeugd-block-title">
-        <span class="jeugd-icon">5.</span>Lange termijn doelen (seizoen)
-    </h4>
-    <p class="jeugd-text">
-        Noteer hier de belangrijkste doelen voor de rest van het seizoen - individueel en teamgericht.
-    </p>
-    <textarea class="jeugd-input" placeholder="Voorbeeld:
-- Spelers voorbereiden op volgende leeftijdsgroep
-- Doorstroom naar O21 / 1e elftal
-- Technische, fysieke en mentale groeilijnen
-- Opleiden volgens academiefilosofie..."></textarea>
-
-
-</div>
+        <div class="overig-panel">
+            <h4>Toekomst en doelen</h4>
+            <p>Korte termijn focus, seizoensthema's en ontwikkeldoelen richting volgende fase.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="toekomst">
+                <textarea class="overig-textarea" name="text">{{ jeugd_texts.toekomst }}</textarea>
+                <div class="overig-actions">
+                    <button type="submit" class="overig-btn">Opslaan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
 
 {% endif %}
 
 {% if page == "groei" %}
-<a href="/overig/" class="btn btn-secondary mb-3 back-btn">&larr; Terug</a>
+<section class="overig-workspace">
+<div class="overig-topbar">
+    <div class="overig-page-hero">
+        <h3>Groei, bio-leeftijd en dispensatie</h3>
+        <p>Volg meetpunten, maturity-indicatie en afspraken rond groei en uitzonderingen per speler.</p>
+    </div>
+    <a href="/overig/" class="overig-back-link">Terug</a>
+</div>
 
 <style>
     .growth-shell {
@@ -1100,10 +1010,6 @@
 </style>
 
 <section class="growth-shell">
-    <h3 class="growth-title">Groei, Bio-leeftijd en Dispensatie</h3>
-    <p class="growth-subtitle">
-        Leg groeiprofielen vast, volg meetpunten door de tijd en maak afspraken rond bio-leeftijd en dispensatie op een vaste plek.
-    </p>
 
     <div class="growth-tabs">
         <a class="growth-tab {% if groei_tab == 'groei' %}active{% endif %}" href="/overig/?page=groei&tab=groei{% if selected_player_id %}&player_id={{ selected_player_id }}{% endif %}">Groei</a>
@@ -1306,6 +1212,7 @@
     </div>
     {% endif %}
 </section>
+</section>
 {% endif %}
 
 {% if page == "staf-aanwezigheden" %}
@@ -1444,127 +1351,58 @@
 {% endif %}
 
 {% if page == "ontwikkelingsgesprekken" or page == "vakantieprogramma" %}
-<a href="/overig/" class="btn btn-secondary mb-3 back-btn">&larr; Terug</a>
+<section class="overig-workspace">
+    <div class="overig-topbar">
+        <div class="overig-page-hero">
+            <h3>
+                {% if page == "ontwikkelingsgesprekken" %}Ontwikkelingsgesprekken{% endif %}
+                {% if page == "vakantieprogramma" %}Vakantieprogramma{% endif %}
+            </h3>
+            <p>
+                {% if page == "ontwikkelingsgesprekken" %}Leg vaste lijnen vast voor voortgangsgesprekken, gespreksonderwerpen en ontwikkelafspraken.{% endif %}
+                {% if page == "vakantieprogramma" %}Bewaak vakantieblokken, individuele opdrachten, terugkeermomenten en afspraken tijdens vrije periodes.{% endif %}
+            </p>
+        </div>
+        <a href="/overig/" class="overig-back-link">Terug</a>
+    </div>
 
-<style>
-    .generic-overig-shell {
-        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-        border-radius: 22px;
-        padding: 34px;
-        box-shadow: 0 14px 34px rgba(31,42,68,0.08);
-        border: 1px solid rgba(31,42,68,0.08);
-        margin-bottom: 34px;
-    }
-
-    .generic-overig-title {
-        font-size: 1.9rem;
-        font-weight: 800;
-        color: #1f2a44;
-        margin: 0 0 8px;
-    }
-
-    .generic-overig-subtitle {
-        color: #61708a;
-        font-size: 1rem;
-        margin-bottom: 24px;
-        max-width: 68ch;
-    }
-
-    .generic-overig-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 18px;
-    }
-
-    .generic-overig-card {
-        background: #fff;
-        border: 1px solid #e3eaf4;
-        border-radius: 18px;
-        padding: 22px;
-        box-shadow: 0 6px 16px rgba(31,42,68,0.05);
-    }
-
-    .generic-overig-card h4 {
-        margin: 0 0 10px;
-        color: #1f2a44;
-        font-size: 1.02rem;
-        font-weight: 800;
-    }
-
-    .generic-overig-card p {
-        margin: 0 0 12px;
-        color: #61708a;
-        line-height: 1.55;
-    }
-
-    .generic-overig-card textarea {
-        width: 100%;
-        min-height: 180px;
-        border: 1px solid #cfd8e7;
-        border-radius: 12px;
-        padding: 12px 14px;
-        background: #fbfdff;
-        resize: vertical;
-    }
-
-    .generic-overig-card button {
-        margin-top: 12px;
-        border: none;
-        border-radius: 12px;
-        padding: 10px 16px;
-        font-weight: 700;
-        cursor: pointer;
-        background: #1f2a44;
-        color: #fff;
-    }
-
-    @media (max-width: 991px) {
-        .generic-overig-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-
-<section class="generic-overig-shell">
-    <h3 class="generic-overig-title">
-        {% if page == "ontwikkelingsgesprekken" %}Ontwikkelingsgesprekken{% endif %}
-        {% if page == "vakantieprogramma" %}Vakantieprogramma{% endif %}
-    </h3>
-        {% if page == "ontwikkelingsgesprekken" %}Leg hier vaste lijnen vast voor voortgangsgesprekken, gespreksonderwerpen en ontwikkelafspraken.{% endif %}
-        {% if page == "vakantieprogramma" %}Gebruik dit onderdeel voor vakantieblokken, individuele opdrachten, terugkeermomenten en afspraken tijdens vrije periodes.{% endif %}
-    </p>
-
-    <div class="generic-overig-grid">
-        <div class="generic-overig-card">
+    <div class="overig-page-grid three">
+        <div class="overig-panel">
             <h4>Kader</h4>
             <p>{% if page == "vakantieprogramma" %}Leg hier de opzet van het vakantieprogramma vast: doel, structuur, frequentie en algemene richtlijnen.{% else %}Leg hier de vaste werkwijze, uitgangspunten en context van dit onderwerp vast.{% endif %}</p>
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="section" value="kader">
-                <textarea name="text">{{ generic_texts.kader }}</textarea>
-                <button type="submit">Opslaan</button>
+                <textarea class="overig-textarea" name="text">{{ generic_texts.kader }}</textarea>
+                <div class="overig-actions">
+                    <button type="submit" class="overig-btn red">Opslaan</button>
+                </div>
             </form>
         </div>
 
-        <div class="generic-overig-card">
+        <div class="overig-panel">
             <h4>Actueel</h4>
             <p>{% if page == "vakantieprogramma" %}Gebruik dit blok voor de actuele vakantieperiode: maatwerk, status per speler en lopende aandachtspunten.{% else %}Gebruik dit blok voor lopende observaties, stand van zaken en aandachtspunten van dit moment.{% endif %}</p>
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="section" value="actueel">
-                <textarea name="text">{{ generic_texts.actueel }}</textarea>
-                <button type="submit">Opslaan</button>
+                <textarea class="overig-textarea" name="text">{{ generic_texts.actueel }}</textarea>
+                <div class="overig-actions">
+                    <button type="submit" class="overig-btn">Opslaan</button>
+                </div>
             </form>
         </div>
 
-        <div class="generic-overig-card">
+        <div class="overig-panel">
             <h4>Afspraken</h4>
             <p>{% if page == "vakantieprogramma" %}Noteer concrete trainingsafspraken, terugkoppelmomenten, controlemomenten en verwachtingen richting spelers en staf.{% else %}Noteer concrete acties, verantwoordelijkheden, opvolging en evaluatiemomenten.{% endif %}</p>
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="section" value="afspraken">
-                <textarea name="text">{{ generic_texts.afspraken }}</textarea>
-                <button type="submit">Opslaan</button>
+                <textarea class="overig-textarea" name="text">{{ generic_texts.afspraken }}</textarea>
+                <div class="overig-actions">
+                    <button type="submit" class="overig-btn">Opslaan</button>
+                </div>
             </form>
         </div>
     </div>
