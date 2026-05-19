@@ -398,6 +398,31 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, "Fysiek rapport")
         self.assertContains(response, "Weekoverzicht fysieke belasting")
 
+    def test_mdo_tab_persists_player_note(self):
+        response = self.client.post(
+            reverse("individuele_programmas") + f"?player_id={self.player.id}&view=mdo",
+            {
+                "save_mdo_note": "1",
+                "view": "mdo",
+                "mdo_note": "Extra aandacht voor herstel na wedstrijd.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            OverigNote.objects.filter(
+                note_type="note",
+                page_key="mdo",
+                section_key=f"player:{self.player.id}",
+                text="Extra aandacht voor herstel na wedstrijd.",
+            ).exists()
+        )
+
+        page = self.client.get(reverse("individuele_programmas") + f"?player_id={self.player.id}&view=mdo")
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Multidisciplinair overleg")
+        self.assertContains(page, "Weekstart fysieke status")
+
     def test_read_only_user_can_view_but_not_post(self):
         read_only = get_user_model().objects.create_user(username="readonly", password="test-pass")
         group = Group.objects.create(name=ROLE_READ_ONLY)

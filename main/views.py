@@ -1396,7 +1396,7 @@ def training(request):
         selected_metric = "load"
     selected_metric_field = metric_field_map[selected_metric]
 
-    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    players = Player.objects.select_related("monitoring_profile", "position_ref").all().order_by("name")
     week_targets, _ = TrainingWeekTarget.objects.get_or_create(
         name="Geplande weektargets training"
     )
@@ -2114,7 +2114,7 @@ def testdata(request):
     percentiles = {}
 
     if player_id:
-        selected_player = get_object_or_404(Player.objects.select_related("monitoring_profile"), id=player_id)
+        selected_player = get_object_or_404(Player.objects.select_related("monitoring_profile", "position_ref"), id=player_id)
         player_rows = [r for r in test_rows if r["player_id"] == selected_player.id]
         player_rows.sort(key=lambda r: r["session_date"], reverse=True)
         latest = player_rows[0] if player_rows else None
@@ -2695,10 +2695,12 @@ from .models import (
     IndividualDayPlan,
     IndividualDayPlanNote,
     IndividualDayPlanNoteType,
+    OverigNote,
     Player,
     Programma,
     ProgrammaOefening,
     RPEEntry,
+    WellnessEntry,
 )
 
 # -------------------------------------
@@ -2716,6 +2718,9 @@ def individuele_programmas(request):
 
     # Haal geselecteerde speler uit URL parameters
     player_id = request.GET.get("player_id")
+    active_view = (request.GET.get("view") or request.POST.get("view") or "dagprogramma").strip().lower()
+    if active_view not in {"dagprogramma", "trainen", "mdo"}:
+        active_view = "dagprogramma"
     focus_tab = (request.GET.get("focus_tab") or "sprint-acceleratie").strip().lower()
     focus_tab_options = {
         "sprint-acceleratie": "Sprint Acceleratie & Posture",
@@ -2731,6 +2736,26 @@ def individuele_programmas(request):
     oefeningen = []
     day_program = None
     video_previews = []
+    mdo_context = {
+        "mdo_notes": [],
+        "mdo_week_rows": [],
+        "mdo_wellness_rows": [],
+        "mdo_kpis": {
+            "load": 0,
+            "distance_km": 0,
+            "sprints": 0,
+            "avg_wellness": None,
+            "avg_rpe": None,
+        },
+        "mdo_labels_json": "[]",
+        "mdo_td_json": "[]",
+        "mdo_load_json": "[]",
+        "mdo_d15_json": "[]",
+        "mdo_d20_json": "[]",
+        "mdo_d25_json": "[]",
+        "mdo_sprints_json": "[]",
+        "mdo_acwr_json": "[]",
+    }
 
     def _build_video_preview(raw_url):
         raw_url = (raw_url or "").strip()
@@ -2853,7 +2878,160 @@ def individuele_programmas(request):
                 focus_note.save(update_fields=["content", "updated_at"])
                 messages.success(request, "Aandachtspunt opgeslagen!")
                 focus_tab = posted_focus_tab
-            return redirect(f"/individuele_programmas/?player_id={player_id}&focus_tab={focus_tab}")
+            elif "save_mdo_note" in request.POST:
+                note_text = (request.POST.get("mdo_note") or "").strip()
+                if note_text:
+                    OverigNote.objects.create(
+                        note_type="note",
+                        page_key="mdo",
+                        section_key=f"player:{selected_player.id}",
+                        text=note_text,
+                    )
+                    messages.success(request, "MDO-opmerking opgeslagen.")
+                else:
+                    messages.error(request, "Vul eerst een opmerking in.")
+                active_view = "mdo"
+            return redirect(f"/individuele_programmas/?player_id={player_id}&focus_tab={focus_tab}&view={active_view}")
+
+        today = date.today()
+        player_training_rows = fetch_performance_rows("training", selected_player)
+        player_match_rows = fetch_performance_rows("match", selected_player)
+        performance_rows = [*player_training_rows, *player_match_rows]
+        latest_session_date = max(
+            (row.get("session_date") for row in performance_rows if row.get("session_date")),
+            default=today,
+        )
+        week_start = latest_session_date - timedelta(days=6)
+        week_dates = [week_start + timedelta(days=index) for index in range(7)]
+        previous_start = week_start - timedelta(days=21)
+
+        def _row_value(row, key):
+            try:
+                return float(row.get(key) or 0)
+            except (TypeError, ValueError):
+                return 0.0
+
+        current_week_rows = [
+            row for row in performance_rows
+            if row.get("session_date") and week_start <= row["session_date"] <= latest_session_date
+        ]
+        previous_rows = [
+            row for row in performance_rows
+            if row.get("session_date") and previous_start <= row["session_date"] < week_start
+        ]
+        chronic_daily_load = sum(_row_value(row, "load") for row in previous_rows) / 21 if previous_rows else 0
+
+        mdo_labels = []
+        mdo_td_values = []
+        mdo_load_values = []
+        mdo_d15_values = []
+        mdo_d20_values = []
+        mdo_d25_values = []
+        mdo_sprints_values = []
+        mdo_acwr_values = []
+        mdo_week_rows = []
+
+        for day in week_dates:
+            day_rows = [row for row in current_week_rows if row.get("session_date") == day]
+            total_distance = sum(_row_value(row, "total_distance") for row in day_rows)
+            load = sum(_row_value(row, "load") for row in day_rows)
+            d15 = sum(_row_value(row, "hsd") for row in day_rows)
+            d20 = d15
+            d25 = sum(_row_value(row, "his") for row in day_rows)
+            sprints = sum(_row_value(row, "sprints") for row in day_rows)
+            acwr = round((load / chronic_daily_load), 2) if chronic_daily_load else 0
+            day_label = day.strftime("%a %d-%m")
+            mdo_labels.append(day_label)
+            mdo_td_values.append(round(total_distance, 1))
+            mdo_load_values.append(round(load, 1))
+            mdo_d15_values.append(round(d15, 1))
+            mdo_d20_values.append(round(d20, 1))
+            mdo_d25_values.append(round(d25, 1))
+            mdo_sprints_values.append(round(sprints, 1))
+            mdo_acwr_values.append(acwr)
+            mdo_week_rows.append({
+                "date": day,
+                "label": day_label,
+                "distance_km": round(total_distance / 1000, 2),
+                "load": round(load, 0),
+                "sprints": round(sprints, 0),
+                "acwr": acwr,
+            })
+
+        wellness_entries = {
+            entry.date: entry
+            for entry in WellnessEntry.objects.filter(
+                player=selected_player,
+                date__gte=week_start,
+                date__lte=latest_session_date,
+            )
+        }
+        rpe_entries = {
+            entry.date: entry
+            for entry in RPEEntry.objects.filter(
+                player=selected_player,
+                date__gte=week_start,
+                date__lte=latest_session_date,
+            )
+        }
+        mdo_wellness_rows = []
+        wellness_scores = []
+        rpe_scores = []
+        for day in week_dates:
+            wellness_entry = wellness_entries.get(day)
+            rpe_entry = rpe_entries.get(day)
+            wellness_values = []
+            if wellness_entry:
+                wellness_values = [
+                    value for value in (
+                        wellness_entry.sleep,
+                        wellness_entry.mood,
+                        wellness_entry.fitness,
+                        wellness_entry.soreness,
+                    )
+                    if value is not None
+                ]
+            wellness_avg = round(sum(wellness_values) / len(wellness_values), 1) if wellness_values else None
+            if wellness_avg is not None:
+                wellness_scores.append(wellness_avg)
+            if rpe_entry and rpe_entry.rpe is not None:
+                rpe_scores.append(float(rpe_entry.rpe))
+            mdo_wellness_rows.append({
+                "date": day,
+                "label": day.strftime("%d-%m"),
+                "wellness_avg": wellness_avg,
+                "rpe": rpe_entry.rpe if rpe_entry else None,
+                "session_load": rpe_entry.session_load if rpe_entry else None,
+                "comment": wellness_entry.comment if wellness_entry else "",
+            })
+
+        three_months_ago = today - timedelta(days=90)
+        mdo_notes = OverigNote.objects.filter(
+            note_type="note",
+            page_key="mdo",
+            section_key=f"player:{selected_player.id}",
+            created_at__date__gte=three_months_ago,
+        ).order_by("-created_at", "-id")[:8]
+        mdo_context = {
+            "mdo_notes": mdo_notes,
+            "mdo_week_rows": mdo_week_rows,
+            "mdo_wellness_rows": mdo_wellness_rows,
+            "mdo_kpis": {
+                "load": round(sum(mdo_load_values), 0),
+                "distance_km": round(sum(mdo_td_values) / 1000, 1),
+                "sprints": round(sum(mdo_sprints_values), 0),
+                "avg_wellness": round(sum(wellness_scores) / len(wellness_scores), 1) if wellness_scores else None,
+                "avg_rpe": round(sum(rpe_scores) / len(rpe_scores), 1) if rpe_scores else None,
+            },
+            "mdo_labels_json": json.dumps(mdo_labels),
+            "mdo_td_json": json.dumps(mdo_td_values),
+            "mdo_load_json": json.dumps(mdo_load_values),
+            "mdo_d15_json": json.dumps(mdo_d15_values),
+            "mdo_d20_json": json.dumps(mdo_d20_values),
+            "mdo_d25_json": json.dumps(mdo_d25_values),
+            "mdo_sprints_json": json.dumps(mdo_sprints_values),
+            "mdo_acwr_json": json.dumps(mdo_acwr_values),
+        }
 
     context = {
         "players": players,
@@ -2865,6 +3043,8 @@ def individuele_programmas(request):
         "focus_tab": focus_tab,
         "focus_tab_options": focus_tab_options,
         "focus_tab_label": focus_tab_options.get(focus_tab, "Sprint Acceleratie & Posture"),
+        "active_individual_view": active_view,
+        **mdo_context,
     }
 
     return render(request, "individuele_programmas.html", context)

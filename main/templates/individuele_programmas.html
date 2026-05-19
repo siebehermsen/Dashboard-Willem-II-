@@ -468,6 +468,317 @@
     color: #20552b;
   }
 
+  .mdo-shell {
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .mdo-side,
+  .mdo-main-card,
+  .mdo-strip-card {
+    background: #fff;
+    border: 1px solid rgba(22, 35, 63, 0.08);
+    border-radius: 28px;
+    box-shadow: var(--ind-shadow);
+  }
+
+  .mdo-side {
+    overflow: hidden;
+  }
+
+  .mdo-profile-top {
+    padding: 22px;
+    background: linear-gradient(135deg, #1f2a44 0%, #111827 72%);
+    color: #fff;
+  }
+
+  .mdo-profile-photo {
+    width: 132px;
+    aspect-ratio: 3 / 4;
+    border-radius: 18px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 18px;
+  }
+
+  .mdo-profile-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mdo-profile-placeholder {
+    height: 100%;
+    display: grid;
+    place-items: center;
+    padding: 14px;
+    color: rgba(255, 255, 255, 0.82);
+    text-align: center;
+    font-weight: 700;
+  }
+
+  .mdo-player-name {
+    margin: 0 0 6px;
+    font-size: 1.6rem;
+    line-height: 1.08;
+    color: #fff;
+  }
+
+  .mdo-player-meta {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.5;
+  }
+
+  .mdo-note-area {
+    padding: 20px 22px 22px;
+  }
+
+  .mdo-note-area h3,
+  .mdo-main-card h3,
+  .mdo-strip-card h3 {
+    margin: 0 0 8px;
+    color: var(--ind-navy);
+  }
+
+  .mdo-note-list {
+    display: grid;
+    gap: 10px;
+    max-height: 290px;
+    overflow: auto;
+    padding-right: 4px;
+    margin: 14px 0 18px;
+  }
+
+  .mdo-note-item {
+    border: 1px solid #e1e7f1;
+    border-radius: 16px;
+    padding: 12px 14px;
+    background: #f8fbff;
+  }
+
+  .mdo-note-date {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--ind-red);
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .mdo-note-text {
+    margin: 0;
+    color: #263653;
+    line-height: 1.55;
+    white-space: pre-wrap;
+  }
+
+  .mdo-main-card {
+    padding: 22px;
+  }
+
+  .mdo-main-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .mdo-player-switch {
+    min-width: 240px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .mdo-player-switch .ind-select {
+    min-height: 40px;
+    border-radius: 999px;
+    background: #f8fbff;
+    font-weight: 700;
+  }
+
+  .mdo-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(110px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .mdo-kpi {
+    border: 1px solid #e1e7f1;
+    border-radius: 18px;
+    padding: 14px;
+    background: #f8fbff;
+  }
+
+  .mdo-kpi span {
+    display: block;
+    color: var(--ind-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .mdo-kpi strong {
+    display: block;
+    margin-top: 8px;
+    color: var(--ind-navy);
+    font-size: 1.45rem;
+    line-height: 1;
+  }
+
+  .mdo-metric-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .mdo-metric-btn {
+    min-height: 36px;
+    padding: 0 13px;
+    border-radius: 999px;
+    border: 1px solid #c8d2e6;
+    background: #fff;
+    color: var(--ind-navy);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .mdo-metric-btn.is-active {
+    background: var(--ind-red);
+    border-color: var(--ind-red);
+    color: #fff;
+  }
+
+  .mdo-chart-wrap {
+    min-height: 360px;
+  }
+
+  .mdo-day-summary {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(108px, 1fr));
+    gap: 10px;
+    overflow-x: auto;
+    margin-top: 18px;
+    padding-bottom: 4px;
+  }
+
+  .mdo-load-day {
+    min-width: 108px;
+    border: 1px solid #e1e7f1;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    padding: 12px;
+  }
+
+  .mdo-load-day span,
+  .mdo-load-day strong,
+  .mdo-load-day small {
+    display: block;
+  }
+
+  .mdo-load-day span {
+    color: var(--ind-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .mdo-load-day strong {
+    margin: 8px 0 4px;
+    color: var(--ind-navy);
+    font-size: 1.25rem;
+  }
+
+  .mdo-load-day small {
+    color: var(--ind-muted);
+    line-height: 1.45;
+  }
+
+  .mdo-player-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .mdo-picker-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 18px;
+    border: 1px solid #e1e7f1;
+    background: #fff;
+    color: var(--ind-navy);
+    text-decoration: none;
+    font-weight: 800;
+  }
+
+  .mdo-picker-avatar {
+    width: 44px;
+    height: 56px;
+    border-radius: 12px;
+    background: #eef2fa;
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+
+  .mdo-picker-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mdo-strip-card {
+    margin-top: 22px;
+    padding: 20px 22px 22px;
+  }
+
+  .mdo-week-table {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(92px, 1fr));
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .mdo-day {
+    min-width: 92px;
+    border: 1px solid #e1e7f1;
+    border-radius: 16px;
+    background: #f8fbff;
+    padding: 12px;
+  }
+
+  .mdo-day strong,
+  .mdo-day span {
+    display: block;
+  }
+
+  .mdo-day strong {
+    color: var(--ind-navy);
+    margin-bottom: 8px;
+  }
+
+  .mdo-day span {
+    color: var(--ind-muted);
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+
+  .mdo-empty {
+    margin: 0;
+    color: var(--ind-muted);
+    line-height: 1.6;
+  }
+
   @media (max-width: 760px) {
     .ind-view-tabs {
       flex-direction: column;
@@ -496,16 +807,36 @@
       padding-left: 18px;
       padding-right: 18px;
     }
+
+    .mdo-shell {
+      grid-template-columns: 1fr;
+    }
+
+    .mdo-kpi-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mdo-main-head {
+      display: block;
+    }
+
+    .mdo-player-switch {
+      margin-top: 16px;
+      min-width: 0;
+    }
   }
 </style>
 
 <div class="ind-page">
   <div class="ind-view-tabs" role="tablist" aria-label="Individuele onderdelen">
-    <button class="ind-view-tab is-active" type="button" role="tab" aria-selected="true" data-view-tab="dagprogramma">
+    <button class="ind-view-tab {% if active_individual_view == 'dagprogramma' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if active_individual_view == 'dagprogramma' %}true{% else %}false{% endif %}" data-view-tab="dagprogramma">
       Individueel dagprogramma
     </button>
-    <button class="ind-view-tab" type="button" role="tab" aria-selected="false" data-view-tab="trainen">
+    <button class="ind-view-tab {% if active_individual_view == 'trainen' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if active_individual_view == 'trainen' %}true{% else %}false{% endif %}" data-view-tab="trainen">
       Individueel trainen
+    </button>
+    <button class="ind-view-tab {% if active_individual_view == 'mdo' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if active_individual_view == 'mdo' %}true{% else %}false{% endif %}" data-view-tab="mdo">
+      Multidisciplinair overleg
     </button>
   </div>
 
@@ -515,7 +846,7 @@
     </div>
     <h1>Individueel Programma</h1>
     <p class="ind-subtitle">
-      Selecteer een speler en wissel tussen het dagprogramma en de individuele trainingsinhoud.
+      Selecteer een speler en wissel tussen het dagprogramma, individuele trainingsinhoud en het multidisciplinair overleg.
     </p>
   </section>
 
@@ -545,6 +876,7 @@
             </select>
           </div>
           <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
+          <input type="hidden" name="view" value="{{ active_individual_view }}">
           <noscript>
             <div class="ind-btn-row">
               <button type="submit" class="ind-btn ind-btn-light">Laden</button>
@@ -557,7 +889,7 @@
     </section>
   {% endif %}
 
-  <section class="ind-view-panel is-active" data-view-panel="dagprogramma">
+  <section class="ind-view-panel {% if active_individual_view == 'dagprogramma' %}is-active{% endif %}" data-view-panel="dagprogramma">
     {% if selected_player %}
       <section class="ind-selected-shell" id="selected-player-workspace">
         <article class="ind-selected-card">
@@ -593,6 +925,7 @@
           <form method="post" class="ind-form">
             {% csrf_token %}
             <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
+            <input type="hidden" name="view" value="dagprogramma">
             <div class="ind-field">
               <label class="ind-label" for="program_text">Dagprogramma</label>
               <textarea class="ind-textarea" id="program_text" name="program_text" placeholder="Bijv. warming-up, veldblok, gymblok, herstel, aandachtspunten...">{% if day_program %}{{ day_program.program_text }}{% endif %}</textarea>
@@ -622,7 +955,7 @@
           <div class="ind-player-grid">
             {% for player in players %}
               <a
-                href="{% url 'individuele_programmas' %}?player_id={{ player.id }}&focus_tab={{ focus_tab }}#selected-player-workspace"
+                href="{% url 'individuele_programmas' %}?player_id={{ player.id }}&focus_tab={{ focus_tab }}&view={{ active_individual_view }}#selected-player-workspace"
                 class="ind-player-card"
               >
                 <div class="ind-player-photo">
@@ -643,7 +976,7 @@
     {% endif %}
   </section>
 
-  <section class="ind-view-panel" data-view-panel="trainen">
+  <section class="ind-view-panel {% if active_individual_view == 'trainen' %}is-active{% endif %}" data-view-panel="trainen">
     {% if selected_player %}
       <section class="ind-card" style="margin-bottom:22px;">
         <div class="ind-card-head">
@@ -654,6 +987,7 @@
           <form method="post" class="ind-form">
             {% csrf_token %}
             <input type="hidden" name="focus_tab" id="focus-tab-input" value="{{ focus_tab }}">
+            <input type="hidden" name="view" value="trainen">
 
             <div class="ind-field">
               <span class="ind-label">Geselecteerde speler</span>
@@ -838,8 +1172,182 @@
     </article>
     </section>
   </section>
+
+  <section class="ind-view-panel {% if active_individual_view == 'mdo' %}is-active{% endif %}" data-view-panel="mdo">
+    {% if selected_player %}
+      <div class="mdo-shell">
+        <aside class="mdo-side">
+          <div class="mdo-profile-top">
+            <div class="mdo-profile-photo">
+              {% if selected_player.image %}
+                <img src="{{ selected_player.image.url }}" alt="{{ selected_player.name }}">
+              {% else %}
+                <div class="mdo-profile-placeholder">Geen foto</div>
+              {% endif %}
+            </div>
+            <h2 class="mdo-player-name">{{ selected_player.name }}</h2>
+            <p class="mdo-player-meta">
+              {% if selected_player.position_ref %}{{ selected_player.position_ref.name }}{% else %}Individueel profiel{% endif %}
+            </p>
+          </div>
+
+          <div class="mdo-note-area">
+            <h3>Opmerkingen laatste 3 maanden</h3>
+            <p class="ind-help">Leg afspraken, aandachtspunten en MDO-besluiten direct bij de speler vast.</p>
+
+            <div class="mdo-note-list">
+              {% for note in mdo_notes %}
+                <article class="mdo-note-item">
+                  <span class="mdo-note-date">{{ note.created_at|date:"d-m-Y" }}</span>
+                  <p class="mdo-note-text">{{ note.text }}</p>
+                </article>
+              {% empty %}
+                <p class="mdo-empty">Nog geen MDO-opmerkingen vastgelegd.</p>
+              {% endfor %}
+            </div>
+
+            <form method="post" class="ind-form">
+              {% csrf_token %}
+              <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
+              <input type="hidden" name="view" value="mdo">
+              <div class="ind-field">
+                <label class="ind-label" for="mdo_note">Nieuwe opmerking</label>
+                <textarea class="ind-textarea" id="mdo_note" name="mdo_note"></textarea>
+              </div>
+              <div class="ind-btn-row">
+                <button type="submit" name="save_mdo_note" value="1" class="ind-btn">Opmerking opslaan</button>
+              </div>
+            </form>
+          </div>
+        </aside>
+
+        <div>
+          <article class="mdo-main-card">
+            <div class="mdo-main-head">
+              <div>
+                <h3>Weekstart fysieke status</h3>
+                <p class="ind-help">GPS, wedstrijdbelasting, wellness en sRPE van de laatste beschikbare 7 dagen.</p>
+              </div>
+              <form method="get" class="mdo-player-switch">
+                <label class="ind-label" for="mdo_player_id">Speler</label>
+                <select class="ind-select" id="mdo_player_id" name="player_id" onchange="this.form.submit()">
+                  {% for player in players %}
+                    <option value="{{ player.id }}" {% if selected_player and player.id == selected_player.id %}selected{% endif %}>
+                      {{ player.name }}
+                    </option>
+                  {% endfor %}
+                </select>
+                <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
+                <input type="hidden" name="view" value="mdo">
+              </form>
+            </div>
+
+            <div class="mdo-kpi-grid">
+              <div class="mdo-kpi">
+                <span>Load 7d</span>
+                <strong>{{ mdo_kpis.load|floatformat:0 }}</strong>
+              </div>
+              <div class="mdo-kpi">
+                <span>Afstand</span>
+                <strong>{{ mdo_kpis.distance_km|floatformat:1 }} km</strong>
+              </div>
+              <div class="mdo-kpi">
+                <span>Sprints</span>
+                <strong>{{ mdo_kpis.sprints|floatformat:0 }}</strong>
+              </div>
+              <div class="mdo-kpi">
+                <span>Wellness</span>
+                <strong>{% if mdo_kpis.avg_wellness %}{{ mdo_kpis.avg_wellness|floatformat:1 }}{% else %}-{% endif %}</strong>
+              </div>
+              <div class="mdo-kpi">
+                <span>sRPE</span>
+                <strong>{% if mdo_kpis.avg_rpe %}{{ mdo_kpis.avg_rpe|floatformat:1 }}{% else %}-{% endif %}</strong>
+              </div>
+            </div>
+
+            <div class="mdo-metric-row" aria-label="MDO grafiekmetriek">
+              <button class="mdo-metric-btn is-active" type="button" data-mdo-metric="td">TD</button>
+              <button class="mdo-metric-btn" type="button" data-mdo-metric="load">Load</button>
+              <button class="mdo-metric-btn" type="button" data-mdo-metric="d15">D15</button>
+              <button class="mdo-metric-btn" type="button" data-mdo-metric="d20">D20</button>
+              <button class="mdo-metric-btn" type="button" data-mdo-metric="d25">D25</button>
+              <button class="mdo-metric-btn" type="button" data-mdo-metric="sprints">Sprints</button>
+            </div>
+
+            <div class="mdo-chart-wrap">
+              <canvas id="mdoGpsChart"></canvas>
+            </div>
+
+            <div class="mdo-day-summary" aria-label="Dagoverzicht laatste 7 dagen">
+              {% for day in mdo_week_rows %}
+                <div class="mdo-load-day">
+                  <span>{{ day.label }}</span>
+                  <strong>{{ day.load|floatformat:0 }}</strong>
+                  <small>{{ day.distance_km|floatformat:2 }} km</small>
+                  <small>{{ day.sprints|floatformat:0 }} sprints</small>
+                </div>
+              {% endfor %}
+            </div>
+          </article>
+
+          <article class="mdo-strip-card">
+            <h3>Wellness en sRPE</h3>
+            <p class="ind-help" style="margin-bottom:14px;">Per dag zichtbaar of de speler ingevuld heeft en hoe de respons eruitziet.</p>
+            <div class="mdo-week-table">
+              {% for day in mdo_wellness_rows %}
+                <div class="mdo-day">
+                  <strong>{{ day.label }}</strong>
+                  <span>Wellness: {% if day.wellness_avg %}{{ day.wellness_avg|floatformat:1 }}{% else %}-{% endif %}</span>
+                  <span>RPE: {% if day.rpe %}{{ day.rpe }}{% else %}-{% endif %}</span>
+                  <span>Load: {% if day.session_load %}{{ day.session_load }}{% else %}-{% endif %}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </article>
+        </div>
+      </div>
+    {% else %}
+      <article class="ind-card">
+        <div class="ind-card-head">
+          <h2>Multidisciplinair overleg</h2>
+          <p>Kies een speler om de weekstart, opmerkingen en recente belasting te bekijken.</p>
+        </div>
+        <div class="ind-card-body">
+          <form method="get" class="ind-form">
+            <div class="ind-field">
+              <label class="ind-label" for="mdo_empty_player_id">Speler</label>
+              <select class="ind-select" id="mdo_empty_player_id" name="player_id" onchange="this.form.submit()">
+                <option value="">Selecteer een speler</option>
+                {% for player in players %}
+                  <option value="{{ player.id }}">{{ player.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
+            <input type="hidden" name="view" value="mdo">
+          </form>
+
+          <div class="mdo-player-picker-grid">
+            {% for player in players %}
+              <a class="mdo-picker-card" href="{% url 'individuele_programmas' %}?player_id={{ player.id }}&focus_tab={{ focus_tab }}&view=mdo">
+                <span class="mdo-picker-avatar">
+                  {% if player.image %}
+                    <img src="{{ player.image.url }}" alt="{{ player.name }}">
+                  {% endif %}
+                </span>
+                <span>{{ player.name }}</span>
+              </a>
+            {% empty %}
+              <p class="mdo-empty">Er zijn nog geen spelers beschikbaar.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </article>
+    {% endif %}
+  </section>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const viewButtons = document.querySelectorAll(".ind-view-tab");
@@ -850,6 +1358,7 @@
     const focusLabel = document.getElementById("current-focus-label");
     const playerSelect = document.getElementById("player_id");
     const getForm = playerSelect ? playerSelect.form : null;
+    const viewHiddenInputs = document.querySelectorAll('input[name="view"]');
 
     function setActiveView(target) {
       viewButtons.forEach((btn) => {
@@ -860,6 +1369,10 @@
 
       viewPanels.forEach((panel) => {
         panel.classList.toggle("is-active", panel.dataset.viewPanel === target);
+      });
+
+      viewHiddenInputs.forEach((input) => {
+        input.value = target;
       });
     }
 
@@ -900,6 +1413,139 @@
         setActiveView(button.dataset.viewTab);
       });
     });
+
+    const chartCanvas = document.getElementById("mdoGpsChart");
+    if (chartCanvas && window.Chart) {
+      const labels = {{ mdo_labels_json|safe }};
+      const acwrValues = {{ mdo_acwr_json|safe }};
+      const metricData = {
+        td: {
+          label: "Totale afstand",
+          values: {{ mdo_td_json|safe }},
+          unit: "m",
+          color: "#1666c5",
+        },
+        load: {
+          label: "Load",
+          values: {{ mdo_load_json|safe }},
+          unit: "au",
+          color: "#1f2a44",
+        },
+        d15: {
+          label: "D15",
+          values: {{ mdo_d15_json|safe }},
+          unit: "m",
+          color: "#c00000",
+        },
+        d20: {
+          label: "D20",
+          values: {{ mdo_d20_json|safe }},
+          unit: "m",
+          color: "#8090aa",
+        },
+        d25: {
+          label: "D25",
+          values: {{ mdo_d25_json|safe }},
+          unit: "m",
+          color: "#d6a21d",
+        },
+        sprints: {
+          label: "Sprints",
+          values: {{ mdo_sprints_json|safe }},
+          unit: "",
+          color: "#00a676",
+        },
+      };
+
+      const chart = new Chart(chartCanvas, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              type: "bar",
+              label: metricData.td.label,
+              data: metricData.td.values,
+              backgroundColor: metricData.td.color,
+              borderRadius: 8,
+              yAxisID: "y",
+            },
+            {
+              type: "line",
+              label: "ACWR",
+              data: acwrValues,
+              borderColor: "#00b33c",
+              backgroundColor: "#00b33c",
+              borderWidth: 3,
+              pointRadius: 4,
+              tension: 0.35,
+              yAxisID: "y1",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "top",
+              labels: {
+                usePointStyle: true,
+                boxWidth: 10,
+                font: { weight: "700" },
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  if (context.dataset.label === "ACWR") {
+                    return "ACWR: " + context.parsed.y;
+                  }
+                  const activeMetric = metricData[chartCanvas.dataset.metric || "td"];
+                  return activeMetric.label + ": " + context.parsed.y + (activeMetric.unit ? " " + activeMetric.unit : "");
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: "#526078", font: { weight: "700" } },
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: "rgba(31,42,68,0.08)" },
+              ticks: { color: "#526078" },
+            },
+            y1: {
+              beginAtZero: true,
+              position: "right",
+              suggestedMax: 2,
+              grid: { drawOnChartArea: false },
+              ticks: { color: "#526078" },
+            },
+          },
+        },
+      });
+
+      document.querySelectorAll("[data-mdo-metric]").forEach((button) => {
+        button.addEventListener("click", function () {
+          const metric = button.dataset.mdoMetric;
+          const config = metricData[metric];
+          if (!config) {
+            return;
+          }
+          document.querySelectorAll("[data-mdo-metric]").forEach((item) => {
+            item.classList.toggle("is-active", item === button);
+          });
+          chartCanvas.dataset.metric = metric;
+          chart.data.datasets[0].label = config.label;
+          chart.data.datasets[0].data = config.values;
+          chart.data.datasets[0].backgroundColor = config.color;
+          chart.update();
+        });
+      });
+    }
   });
 </script>
 {% endblock %}
