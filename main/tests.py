@@ -463,6 +463,8 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, "Centraal spelerprofiel")
         self.assertContains(response, "GPS 7d")
         self.assertContains(response, "MDO")
+        self.assertContains(response, reverse("testdata") + f"?player_id={self.player.id}")
+        self.assertContains(response, "tab=profiel")
 
     def test_read_only_user_can_view_but_not_post(self):
         read_only = get_user_model().objects.create_user(username="readonly", password="test-pass")
