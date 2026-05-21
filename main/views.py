@@ -479,6 +479,19 @@ def dashboard(request):
         DayProgramEntry.objects.filter(date__gte=week_start_date, date__lte=week_end_date)
         .order_by("date")
     )
+    day_labels = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"]
+    week_agenda_days = []
+    current_week_programs = list(current_week_dayprograms)
+    for offset in range(7):
+        day_date = week_start_date + timedelta(days=offset)
+        week_agenda_days.append(
+            {
+                "date": day_date,
+                "label": f"{day_labels[day_date.weekday()]} {day_date.strftime('%d-%m')}",
+                "is_today": day_date == today,
+                "items": [entry for entry in current_week_programs if entry.date == day_date],
+            }
+        )
 
     # ---------- CONTEXT ----------
     context = {
@@ -500,6 +513,7 @@ def dashboard(request):
         "total_risk_count": total_risk_count,
         "highest_load_ratio": highest_load_ratio,
         "current_week_dayprograms": current_week_dayprograms,
+        "week_agenda_days": week_agenda_days,
         "current_week_start": week_start_date,
         "current_week_end": week_end_date,
     }

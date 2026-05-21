@@ -83,6 +83,13 @@ class DashboardPersistenceTests(TestCase):
         self.assertIn("/login/", response["Location"])
         self.assertIn("next=/dashboard/", response["Location"])
 
+    def test_dashboard_shows_home_agenda_and_risk_panel(self):
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Verhoogd blessurerisico")
+        self.assertContains(response, "Agenda")
+
     def test_academie_team_page_shows_team_environment(self):
         team = Team.objects.create(code="O17", name="O17")
         PlayerTeamAssignment.objects.create(

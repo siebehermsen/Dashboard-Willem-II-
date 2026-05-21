@@ -284,6 +284,141 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 .btn-edit { background-color: #1f2a44; } .btn-edit:hover { background-color: #b60000; }
 .btn-delete { background-color: #b60000; } .btn-delete:hover { background-color: #8a0000; }
 
+.home-agenda-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.home-agenda-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 24px 28px 18px;
+    border-bottom: 1px solid #e6ebf2;
+}
+
+.home-agenda-title {
+    margin: 0;
+    font-size: 1.7rem;
+    color: #1f2a44;
+}
+
+.home-agenda-range {
+    margin: 5px 0 0;
+    color: #6b758d;
+    font-weight: 600;
+}
+
+.home-agenda-add {
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    border: none;
+    background: #cf202f;
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 12px 22px rgba(207, 32, 47, 0.26);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.home-agenda-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 28px rgba(207, 32, 47, 0.34);
+}
+
+.home-agenda-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(140px, 1fr));
+    min-height: 360px;
+    overflow-x: auto;
+}
+
+.home-agenda-day {
+    border-right: 1px solid #e3e8f0;
+    background: #ffffff;
+    min-width: 150px;
+}
+
+.home-agenda-day:last-child {
+    border-right: none;
+}
+
+.home-agenda-day.is-today {
+    background: linear-gradient(180deg, #fff8dd 0%, #ffffff 56%);
+}
+
+.home-agenda-day-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 12px 12px;
+    text-align: center;
+    font-weight: 900;
+    color: #34383f;
+    border-bottom: 1px solid #e3e8f0;
+    background: rgba(255, 255, 255, 0.94);
+}
+
+.home-agenda-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 10px 18px;
+}
+
+.home-agenda-event {
+    position: relative;
+    display: block;
+    padding: 12px 12px 12px 14px;
+    border-radius: 9px;
+    background: #45ad4f;
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 8px 18px rgba(31, 42, 68, 0.14);
+}
+
+.home-agenda-event::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.65);
+}
+
+.home-agenda-event-title {
+    display: block;
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.home-agenda-event-notes {
+    display: block;
+    margin-top: 6px;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.home-agenda-empty {
+    min-height: 120px;
+    border: 1px dashed #d8e0eb;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+@media (max-width: 1100px) {
+    .home-agenda-grid {
+        grid-template-columns: repeat(7, 190px);
+    }
+}
+
 /* ðŸ©¹ REVALIDATIESPELERS */
 .table-rehab { width: 100%; border-collapse: collapse; margin-top: 10px; }
 .table-rehab th, .table-rehab td { border: 1px solid #ddd; padding: 10px; }
@@ -1221,36 +1356,6 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         </a>
     </section>
 
-<!-- âš½ VOLGENDE WEDSTRIJD -->
-<div class="card match-card">
-    <h2 class="section-title"><i data-feather="calendar"></i> Volgende wedstrijd</h2>
-
-    {% if upcoming_match %}
-        <div class="teams">
-            <div>
-                {% if home_logo %}
-                    <img src="{{ home_logo }}" alt="{{ home_name }}" class="team-logo">
-                {% endif %}
-                <p>{{ home_name }}</p>
-            </div>
-
-            <p class="vs">VS</p>
-
-            <div>
-                {% if away_logo %}
-                    <img src="{{ away_logo }}" alt="{{ away_name }}" class="team-logo">
-                {% endif %}
-                <p>{{ away_name }}</p>
-            </div>
-        </div>
-
-        <p class="match-info">{{ upcoming_match.kickoff|date:"l d F Y - H:i" }}</p>
-
-    {% else %}
-        <p>Geen wedstrijd gepland.</p>
-    {% endif %}
-</div>
-
 <!-- ALERTS: WELLNESS + BLESSURERISICO -->
 <div class="card alerts-card">
     <div class="card-header alerts-headline">
@@ -1317,48 +1422,36 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 
 
 <!-- ðŸ—“ï¸ WEEKPROGRAMMA -->
-<div class="card">
-    <div class="card-header">
-        <h2><i data-feather="clock"></i> Weekplanning</h2>
-        <button id="openWeekModal" class="primary-btn">Trainingsdag toevoegen</button>
+<div class="card home-agenda-card">
+    <div class="home-agenda-head">
+        <div>
+            <h2 class="home-agenda-title">Agenda</h2>
+            <p class="home-agenda-range">{{ current_week_start|date:"d-m-Y" }} t/m {{ current_week_end|date:"d-m-Y" }}</p>
+        </div>
+        <button id="openWeekModal" class="home-agenda-add" type="button" aria-label="Training toevoegen">+</button>
     </div>
 
-    <table class="weekprogram-table">
-        <thead>
-            <tr>
-                <th>Datum</th>
-                <th>Activiteiten</th>
-                <th>Bijzonderheden</th>
-                <th>Acties</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for day in dayprograms %}
-            <tr id="row-{{ day.id }}">
-                <!-- BEKIJK-MODUS -->
-                <td id="date-{{ day.id }}">{{ day.date }}</td>
-                <td id="activities-{{ day.id }}">{{ day.activities }}</td>
-                <td id="notes-{{ day.id }}">{{ day.notes|default:"-" }}</td>
-
-                <!-- ACTIEKNOPPEN -->
-                <td id="actions-{{ day.id }}" style="white-space: nowrap;">
-                    <button 
-                        type="button" 
-                        class="action-btn btn-edit" 
-                        onclick="enableEdit({{ day.id }})"
-                    >Bewerk</button>
-
-                    <form action="{% url 'delete_weekday' day.id %}" method="POST" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="action-btn btn-delete">Verwijder</button>
-                    </form>
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4">Nog geen weekplanning ingevoerd.</td></tr>
+    <div class="home-agenda-grid" aria-label="Agenda deze week">
+        {% for day in week_agenda_days %}
+            <section class="home-agenda-day {% if day.is_today %}is-today{% endif %}">
+                <div class="home-agenda-day-head">{{ day.label }}</div>
+                <div class="home-agenda-items">
+                    {% for item in day.items %}
+                        <div class="home-agenda-event">
+                            <span class="home-agenda-event-title">{{ item.activities }}</span>
+                            {% if item.notes %}
+                                <span class="home-agenda-event-notes">{{ item.notes }}</span>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <div class="home-agenda-empty" aria-label="Geen agenda-items"></div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% empty %}
+            <p class="alert-empty">Er staat nog geen weekplanning voor deze week ingevoerd.</p>
             {% endfor %}
-        </tbody>
-    </table>
+    </div>
 </div>
 
 <!-- INLINE EDIT SCRIPT -->
