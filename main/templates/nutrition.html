@@ -13,18 +13,6 @@
   {% endfor %}
 {% endif %}
 
-<!-- HEADER -->
-<header class="nutrition-header">
-    <div class="header-left">
-        <img class="logo"
-             src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg"
-             alt="Willem II logo">
-        <div class="title-group">
-            <span class="dashboard-title">Voeding</span>
-        </div>
-    </div>
-</header>
-
 <div class="page-toggle">
     <a
         href="{% url 'nutrition' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}"

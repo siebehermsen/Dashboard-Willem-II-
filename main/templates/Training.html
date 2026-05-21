@@ -13,23 +13,6 @@
     {% endfor %}
 {% endif %}
 
-<!-- HEADER -->
-<header class="page-header">
-    <div class="header-left">
-        <img class="club-logo"
-             src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg"
-             alt="Willem II logo">
-        <div class="header-text">
-            <h1>Trainings- & Wedstrijdanalyse</h1>
-            <p>Inzicht in belasting, afstand en intensiteit op team- en individueel niveau.</p>
-        </div>
-    </div>
-
-    <div class="header-right">
-        <span class="badge">Seizoen 2025/26</span>
-    </div>
-</header>
-
 <!-- SWITCH KNOPPEN: TRAINING / WEDSTRIJDDATA -->
 <div class="data-tabs-container">
     <a href="{% url 'training' %}"
@@ -46,9 +29,6 @@
        class="data-tab {% if active_page == 'rapport' %}active{% endif %}">
         Fysiek rapport
     </a>
-</div>
-
-
 </div>
 
 {% if active_page != "rapport" %}
