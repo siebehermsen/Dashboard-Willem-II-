@@ -74,19 +74,20 @@
     position: absolute;
     top: 28px;
     right: 30px;
-    width: 88px;
-    height: 88px;
+    width: 104px;
+    height: 104px;
     display: grid;
     place-items: center;
-    border-radius: 20px;
-    background: linear-gradient(180deg, #ffffff 0%, #edf1f0 100%);
-    border: 1px solid rgba(31, 42, 68, 0.16);
-    box-shadow: 0 14px 30px rgba(5, 5, 6, 0.12);
+    border-radius: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
   }
 
   .ind-hero-logo img {
-    width: 66px;
+    width: 92px;
     display: block;
+    filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.16));
   }
 
   .ind-hero h1 {
@@ -1077,7 +1078,7 @@
 
   <section class="ind-hero">
     <div class="ind-hero-logo">
-      <img src="{% static 'icons/nec-logo.png' %}" alt="NEC logo">
+      <img src="{% static 'icons/nec-logo.svg' %}" alt="NEC logo">
     </div>
     <h1>Individueel Overzicht</h1>
   </section>

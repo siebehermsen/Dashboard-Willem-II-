@@ -85,15 +85,16 @@
     }
 
     .header-left img {
-        height: 66px;
-        width: 66px;
+        height: 76px;
+        width: 76px;
         box-sizing: border-box;
         object-fit: contain;
-        border-radius: 18px;
-        background: linear-gradient(180deg, #ffffff 0%, #edf1f0 100%);
-        padding: 7px;
-        border: 1px solid rgba(255, 255, 255, 0.62);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.30);
+        border-radius: 0;
+        background: transparent;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+        filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.34));
     }
 
     .brand-copy {
@@ -198,15 +199,16 @@
     }
 
     html.app-ui.app-mode .header-left img {
-        height: 68px;
-        width: 68px;
+        height: 78px;
+        width: 78px;
         box-sizing: border-box;
-        border-radius: 20px;
+        border-radius: 0;
         object-fit: contain;
-        background: linear-gradient(180deg, #ffffff 0%, #edf1f0 100%);
-        padding: 7px;
-        border: 1px solid rgba(255, 255, 255, 0.62);
-        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.32);
+        background: transparent;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+        filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.36));
     }
 
     html.app-ui.app-mode .brand-copy {
@@ -418,7 +420,7 @@
 <body class="{% if request.GET.pdf %}pdf-mode{% endif %}">    
 <header>
     <div class="header-left">
-        <img src="{% static 'icons/nec-logo.png' %}" alt="NEC logo">
+        <img src="{% static 'icons/nec-logo.svg' %}" alt="NEC logo">
         <div class="brand-copy">
             <span class="brand-kicker">NEC Nijmegen</span>
             <span class="brand-title">Performance Dashboard</span>
