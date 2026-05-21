@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'willemii-pwa-v4';
+const CACHE_VERSION = 'nec-pwa-v1';
 const OFFLINE_URL = '/offline/';
 const APP_SHELL_URLS = [
   OFFLINE_URL,

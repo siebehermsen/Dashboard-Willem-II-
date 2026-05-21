@@ -1,13 +1,13 @@
 {
-  "name": "Willem II Performance Dashboard",
+  "name": "NEC Performance Dashboard",
   "short_name": "Dashboard",
   "start_url": "/login/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#ffffff",
-  "theme_color": "#1e2a44",
-  "description": "Performance dashboard voor Willem II staf en spelers.",
+  "theme_color": "#07100c",
+  "description": "Performance dashboard voor NEC staf en spelers.",
   "icons": [
     {
       "src": "/static/icons/icon-192.png",
