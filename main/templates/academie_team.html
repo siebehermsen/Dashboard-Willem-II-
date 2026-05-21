@@ -7,11 +7,12 @@
 <style>
 .academy-page {
     display: grid;
-    grid-template-columns: 250px minmax(0, 1fr);
-    gap: 28px;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 36px;
     margin: 0 auto;
-    max-width: 1540px;
-    padding: 26px 24px 56px;
+    max-width: 100%;
+    width: min(1880px, calc(100vw - 56px));
+    padding: 26px 0 56px;
 }
 .academy-side {
     position: sticky;
@@ -51,12 +52,13 @@
 }
 .academy-tabs {
     display: flex;
-    gap: 16px;
+    gap: 18px;
     flex-wrap: wrap;
     margin-bottom: 34px;
 }
 .academy-tab-btn {
-    min-width: 150px;
+    flex: 1 1 210px;
+    min-width: 190px;
     border: 0;
     border-radius: 7px;
     background: #ececec;
@@ -129,7 +131,7 @@
 .academy-kpis {
     display: grid;
     grid-template-columns: repeat(4, minmax(150px, 1fr));
-    gap: 16px;
+    gap: 20px;
     margin-bottom: 22px;
 }
 .academy-kpi {
@@ -186,7 +188,7 @@
     text-decoration: none;
 }
 .academy-chart {
-    min-height: 320px;
+    min-height: 380px;
 }
 @media (max-width: 900px) {
     .academy-page {
