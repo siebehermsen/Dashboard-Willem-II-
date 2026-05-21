@@ -329,6 +329,44 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(entry.responsible, "Siebe")
         self.assertEqual(entry.physical_note, "Snel herstel")
 
+    def test_edit_weekday_updates_academy_agenda_fields(self):
+        entry = DayProgramEntry.objects.create(
+            date=date(2026, 5, 21),
+            team="O17",
+            category="training",
+            activities="Agenda-item",
+        )
+
+        response = self.client.post(
+            reverse("edit_weekday", args=[entry.id]),
+            {
+                "date": "2026-05-22",
+                "team": "O19",
+                "category": "data",
+                "context": "GPS upload",
+                "location": "Kantoor",
+                "start_time": "11:15",
+                "end_time": "11:45",
+                "responsible": "Performance",
+                "physical_note": "Data klaarzetten",
+                "activities": "Agenda-item",
+                "notes": "Na training",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        entry.refresh_from_db()
+        self.assertEqual(entry.date, date(2026, 5, 22))
+        self.assertEqual(entry.team, "O19")
+        self.assertEqual(entry.category, "data")
+        self.assertEqual(entry.context, "GPS upload")
+        self.assertEqual(entry.location, "Kantoor")
+        self.assertEqual(entry.start_time.strftime("%H:%M"), "11:15")
+        self.assertEqual(entry.end_time.strftime("%H:%M"), "11:45")
+        self.assertEqual(entry.responsible, "Performance")
+        self.assertEqual(entry.physical_note, "Data klaarzetten")
+        self.assertEqual(entry.notes, "Na training")
+
     def test_staf_page_admin_can_create_player(self):
         response = self.client.post(
             reverse("staf"),

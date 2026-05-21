@@ -374,12 +374,22 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 .home-agenda-event {
     position: relative;
     display: block;
+    width: 100%;
     padding: 12px 12px 12px 14px;
+    border: 0;
     border-radius: 9px;
     background: #45ad4f;
     color: #fff;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
     text-decoration: none;
     box-shadow: 0 8px 18px rgba(31, 42, 68, 0.14);
+}
+
+.home-agenda-event:hover {
+    filter: brightness(0.98);
+    transform: translateY(-1px);
 }
 
 .home-agenda-event.category-training {
@@ -1509,7 +1519,21 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                 <div class="home-agenda-day-head">{{ day.label }}</div>
                 <div class="home-agenda-items">
                     {% for item in day.items %}
-                        <div class="home-agenda-event category-{{ item.css_category }}">
+                        <button
+                            type="button"
+                            class="home-agenda-event category-{{ item.css_category }}"
+                            data-agenda-id="{{ item.entry.id }}"
+                            data-agenda-date="{{ item.entry.date|date:'Y-m-d' }}"
+                            data-agenda-team="{{ item.entry.team|escapejs }}"
+                            data-agenda-category="{{ item.entry.category|escapejs }}"
+                            data-agenda-context="{{ item.entry.context|escapejs }}"
+                            data-agenda-location="{{ item.entry.location|escapejs }}"
+                            data-agenda-start-time="{% if item.entry.start_time %}{{ item.entry.start_time|time:'H:i' }}{% endif %}"
+                            data-agenda-end-time="{% if item.entry.end_time %}{{ item.entry.end_time|time:'H:i' }}{% endif %}"
+                            data-agenda-responsible="{{ item.entry.responsible|escapejs }}"
+                            data-agenda-physical-note="{{ item.entry.physical_note|escapejs }}"
+                            data-agenda-notes="{{ item.entry.notes|default:''|escapejs }}"
+                        >
                             <span class="home-agenda-event-meta">
                                 {% if item.entry.start_time %}{{ item.entry.start_time|time:"H:i" }}{% endif %}
                                 {% if item.entry.end_time %} - {{ item.entry.end_time|time:"H:i" }}{% endif %}
@@ -1527,7 +1551,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                                     {% if item.entry.physical_note %}{% if item.entry.location or item.entry.responsible or item.entry.notes %} · {% endif %}{{ item.entry.physical_note }}{% endif %}
                                 </span>
                             {% endif %}
-                        </div>
+                        </button>
                     {% empty %}
                         <div class="home-agenda-empty" aria-label="Geen agenda-items"></div>
                     {% endfor %}
@@ -1643,11 +1667,11 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             color: #333;
         ">&times;</span>
 
-        <h3 style="margin: 0 0 10px 0; font-size: 22px; font-weight: 600; color: #1f2a44;">
+        <h3 id="weekModalTitle" style="margin: 0 0 10px 0; font-size: 22px; font-weight: 600; color: #1f2a44;">
             Trainingsdag toevoegen
         </h3>
 
-        <form action="{% url 'add_weekday' %}" method="POST" style="
+        <form id="weekForm" action="{% url 'add_weekday' %}" method="POST" style="
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -1657,7 +1681,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             <!-- Datum -->
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-weight: 500;">Datum</label>
-                <input type="date" name="date" required class="form-control" style="
+                <input id="weekDate" type="date" name="date" required class="form-control" style="
                     padding: 8px;
                     border-radius: 6px;
                     border: 1px solid #ccc;
@@ -1667,7 +1691,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             <!-- Team -->
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-weight: 500;">Team</label>
-                <select name="team" required class="form-control" style="
+                <select id="weekTeam" name="team" required class="form-control" style="
                     padding: 8px;
                     border-radius: 6px;
                     border: 1px solid #ccc;
@@ -1687,7 +1711,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             <!-- Categorie -->
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-weight: 500;">Categorie</label>
-                <select name="category" required class="form-control" style="
+                <select id="weekCategory" name="category" required class="form-control" style="
                     padding: 8px;
                     border-radius: 6px;
                     border: 1px solid #ccc;
@@ -1706,7 +1730,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             <!-- Context -->
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-weight: 500;">Context</label>
-                <input type="text" name="context" class="form-control" placeholder="Bijv. Opstart, Scherp, Sneller herstellen" style="
+                <input id="weekContext" type="text" name="context" class="form-control" placeholder="Bijv. Opstart, Scherp, Sneller herstellen" style="
                     padding: 8px;
                     border-radius: 6px;
                     border: 1px solid #ccc;
@@ -1716,7 +1740,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             <!-- Locatie -->
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-weight: 500;">Locatie</label>
-                <input type="text" name="location" class="form-control" placeholder="Bijv. Veld 1, Gym, Hengelo" style="
+                <input id="weekLocation" type="text" name="location" class="form-control" placeholder="Bijv. Veld 1, Gym, Hengelo" style="
                     padding: 8px;
                     border-radius: 6px;
                     border: 1px solid #ccc;
@@ -1726,7 +1750,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                 <div style="display: flex; flex-direction: column; gap: 5px;">
                     <label style="font-weight: 500;">Starttijd</label>
-                    <input type="time" name="start_time" class="form-control" style="
+                    <input id="weekStartTime" type="time" name="start_time" class="form-control" style="
                         padding: 8px;
                         border-radius: 6px;
                         border: 1px solid #ccc;
@@ -1734,7 +1758,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 5px;">
                     <label style="font-weight: 500;">Eindtijd</label>
-                    <input type="time" name="end_time" class="form-control" style="
+                    <input id="weekEndTime" type="time" name="end_time" class="form-control" style="
                         padding: 8px;
                         border-radius: 6px;
                         border: 1px solid #ccc;
@@ -1745,7 +1769,7 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             <!-- Verantwoordelijke -->
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-weight: 500;">Verantwoordelijke</label>
-                <input type="text" name="responsible" class="form-control" style="
+                <input id="weekResponsible" type="text" name="responsible" class="form-control" style="
                     padding: 8px;
                     border-radius: 6px;
                     border: 1px solid #ccc;
@@ -1755,19 +1779,19 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             <!-- Fysieke notitie -->
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-weight: 500;">Fysieke notitie</label>
-                <input type="text" name="physical_note" class="form-control" style="
+                <input id="weekPhysicalNote" type="text" name="physical_note" class="form-control" style="
                     padding: 8px;
                     border-radius: 6px;
                     border: 1px solid #ccc;
                 ">
             </div>
 
-            <input type="hidden" name="activities" value="Agenda-item">
+            <input id="weekActivities" type="hidden" name="activities" value="Agenda-item">
 
             <!-- Bijzonderheden -->
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-weight: 500;">Bijzonderheden</label>
-                <input type="text" name="notes" class="form-control" style="
+                <input id="weekNotes" type="text" name="notes" class="form-control" style="
                     padding: 8px;
                     border-radius: 6px;
                     border: 1px solid #ccc;
@@ -1775,15 +1799,23 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
             </div>
 
             <!-- Knoppen -->
-            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; gap: 12px; margin-top: 10px;">
+                <button type="submit" id="deleteWeekBtn" form="deleteWeekForm" class="secondary-btn" style="display:none; color:#b60000;">
+                    Verwijderen
+                </button>
+                <div style="display:flex; gap:12px; margin-left:auto;">
                 <button type="submit" class="primary-btn">
                     Opslaan
                 </button>
                 <button type="button" id="closeWeekModalBtn" class="secondary-btn">
                     Annuleren
                 </button>
+                </div>
             </div>
 
+        </form>
+        <form id="deleteWeekForm" method="POST" action="" style="display:none;">
+            {% csrf_token %}
         </form>
     </div>
 </div>
@@ -1893,7 +1925,23 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
 const openWeekBtn = document.getElementById("openWeekModal");
 const openWeekBtnMobile = document.getElementById("openWeekModalMobile");
 const closeWeekBtn = document.getElementById("closeWeekModal");
+const closeWeekModalBtn = document.getElementById("closeWeekModalBtn");
 const weekModal = document.getElementById("weekModal");
+const weekForm = document.getElementById("weekForm");
+const deleteWeekForm = document.getElementById("deleteWeekForm");
+const deleteWeekBtn = document.getElementById("deleteWeekBtn");
+const weekModalTitle = document.getElementById("weekModalTitle");
+const weekDate = document.getElementById("weekDate");
+const weekTeam = document.getElementById("weekTeam");
+const weekCategory = document.getElementById("weekCategory");
+const weekContext = document.getElementById("weekContext");
+const weekLocation = document.getElementById("weekLocation");
+const weekStartTime = document.getElementById("weekStartTime");
+const weekEndTime = document.getElementById("weekEndTime");
+const weekResponsible = document.getElementById("weekResponsible");
+const weekPhysicalNote = document.getElementById("weekPhysicalNote");
+const weekActivities = document.getElementById("weekActivities");
+const weekNotes = document.getElementById("weekNotes");
 const appWeekModal = document.getElementById("appWeekModal");
 const appWeekForm = document.getElementById("appWeekForm");
 const appWeekModalTitle = document.getElementById("appWeekModalTitle");
@@ -1903,7 +1951,7 @@ const appWeekNotes = document.getElementById("appWeekNotes");
 
 if (openWeekBtn) {
     openWeekBtn.addEventListener("click", () => {
-        weekModal.style.display = "block";
+        openDesktopWeekModal("add");
     });
 }
 
@@ -1915,18 +1963,82 @@ if (openWeekBtnMobile) {
 
 if (closeWeekBtn) {
     closeWeekBtn.addEventListener("click", () => {
-        weekModal.style.display = "none";
+        closeDesktopWeekModal();
     });
 }
 
+if (closeWeekModalBtn) {
+    closeWeekModalBtn.addEventListener("click", () => {
+        closeDesktopWeekModal();
+    });
+}
+
+document.querySelectorAll(".home-agenda-event[data-agenda-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+        openDesktopWeekModal("edit", button.dataset);
+    });
+});
+
 window.addEventListener("click", (e) => {
     if (e.target === weekModal) {
-        weekModal.style.display = "none";
+        closeDesktopWeekModal();
     }
     if (e.target === appWeekModal) {
         closeAppWeekModal();
     }
 });
+
+function setValue(field, value) {
+    if (field) {
+        field.value = value || "";
+    }
+}
+
+function openDesktopWeekModal(mode, data = {}) {
+    if (!weekModal || !weekForm || !weekModalTitle) {
+        return;
+    }
+
+    const isEdit = mode === "edit" && data.agendaId;
+    weekForm.reset();
+    weekModalTitle.textContent = isEdit ? "Training bewerken" : "Training toevoegen";
+    weekForm.action = isEdit ? `/edit-weekday/${data.agendaId}/` : "{% url 'add_weekday' %}";
+
+    if (deleteWeekForm && deleteWeekBtn) {
+        deleteWeekForm.action = isEdit ? `/delete-weekday/${data.agendaId}/` : "";
+        deleteWeekBtn.style.display = isEdit ? "inline-flex" : "none";
+    }
+
+    setValue(weekDate, data.agendaDate);
+    setValue(weekTeam, data.agendaTeam);
+    setValue(weekCategory, data.agendaCategory || "training");
+    setValue(weekContext, data.agendaContext);
+    setValue(weekLocation, data.agendaLocation);
+    setValue(weekStartTime, data.agendaStartTime);
+    setValue(weekEndTime, data.agendaEndTime);
+    setValue(weekResponsible, data.agendaResponsible);
+    setValue(weekPhysicalNote, data.agendaPhysicalNote);
+    setValue(weekNotes, data.agendaNotes);
+    setValue(weekActivities, "Agenda-item");
+
+    weekModal.style.display = "flex";
+}
+
+function closeDesktopWeekModal() {
+    if (!weekModal || !weekForm) {
+        return;
+    }
+    weekModal.style.display = "none";
+    weekForm.reset();
+    weekForm.action = "{% url 'add_weekday' %}";
+    if (weekModalTitle) {
+        weekModalTitle.textContent = "Training toevoegen";
+    }
+    if (deleteWeekForm && deleteWeekBtn) {
+        deleteWeekForm.action = "";
+        deleteWeekBtn.style.display = "none";
+    }
+}
 
 function openAppWeekModal(mode, id = "", date = "", activities = "", notes = "") {
     if (!appWeekModal || !appWeekForm || !appWeekModalTitle) {
