@@ -1,4 +1,5 @@
 ﻿{% extends "base.html" %}
+{% load static %}
 {% block title %}Willem II | Performance Dashboard{% endblock %}
 
 {% block content %}
@@ -28,6 +29,19 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 .stat-box h3 { font-size: 1rem; color: #555; margin-bottom: 8px; }
 .stat-box p { font-size: 1.8rem; font-weight: 700; color: #1f2a44; }
 .stat-icon { color: #b60000; margin-bottom: 8px; }
+.stat-logo-box {
+    flex: 1;
+    min-width: 250px;
+    display: grid;
+    place-items: center;
+    min-height: 190px;
+}
+.stat-logo-box img {
+    width: min(210px, 68%);
+    max-height: 180px;
+    object-fit: contain;
+    filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.18));
+}
 
 /* âš½ VOLGENDE WEDSTRIJD */
 .match-card { text-align: center; }
@@ -1077,15 +1091,13 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
             <h3>Actieve revalidaties</h3>
             <p>{{ rehab_players|length }}</p>
         </div>
+        <div class="stat-logo-box" aria-label="NEC Nijmegen">
+            <img src="{% static 'icons/nec-logo.svg' %}" alt="NEC logo">
+        </div>
         <div class="stat-box">
             <i data-feather="users" class="stat-icon"></i>
             <h3>Teamleden</h3>
             <p>{{ players|length }}</p>
-        </div>
-        <div class="stat-box">
-            <i data-feather="percent" class="stat-icon"></i>
-            <h3>Gem. vetpercentage</h3>
-            <p>{{ avg_fat|default:"-" }}%</p>
         </div>
     </div>
 
