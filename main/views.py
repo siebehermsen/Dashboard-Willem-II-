@@ -123,7 +123,19 @@ def offline_page(request):
 class WeekProgramForm(forms.ModelForm):
     class Meta:
         model = DayProgramEntry
-        fields = ["date", "activities", "notes"]
+        fields = [
+            "date",
+            "team",
+            "category",
+            "context",
+            "location",
+            "start_time",
+            "end_time",
+            "responsible",
+            "physical_note",
+            "activities",
+            "notes",
+        ]
 
 
 def _resolve_player_by_name(name):
@@ -161,6 +173,20 @@ def _injury_to_ui(injury):
         phase_label=phase_label_map.get(phase_code, "Laatste fase"),
         status=injury.status_ref.code if injury.status_ref else "",
     )
+
+
+def _agenda_category_label(category):
+    labels = {
+        "training": "Training",
+        "kracht": "Krachttraining",
+        "testing": "Testing",
+        "data": "Data",
+        "wedstrijd": "Wedstrijd",
+        "toernooi": "Toernooi",
+        "rust": "Rustdag",
+        "overig": "Overig",
+    }
+    return labels.get((category or "").strip().lower(), category or "Training")
 
 
 def _upsert_injury_case(
@@ -489,7 +515,15 @@ def dashboard(request):
                 "date": day_date,
                 "label": f"{day_labels[day_date.weekday()]} {day_date.strftime('%d-%m')}",
                 "is_today": day_date == today,
-                "items": [entry for entry in current_week_programs if entry.date == day_date],
+                "items": [
+                    SimpleNamespace(
+                        entry=entry,
+                        category_label=_agenda_category_label(entry.category),
+                        css_category=(entry.category or "training").strip().lower(),
+                    )
+                    for entry in current_week_programs
+                    if entry.date == day_date
+                ],
             }
         )
 

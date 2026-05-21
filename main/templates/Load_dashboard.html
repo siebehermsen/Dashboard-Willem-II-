@@ -382,6 +382,32 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
     box-shadow: 0 8px 18px rgba(31, 42, 68, 0.14);
 }
 
+.home-agenda-event.category-training {
+    background: #45ad4f;
+}
+
+.home-agenda-event.category-kracht {
+    background: #6f1aa3;
+}
+
+.home-agenda-event.category-testing,
+.home-agenda-event.category-data {
+    background: #5d6fc4;
+}
+
+.home-agenda-event.category-wedstrijd,
+.home-agenda-event.category-toernooi {
+    background: #ef3434;
+}
+
+.home-agenda-event.category-rust {
+    background: #9b9b9b;
+}
+
+.home-agenda-event.category-overig {
+    background: #1ca89c;
+}
+
 .home-agenda-event::before {
     content: "";
     position: absolute;
@@ -397,6 +423,15 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
     display: block;
     font-weight: 900;
     line-height: 1.2;
+}
+
+.home-agenda-event-meta {
+    display: block;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 4px;
 }
 
 .home-agenda-event-notes {
@@ -1273,9 +1308,57 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                         <input id="appWeekDate" type="date" name="date" required>
                     </div>
                     <div class="dashboard-app-form-group">
-                        <label for="appWeekActivities">Activiteiten</label>
-                        <input id="appWeekActivities" type="text" name="activities" required>
+                        <label for="appWeekTeam">Team</label>
+                        <select id="appWeekTeam" name="team" required>
+                            <option value="">Kies team</option>
+                            <option value="O12">O12</option>
+                            <option value="O13">O13</option>
+                            <option value="O14">O14</option>
+                            <option value="O15">O15</option>
+                            <option value="O16">O16</option>
+                            <option value="O17">O17</option>
+                            <option value="O19">O19</option>
+                            <option value="O21">O21</option>
+                        </select>
                     </div>
+                    <div class="dashboard-app-form-group">
+                        <label for="appWeekCategory">Categorie</label>
+                        <select id="appWeekCategory" name="category" required>
+                            <option value="training">Training</option>
+                            <option value="kracht">Krachttraining</option>
+                            <option value="testing">Testing</option>
+                            <option value="data">Data</option>
+                            <option value="wedstrijd">Wedstrijd</option>
+                            <option value="toernooi">Toernooi</option>
+                            <option value="rust">Rustdag</option>
+                            <option value="overig">Overig</option>
+                        </select>
+                    </div>
+                    <div class="dashboard-app-form-group">
+                        <label for="appWeekContext">Context</label>
+                        <input id="appWeekContext" type="text" name="context">
+                    </div>
+                    <div class="dashboard-app-form-group">
+                        <label for="appWeekLocation">Locatie</label>
+                        <input id="appWeekLocation" type="text" name="location">
+                    </div>
+                    <div class="dashboard-app-form-group">
+                        <label for="appWeekStartTime">Starttijd</label>
+                        <input id="appWeekStartTime" type="time" name="start_time">
+                    </div>
+                    <div class="dashboard-app-form-group">
+                        <label for="appWeekEndTime">Eindtijd</label>
+                        <input id="appWeekEndTime" type="time" name="end_time">
+                    </div>
+                    <div class="dashboard-app-form-group">
+                        <label for="appWeekResponsible">Verantwoordelijke</label>
+                        <input id="appWeekResponsible" type="text" name="responsible">
+                    </div>
+                    <div class="dashboard-app-form-group">
+                        <label for="appWeekPhysicalNote">Fysieke notitie</label>
+                        <input id="appWeekPhysicalNote" type="text" name="physical_note">
+                    </div>
+                    <input id="appWeekActivities" type="hidden" name="activities" value="Agenda-item">
                     <div class="dashboard-app-form-group">
                         <label for="appWeekNotes">Bijzonderheden</label>
                         <input id="appWeekNotes" type="text" name="notes">
@@ -1426,10 +1509,23 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                 <div class="home-agenda-day-head">{{ day.label }}</div>
                 <div class="home-agenda-items">
                     {% for item in day.items %}
-                        <div class="home-agenda-event">
-                            <span class="home-agenda-event-title">{{ item.activities }}</span>
-                            {% if item.notes %}
-                                <span class="home-agenda-event-notes">{{ item.notes }}</span>
+                        <div class="home-agenda-event category-{{ item.css_category }}">
+                            <span class="home-agenda-event-meta">
+                                {% if item.entry.start_time %}{{ item.entry.start_time|time:"H:i" }}{% endif %}
+                                {% if item.entry.end_time %} - {{ item.entry.end_time|time:"H:i" }}{% endif %}
+                                {% if item.entry.team %} · {{ item.entry.team }}{% endif %}
+                            </span>
+                            <span class="home-agenda-event-title">
+                                {{ item.category_label }}
+                                {% if item.entry.context %} - {{ item.entry.context }}{% endif %}
+                            </span>
+                            {% if item.entry.location or item.entry.responsible or item.entry.notes or item.entry.physical_note %}
+                                <span class="home-agenda-event-notes">
+                                    {% if item.entry.location %}{{ item.entry.location }}{% endif %}
+                                    {% if item.entry.responsible %}{% if item.entry.location %} · {% endif %}{{ item.entry.responsible }}{% endif %}
+                                    {% if item.entry.notes %}{% if item.entry.location or item.entry.responsible %} · {% endif %}{{ item.entry.notes }}{% endif %}
+                                    {% if item.entry.physical_note %}{% if item.entry.location or item.entry.responsible or item.entry.notes %} · {% endif %}{{ item.entry.physical_note }}{% endif %}
+                                </span>
                             {% endif %}
                         </div>
                     {% empty %}
@@ -1526,7 +1622,9 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
 ">
     <div class="modal-content" style="
         background: white;
-        width: 420px;
+        width: min(620px, calc(100vw - 32px));
+        max-height: min(860px, calc(100vh - 44px));
+        overflow-y: auto;
         padding: 30px;
         border-radius: 12px;
         box-shadow: 0 6px 25px rgba(0,0,0,0.2);
@@ -1566,15 +1664,105 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
                 ">
             </div>
 
-            <!-- Activiteiten -->
+            <!-- Team -->
             <div style="display: flex; flex-direction: column; gap: 5px;">
-                <label style="font-weight: 500;">Activiteiten</label>
-                <input type="text" name="activities" required class="form-control" style="
+                <label style="font-weight: 500;">Team</label>
+                <select name="team" required class="form-control" style="
+                    padding: 8px;
+                    border-radius: 6px;
+                    border: 1px solid #ccc;
+                ">
+                    <option value="">Kies team</option>
+                    <option value="O12">O12</option>
+                    <option value="O13">O13</option>
+                    <option value="O14">O14</option>
+                    <option value="O15">O15</option>
+                    <option value="O16">O16</option>
+                    <option value="O17">O17</option>
+                    <option value="O19">O19</option>
+                    <option value="O21">O21</option>
+                </select>
+            </div>
+
+            <!-- Categorie -->
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 500;">Categorie</label>
+                <select name="category" required class="form-control" style="
+                    padding: 8px;
+                    border-radius: 6px;
+                    border: 1px solid #ccc;
+                ">
+                    <option value="training">Training</option>
+                    <option value="kracht">Krachttraining</option>
+                    <option value="testing">Testing</option>
+                    <option value="data">Data</option>
+                    <option value="wedstrijd">Wedstrijd</option>
+                    <option value="toernooi">Toernooi</option>
+                    <option value="rust">Rustdag</option>
+                    <option value="overig">Overig</option>
+                </select>
+            </div>
+
+            <!-- Context -->
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 500;">Context</label>
+                <input type="text" name="context" class="form-control" placeholder="Bijv. Opstart, Scherp, Sneller herstellen" style="
                     padding: 8px;
                     border-radius: 6px;
                     border: 1px solid #ccc;
                 ">
             </div>
+
+            <!-- Locatie -->
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 500;">Locatie</label>
+                <input type="text" name="location" class="form-control" placeholder="Bijv. Veld 1, Gym, Hengelo" style="
+                    padding: 8px;
+                    border-radius: 6px;
+                    border: 1px solid #ccc;
+                ">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-weight: 500;">Starttijd</label>
+                    <input type="time" name="start_time" class="form-control" style="
+                        padding: 8px;
+                        border-radius: 6px;
+                        border: 1px solid #ccc;
+                    ">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-weight: 500;">Eindtijd</label>
+                    <input type="time" name="end_time" class="form-control" style="
+                        padding: 8px;
+                        border-radius: 6px;
+                        border: 1px solid #ccc;
+                    ">
+                </div>
+            </div>
+
+            <!-- Verantwoordelijke -->
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 500;">Verantwoordelijke</label>
+                <input type="text" name="responsible" class="form-control" style="
+                    padding: 8px;
+                    border-radius: 6px;
+                    border: 1px solid #ccc;
+                ">
+            </div>
+
+            <!-- Fysieke notitie -->
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 500;">Fysieke notitie</label>
+                <input type="text" name="physical_note" class="form-control" style="
+                    padding: 8px;
+                    border-radius: 6px;
+                    border: 1px solid #ccc;
+                ">
+            </div>
+
+            <input type="hidden" name="activities" value="Agenda-item">
 
             <!-- Bijzonderheden -->
             <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -1699,31 +1887,6 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
         {% endif %}
     </div>
 </div>
-
-<!-- ðŸ—“ï¸ MODAL: Trainingsdag toevoegen -->
-<div id="weekModal" class="modal" style="display:none;">
-    <div class="modal-content">
-        <span class="close" id="closeWeekModal">&times;</span>
-        <h3>Trainingsdag toevoegen</h3>
-
-        <form action="{% url 'add_weekday' %}" method="POST">
-            {% csrf_token %}
-
-            <label>Datum</label>
-            <input type="date" name="date" required>
-
-            <label>Activiteiten</label>
-            <input type="text" name="activities" required>
-
-            <label>Bijzonderheden</label>
-            <input type="text" name="notes">
-
-            <button type="submit" class="primary-btn">Opslaan</button>
-            <button type="button" class="secondary-btn" id="closeWeekModal">Annuleren</button>
-        </form>
-    </div>
-</div>
-
 
 <!-- â­ SCRIPT: Trainingsdag modal openen/sluiten -->
 <script>

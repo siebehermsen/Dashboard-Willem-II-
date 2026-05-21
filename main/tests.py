@@ -301,6 +301,34 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(post_response.status_code, 302)
         self.assertFalse(DayProgramEntry.objects.filter(id=day.id).exists())
 
+    def test_add_weekday_persists_academy_agenda_fields(self):
+        response = self.client.post(
+            reverse("add_weekday"),
+            {
+                "date": "2026-05-21",
+                "team": "O17",
+                "category": "kracht",
+                "context": "Opstart",
+                "location": "Hengelo",
+                "start_time": "09:00",
+                "end_time": "11:00",
+                "responsible": "Siebe",
+                "physical_note": "Snel herstel",
+                "activities": "Agenda-item",
+                "notes": "Veld 1",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        entry = DayProgramEntry.objects.get(date=date(2026, 5, 21), team="O17")
+        self.assertEqual(entry.category, "kracht")
+        self.assertEqual(entry.context, "Opstart")
+        self.assertEqual(entry.location, "Hengelo")
+        self.assertEqual(entry.start_time.strftime("%H:%M"), "09:00")
+        self.assertEqual(entry.end_time.strftime("%H:%M"), "11:00")
+        self.assertEqual(entry.responsible, "Siebe")
+        self.assertEqual(entry.physical_note, "Snel herstel")
+
     def test_staf_page_admin_can_create_player(self):
         response = self.client.post(
             reverse("staf"),
