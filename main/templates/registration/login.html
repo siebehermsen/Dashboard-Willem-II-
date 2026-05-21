@@ -4,31 +4,32 @@
     {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inloggen - Willem II Dashboard</title>
+    <title>Inloggen - NEC Dashboard</title>
     <link rel="manifest" href="{% static 'manifest.json' %}?v=5">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}?v=3">
     <link rel="icon" type="image/png" sizes="192x192" href="{% static 'icons/icon-192.png' %}?v=3">
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
-    <meta name="theme-color" content="#1e2a44">
-    <meta name="description" content="Log in op het Willem II Dashboard voor performance, monitoring, planning en teamoverzicht.">
-    <meta property="og:site_name" content="Willem II Dashboard">
-    <meta property="og:title" content="Willem II Dashboard">
-    <meta property="og:description" content="Online dashboard voor performance, monitoring, planning en teamoverzicht binnen Willem II.">
+    <meta name="theme-color" content="#07100c">
+    <meta name="description" content="Log in op het NEC Dashboard voor performance, monitoring, planning en teamoverzicht.">
+    <meta property="og:site_name" content="NEC Dashboard">
+    <meta property="og:title" content="NEC Dashboard">
+    <meta property="og:description" content="Online dashboard voor performance, monitoring, planning en teamoverzicht binnen NEC.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'icons/icon-512.png' %}">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Willem II Dashboard">
-    <meta name="twitter:description" content="Online dashboard voor performance, monitoring, planning en teamoverzicht binnen Willem II.">
-    <meta name="application-name" content="Willem II Dashboard">
+    <meta name="twitter:title" content="NEC Dashboard">
+    <meta name="twitter:description" content="Online dashboard voor performance, monitoring, planning en teamoverzicht binnen NEC.">
+    <meta name="application-name" content="NEC Dashboard">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Willem II">
+    <meta name="apple-mobile-web-app-title" content="NEC">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <style>
         :root {
-            --w2-navy: #1b2745;
-            --w2-red: #d2232a;
-            --w2-gold: #d7b56d;
+            --nec-black: #050506;
+            --nec-charcoal: #111816;
+            --nec-red: #d71920;
+            --nec-green: #008f55;
             --text: #152443;
             --muted: #657392;
             --line: #d5def0;
@@ -54,7 +55,7 @@
 
         .photo-side {
             position: relative;
-            background-color: #10172b;
+            background-color: var(--nec-black);
             background-position: center;
             background-size: cover;
             background-repeat: no-repeat;
@@ -65,7 +66,10 @@
             content: "";
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg, rgba(16, 23, 43, 0.2) 0%, rgba(16, 23, 43, 0.65) 100%);
+            background:
+                radial-gradient(circle at 18% 12%, rgba(215, 25, 32, 0.30), transparent 32%),
+                radial-gradient(circle at 78% 18%, rgba(0, 143, 85, 0.24), transparent 34%),
+                linear-gradient(180deg, rgba(5, 5, 6, 0.24) 0%, rgba(5, 5, 6, 0.76) 100%);
             pointer-events: none;
         }
 
@@ -73,7 +77,7 @@
             content: "";
             position: absolute;
             inset: 0;
-            background: radial-gradient(120% 80% at 20% 80%, rgba(210, 35, 42, 0.28), transparent 60%);
+            background: linear-gradient(115deg, rgba(215, 25, 32, 0.20) 0%, rgba(0, 143, 85, 0.10) 48%, rgba(5, 5, 6, 0.28) 100%);
             pointer-events: none;
         }
 
@@ -85,25 +89,53 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(255, 255, 255, 0.85);
-            border-radius: 12px;
-            padding: 8px 12px;
-            backdrop-filter: blur(3px);
+            background: rgba(5, 5, 6, 0.58);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 16px;
+            padding: 10px 14px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 16px 30px rgba(0, 0, 0, 0.22);
         }
 
         .club-chip img {
-            width: 24px;
-            height: 24px;
-            border-radius: 5px;
-            object-fit: cover;
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.32));
         }
 
         .club-chip span {
             font-size: 0.78rem;
             letter-spacing: 0.4px;
             font-weight: 700;
-            color: var(--w2-navy);
+            color: #ffffff;
+        }
+
+        .photo-caption {
+            position: absolute;
+            left: 28px;
+            right: 28px;
+            bottom: 30px;
+            z-index: 2;
+            color: #ffffff;
+        }
+
+        .photo-caption span {
+            display: inline-block;
+            margin-bottom: 10px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .photo-caption h2 {
+            margin: 0;
+            max-width: 620px;
+            font-size: clamp(2.2rem, 5vw, 4.8rem);
+            line-height: 0.96;
+            letter-spacing: -0.04em;
         }
 
 
@@ -112,8 +144,8 @@
             place-items: center;
             padding: 26px;
             background:
-                radial-gradient(700px 300px at 100% -20%, rgba(27, 39, 69, 0.1), transparent 60%),
-                radial-gradient(700px 300px at 0% 120%, rgba(210, 35, 42, 0.11), transparent 60%),
+                radial-gradient(700px 300px at 100% -20%, rgba(0, 143, 85, 0.12), transparent 60%),
+                radial-gradient(700px 300px at 0% 120%, rgba(215, 25, 32, 0.14), transparent 60%),
                 #f7f9fd;
         }
 
@@ -134,19 +166,19 @@
         .logo-round {
             width: 64px;
             height: 64px;
-            border-radius: 50%;
-            border: 3px solid #fff;
+            border-radius: 0;
+            border: 0;
             object-fit: contain;
-            background: #e8edf6;
-            padding: 6px;
-            box-shadow: 0 6px 16px rgba(17, 29, 57, 0.2);
+            background: transparent;
+            padding: 0;
+            filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.18));
             display: inline-block;
         }
 
         .card-head h1 {
             margin: 10px 0 0;
             font-size: 1.8rem;
-            color: var(--w2-navy);
+            color: var(--nec-black);
         }
 
         .card-head p {
@@ -177,7 +209,7 @@
         label {
             font-size: 0.88rem;
             font-weight: 700;
-            color: var(--w2-navy);
+            color: var(--nec-black);
         }
 
         input[type="text"],
@@ -213,7 +245,7 @@
         }
 
         .toggle-password:hover {
-            color: var(--w2-navy);
+            color: var(--nec-black);
         }
 
         .remember {
@@ -229,7 +261,7 @@
             width: 16px;
             height: 16px;
             margin: 0;
-            accent-color: var(--w2-red);
+            accent-color: var(--nec-red);
         }
 
         .btn {
@@ -237,7 +269,7 @@
             height: 46px;
             border: 0;
             border-radius: 11px;
-            background: linear-gradient(180deg, #ef3a43 0%, #c91923 100%);
+            background: linear-gradient(135deg, var(--nec-red) 0%, #a90f16 52%, var(--nec-black) 100%);
             color: #fff;
             font-size: 1.04rem;
             font-weight: 700;
@@ -251,7 +283,7 @@
             width: 66px;
             height: 4px;
             border-radius: 999px;
-            background: linear-gradient(90deg, var(--w2-gold), var(--w2-red));
+            background: linear-gradient(90deg, var(--nec-red), var(--nec-green), var(--nec-black));
             opacity: 0.95;
         }
 
@@ -281,16 +313,20 @@
     <main class="layout">
         <section class="photo-side" aria-hidden="true">
             <div class="club-chip">
-                <img src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg" alt="Willem II">
-                <span>WILLEM II</span>
+                <img src="{% static 'icons/nec-logo.svg' %}" alt="NEC">
+                <span>NEC NIJMEGEN</span>
+            </div>
+            <div class="photo-caption">
+                <span>Performance omgeving</span>
+                <h2>Rood, groen en zwart in een dashboard.</h2>
             </div>
         </section>
 
         <section class="login-side">
             <div class="card">
                 <div class="card-head">
-                    <img class="logo-round" src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg" alt="Willem II logo">
-                    <h1>Willem II Dashboard</h1>
+                    <img class="logo-round" src="{% static 'icons/nec-logo.svg' %}" alt="NEC logo">
+                    <h1>NEC Dashboard</h1>
                     <p>Log in om toegang te krijgen</p>
                 </div>
 
@@ -331,16 +367,9 @@
     <script>
         (function () {
             var images = [
-                "https://images.bd.nl/MTU0YjJkNWQyMTQ1NDk4YmNlZGEvZGlvLzI3MDU2OTY5OC9mb2N1cy1hbmQtZmlsbC8wLjYyLzAuMzQvNDgwLzM2MA/blijdschap-bij-uriel-van-aalst-na-zijn-allereerste-goal-als-prof",
-                "https://api.omroepbrabant.nl/img/f/768/432/0.5/0.15/bWVkaWEvcHJvZC80NzE1NzY1LmpwZz9zdj0yMDE5LTA3LTA3JnN0PTIwMjAtMDEtMDFUMDAlM0EwMCUzQTAwWiZzZT0yMDQwLTAxLTAxVDAwJTNBMDAlM0EwMFomc3I9YiZzcD1yJnNpZz10TlVhMEkxaUE2MzdMOFNXd0U4aXFiOW1wOXR3dUslMkJEWU1rTmtYUk5ibU0lM0Q=",
-                "https://www.willem-ii.nl/sites/default/files/styles/gallery_thumbnail/public/2025-07/20250630_WIllemII-shirt_1_Fotografie%20Jules%20van%20Iperen_06A9592.jpg.webp?itok=keS4GiXP",
-                "https://www.willem-ii.nl/sites/default/files/styles/news/public/2026-02/76704-Geert-van-Erven.jpg.webp?h=600ba69b&itok=mh_xz01H",
-                "https://www.voetbalshirts.com/media/iyvf5uep/willem-ii-3e-shirt-2025-2026.jpg?width=450&height=450&format=webp&quality=65&rnd=134024553154570000",
-                "https://www.willem-ii.nl/sites/default/files/2025-07/20250630_WIllemII-shirt_1_Fotografie%20Jules%20van%20Iperen_06A9414.jpg",
-                "https://www.willem-ii.nl/sites/default/files/styles/header/public/2026-01/72864-Jules-van-Iperen-Fotografie.jpg.webp?h=4b80616e&itok=WnaR-ugt",
-                "https://cdn.bnmedia.nl/_1098x732_crop_center-center_80_none/Copyright-ProShots-29901872.jpg",
-                "https://webp.vi.cdn.pxr.nl/news/2026/01/18/6c90742bd294a998bf73d238b03c88edaa4c2bce.jpg?width=1200&height=900",
-                "https://images.bd.nl/MGYyZDA1YTEzOGUwMzAzZmI2ZTEvZGlvLzI2NTk4MDMzMS9mb2N1cy1hbmQtZmlsbC8wLjUwLzAuNTAvNDgwLzM2MA/fc-den-bosch-willem-ii-eerder-dit-seizoen"
+                "{% static 'img/login/nec-login-sano.webp' %}",
+                "{% static 'img/login/nec-login-nejasmic.jpg' %}",
+                "{% static 'img/login/nec-login-sfeer.jpg' %}"
             ];
             var choice = images[Math.floor(Math.random() * images.length)];
             var side = document.querySelector(".photo-side");
