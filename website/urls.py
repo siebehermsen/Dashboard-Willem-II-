@@ -53,6 +53,7 @@ urlpatterns = [
     path("upload_wedstrijddata/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE)(views.upload_wedstrijddata), name="upload_wedstrijddata"),
     path("testdata/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, allow_read_only_get=True)(views.testdata), name="testdata"),
     path("wellness/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, ROLE_TRAINER, allow_read_only_get=True)(views.wellness), name="wellness"),
+    path("academie/<str:team_code>/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.academie_team), name="academie_team"),
     path("individuele_programmas/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.individuele_programmas), name="individuele_programmas"),
     path("individueel_programma_opslaan/<int:player_id>/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER)(views.individueel_programma_opslaan), name="individueel_programma_opslaan"),
     path("rpe/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.rpe_view), name="rpe"),

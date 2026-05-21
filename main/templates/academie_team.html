@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Academie {{ selected_team_label }}{% endblock %}
+
+{% block content %}
+<style>
+.academy-page {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 28px;
+    margin: 0 auto;
+    max-width: 1540px;
+    padding: 26px 24px 56px;
+}
+.academy-side {
+    position: sticky;
+    top: 110px;
+    align-self: start;
+    background: #f8fafc;
+    border-right: 1px solid #d9e1eb;
+    min-height: calc(100vh - 150px);
+    padding: 8px 18px 24px 0;
+}
+.academy-side-title {
+    color: #1f2a44;
+    font-size: 0.86rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    margin: 0 0 18px;
+    text-transform: uppercase;
+}
+.academy-team-link {
+    display: block;
+    margin: 0 0 14px;
+    padding: 14px 18px;
+    border: 1px solid #d7e0ea;
+    border-radius: 8px;
+    background: #e9eef5;
+    color: #263248;
+    font-weight: 800;
+    text-decoration: none;
+}
+.academy-team-link.is-active {
+    background: #cf202f;
+    border-color: #cf202f;
+    color: #fff;
+}
+.academy-main {
+    min-width: 0;
+}
+.academy-tabs {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 34px;
+}
+.academy-tab-btn {
+    min-width: 150px;
+    border: 0;
+    border-radius: 7px;
+    background: #ececec;
+    color: #2b2d33;
+    cursor: pointer;
+    font-weight: 900;
+    padding: 15px 22px;
+}
+.academy-tab-btn.is-active {
+    background: #cf202f;
+    color: #fff;
+}
+.academy-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 26px;
+}
+.academy-eyebrow {
+    color: #677187;
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+.academy-title {
+    color: #1f2a44;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    line-height: 1;
+    margin: 0;
+}
+.academy-logo {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    filter: drop-shadow(0 16px 24px rgba(31, 42, 68, 0.16));
+}
+.academy-panel {
+    display: none;
+}
+.academy-panel.is-active {
+    display: block;
+}
+.academy-card {
+    background: #fff;
+    border: 1px solid #dde5ef;
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(31, 42, 68, 0.08);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+.academy-card-head {
+    align-items: center;
+    border-bottom: 1px solid #e4e9f1;
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 22px;
+}
+.academy-card-head h2,
+.academy-card-head h3 {
+    color: #1f2a44;
+    margin: 0;
+}
+.academy-card-body {
+    padding: 22px;
+}
+.academy-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+}
+.academy-kpi {
+    background: #f6f8fb;
+    border: 1px solid #dde5ef;
+    border-radius: 10px;
+    padding: 18px;
+}
+.academy-kpi span {
+    color: #69758c;
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+.academy-kpi strong {
+    color: #1f2a44;
+    font-size: 2rem;
+    line-height: 1;
+}
+.academy-table-wrap {
+    overflow-x: auto;
+}
+.academy-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+.academy-table th {
+    background: #efefef;
+    color: #667085;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+}
+.academy-table th,
+.academy-table td {
+    border-bottom: 1px solid #edf1f6;
+    padding: 14px 16px;
+}
+.academy-table td {
+    color: #263248;
+    font-weight: 700;
+}
+.academy-muted {
+    color: #6b7589;
+    font-weight: 700;
+}
+.academy-open-link {
+    color: #cf202f;
+    font-weight: 900;
+    text-decoration: none;
+}
+.academy-chart {
+    min-height: 320px;
+}
+@media (max-width: 900px) {
+    .academy-page {
+        grid-template-columns: 1fr;
+    }
+    .academy-side {
+        position: static;
+        min-height: 0;
+        border-right: 0;
+        padding-right: 0;
+    }
+    .academy-kpis {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+}
+</style>
+
+<div class="academy-page">
+    <aside class="academy-side">
+        <p class="academy-side-title">Naar teamomgeving</p>
+        {% for code in academy_codes %}
+            <a class="academy-team-link {% if code == selected_team_code %}is-active{% endif %}" href="{% url 'academie_team' code %}">{{ code }}</a>
+        {% endfor %}
+    </aside>
+
+    <main class="academy-main">
+        <div class="academy-header">
+            <div>
+                <div class="academy-eyebrow">NEC Academie</div>
+                <h1 class="academy-title">{{ selected_team_label }}</h1>
+            </div>
+            <img class="academy-logo" src="{% static 'icons/nec-logo.svg' %}" alt="NEC logo">
+        </div>
+
+        <nav class="academy-tabs" aria-label="Academie onderdelen">
+            <button class="academy-tab-btn is-active" type="button" data-academy-tab="gps">GPS-data</button>
+            <button class="academy-tab-btn" type="button" data-academy-tab="test">Testdata</button>
+            <button class="academy-tab-btn" type="button" data-academy-tab="match">Wedstrijddata</button>
+        </nav>
+
+        {% if not team_exists %}
+            <section class="academy-card">
+                <div class="academy-card-head">
+                    <h2>Team nog niet aangemaakt</h2>
+                </div>
+                <div class="academy-card-body academy-muted">
+                    Maak team {{ selected_team_code }} eerst aan en koppel spelers via de stafpagina of admin.
+                </div>
+            </section>
+        {% endif %}
+
+        <section class="academy-panel is-active" data-academy-panel="gps">
+            <article class="academy-card">
+                <div class="academy-card-head">
+                    <h2>GPS-data</h2>
+                    <span class="academy-muted">Laatste beschikbare 30 dagen</span>
+                </div>
+                <div class="academy-card-body">
+                    <div class="academy-kpis">
+                        <div class="academy-kpi"><span>Load</span><strong>{{ gps_totals.load|floatformat:0 }}</strong></div>
+                        <div class="academy-kpi"><span>Afstand</span><strong>{{ gps_totals.distance|floatformat:0 }}</strong></div>
+                        <div class="academy-kpi"><span>HSD</span><strong>{{ gps_totals.hsd|floatformat:0 }}</strong></div>
+                        <div class="academy-kpi"><span>Sprints</span><strong>{{ gps_totals.sprints|floatformat:0 }}</strong></div>
+                    </div>
+                    <div class="academy-chart">
+                        <canvas id="academyGpsChart"></canvas>
+                    </div>
+                </div>
+            </article>
+
+            <article class="academy-card">
+                <div class="academy-card-head">
+                    <h3>Spelers GPS</h3>
+                </div>
+                <div class="academy-table-wrap">
+                    <table class="academy-table">
+                        <thead>
+                            <tr>
+                                <th>Speler</th>
+                                <th>Sessies</th>
+                                <th>Load</th>
+                                <th>Afstand</th>
+                                <th>HSD</th>
+                                <th>Sprints</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in gps_rows %}
+                                <tr>
+                                    <td>{{ row.player.name }}</td>
+                                    <td>{{ row.sessions }}</td>
+                                    <td>{{ row.load|floatformat:0 }}</td>
+                                    <td>{{ row.total_distance|floatformat:0 }}</td>
+                                    <td>{{ row.hsd|floatformat:0 }}</td>
+                                    <td>{{ row.sprints|floatformat:0 }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="6" class="academy-muted">Nog geen GPS-data voor dit team.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+
+        <section class="academy-panel" data-academy-panel="test">
+            <article class="academy-card">
+                <div class="academy-card-head">
+                    <h2>Testdata</h2>
+                    <span class="academy-muted">Laatste test per speler</span>
+                </div>
+                <div class="academy-table-wrap">
+                    <table class="academy-table">
+                        <thead>
+                            <tr>
+                                <th>Speler</th>
+                                <th>Datum</th>
+                                <th>10m</th>
+                                <th>30m</th>
+                                <th>CMJ</th>
+                                <th>ISRT</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in test_table_rows %}
+                                <tr>
+                                    <td>{{ item.player.name }}</td>
+                                    {% if item.row %}
+                                        <td>{{ item.row.session_date|date:"d-m-Y" }}</td>
+                                        <td>{{ item.row.sprint_10|default:"-" }}</td>
+                                        <td>{{ item.row.sprint_30|default:"-" }}</td>
+                                        <td>{{ item.row.cmj|default:"-" }}</td>
+                                        <td>{{ item.row.isrt|default:"-" }}</td>
+                                        <td><a class="academy-open-link" href="{{ item.test_url }}">Open</a></td>
+                                    {% else %}
+                                        <td colspan="6" class="academy-muted">Geen testdata gevonden.</td>
+                                    {% endif %}
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="7" class="academy-muted">Geen spelers in dit team.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+
+        <section class="academy-panel" data-academy-panel="match">
+            <article class="academy-card">
+                <div class="academy-card-head">
+                    <h2>Wedstrijddata</h2>
+                    <span class="academy-muted">Laatste wedstrijd per speler</span>
+                </div>
+                <div class="academy-card-body">
+                    <div class="academy-kpis">
+                        <div class="academy-kpi"><span>Wedstrijden</span><strong>{{ match_totals.matches }}</strong></div>
+                        <div class="academy-kpi"><span>Load</span><strong>{{ match_totals.load|floatformat:0 }}</strong></div>
+                        <div class="academy-kpi"><span>Afstand</span><strong>{{ match_totals.distance|floatformat:0 }}</strong></div>
+                        <div class="academy-kpi"><span>Sprints</span><strong>{{ match_totals.sprints|floatformat:0 }}</strong></div>
+                    </div>
+                    <div class="academy-chart">
+                        <canvas id="academyMatchChart"></canvas>
+                    </div>
+                </div>
+                <div class="academy-table-wrap">
+                    <table class="academy-table">
+                        <thead>
+                            <tr>
+                                <th>Speler</th>
+                                <th>Datum</th>
+                                <th>Week</th>
+                                <th>Load</th>
+                                <th>Afstand</th>
+                                <th>HSD</th>
+                                <th>Sprints</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in match_table_rows %}
+                                <tr>
+                                    <td>{{ item.player.name }}</td>
+                                    {% if item.row %}
+                                        <td>{{ item.row.session_date|date:"d-m-Y" }}</td>
+                                        <td>{{ item.row.week|default:"-" }}</td>
+                                        <td>{{ item.row.load|floatformat:0 }}</td>
+                                        <td>{{ item.row.total_distance|floatformat:0 }}</td>
+                                        <td>{{ item.row.hsd|floatformat:0 }}</td>
+                                        <td>{{ item.row.sprints|floatformat:0 }}</td>
+                                    {% else %}
+                                        <td colspan="6" class="academy-muted">Geen wedstrijddata gevonden.</td>
+                                    {% endif %}
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="7" class="academy-muted">Geen spelers in dit team.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tabButtons = document.querySelectorAll("[data-academy-tab]");
+    const panels = document.querySelectorAll("[data-academy-panel]");
+    tabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const target = button.dataset.academyTab;
+            tabButtons.forEach((btn) => btn.classList.toggle("is-active", btn === button));
+            panels.forEach((panel) => panel.classList.toggle("is-active", panel.dataset.academyPanel === target));
+        });
+    });
+
+    const gpsCanvas = document.getElementById("academyGpsChart");
+    if (gpsCanvas) {
+        new Chart(gpsCanvas, {
+            type: "bar",
+            data: {
+                labels: {{ gps_chart_labels|safe }},
+                datasets: [
+                    { label: "Load", data: {{ gps_chart_load|safe }}, backgroundColor: "#1f2a44" },
+                    { label: "Afstand", data: {{ gps_chart_distance|safe }}, backgroundColor: "#cf202f" }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    const matchCanvas = document.getElementById("academyMatchChart");
+    if (matchCanvas) {
+        new Chart(matchCanvas, {
+            type: "bar",
+            data: {
+                labels: {{ match_chart_labels|safe }},
+                datasets: [
+                    { label: "Wedstrijd load", data: {{ match_chart_load|safe }}, backgroundColor: "#cf202f" }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+});
+</script>
+{% endblock %}

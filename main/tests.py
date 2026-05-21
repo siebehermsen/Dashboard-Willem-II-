@@ -24,6 +24,8 @@ from .models import (
     RPETrainingType,
     Staff,
     StaffRole,
+    Team,
+    PlayerTeamAssignment,
     WeightEntry,
     WellnessEntry,
 )
@@ -80,6 +82,22 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/login/", response["Location"])
         self.assertIn("next=/dashboard/", response["Location"])
+
+    def test_academie_team_page_shows_team_environment(self):
+        team = Team.objects.create(code="O17", name="O17")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team,
+            start_date=date(2026, 1, 1),
+        )
+
+        response = self.client.get(reverse("academie_team", args=["O17"]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "GPS-data")
+        self.assertContains(response, "Testdata")
+        self.assertContains(response, "Wedstrijddata")
+        self.assertContains(response, self.player.name)
 
     def test_wellness_post_creates_and_updates_one_entry_per_player_date(self):
         payload = {

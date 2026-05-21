@@ -2203,6 +2203,131 @@ def testdata(request):
     return render(request, "testdata.html", context)
 
 
+def academie_team(request, team_code):
+    import json
+
+    academy_codes = ["O21", "O19", "O17", "O16", "O15", "O14", "O13", "O12"]
+    requested_code = (team_code or "").strip().upper()
+    if requested_code not in academy_codes:
+        requested_code = "O21"
+
+    team_obj = Team.objects.filter(
+        Q(code__iexact=requested_code) | Q(name__iexact=requested_code),
+        is_active=True,
+    ).first()
+    team_label = team_obj.name if team_obj else requested_code
+
+    players = Player.objects.select_related("position_ref", "monitoring_profile").none()
+    if team_obj:
+        today = timezone.localdate()
+        players = (
+            Player.objects
+            .select_related("position_ref", "monitoring_profile")
+            .filter(
+                is_active=True,
+                team_assignments__team=team_obj,
+            )
+            .filter(Q(team_assignments__end_date__isnull=True) | Q(team_assignments__end_date__gte=today))
+            .distinct()
+            .order_by("name")
+        )
+
+    player_ids = set(players.values_list("id", flat=True))
+
+    def team_rows(session_kind):
+        return [row for row in fetch_performance_rows(session_kind) if row["player_id"] in player_ids]
+
+    training_rows = team_rows("training")
+    match_rows = team_rows("match")
+    test_rows = team_rows("test")
+
+    latest_training_date = max((row["session_date"] for row in training_rows), default=None)
+    gps_start_date = latest_training_date - timedelta(days=29) if latest_training_date else None
+    recent_training_rows = [
+        row for row in training_rows
+        if gps_start_date is None or row["session_date"] >= gps_start_date
+    ]
+
+    def val(row, key):
+        return float(row.get(key) or 0)
+
+    gps_by_player = {}
+    for row in recent_training_rows:
+        data = gps_by_player.setdefault(
+            row["player_id"],
+            {
+                "player": row["player_obj"],
+                "load": 0.0,
+                "total_distance": 0.0,
+                "hsd": 0.0,
+                "sprints": 0.0,
+                "sessions": 0,
+            },
+        )
+        data["load"] += val(row, "load")
+        data["total_distance"] += val(row, "total_distance")
+        data["hsd"] += val(row, "hsd")
+        data["sprints"] += val(row, "sprints")
+        data["sessions"] += 1
+
+    gps_rows = sorted(gps_by_player.values(), key=lambda item: item["load"], reverse=True)
+    gps_totals = {
+        "load": sum(item["load"] for item in gps_rows),
+        "distance": sum(item["total_distance"] for item in gps_rows),
+        "hsd": sum(item["hsd"] for item in gps_rows),
+        "sprints": sum(item["sprints"] for item in gps_rows),
+    }
+
+    latest_tests = {}
+    for row in sorted(test_rows, key=lambda item: item["session_date"], reverse=True):
+        latest_tests.setdefault(row["player_id"], row)
+    test_table_rows = [
+        {
+            "player": player,
+            "row": latest_tests.get(player.id),
+            "test_url": f"{reverse('testdata')}?player_id={player.id}&tab=profiel",
+        }
+        for player in players
+    ]
+
+    latest_matches = {}
+    for row in sorted(match_rows, key=lambda item: item["session_date"], reverse=True):
+        latest_matches.setdefault(row["player_id"], row)
+    match_table_rows = [
+        {
+            "player": player,
+            "row": latest_matches.get(player.id),
+        }
+        for player in players
+    ]
+    match_totals = {
+        "load": sum(val(row, "load") for row in match_rows),
+        "distance": sum(val(row, "total_distance") for row in match_rows),
+        "sprints": sum(val(row, "sprints") for row in match_rows),
+        "matches": len(match_rows),
+    }
+
+    context = {
+        "academy_codes": academy_codes,
+        "selected_team_code": requested_code,
+        "selected_team_label": team_label,
+        "team_exists": team_obj is not None,
+        "players": players,
+        "gps_rows": gps_rows,
+        "gps_totals": gps_totals,
+        "test_table_rows": test_table_rows,
+        "match_table_rows": match_table_rows,
+        "match_totals": match_totals,
+        "gps_chart_labels": json.dumps([item["player"].name for item in gps_rows]),
+        "gps_chart_load": json.dumps([round(item["load"], 1) for item in gps_rows]),
+        "gps_chart_distance": json.dumps([round(item["total_distance"], 1) for item in gps_rows]),
+        "match_chart_labels": json.dumps([item["player"].name for item in match_table_rows if item["row"]]),
+        "match_chart_load": json.dumps([round(val(item["row"], "load"), 1) for item in match_table_rows if item["row"]]),
+        "active_page": "academie",
+    }
+    return render(request, "academie_team.html", context)
+
+
 # ---------- PAGINA: HERSTEL ----------
 def recovery(request):
     """Pagina voor herstel- en testanalyse per speler."""
