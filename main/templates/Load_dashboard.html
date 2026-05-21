@@ -55,35 +55,7 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 .academy-team-main {
     display: inline-flex;
     align-items: center;
-    gap: 14px;
     min-width: 0;
-}
-.academy-team-icon {
-    width: 34px;
-    height: 30px;
-    display: inline-block;
-    position: relative;
-    background: #3f4044;
-    border-radius: 8px 8px 5px 5px;
-}
-.academy-team-icon::before,
-.academy-team-icon::after {
-    content: "";
-    position: absolute;
-    top: 4px;
-    width: 13px;
-    height: 18px;
-    background: #3f4044;
-}
-.academy-team-icon::before {
-    left: -8px;
-    transform: rotate(-32deg);
-    border-radius: 5px 2px 4px 4px;
-}
-.academy-team-icon::after {
-    right: -8px;
-    transform: rotate(32deg);
-    border-radius: 2px 5px 4px 4px;
 }
 .academy-team-name {
     font-size: 1.35rem;
@@ -1198,28 +1170,24 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
     <section class="academy-switchboard" aria-label="Academie teams">
         <a class="academy-team-tile academy-team-012" href="{% url 'individuele_programmas' %}?team=O12">
             <span class="academy-team-main">
-                <span class="academy-team-icon" aria-hidden="true"></span>
                 <span class="academy-team-name">O12</span>
             </span>
             <span class="academy-team-arrow" aria-hidden="true"></span>
         </a>
         <a class="academy-team-tile academy-team-013" href="{% url 'individuele_programmas' %}?team=O13">
             <span class="academy-team-main">
-                <span class="academy-team-icon" aria-hidden="true"></span>
                 <span class="academy-team-name">O13</span>
             </span>
             <span class="academy-team-arrow" aria-hidden="true"></span>
         </a>
         <a class="academy-team-tile academy-team-014" href="{% url 'individuele_programmas' %}?team=O14">
             <span class="academy-team-main">
-                <span class="academy-team-icon" aria-hidden="true"></span>
                 <span class="academy-team-name">O14</span>
             </span>
             <span class="academy-team-arrow" aria-hidden="true"></span>
         </a>
         <a class="academy-team-tile academy-team-015" href="{% url 'individuele_programmas' %}?team=O15">
             <span class="academy-team-main">
-                <span class="academy-team-icon" aria-hidden="true"></span>
                 <span class="academy-team-name">O15</span>
             </span>
             <span class="academy-team-arrow" aria-hidden="true"></span>
@@ -1229,28 +1197,24 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         </div>
         <a class="academy-team-tile academy-team-016" href="{% url 'individuele_programmas' %}?team=O16">
             <span class="academy-team-main">
-                <span class="academy-team-icon" aria-hidden="true"></span>
                 <span class="academy-team-name">O16</span>
             </span>
             <span class="academy-team-arrow" aria-hidden="true"></span>
         </a>
         <a class="academy-team-tile academy-team-017" href="{% url 'individuele_programmas' %}?team=O17">
             <span class="academy-team-main">
-                <span class="academy-team-icon" aria-hidden="true"></span>
                 <span class="academy-team-name">O17</span>
             </span>
             <span class="academy-team-arrow" aria-hidden="true"></span>
         </a>
         <a class="academy-team-tile academy-team-019" href="{% url 'individuele_programmas' %}?team=O19">
             <span class="academy-team-main">
-                <span class="academy-team-icon" aria-hidden="true"></span>
                 <span class="academy-team-name">O19</span>
             </span>
             <span class="academy-team-arrow" aria-hidden="true"></span>
         </a>
         <a class="academy-team-tile academy-team-021" href="{% url 'individuele_programmas' %}?team=O21">
             <span class="academy-team-main">
-                <span class="academy-team-icon" aria-hidden="true"></span>
                 <span class="academy-team-name">O21</span>
             </span>
             <span class="academy-team-arrow" aria-hidden="true"></span>
