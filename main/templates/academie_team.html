@@ -5,14 +5,20 @@
 
 {% block content %}
 <style>
+.container:has(.academy-page) {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
 .academy-page {
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
-    gap: 36px;
-    margin: 0 auto;
+    gap: 28px;
+    margin: 0;
     max-width: 100%;
-    width: min(1880px, calc(100vw - 56px));
-    padding: 26px 0 56px;
+    width: 100%;
+    padding: 0 18px 56px 0;
 }
 .academy-side {
     position: sticky;
@@ -21,7 +27,7 @@
     background: #f8fafc;
     border-right: 1px solid #d9e1eb;
     min-height: calc(100vh - 150px);
-    padding: 8px 18px 24px 0;
+    padding: 34px 16px 24px 16px;
 }
 .academy-side-title {
     color: #1f2a44;
@@ -49,6 +55,7 @@
 }
 .academy-main {
     min-width: 0;
+    padding-top: 34px;
 }
 .academy-tabs {
     display: flex;
