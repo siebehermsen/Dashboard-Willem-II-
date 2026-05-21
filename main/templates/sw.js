@@ -1,12 +1,12 @@
-const CACHE_VERSION = 'nec-pwa-v2';
+const CACHE_VERSION = 'nec-pwa-v3';
 const OFFLINE_URL = '/offline/';
 const APP_SHELL_URLS = [
   OFFLINE_URL,
   '/login/',
   '/static/manifest.json',
-  '/static/icons/icon-192.png',
-  '/static/icons/icon-512.png',
-  '/static/icons/apple-touch-icon.png'
+  '/static/icons/nec-pwa-192.png',
+  '/static/icons/nec-pwa-512.png',
+  '/static/icons/nec-apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {
