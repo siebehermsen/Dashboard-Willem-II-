@@ -419,18 +419,6 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
     }
 }
 
-/* ðŸ©¹ REVALIDATIESPELERS */
-.table-rehab { width: 100%; border-collapse: collapse; margin-top: 10px; }
-.table-rehab th, .table-rehab td { border: 1px solid #ddd; padding: 10px; }
-.table-rehab th { background-color: #1f2a44; color: white; }
-.table-rehab tr:nth-child(even) { background-color: #f8f9fb; }
-.status { border-radius: 6px; padding: 4px 8px; font-size: 0.9rem; font-weight: 500; text-align: center; }
-.status-early { background-color: #ffe1e1; color: #b60000; }
-.status-mid { background-color: #fff4cc; color: #b68a00; }
-.status-final { background-color: #e5ffe5; color: #007b00; }
-.progress-bar { width: 100%; height: 8px; border-radius: 6px; background: #eee; overflow: hidden; margin-top: 4px; }
-.progress-fill { height: 100%; transition: width 0.3s; }
-
 /* ðŸ“ˆ GRAFIEKEN */
 .chart-container { width: 100%; max-width: 850px; margin: 40px auto; }
 
@@ -1620,65 +1608,6 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
 </style>
 
 
-<!-- ðŸ©¹ REVALIDATIESPELERS -->
-<div class="card">
-    <div class="card-header">
-        <h2><i data-feather="heart"></i> Revalidatiespelers</h2>
-        <div class="filter-container">
-            <select id="statusFilter" onchange="filterTable()">
-                <option value="all">Alle fases</option>
-                <option value="early">Vroege fase</option>
-                <option value="mid">Middenfase</option>
-                <option value="final">Laatste fase</option>
-            </select>
-
-            <!-- KNOP OM MODAL TE OPENEN -->
-            <button id="openRehabModal" class="primary-btn">Blessure toevoegen</button>
-        </div>
-    </div>
-
-    <table id="rehabTable" class="table-rehab">
-        <thead>
-            <tr>
-                <th>Naam</th>
-                <th>Blessure</th>
-                <th>Startdatum</th>
-                <th>Duur</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for rehab in rehab_players %}
-            <tr data-status="{{ rehab.phase }}">
-                <td>{{ rehab.name }}</td>
-                <td>{{ rehab.injury_type }}</td>
-                <td>{{ rehab.start_date|date:"d-m-Y" }}</td>
-                <td>{{ rehab.duration|default:"-" }}</td>
-                <td>
-                    {% if rehab.phase == 'early' %}
-                        <span class="status status-early">Vroege fase</span>
-                        <div class="progress-bar"><div class="progress-fill" style="width:25%;background:#b60000;"></div></div>
-                    {% elif rehab.phase == 'mid' %}
-                        <span class="status status-mid">Middenfase</span>
-                        <div class="progress-bar"><div class="progress-fill" style="width:55%;background:#b68a00;"></div></div>
-                    {% elif rehab.phase == 'final' %}
-                        <span class="status status-final">Laatste fase</span>
-                        <div class="progress-bar"><div class="progress-fill" style="width:85%;background:#007b00;"></div></div>
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5">Geen revalidatiespelers actief.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <div class="chart-container">
-        <canvas id="rehabChart"></canvas>
-    </div>
-</div>
-
-
 <!-- MEETRAINERS JEUGD DEZE WEEK -->
 <div class="card">
     <div class="card-header">
@@ -1769,105 +1698,6 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
         {% endif %}
     </div>
 </div>
-
-<!-- ðŸ©º MODAL: Blessure toevoegen (ENKEL EN CORRECT) -->
-<div id="rehabModal" style="
-    display: none; 
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    backdrop-filter: blur(3px);
-    z-index: 9999;
-
-    justify-content: center;
-    align-items: center;
-">
-
-    <div style="
-        background: white;
-        width: 420px;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 6px 25px rgba(0,0,0,0.25);
-        animation: fadeIn 0.25s ease-out;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    ">
-
-        <!-- Sluitknop -->
-        <span id="closeRehabModal" style="
-            align-self: flex-end;
-            cursor: pointer;
-            font-size: 26px;
-            margin-top: -10px;
-            color: #444;
-        ">&times;</span>
-
-        <h3 style="
-            font-size: 22px;
-            font-weight: 600;
-            margin: 0;
-            color: #1f2a44;
-        ">
-            Blessure toevoegen
-        </h3>
-
-        <form method="post" action="{% url 'add_rehab' %}"
-              style="display: flex; flex-direction: column; gap: 16px;">
-            {% csrf_token %}
-
-            <div>
-                <label>Naam speler</label>
-                <input type="text" name="name" required
-                    style="padding:10px; border:1px solid #ccc; border-radius:6px;">
-            </div>
-
-            <div>
-                <label>Blessuretype</label>
-                <input type="text" name="injury_type" required
-                    style="padding:10px; border:1px solid #ccc; border-radius:6px;">
-            </div>
-
-            <div>
-                <label>Startdatum</label>
-                <input type="date" name="start_date" required
-                    style="padding:10px; border:1px solid #ccc; border-radius:6px;">
-            </div>
-
-            <div>
-                <label>Duur (dagen)</label>
-                <input type="number" name="duration" min="1" required
-                    style="padding:10px; border:1px solid #ccc; border-radius:6px;">
-            </div>
-
-            <div>
-                <label>Fase</label>
-                <select name="phase" required
-                style="padding:10px; border-radius:6px; border:1px solid #ccc;">
-                    <option value="early">Vroege fase</option>
-                    <option value="mid">Middenfase</option>
-                    <option value="final">Laatste fase</option>
-                </select>
-            </div>
-
-            <div style="display:flex; justify-content:flex-end; gap:12px;">
-                <button type="submit" class="primary-btn">Opslaan</button>
-                <button type="button" id="closeRehabBtn" class="secondary-btn">Annuleren</button>
-            </div>
-
-        </form>
-    </div>
-</div>
-
-<style>
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-</style>
-
-
 
 <!-- ðŸ—“ï¸ MODAL: Trainingsdag toevoegen -->
 <div id="weekModal" class="modal" style="display:none;">
@@ -1976,31 +1806,6 @@ function closeAppWeekModal() {
 }
 </script>
 
-
-<!-- â­ SCRIPT: Blessuremodal openen/sluiten -->
-<script>
-const openRehabBtn = document.getElementById("openRehabModal");
-const closeRehabBtn = document.getElementById("closeRehabModal");
-const rehabModal = document.getElementById("rehabModal");
-
-if (openRehabBtn) {
-    openRehabBtn.addEventListener("click", () => {
-        rehabModal.style.display = "flex";
-    });
-}
-
-if (closeRehabBtn) {
-    closeRehabBtn.addEventListener("click", () => {
-        rehabModal.style.display = "none";
-    });
-}
-
-window.addEventListener("click", (e) => {
-    if (e.target === rehabModal) {
-        rehabModal.style.display = "none";
-    }
-});
-</script>
 
 </div>
 
