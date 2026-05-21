@@ -1092,7 +1092,7 @@
   {% if not selected_player %}
     <section class="ind-card" style="margin-bottom:22px;">
       <div class="ind-card-head">
-        <h2>Speler selecteren</h2>
+        <h2>{% if selected_team %}{{ selected_team.name }}{% else %}Speler selecteren{% endif %}</h2>
       </div>
       <div class="ind-card-body">
         <form method="get" class="ind-form">
@@ -1107,6 +1107,9 @@
               {% endfor %}
             </select>
           </div>
+          {% if selected_team %}
+            <input type="hidden" name="team" value="{{ selected_team.name }}">
+          {% endif %}
           <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
           <input type="hidden" name="view" value="{{ active_individual_view }}">
           <noscript>
@@ -1252,7 +1255,7 @@
     {% if not selected_player %}
       <article class="ind-card" style="margin-top:22px;">
         <div class="ind-card-head">
-          <h3>Spelers</h3>
+          <h3>{% if selected_team %}Spelers {{ selected_team.name }}{% else %}Spelers{% endif %}</h3>
         </div>
         <div class="ind-card-body">
           <div class="ind-player-grid">

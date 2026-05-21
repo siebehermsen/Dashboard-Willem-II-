@@ -33,7 +33,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.db import transaction
-from django.db.models import Avg
+from django.db.models import Avg, Q
 from django import forms
 from datetime import datetime, timedelta
 from types import SimpleNamespace
@@ -3129,9 +3129,23 @@ def individuele_programmas(request):
         }
         mdo_context["player_profile_overview"] = player_profile_overview
 
+    selected_team = (request.GET.get("team") or "").strip()
+    selected_team_obj = None
+    if selected_team and not player_id:
+        selected_team_obj = Team.objects.filter(
+            Q(code__iexact=selected_team) | Q(name__iexact=selected_team),
+            is_active=True,
+        ).first()
+        if selected_team_obj:
+            players = players.filter(team_assignments__team=selected_team_obj).distinct()
+        else:
+            selected_team_obj = SimpleNamespace(name=selected_team, code=selected_team)
+            players = players.none()
+
     context = {
         "players": players,
         "selected_player": selected_player,
+        "selected_team": selected_team_obj,
         "day_program": day_program,
         "programma": programma,
         "oefeningen": oefeningen,
