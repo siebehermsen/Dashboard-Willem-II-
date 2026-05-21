@@ -1,6 +1,6 @@
 ﻿{% extends "base.html" %}
 {% load static %}
-{% block title %}Willem II | Performance Dashboard{% endblock %}
+{% block title %}NEC | Performance Dashboard{% endblock %}
 
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -904,7 +904,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 <main class="container dashboard-page">
     <section class="dashboard-app-shell" aria-label="App dashboard home">
         <div class="dashboard-app-topbar">
-            <img class="dashboard-app-logo" src="https://www.willem-ii.nl/sites/default/files/2023-01/Clublogo%20webbericht%202022.jpg" alt="Willem II">
+            <img class="dashboard-app-logo" src="{% static 'icons/nec-logo.svg' %}" alt="NEC">
             <div>
                 <p class="dashboard-app-kicker">Dashboard app</p>
                 <h1 class="dashboard-app-title">Hallo {{ request.user.first_name|default:request.user.username }}</h1>

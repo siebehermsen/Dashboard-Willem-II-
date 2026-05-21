@@ -482,7 +482,7 @@ def dashboard(request):
 
     # ---------- CONTEXT ----------
     context = {
-        "title": "Willem II Dashboard",
+        "title": "NEC Dashboard",
         "players": players,
         "dayprograms": dayprograms,
         "weekform": weekform,
@@ -3724,7 +3724,7 @@ def overig(request):
         })
 
     # ======================================
-    # JEUGD WILLEM II
+    # NEC JEUGD
     # ======================================
     if page == "jeugd":
         if request.method == "POST":

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Beleid{% endblock %}
 
 {% block content %}
@@ -16,7 +17,7 @@
         padding: 34px 36px;
         background:
             linear-gradient(100deg, rgba(10, 16, 30, 0.52) 0%, rgba(15, 24, 42, 0.40) 36%, rgba(15, 24, 42, 0.22) 68%, rgba(15, 24, 42, 0.18) 100%),
-            url('https://www.willem-ii.nl/sites/default/files/styles/header/public/2025-10/56224-Geert-van-Erven.jpg.webp?h=bae7a75e&itok=O0zrGG6-') center/cover no-repeat;
+            url('{% static "img/login/nec-login-sfeer.jpg" %}') center/cover no-repeat;
         border: 1px solid rgba(31, 42, 68, 0.08);
         box-shadow: 0 22px 44px rgba(31, 42, 68, 0.14);
         display: grid;
