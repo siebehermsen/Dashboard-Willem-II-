@@ -32,69 +32,6 @@
 
 {% if active_page == "nutrition" %}
 
-<!-- WEDSTRIJDVOEDING INFOGRAFIC -->
-<section class="match-infographic">
-    <div class="info-head">
-        <h3>Voeding op wedstrijddag</h3>
-        <span class="info-sub">Voorbeeldschema (20:00 aftrap)</span>
-    </div>
-
-    <div class="info-stage">
-        <div class="time-grid">
-            <div class="time-item">
-                <div class="time-label">19:00</div>
-                <div class="time-title">Aanloop</div>
-                <div class="time-note">Koolhydraten + cafeine</div>
-                <div class="time-icons">
-                    <img src="{% static 'img/nutrition/amax_gel.webp' %}" alt="Amax gel">
-                    <img src="{% static 'img/nutrition/caffeine.jpg' %}" alt="Cafeine">
-                    <img src="{% static 'img/nutrition/amax_bar.jpg' %}" alt="Amax bar">
-                </div>
-            </div>
-
-            <div class="time-item center">
-                <div class="time-label">20:00 wedstrijd</div>
-                <div class="time-title">Energie aanvullen</div>
-                <div class="time-note">2-3 producten kiezen</div>
-                <div class="time-icons">
-                    <img src="{% static 'img/nutrition/amax_gel.webp' %}" alt="Amax gel">
-                    <img src="{% static 'img/nutrition/banana.jpg' %}" alt="Banaan">
-                </div>
-            </div>
-
-            <div class="time-item">
-                <div class="time-label">20:45 rust</div>
-                <div class="time-title">Aanvullen koolhydraten</div>
-                <div class="time-note">Gel + water / sportdrank</div>
-                <div class="time-icons">
-                    <img src="{% static 'img/nutrition/amax_gel.webp' %}" alt="Amax gel">
-                    <img src="{% static 'img/nutrition/powerade.jpg' %}" alt="Sportdrank">
-                </div>
-            </div>
-
-            <div class="time-item">
-                <div class="time-label">22:00 na afloop</div>
-                <div class="time-title">Herstel</div>
-                <div class="time-note">Koolhydraten + eiwitten</div>
-                <div class="time-icons">
-                    <img src="{% static 'img/nutrition/pasta.webp' %}" alt="Pasta">
-                    <img src="{% static 'img/nutrition/chocomel.jpg' %}" alt="Chocomel">
-                    <img src="{% static 'img/nutrition/powerade.jpg' %}" alt="Drink">
-                </div>
-            </div>
-        </div>
-
-        <div class="time-line">
-            <div class="time-dot" style="--pos: 10%;">19:00</div>
-            <div class="time-dot" style="--pos: 35%;">20:00</div>
-            <div class="time-dot" style="--pos: 60%;">20:45</div>
-            <div class="time-dot" style="--pos: 85%;">22:00</div>
-        </div>
-    </div>
-</section>
-
-
-
 
 <!-- SPELERSELECTIE + INTAKE -->
 <section class="player-section">
@@ -230,27 +167,15 @@
 
     <hr class="intake-divider">
 
-    <!-- Next meeting goal -->
-    <div class="intake-field">
-      <label class="intake-label">
-        <strong>Aandachtspunt -> doel volgende meeting</strong>
-      </label>
-      <textarea name="next_meeting_goal"
-                class="form-control"
-                rows="4"
-                placeholder="Bijv. 5/7 dagen ontbijt + post-training snack + 2L/dag drinken"
-      >{{ intake.next_meeting_goal|default_if_none:'' }}</textarea>
-    </div>
-
-    <!-- Extra notities -->
-    <div class="intake-field mt-2">
-      <label class="intake-label"><strong>Extra notities</strong></label>
-      <textarea name="nutrition_focus"
-                class="form-control"
-                rows="3"
-                placeholder="Overige notities..."
-      >{{ selected_player.nutrition_focus|default_if_none:'' }}</textarea>
-    </div>
+    <section class="attention-section">
+      <h4>Aandachtspunt per speler</h4>
+      <div class="intake-field">
+        <textarea name="next_meeting_goal"
+                  class="form-control attention-textarea"
+                  rows="5"
+        >{{ intake.next_meeting_goal|default_if_none:'' }}</textarea>
+      </div>
+    </section>
 
     <!-- FIXED OPSLAAN KNOP (los van layout) -->
     <div class="intake-save-fixed">
@@ -267,6 +192,70 @@
   Selecteer eerst een speler om intake in te vullen.
 </div>
 {% endif %}
+
+</section>
+
+
+<!-- WEDSTRIJDVOEDING INFOGRAFIC -->
+<section class="match-infographic">
+    <div class="info-head">
+        <h3>Voeding op wedstrijddag</h3>
+        <span class="info-sub">Voorbeeldschema (20:00 aftrap)</span>
+    </div>
+
+    <div class="info-stage">
+        <div class="time-grid">
+            <div class="time-item">
+                <div class="time-label">19:00</div>
+                <div class="time-title">Aanloop</div>
+                <div class="time-note">Koolhydraten + cafeine</div>
+                <div class="time-icons">
+                    <img src="{% static 'img/nutrition/amax_gel.webp' %}" alt="Amax gel">
+                    <img src="{% static 'img/nutrition/caffeine.jpg' %}" alt="Cafeine">
+                    <img src="{% static 'img/nutrition/amax_bar.jpg' %}" alt="Amax bar">
+                </div>
+            </div>
+
+            <div class="time-item center">
+                <div class="time-label">20:00 wedstrijd</div>
+                <div class="time-title">Energie aanvullen</div>
+                <div class="time-note">2-3 producten kiezen</div>
+                <div class="time-icons">
+                    <img src="{% static 'img/nutrition/amax_gel.webp' %}" alt="Amax gel">
+                    <img src="{% static 'img/nutrition/banana.jpg' %}" alt="Banaan">
+                </div>
+            </div>
+
+            <div class="time-item">
+                <div class="time-label">20:45 rust</div>
+                <div class="time-title">Aanvullen koolhydraten</div>
+                <div class="time-note">Gel + water / sportdrank</div>
+                <div class="time-icons">
+                    <img src="{% static 'img/nutrition/amax_gel.webp' %}" alt="Amax gel">
+                    <img src="{% static 'img/nutrition/powerade.jpg' %}" alt="Sportdrank">
+                </div>
+            </div>
+
+            <div class="time-item">
+                <div class="time-label">22:00 na afloop</div>
+                <div class="time-title">Herstel</div>
+                <div class="time-note">Koolhydraten + eiwitten</div>
+                <div class="time-icons">
+                    <img src="{% static 'img/nutrition/pasta.webp' %}" alt="Pasta">
+                    <img src="{% static 'img/nutrition/chocomel.jpg' %}" alt="Chocomel">
+                    <img src="{% static 'img/nutrition/powerade.jpg' %}" alt="Drink">
+                </div>
+            </div>
+        </div>
+
+        <div class="time-line">
+            <div class="time-dot" style="--pos: 10%;">19:00</div>
+            <div class="time-dot" style="--pos: 35%;">20:00</div>
+            <div class="time-dot" style="--pos: 60%;">20:45</div>
+            <div class="time-dot" style="--pos: 85%;">22:00</div>
+        </div>
+    </div>
+</section>
 
 
 
@@ -914,6 +903,27 @@
     font-size: 1.02rem;
     font-weight: 800;
     color: #1f2a44;
+}
+
+.attention-section {
+    margin-top: 22px;
+    padding: 18px;
+    border-radius: 16px;
+    background: #f7f9fc;
+    border: 1px solid #e2e8f0;
+}
+
+.attention-section h4 {
+    margin: 0 0 10px 0;
+    font-size: 1.08rem;
+    font-weight: 800;
+    color: #1f2a44;
+}
+
+.attention-section .attention-textarea {
+    width: 100%;
+    min-height: 140px;
+    margin: 0;
 }
 
 /* =========================
