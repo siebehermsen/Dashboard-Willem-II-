@@ -298,6 +298,13 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
     border-bottom: 1px solid #e6ebf2;
 }
 
+.home-agenda-heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
 .home-agenda-title {
     margin: 0;
     font-size: 1.7rem;
@@ -308,6 +315,41 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
     margin: 5px 0 0;
     color: #6b758d;
     font-weight: 600;
+}
+
+.home-agenda-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.home-agenda-nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid #dce3ee;
+    border-radius: 999px;
+    background: #f7f9fc;
+    color: #1f2a44;
+    font-size: 1.2rem;
+    font-weight: 900;
+    line-height: 1;
+    text-decoration: none;
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.home-agenda-nav-link:hover {
+    transform: translateY(-1px);
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+
+.home-agenda-today-link {
+    font-size: 0.86rem;
+    font-weight: 800;
 }
 
 .home-agenda-add {
@@ -1513,9 +1555,16 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 <!-- ðŸ—“ï¸ WEEKPROGRAMMA -->
 <div class="card home-agenda-card">
     <div class="home-agenda-head">
-        <div>
-            <h2 class="home-agenda-title">Agenda</h2>
-            <p class="home-agenda-range">{{ current_week_start|date:"d-m-Y" }} t/m {{ current_week_end|date:"d-m-Y" }}</p>
+        <div class="home-agenda-heading">
+            <div>
+                <h2 class="home-agenda-title">Agenda</h2>
+                <p class="home-agenda-range">{{ current_week_start|date:"d-m-Y" }} t/m {{ current_week_end|date:"d-m-Y" }}</p>
+            </div>
+            <nav class="home-agenda-nav" aria-label="Weeknavigatie">
+                <a class="home-agenda-nav-link" href="{{ previous_week_url }}" aria-label="Vorige week">&lsaquo;</a>
+                <a class="home-agenda-nav-link home-agenda-today-link" href="{{ current_week_url }}">Deze week</a>
+                <a class="home-agenda-nav-link" href="{{ next_week_url }}" aria-label="Volgende week">&rsaquo;</a>
+            </nav>
         </div>
         <button id="openWeekModal" class="home-agenda-add" type="button" aria-label="Training toevoegen">+</button>
     </div>

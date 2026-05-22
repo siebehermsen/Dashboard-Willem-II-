@@ -189,6 +189,13 @@ def _agenda_category_label(category):
     return labels.get((category or "").strip().lower(), category or "Training")
 
 
+def _dashboard_week_url(date_value):
+    if not date_value:
+        return reverse("dashboard")
+    week_start = date_value - timedelta(days=date_value.weekday())
+    return f"{reverse('dashboard')}?week={week_start.isoformat()}"
+
+
 def _upsert_injury_case(
     *,
     player,
@@ -499,8 +506,13 @@ def dashboard(request):
 
     total_risk_count = len(wellness_alerts) + len(load_alerts)
     highest_load_ratio = load_alerts[0]["ratio"] if load_alerts else None
-    week_start_date = today - timedelta(days=today.weekday())
+    requested_week = parse_date(request.GET.get("week", ""))
+    if requested_week is None:
+        requested_week = today
+    week_start_date = requested_week - timedelta(days=requested_week.weekday())
     week_end_date = week_start_date + timedelta(days=6)
+    previous_week_start = week_start_date - timedelta(days=7)
+    next_week_start = week_start_date + timedelta(days=7)
     current_week_dayprograms = (
         DayProgramEntry.objects.filter(date__gte=week_start_date, date__lte=week_end_date)
         .order_by("date")
@@ -550,6 +562,9 @@ def dashboard(request):
         "week_agenda_days": week_agenda_days,
         "current_week_start": week_start_date,
         "current_week_end": week_end_date,
+        "previous_week_url": f"{reverse('dashboard')}?week={previous_week_start.isoformat()}",
+        "next_week_url": f"{reverse('dashboard')}?week={next_week_start.isoformat()}",
+        "current_week_url": f"{reverse('dashboard')}?week={(today - timedelta(days=today.weekday())).isoformat()}",
     }
 
     return render(request, "Load_dashboard.html", context)
@@ -564,20 +579,21 @@ def edit_weekday(request, pk):
     if request.method == "POST":
         form = WeekProgramForm(request.POST, instance=day)
         if form.is_valid():
-            form.save()
+            saved_day = form.save()
             messages.success(request, "Trainingsdag succesvol gewijzigd.")
-            return redirect("dashboard")
+            return redirect(_dashboard_week_url(saved_day.date))
 
-    return redirect("dashboard")
+    return redirect(_dashboard_week_url(day.date))
 
 
 # ---------- WEEKPROGRAMMA VERWIJDEREN ----------
 def delete_weekday(request, pk):
     day = get_object_or_404(DayProgramEntry, pk=pk)
+    day_date = day.date
     if request.method == "POST":
         day.delete()
         messages.success(request, "Trainingsdag succesvol verwijderd.")
-    return redirect("dashboard")
+    return redirect(_dashboard_week_url(day_date))
 
 
 # ---------- WEEKPROGRAMMA TOEVOEGEN ----------
@@ -585,9 +601,9 @@ def add_weekday(request):
     if request.method == "POST":
         form = WeekProgramForm(request.POST)
         if form.is_valid():
-            form.save()
+            saved_day = form.save()
             messages.success(request, "Trainingsdag succesvol toegevoegd.")
-            return redirect("dashboard")
+            return redirect(_dashboard_week_url(saved_day.date))
 
     return redirect("dashboard")
 

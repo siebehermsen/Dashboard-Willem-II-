@@ -90,6 +90,23 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, "Verhoogd blessurerisico")
         self.assertContains(response, "Agenda")
 
+    def test_dashboard_agenda_can_show_requested_week(self):
+        DayProgramEntry.objects.create(
+            date=date(2026, 6, 3),
+            team="O17",
+            category="training",
+            context="Opstart",
+            activities="Agenda-item",
+        )
+
+        response = self.client.get(reverse("dashboard") + "?week=2026-06-01")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "01-06-2026 t/m 07-06-2026")
+        self.assertContains(response, "Opstart")
+        self.assertContains(response, "?week=2026-05-25")
+        self.assertContains(response, "?week=2026-06-08")
+
     def test_academie_team_page_shows_team_environment(self):
         team = Team.objects.create(code="O17", name="O17")
         PlayerTeamAssignment.objects.create(
