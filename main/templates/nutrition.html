@@ -32,70 +32,6 @@
 
 {% if active_page == "nutrition" %}
 
-<!-- WEEKVOEDINGSSCHEMA -->
-<section class="week-section">
-    <h3>Weekvoedingsschema</h3>
-    <p>Vandaag is het <strong>{{ current_day }}</strong></p>
-
-    <form method="POST">
-        {% csrf_token %}
-        <input type="hidden" name="nutrition_day" value="1">
-
-        <table class="week-table">
-            <thead>
-                <tr>
-                    <th>Dag</th>
-                    <th>Maaltijd / Voedingsfocus</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for day, entry in nutrition_days.items %}
-                <tr>
-                    <td>{{ day }}</td>
-
-                    <!-- MAALTIJD (GEEN KLEUR MEER) -->
-                    <td>
-                        <input
-                            type="text"
-                            name="meal_{{ day }}"
-                            value="{{ entry.meal|default:'' }}"
-                            placeholder="Bijv. pasta met kip en groente"
-                            class="meal-input"
-                        >
-                    </td>
-
-                    <!-- STATUS (HIER KOMT DE KLEUR) -->
-                    <td>
-                        <select 
-                            name="color_{{ day }}" 
-                            class="status-select {% if entry and entry.color %}status-{{ entry.color }}{% endif %}"
-                        >
-                            <option value="">-</option>
-                            <option value="green" {% if entry and entry.color == "green" %}selected{% endif %}>
-                                Groen
-                            </option>
-                            <option value="yellow" {% if entry and entry.color == "yellow" %}selected{% endif %}>
-                                Geel
-                            </option>
-                            <option value="red" {% if entry and entry.color == "red" %}selected{% endif %}>
-                                Rood
-                            </option>
-                        </select>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <button type="submit" class="primary-btn">
-            Week opslaan
-        </button>
-    </form>
-</section>
-
-
 <!-- WEDSTRIJDVOEDING INFOGRAFIC -->
 <section class="match-infographic">
     <div class="info-head">
@@ -156,24 +92,6 @@
         </div>
     </div>
 </section>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll('.week-table select').forEach(select => {
-        select.addEventListener('change', function () {
-
-            // Oude status-klassen verwijderen
-            this.classList.remove('status-green', 'status-yellow', 'status-red');
-
-            // Nieuwe statusklasse toevoegen
-            if (this.value) {
-                this.classList.add(`status-${this.value}`);
-            }
-        });
-    });
-});
-</script>
 
 
 
