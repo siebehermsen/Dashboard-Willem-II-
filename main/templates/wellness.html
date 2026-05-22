@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Wellness - NEC{% endblock %}
+{% block title %}Wellness & RPE - NEC{% endblock %}
 
 {% block content %}
 <style>
@@ -114,6 +114,56 @@
 
     .hidden {
         display: none;
+    }
+
+    .combined-summary {
+        margin: 22px 0 26px;
+        border: 1px solid #e1e7f0;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .combined-summary-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 20px;
+        border-bottom: 1px solid #e1e7f0;
+        background: #f7f9fc;
+    }
+
+    .combined-summary-head h2 {
+        margin: 0;
+        color: #1f2a44;
+        font-size: 1.25rem;
+    }
+
+    .combined-summary-head span {
+        color: #6b7890;
+        font-weight: 700;
+    }
+
+    .combined-summary-empty {
+        padding: 26px 20px;
+        text-align: center;
+        color: #6b7890;
+        font-weight: 700;
+    }
+
+    .combined-table-wrapper {
+        overflow-x: auto;
+    }
+
+    .combined-table td {
+        white-space: nowrap;
+    }
+
+    .combined-note {
+        min-width: 220px;
+        white-space: normal;
+        text-align: left;
     }
 
 .option-good {
@@ -281,7 +331,7 @@ html.app-ui.app-mode #wellnessTable .save-row {
 </style>
 
 <div class="wellness-container">
-    <h1>🏋️‍♂️ Wellness Dashboard</h1>
+    <h1>Wellness & RPE</h1>
 
     <div class="date-selector">
         <span class="date-label">Datum:</span>
@@ -293,6 +343,53 @@ html.app-ui.app-mode #wellnessTable .save-row {
 
         <button id="next-day" class="nav-btn" type="button">Volgende ▶</button>
     </div>
+
+    <section class="combined-summary">
+        <div class="combined-summary-head">
+            <h2>Ingevuld overzicht</h2>
+            <span>{{ combined_rows|length }} speler(s)</span>
+        </div>
+        {% if combined_rows %}
+        <div class="combined-table-wrapper">
+            <table class="combined-table">
+                <thead>
+                    <tr>
+                        <th>Speler</th>
+                        <th>Wellness</th>
+                        <th>Hoe voel je je?</th>
+                        <th>Slaap</th>
+                        <th>Fitheid</th>
+                        <th>Spierpijn</th>
+                        <th>RPE</th>
+                        <th>Type</th>
+                        <th>Load</th>
+                        <th>Opmerkingen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in combined_rows %}
+                    <tr>
+                        <td><strong>{{ row.player.name }}</strong></td>
+                        <td>{% if row.wellness_score %}{{ row.wellness_score|floatformat:1 }}{% else %}-{% endif %}</td>
+                        <td>{{ row.mood_label }}</td>
+                        <td>{{ row.sleep_label }}</td>
+                        <td>{{ row.fitness_label }}</td>
+                        <td>{{ row.soreness_label }}</td>
+                        <td>{% if row.rpe %}<strong>{{ row.rpe.rpe }}</strong>{% else %}-{% endif %}</td>
+                        <td>{% if row.rpe and row.rpe.training_type_ref %}{{ row.rpe.training_type_ref.name }}{% else %}-{% endif %}</td>
+                        <td>{% if row.rpe and row.rpe.session_load %}{{ row.rpe.session_load }}{% else %}-{% endif %}</td>
+                        <td class="combined-note">{% if row.wellness and row.wellness.comment %}{{ row.wellness.comment }}{% else %}-{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="combined-summary-empty">
+            Nog geen wellness- of RPE-invoer voor deze datum.
+        </div>
+        {% endif %}
+    </section>
 
     <div class="tabs">
         <button class="tab-btn active" id="btn-not-filled" type="button">Niet ingevuld</button>

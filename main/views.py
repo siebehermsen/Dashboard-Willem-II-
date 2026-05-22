@@ -3422,6 +3422,29 @@ def individueel_programma_opslaan(request, player_id):
     return redirect("individuele_programmas")
 
 def rpe_view(request):
+    """Oude RPE-ingang doorsturen naar het gecombineerde Wellness & RPE overzicht."""
+    if request.method == "POST":
+        return rpe_view_old(request)
+    return redirect("/wellness/")
+
+
+def _wellness_label(value, labels):
+    if value is None:
+        return "-"
+    return labels.get(value, str(value))
+
+
+def _wellness_score(entry):
+    if not entry:
+        return None
+    values = [entry.sleep, entry.mood, entry.fitness, entry.soreness]
+    values = [value for value in values if value is not None]
+    if not values:
+        return None
+    return round(sum(values) / len(values), 1)
+
+
+def rpe_view_old(request):
     """RPE dashboard met robuuste POST-afhandeling en 3NF velden."""
 
     players = Player.objects.select_related("monitoring_profile").all().order_by("name")
@@ -3531,12 +3554,14 @@ def wellness(request):
     # 2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Spelers ophalen
     players = Player.objects.select_related("monitoring_profile").all().order_by("name")
 
-    # 3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Entries van deze datum ophalen
-    existing_entries = WellnessEntry.objects.filter(date=date)
+    # 3) Entries van deze datum ophalen
+    existing_entries = WellnessEntry.objects.select_related("player").filter(date=date)
+    rpe_entries = RPEEntry.objects.select_related("player", "training_type_ref").filter(date=date)
 
     filled_player_ids = set(existing_entries.values_list("player_id", flat=True))
+    rpe_by_player = {entry.player_id: entry for entry in rpe_entries}
 
-    # 4ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Verdeling in ingevuld / niet ingevuld
+    # 4) Verdeling in ingevuld / niet ingevuld
     players_filled = [p for p in players if p.id in filled_player_ids]
     players_not_filled = [p for p in players if p.id not in filled_player_ids]
 
@@ -3570,12 +3595,37 @@ def wellness(request):
         # Refresh pagina zodat speler naar 'wel ingevuld' gaat
         return redirect(f"/wellness/?date={date_obj}")
 
-    # 6ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Context + render
+    wellness_by_player = {entry.player_id: entry for entry in existing_entries}
+    sleep_labels = {1: "Heel goed", 2: "Goed", 3: "Oké", 4: "Slecht"}
+    mood_labels = {1: "Heel goed", 2: "Goed", 3: "Matig", 4: "Slecht"}
+    fitness_labels = {1: "Heel fit", 2: "Fit", 3: "Oké", 4: "Vermoeid"}
+    soreness_labels = {1: "Geen", 2: "Licht", 3: "Veel"}
+    combined_rows = []
+    for player in players:
+        wellness_entry = wellness_by_player.get(player.id)
+        rpe_entry = rpe_by_player.get(player.id)
+        if not wellness_entry and not rpe_entry:
+            continue
+        combined_rows.append({
+            "player": player,
+            "wellness": wellness_entry,
+            "rpe": rpe_entry,
+            "wellness_score": _wellness_score(wellness_entry),
+            "sleep_label": _wellness_label(wellness_entry.sleep if wellness_entry else None, sleep_labels),
+            "mood_label": _wellness_label(wellness_entry.mood if wellness_entry else None, mood_labels),
+            "fitness_label": _wellness_label(wellness_entry.fitness if wellness_entry else None, fitness_labels),
+            "soreness_label": _wellness_label(wellness_entry.soreness if wellness_entry else None, soreness_labels),
+        })
+
+    # 6) Context + render
     return render(request, "wellness.html", {
     "date": date.strftime("%Y-%m-%d"),
     "players_filled": players_filled,
     "players_not_filled": players_not_filled,
     "existing_entries": existing_entries,
+    "rpe_entries": rpe_entries,
+    "rpe_by_player": rpe_by_player,
+    "combined_rows": combined_rows,
 })
 
 
