@@ -2269,10 +2269,12 @@ def testdata(request):
     return render(request, "testdata.html", context)
 
 
-def academie_team(request, team_code):
-    import json
+def _academy_codes():
+    return ["O21", "O19", "O17", "O16", "O15", "O14", "O13", "O12"]
 
-    academy_codes = ["O21", "O19", "O17", "O16", "O15", "O14", "O13", "O12"]
+
+def _academy_team_context(team_code):
+    academy_codes = _academy_codes()
     requested_code = (team_code or "").strip().upper()
     if requested_code not in academy_codes:
         requested_code = "O21"
@@ -2297,6 +2299,31 @@ def academie_team(request, team_code):
             .distinct()
             .order_by("name")
         )
+
+    demo_players = False
+    if requested_code == "O19" and not players.exists():
+        players = Player.objects.select_related("position_ref", "monitoring_profile").filter(is_active=True).order_by("name")[:8]
+        demo_players = True
+
+    return {
+        "academy_codes": academy_codes,
+        "requested_code": requested_code,
+        "team_obj": team_obj,
+        "team_label": team_label,
+        "players": players,
+        "demo_players": demo_players,
+    }
+
+
+def academie_team(request, team_code):
+    import json
+
+    academy_context = _academy_team_context(team_code)
+    academy_codes = ["O21", "O19", "O17", "O16", "O15", "O14", "O13", "O12"]
+    requested_code = academy_context["requested_code"]
+    team_obj = academy_context["team_obj"]
+    team_label = academy_context["team_label"]
+    players = academy_context["players"]
 
     player_ids = set(players.values_list("id", flat=True))
 
@@ -2378,6 +2405,7 @@ def academie_team(request, team_code):
         "selected_team_code": requested_code,
         "selected_team_label": team_label,
         "team_exists": team_obj is not None,
+        "demo_players": academy_context["demo_players"],
         "players": players,
         "gps_rows": gps_rows,
         "gps_totals": gps_totals,
@@ -2392,6 +2420,72 @@ def academie_team(request, team_code):
         "active_page": "academie",
     }
     return render(request, "academie_team.html", context)
+
+
+def academie_player(request, team_code, player_id):
+    academy_context = _academy_team_context(team_code)
+    requested_code = academy_context["requested_code"]
+    player = get_object_or_404(
+        Player.objects.select_related("position_ref", "monitoring_profile"),
+        id=player_id,
+        is_active=True,
+    )
+
+    rows_training = [row for row in fetch_performance_rows("training") if row["player_id"] == player.id]
+    rows_match = [row for row in fetch_performance_rows("match") if row["player_id"] == player.id]
+    rows_test = [row for row in fetch_performance_rows("test") if row["player_id"] == player.id]
+
+    latest_training_date = max((row["session_date"] for row in rows_training), default=None)
+    gps_start = latest_training_date - timedelta(days=29) if latest_training_date else None
+    recent_training = [row for row in rows_training if gps_start is None or row["session_date"] >= gps_start]
+
+    def val(row, key):
+        return float(row.get(key) or 0)
+
+    gps_totals = {
+        "load": sum(val(row, "load") for row in recent_training),
+        "distance": sum(val(row, "total_distance") for row in recent_training),
+        "hsd": sum(val(row, "hsd") for row in recent_training),
+        "sprints": sum(val(row, "sprints") for row in recent_training),
+        "sessions": len(recent_training),
+    }
+    match_totals = {
+        "load": sum(val(row, "load") for row in rows_match),
+        "distance": sum(val(row, "total_distance") for row in rows_match),
+        "matches": len(rows_match),
+    }
+
+    latest_test = sorted(rows_test, key=lambda row: row["session_date"], reverse=True)[0] if rows_test else None
+    today = timezone.localdate()
+    attendance_rows = (
+        AttendanceRecord.objects
+        .select_related("status")
+        .filter(player=player, date__gte=today - timedelta(days=30))
+        .order_by("-date")[:10]
+    )
+    latest_wellness = WellnessEntry.objects.filter(player=player).order_by("-date").first()
+    latest_rpe = RPEEntry.objects.filter(player=player).order_by("-date").first()
+
+    context = {
+        "academy_codes": academy_context["academy_codes"],
+        "selected_team_code": requested_code,
+        "selected_team_label": academy_context["team_label"],
+        "players": academy_context["players"],
+        "demo_players": academy_context["demo_players"],
+        "player": player,
+        "gps_totals": gps_totals,
+        "match_totals": match_totals,
+        "latest_test": latest_test,
+        "attendance_rows": attendance_rows,
+        "latest_wellness": latest_wellness,
+        "latest_wellness_score": _wellness_score(latest_wellness),
+        "latest_rpe": latest_rpe,
+        "test_url": f"{reverse('testdata')}?player_id={player.id}&tab=profiel",
+        "presence_url": f"{reverse('aanwezigheden')}?player_id={player.id}",
+        "individual_url": f"{reverse('individuele_programmas')}?player_id={player.id}",
+        "active_page": "academie",
+    }
+    return render(request, "academie_player.html", context)
 
 
 # ---------- PAGINA: HERSTEL ----------

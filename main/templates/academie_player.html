@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ player.name }} | Academie {{ selected_team_label }}{% endblock %}
+
+{% block content %}
+<style>
+.container:has(.academy-player-page) {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+.academy-player-page {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 28px;
+    width: 100%;
+    padding: 0 18px 56px 0;
+}
+.academy-side {
+    position: sticky;
+    top: 110px;
+    align-self: start;
+    background: #f8fafc;
+    border-right: 1px solid #d9e1eb;
+    min-height: calc(100vh - 150px);
+    padding: 34px 16px 24px;
+}
+.academy-side-title {
+    color: #1f2a44;
+    font-size: 0.86rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    margin: 0 0 18px;
+    text-transform: uppercase;
+}
+.academy-team-link,
+.academy-player-link {
+    display: block;
+    text-decoration: none;
+}
+.academy-team-link {
+    margin: 0 0 14px;
+    padding: 14px 18px;
+    border: 1px solid #d7e0ea;
+    border-radius: 8px;
+    background: #e9eef5;
+    color: #263248;
+    font-weight: 800;
+}
+.academy-team-link.is-active {
+    background: #cf202f;
+    border-color: #cf202f;
+    color: #fff;
+}
+.academy-player-list {
+    display: grid;
+    gap: 8px;
+    margin: -6px 0 16px 12px;
+    padding-left: 10px;
+    border-left: 3px solid #cf202f;
+}
+.academy-player-link {
+    border: 1px solid #dfe6ef;
+    border-radius: 8px;
+    background: #fff;
+    color: #263248;
+    font-size: 0.86rem;
+    font-weight: 800;
+    line-height: 1.2;
+    padding: 10px 12px;
+}
+.academy-player-link.is-active {
+    background: #1f2a44;
+    border-color: #1f2a44;
+    color: #fff;
+}
+.academy-player-demo {
+    color: #7b8496;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    margin: 2px 0;
+    text-transform: uppercase;
+}
+.academy-main {
+    min-width: 0;
+    padding-top: 34px;
+}
+.player-hero {
+    align-items: stretch;
+    background: #fff;
+    border: 1px solid #dde5ef;
+    border-radius: 18px;
+    box-shadow: 0 16px 32px rgba(31, 42, 68, 0.08);
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 28px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    padding: 24px;
+}
+.player-photo {
+    aspect-ratio: 3 / 4;
+    background: #eef2f7;
+    border-radius: 14px;
+    overflow: hidden;
+}
+.player-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.player-photo-fallback {
+    align-items: center;
+    color: #1f2a44;
+    display: flex;
+    font-size: 3rem;
+    font-weight: 900;
+    height: 100%;
+    justify-content: center;
+}
+.player-kicker {
+    color: #69758c;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+}
+.player-name {
+    color: #1f2a44;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 1;
+    margin: 0 0 16px;
+}
+.player-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+.player-tag {
+    background: #eef2f7;
+    border-radius: 999px;
+    color: #1f2a44;
+    font-weight: 900;
+    padding: 8px 14px;
+}
+.quick-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.quick-links a {
+    border-radius: 999px;
+    background: #cf202f;
+    color: #fff;
+    font-weight: 900;
+    padding: 10px 16px;
+    text-decoration: none;
+}
+.quick-links a.secondary {
+    background: #1f2a44;
+}
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+.metric-card,
+.content-card {
+    background: #fff;
+    border: 1px solid #dde5ef;
+    border-radius: 14px;
+    box-shadow: 0 12px 28px rgba(31, 42, 68, 0.07);
+}
+.metric-card {
+    padding: 18px;
+}
+.metric-card span {
+    color: #69758c;
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+.metric-card strong {
+    color: #1f2a44;
+    font-size: 2rem;
+}
+.content-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 20px;
+}
+.content-card {
+    overflow: hidden;
+}
+.content-card h2 {
+    border-bottom: 1px solid #e4e9f1;
+    color: #1f2a44;
+    margin: 0;
+    padding: 18px 20px;
+}
+.content-body {
+    padding: 20px;
+}
+.info-list {
+    display: grid;
+    gap: 12px;
+}
+.info-row {
+    align-items: center;
+    border-bottom: 1px solid #eef2f7;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 10px;
+}
+.info-row span {
+    color: #69758c;
+    font-weight: 800;
+}
+.info-row strong {
+    color: #1f2a44;
+}
+.muted {
+    color: #69758c;
+    font-weight: 800;
+}
+@media (max-width: 1000px) {
+    .academy-player-page,
+    .player-hero,
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+    .academy-side {
+        position: static;
+        min-height: 0;
+        border-right: 0;
+    }
+    .metric-grid {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+}
+</style>
+
+<div class="academy-player-page">
+    <aside class="academy-side">
+        <p class="academy-side-title">Naar teamomgeving</p>
+        {% for code in academy_codes %}
+            <a class="academy-team-link {% if code == selected_team_code %}is-active{% endif %}" href="{% url 'academie_team' code %}">{{ code }}</a>
+            {% if code == selected_team_code and players %}
+                <div class="academy-player-list">
+                    {% if demo_players %}
+                        <p class="academy-player-demo">Testspelers</p>
+                    {% endif %}
+                    {% for side_player in players %}
+                        <a class="academy-player-link {% if side_player.id == player.id %}is-active{% endif %}" href="{% url 'academie_player' selected_team_code side_player.id %}">
+                            {{ side_player.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </aside>
+
+    <main class="academy-main">
+        <section class="player-hero">
+            <div class="player-photo">
+                {% if player.image %}
+                    <img src="{{ player.image.url }}" alt="{{ player.name }}">
+                {% else %}
+                    <div class="player-photo-fallback">{{ player.name|slice:":1" }}</div>
+                {% endif %}
+            </div>
+            <div>
+                <p class="player-kicker">NEC Academie {{ selected_team_label }}</p>
+                <h1 class="player-name">{{ player.name }}</h1>
+                <div class="player-tags">
+                    <span class="player-tag">{% if player.position_ref %}{{ player.position_ref.name }}{% elif player.position %}{{ player.position }}{% else %}Geen positie{% endif %}</span>
+                    <span class="player-tag">{{ selected_team_label }}</span>
+                </div>
+                <div class="quick-links">
+                    <a href="{{ individual_url }}">Individueel overzicht</a>
+                    <a class="secondary" href="{{ test_url }}">Testdata</a>
+                    <a class="secondary" href="{{ presence_url }}">Aanwezigheden</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="metric-grid">
+            <div class="metric-card"><span>GPS load 30d</span><strong>{{ gps_totals.load|floatformat:0 }}</strong></div>
+            <div class="metric-card"><span>Afstand 30d</span><strong>{{ gps_totals.distance|floatformat:0 }}</strong></div>
+            <div class="metric-card"><span>sRPE</span><strong>{% if latest_rpe %}{{ latest_rpe.rpe }}{% else %}-{% endif %}</strong></div>
+            <div class="metric-card"><span>Wellness</span><strong>{% if latest_wellness_score %}{{ latest_wellness_score|floatformat:1 }}{% else %}-{% endif %}</strong></div>
+        </section>
+
+        <section class="content-grid">
+            <article class="content-card">
+                <h2>Aanwezigheden</h2>
+                <div class="content-body">
+                    <div class="info-list">
+                        {% for record in attendance_rows %}
+                            <div class="info-row">
+                                <span>{{ record.date|date:"d-m-Y" }}</span>
+                                <strong>{% if record.status %}{{ record.status.label }}{% else %}-{% endif %}</strong>
+                            </div>
+                        {% empty %}
+                            <p class="muted">Nog geen aanwezigheden voor deze speler.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </article>
+
+            <article class="content-card">
+                <h2>GPS & wedstrijddata</h2>
+                <div class="content-body">
+                    <div class="info-list">
+                        <div class="info-row"><span>Training sessies</span><strong>{{ gps_totals.sessions }}</strong></div>
+                        <div class="info-row"><span>HSD</span><strong>{{ gps_totals.hsd|floatformat:0 }}</strong></div>
+                        <div class="info-row"><span>Sprints</span><strong>{{ gps_totals.sprints|floatformat:0 }}</strong></div>
+                        <div class="info-row"><span>Wedstrijden</span><strong>{{ match_totals.matches }}</strong></div>
+                        <div class="info-row"><span>Wedstrijdload</span><strong>{{ match_totals.load|floatformat:0 }}</strong></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="content-card">
+                <h2>Testdata</h2>
+                <div class="content-body">
+                    {% if latest_test %}
+                        <div class="info-list">
+                            <div class="info-row"><span>Datum</span><strong>{{ latest_test.session_date|date:"d-m-Y" }}</strong></div>
+                            <div class="info-row"><span>10m</span><strong>{{ latest_test.sprint_10|default:"-" }}</strong></div>
+                            <div class="info-row"><span>30m</span><strong>{{ latest_test.sprint_30|default:"-" }}</strong></div>
+                            <div class="info-row"><span>CMJ</span><strong>{{ latest_test.cmj|default:"-" }}</strong></div>
+                        </div>
+                    {% else %}
+                        <p class="muted">Nog geen testdata gevonden.</p>
+                    {% endif %}
+                </div>
+            </article>
+
+            <article class="content-card">
+                <h2>Wellness & sRPE</h2>
+                <div class="content-body">
+                    <div class="info-list">
+                        <div class="info-row"><span>Laatste wellness</span><strong>{% if latest_wellness %}{{ latest_wellness.date|date:"d-m-Y" }}{% else %}-{% endif %}</strong></div>
+                        <div class="info-row"><span>Wellness score</span><strong>{% if latest_wellness_score %}{{ latest_wellness_score|floatformat:1 }}{% else %}-{% endif %}</strong></div>
+                        <div class="info-row"><span>Laatste sRPE</span><strong>{% if latest_rpe %}{{ latest_rpe.rpe }}{% else %}-{% endif %}</strong></div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+{% endblock %}

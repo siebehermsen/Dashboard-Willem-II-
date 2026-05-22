@@ -53,6 +53,37 @@
     border-color: #cf202f;
     color: #fff;
 }
+.academy-player-list {
+    display: grid;
+    gap: 8px;
+    margin: -6px 0 16px 12px;
+    padding-left: 10px;
+    border-left: 3px solid #cf202f;
+}
+.academy-player-link {
+    display: block;
+    border: 1px solid #dfe6ef;
+    border-radius: 8px;
+    background: #fff;
+    color: #263248;
+    font-size: 0.86rem;
+    font-weight: 800;
+    line-height: 1.2;
+    padding: 10px 12px;
+    text-decoration: none;
+}
+.academy-player-link:hover {
+    border-color: #cf202f;
+    color: #cf202f;
+}
+.academy-player-demo {
+    color: #7b8496;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    margin: 2px 0 2px;
+    text-transform: uppercase;
+}
 .academy-main {
     min-width: 0;
     padding-top: 34px;
@@ -218,6 +249,18 @@
         <p class="academy-side-title">Naar teamomgeving</p>
         {% for code in academy_codes %}
             <a class="academy-team-link {% if code == selected_team_code %}is-active{% endif %}" href="{% url 'academie_team' code %}">{{ code }}</a>
+            {% if code == selected_team_code and players %}
+                <div class="academy-player-list">
+                    {% if demo_players %}
+                        <p class="academy-player-demo">Testspelers</p>
+                    {% endif %}
+                    {% for player in players %}
+                        <a class="academy-player-link" href="{% url 'academie_player' selected_team_code player.id %}">
+                            {{ player.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
         {% endfor %}
     </aside>
 
@@ -236,13 +279,23 @@
             <button class="academy-tab-btn" type="button" data-academy-tab="match">Wedstrijddata</button>
         </nav>
 
-        {% if not team_exists %}
+        {% if not team_exists and not demo_players %}
             <section class="academy-card">
                 <div class="academy-card-head">
                     <h2>Team nog niet aangemaakt</h2>
                 </div>
                 <div class="academy-card-body academy-muted">
                     Maak team {{ selected_team_code }} eerst aan en koppel spelers via de stafpagina of admin.
+                </div>
+            </section>
+        {% endif %}
+        {% if demo_players %}
+            <section class="academy-card">
+                <div class="academy-card-head">
+                    <h2>O19 testomgeving</h2>
+                </div>
+                <div class="academy-card-body academy-muted">
+                    De spelers links zijn testspelers uit de bestaande spelerslijst. Zodra team O19 echt is aangemaakt en gekoppeld, worden hier automatisch de juiste teamspelers getoond.
                 </div>
             </section>
         {% endif %}
