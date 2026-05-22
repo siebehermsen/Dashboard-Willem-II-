@@ -170,10 +170,13 @@
     background: #cf202f;
 }
 .metric-grid {
-    display: grid;
+    display: none;
     grid-template-columns: repeat(4, minmax(150px, 1fr));
     gap: 18px;
     margin-bottom: 24px;
+}
+.metric-grid.is-active {
+    display: grid;
 }
 .metric-card,
 .content-card {
@@ -381,11 +384,18 @@
             </div>
         </section>
 
-        <section class="metric-grid">
+        <section class="metric-grid is-active" data-metric-panel="default">
             <div class="metric-card"><span>GPS load 30d</span><strong>{{ gps_totals.load|floatformat:0 }}</strong></div>
             <div class="metric-card"><span>Afstand 30d</span><strong>{{ gps_totals.distance|floatformat:0 }}</strong></div>
             <div class="metric-card"><span>sRPE</span><strong>{% if latest_rpe %}{{ latest_rpe.rpe }}{% else %}-{% endif %}</strong></div>
             <div class="metric-card"><span>Wellness</span><strong>{% if latest_wellness_score %}{{ latest_wellness_score|floatformat:1 }}{% else %}-{% endif %}</strong></div>
+        </section>
+
+        <section class="metric-grid" data-metric-panel="aanwezigheden">
+            <div class="metric-card"><span>Aanwezigheid 30d</span><strong>{% if attendance_total_count %}{{ attendance_percentage }}%{% else %}-{% endif %}</strong></div>
+            <div class="metric-card"><span>Aanwezig</span><strong>{{ attendance_present_count }}</strong></div>
+            <div class="metric-card"><span>Registraties</span><strong>{{ attendance_total_count }}</strong></div>
+            <div class="metric-card"><span>Laatste status</span><strong>{% if attendance_rows.0.status %}{{ attendance_rows.0.status.label }}{% else %}-{% endif %}</strong></div>
         </section>
 
         <section class="content-grid">
@@ -555,6 +565,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const buttons = document.querySelectorAll("[data-player-tab]");
     const panels = document.querySelectorAll("[data-player-panel]");
+    const metricPanels = document.querySelectorAll("[data-metric-panel]");
 
     buttons.forEach(function (button) {
         button.addEventListener("click", function () {
@@ -564,6 +575,10 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             panels.forEach(function (panel) {
                 panel.classList.toggle("is-active", panel.dataset.playerPanel === target);
+            });
+            metricPanels.forEach(function (panel) {
+                const metricTarget = target === "aanwezigheden" ? "aanwezigheden" : "default";
+                panel.classList.toggle("is-active", panel.dataset.metricPanel === metricTarget);
             });
         });
     });

@@ -2460,12 +2460,15 @@ def academie_player(request, team_code, player_id):
     recent_training_rows = sorted(recent_training, key=lambda row: row["session_date"], reverse=True)[:12]
     recent_match_rows = sorted(rows_match, key=lambda row: row["session_date"], reverse=True)[:8]
     today = timezone.localdate()
-    attendance_rows = (
+    attendance_qs = (
         AttendanceRecord.objects
         .select_related("status")
         .filter(player=player, date__gte=today - timedelta(days=30))
-        .order_by("-date")[:10]
     )
+    attendance_total_count = attendance_qs.count()
+    attendance_present_count = attendance_qs.filter(completed=True).count()
+    attendance_percentage = round((attendance_present_count / attendance_total_count) * 100) if attendance_total_count else None
+    attendance_rows = attendance_qs.order_by("-date")[:10]
     recent_plan_notes = (
         IndividualDayPlanNote.objects
         .select_related("plan", "note_type_ref")
@@ -2491,6 +2494,9 @@ def academie_player(request, team_code, player_id):
         "recent_training_rows": recent_training_rows,
         "recent_match_rows": recent_match_rows,
         "attendance_rows": attendance_rows,
+        "attendance_total_count": attendance_total_count,
+        "attendance_present_count": attendance_present_count,
+        "attendance_percentage": attendance_percentage,
         "recent_plan_notes": recent_plan_notes,
         "mdo_action_points": mdo_action_points,
         "latest_wellness": latest_wellness,
