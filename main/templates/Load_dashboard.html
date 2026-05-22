@@ -369,6 +369,12 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
     gap: 10px;
     min-height: 520px;
     padding: 18px 10px 22px;
+    cursor: pointer;
+    transition: background-color 0.18s ease;
+}
+
+.home-agenda-items:hover {
+    background: rgba(31, 42, 68, 0.025);
 }
 
 .home-agenda-event {
@@ -457,6 +463,7 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
     border: 1px dashed #d8e0eb;
     border-radius: 10px;
     background: #f8fafc;
+    pointer-events: none;
 }
 
 @media (max-width: 1100px) {
@@ -1517,7 +1524,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         {% for day in week_agenda_days %}
             <section class="home-agenda-day {% if day.is_today %}is-today{% endif %}">
                 <div class="home-agenda-day-head">{{ day.label }}</div>
-                <div class="home-agenda-items">
+                <div class="home-agenda-items" data-agenda-day-date="{{ day.date|date:'Y-m-d' }}" aria-label="Voeg agenda-item toe op {{ day.label }}">
                     {% for item in day.items %}
                         <button
                             type="button"
@@ -1974,8 +1981,18 @@ if (closeWeekModalBtn) {
 }
 
 document.querySelectorAll(".home-agenda-event[data-agenda-id]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+        event.stopPropagation();
         openDesktopWeekModal("edit", button.dataset);
+    });
+});
+
+document.querySelectorAll(".home-agenda-items[data-agenda-day-date]").forEach((dayColumn) => {
+    dayColumn.addEventListener("click", () => {
+        openDesktopWeekModal("add", {
+            agendaDate: dayColumn.dataset.agendaDayDate,
+            agendaCategory: "training",
+        });
     });
 });
 
