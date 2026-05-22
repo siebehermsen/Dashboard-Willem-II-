@@ -768,6 +768,10 @@ def nutrition_view(request):
 
     if player_id:
         selected_player = get_object_or_404(Player.objects.select_related("monitoring_profile"), id=player_id)
+    else:
+        selected_player = players.first()
+
+    if selected_player:
         latest_session = (
             NutritionIntakeSession.objects
             .filter(player=selected_player)

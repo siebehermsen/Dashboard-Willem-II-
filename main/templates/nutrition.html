@@ -51,7 +51,6 @@
     <form method="get" action="" class="player-form mb-3">
         <label for="playerSelect"><strong>Selecteer speler:</strong></label>
         <select name="player_id" id="playerSelect" class="form-select" onchange="this.form.submit()">
-            <option value="">-- Kies een speler --</option>
             {% for player in players %}
                 <option value="{{ player.id }}" {% if selected_player and player.id == selected_player.id %}selected{% endif %}>
                     {{ player.name }}
