@@ -4,7 +4,8 @@
 {% block content %}
 <style>
     .wellness-container {
-        max-width: 1200px;
+        width: min(1840px, calc(100vw - 48px));
+        max-width: none;
         margin: 0 auto;
         background: white;
         border-radius: 15px;
@@ -116,6 +117,30 @@
         display: none;
     }
 
+    .wellness-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    #wellnessTable {
+        min-width: 1500px;
+    }
+
+    #wellnessTable th,
+    #wellnessTable td {
+        vertical-align: middle;
+    }
+
+    #wellnessTable th:first-child,
+    #wellnessTable td:first-child {
+        min-width: 260px;
+    }
+
+    #wellnessTable th[data-wide],
+    #wellnessTable td[data-wide] {
+        min-width: 280px;
+    }
+
     .combined-summary {
         margin: 22px 0 26px;
         border: 1px solid #e1e7f0;
@@ -185,6 +210,7 @@
 }
 
 html.app-ui.app-mode .wellness-container {
+    width: 100%;
     max-width: none;
     margin: 0;
     padding: 16px 14px 20px;
@@ -360,7 +386,7 @@ html.app-ui.app-mode #wellnessTable .save-row {
                         <th>Slaap</th>
                         <th>Fitheid</th>
                         <th>Spierpijn</th>
-                        <th>RPE</th>
+                        <th>sRPE</th>
                         <th>Type</th>
                         <th>Load</th>
                         <th>Opmerkingen</th>
@@ -396,6 +422,7 @@ html.app-ui.app-mode #wellnessTable .save-row {
         <button class="tab-btn" id="btn-filled" type="button">Wel ingevuld</button>
     </div>
 
+    <div class="wellness-table-wrapper">
     <table id="wellnessTable">
         <thead>
             <tr>
@@ -404,7 +431,8 @@ html.app-ui.app-mode #wellnessTable .save-row {
                 <th>Hoe voel je je?</th>
                 <th>Voel je je fit?</th>
                 <th>Spierpijn?</th>
-                <th>Opmerkingen</th>
+                <th>sRPE</th>
+                <th data-wide>Opmerkingen</th>
                 <th>Opslaan</th>
             </tr>
         </thead>
@@ -453,6 +481,22 @@ html.app-ui.app-mode #wellnessTable .save-row {
                     </select>
                 </td>
 
+                <td data-label="sRPE">
+                    <select class="srpe">
+                        <option value="">-</option>
+                        <option value="1" {% if player.today_rpe and player.today_rpe.rpe == 1 %}selected{% endif %}>1</option>
+                        <option value="2" {% if player.today_rpe and player.today_rpe.rpe == 2 %}selected{% endif %}>2</option>
+                        <option value="3" {% if player.today_rpe and player.today_rpe.rpe == 3 %}selected{% endif %}>3</option>
+                        <option value="4" {% if player.today_rpe and player.today_rpe.rpe == 4 %}selected{% endif %}>4</option>
+                        <option value="5" {% if player.today_rpe and player.today_rpe.rpe == 5 %}selected{% endif %}>5</option>
+                        <option value="6" {% if player.today_rpe and player.today_rpe.rpe == 6 %}selected{% endif %}>6</option>
+                        <option value="7" {% if player.today_rpe and player.today_rpe.rpe == 7 %}selected{% endif %}>7</option>
+                        <option value="8" {% if player.today_rpe and player.today_rpe.rpe == 8 %}selected{% endif %}>8</option>
+                        <option value="9" {% if player.today_rpe and player.today_rpe.rpe == 9 %}selected{% endif %}>9</option>
+                        <option value="10" {% if player.today_rpe and player.today_rpe.rpe == 10 %}selected{% endif %}>10</option>
+                    </select>
+                </td>
+
                 <td data-label="Opmerkingen">
                     <input type="text" class="comment" placeholder="Opmerking...">
                 </td>
@@ -465,7 +509,7 @@ html.app-ui.app-mode #wellnessTable .save-row {
         </tbody>
 
         <tbody id="tbody-filled" class="hidden">
-            {% for entry in existing_entries %}
+            {% for entry in wellness_rows %}
             <tr>
                 <td class="player-name" data-label="Speler">{{ entry.player.name }}</td>
 
@@ -504,6 +548,22 @@ html.app-ui.app-mode #wellnessTable .save-row {
                     </select>
                 </td>
 
+                <td data-label="sRPE">
+                    <select class="srpe">
+                        <option value="">-</option>
+                        <option value="1" {% if entry.rpe_entry and entry.rpe_entry.rpe == 1 %}selected{% endif %}>1</option>
+                        <option value="2" {% if entry.rpe_entry and entry.rpe_entry.rpe == 2 %}selected{% endif %}>2</option>
+                        <option value="3" {% if entry.rpe_entry and entry.rpe_entry.rpe == 3 %}selected{% endif %}>3</option>
+                        <option value="4" {% if entry.rpe_entry and entry.rpe_entry.rpe == 4 %}selected{% endif %}>4</option>
+                        <option value="5" {% if entry.rpe_entry and entry.rpe_entry.rpe == 5 %}selected{% endif %}>5</option>
+                        <option value="6" {% if entry.rpe_entry and entry.rpe_entry.rpe == 6 %}selected{% endif %}>6</option>
+                        <option value="7" {% if entry.rpe_entry and entry.rpe_entry.rpe == 7 %}selected{% endif %}>7</option>
+                        <option value="8" {% if entry.rpe_entry and entry.rpe_entry.rpe == 8 %}selected{% endif %}>8</option>
+                        <option value="9" {% if entry.rpe_entry and entry.rpe_entry.rpe == 9 %}selected{% endif %}>9</option>
+                        <option value="10" {% if entry.rpe_entry and entry.rpe_entry.rpe == 10 %}selected{% endif %}>10</option>
+                    </select>
+                </td>
+
                 <td data-label="Opmerkingen">
                     <input type="text" class="comment" value="{{ entry.comment }}">
                 </td>
@@ -515,6 +575,7 @@ html.app-ui.app-mode #wellnessTable .save-row {
             {% endfor %}
         </tbody>
     </table>
+    </div>
 </div>
 
 
@@ -530,6 +591,7 @@ function saveRow(button, playerId) {
         mood: row.querySelector(".gevoel").value,
         fitness: row.querySelector(".fit").value,
         soreness: row.querySelector(".spierpijn").value,
+        srpe: row.querySelector(".srpe").value,
         comment: row.querySelector(".comment").value,
     };
 

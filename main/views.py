@@ -3444,6 +3444,16 @@ def _wellness_score(entry):
     return round(sum(values) / len(values), 1)
 
 
+def _clean_int_or_none(value):
+    value = (value or "").strip()
+    if not value:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def rpe_view_old(request):
     """RPE dashboard met robuuste POST-afhandeling en 3NF velden."""
 
@@ -3560,6 +3570,8 @@ def wellness(request):
 
     filled_player_ids = set(existing_entries.values_list("player_id", flat=True))
     rpe_by_player = {entry.player_id: entry for entry in rpe_entries}
+    for player in players:
+        player.today_rpe = rpe_by_player.get(player.id)
 
     # 4) Verdeling in ingevuld / niet ingevuld
     players_filled = [p for p in players if p.id in filled_player_ids]
@@ -3573,6 +3585,7 @@ def wellness(request):
         fitness = request.POST.get("fitness")
         soreness = request.POST.get("soreness")
         comment = request.POST.get("comment")
+        srpe = _clean_int_or_none(request.POST.get("srpe"))
         date_post = request.POST.get("date")
 
         # Datum van POST opnieuw correct converteren
@@ -3584,18 +3597,29 @@ def wellness(request):
             player=player,
             date=date_obj,
             defaults={
-                "sleep": sleep,
-                "mood": mood,
-                "fitness": fitness,
-                "soreness": soreness,
+                "sleep": _clean_int_or_none(sleep),
+                "mood": _clean_int_or_none(mood),
+                "fitness": _clean_int_or_none(fitness),
+                "soreness": _clean_int_or_none(soreness),
                 "comment": comment
             }
         )
+
+        if srpe is not None:
+            RPEEntry.objects.update_or_create(
+                player=player,
+                date=date_obj,
+                defaults={"rpe": srpe},
+            )
 
         # Refresh pagina zodat speler naar 'wel ingevuld' gaat
         return redirect(f"/wellness/?date={date_obj}")
 
     wellness_by_player = {entry.player_id: entry for entry in existing_entries}
+    wellness_rows = []
+    for entry in existing_entries.order_by("player__name"):
+        entry.rpe_entry = rpe_by_player.get(entry.player_id)
+        wellness_rows.append(entry)
     sleep_labels = {1: "Heel goed", 2: "Goed", 3: "Oké", 4: "Slecht"}
     mood_labels = {1: "Heel goed", 2: "Goed", 3: "Matig", 4: "Slecht"}
     fitness_labels = {1: "Heel fit", 2: "Fit", 3: "Oké", 4: "Vermoeid"}
@@ -3623,6 +3647,7 @@ def wellness(request):
     "players_filled": players_filled,
     "players_not_filled": players_not_filled,
     "existing_entries": existing_entries,
+    "wellness_rows": wellness_rows,
     "rpe_entries": rpe_entries,
     "rpe_by_player": rpe_by_player,
     "combined_rows": combined_rows,
