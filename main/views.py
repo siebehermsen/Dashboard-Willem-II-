@@ -2456,6 +2456,9 @@ def academie_player(request, team_code, player_id):
     }
 
     latest_test = sorted(rows_test, key=lambda row: row["session_date"], reverse=True)[0] if rows_test else None
+    recent_tests = sorted(rows_test, key=lambda row: row["session_date"], reverse=True)[:10]
+    recent_training_rows = sorted(recent_training, key=lambda row: row["session_date"], reverse=True)[:12]
+    recent_match_rows = sorted(rows_match, key=lambda row: row["session_date"], reverse=True)[:8]
     today = timezone.localdate()
     attendance_rows = (
         AttendanceRecord.objects
@@ -2463,6 +2466,14 @@ def academie_player(request, team_code, player_id):
         .filter(player=player, date__gte=today - timedelta(days=30))
         .order_by("-date")[:10]
     )
+    recent_plan_notes = (
+        IndividualDayPlanNote.objects
+        .select_related("plan", "note_type_ref")
+        .filter(plan__player=player)
+        .exclude(content="")
+        .order_by("-plan__date", "note_type_ref__label")[:10]
+    )
+    mdo_action_points = MDOActionPoint.objects.filter(player=player).order_by("is_done", "deadline", "-created_at")[:10]
     latest_wellness = WellnessEntry.objects.filter(player=player).order_by("-date").first()
     latest_rpe = RPEEntry.objects.filter(player=player).order_by("-date").first()
 
@@ -2476,7 +2487,12 @@ def academie_player(request, team_code, player_id):
         "gps_totals": gps_totals,
         "match_totals": match_totals,
         "latest_test": latest_test,
+        "recent_tests": recent_tests,
+        "recent_training_rows": recent_training_rows,
+        "recent_match_rows": recent_match_rows,
         "attendance_rows": attendance_rows,
+        "recent_plan_notes": recent_plan_notes,
+        "mdo_action_points": mdo_action_points,
         "latest_wellness": latest_wellness,
         "latest_wellness_score": _wellness_score(latest_wellness),
         "latest_rpe": latest_rpe,

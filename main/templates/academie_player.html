@@ -148,21 +148,26 @@
     font-weight: 900;
     padding: 8px 14px;
 }
-.quick-links {
+.player-tabs {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
 }
-.quick-links a {
+.player-tab-button {
+    border: 0;
     border-radius: 999px;
-    background: #cf202f;
+    background: #1f2a44;
     color: #fff;
+    cursor: pointer;
     font-weight: 900;
     padding: 10px 16px;
-    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease;
 }
-.quick-links a.secondary {
-    background: #1f2a44;
+.player-tab-button:hover {
+    transform: translateY(-1px);
+}
+.player-tab-button.is-active {
+    background: #cf202f;
 }
 .metric-grid {
     display: grid;
@@ -194,9 +199,7 @@
     font-size: 2rem;
 }
 .content-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 20px;
+    display: block;
 }
 .content-card {
     overflow: hidden;
@@ -233,10 +236,93 @@
     color: #69758c;
     font-weight: 800;
 }
+.player-panel {
+    display: none;
+}
+.player-panel.is-active {
+    display: block;
+}
+.panel-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+.panel-grid + .panel-grid,
+.content-card + .content-card {
+    margin-top: 20px;
+}
+.player-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+.player-table th,
+.player-table td {
+    border-bottom: 1px solid #eef2f7;
+    color: #1f2a44;
+    padding: 12px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+.player-table th {
+    color: #69758c;
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.note-list {
+    display: grid;
+    gap: 12px;
+}
+.note-item {
+    border: 1px solid #e3e9f2;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 14px;
+}
+.note-meta {
+    color: #69758c;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.82rem;
+    font-weight: 900;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+.note-item p {
+    color: #1f2a44;
+    font-weight: 800;
+    margin: 0;
+}
+.status-pill {
+    border-radius: 999px;
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 900;
+    padding: 5px 9px;
+    text-transform: uppercase;
+}
+.status-pill.green {
+    background: #dcfce7;
+    color: #166534;
+}
+.status-pill.orange {
+    background: #ffedd5;
+    color: #9a3412;
+}
+.status-pill.red {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.status-pill.done {
+    background: #e5e7eb;
+    color: #374151;
+}
 @media (max-width: 1000px) {
     .academy-player-page,
     .player-hero,
-    .content-grid {
+    .panel-grid {
         grid-template-columns: 1fr;
     }
     .academy-side {
@@ -286,10 +372,11 @@
                     <span class="player-tag">{% if player.position_ref %}{{ player.position_ref.name }}{% elif player.position %}{{ player.position }}{% else %}Geen positie{% endif %}</span>
                     <span class="player-tag">{{ selected_team_label }}</span>
                 </div>
-                <div class="quick-links">
-                    <a href="{{ individual_url }}">Individueel overzicht</a>
-                    <a class="secondary" href="{{ test_url }}">Testdata</a>
-                    <a class="secondary" href="{{ presence_url }}">Aanwezigheden</a>
+                <div class="player-tabs" role="tablist" aria-label="Speler onderdelen">
+                    <button class="player-tab-button is-active" type="button" data-player-tab="opmerkingen">Opmerkingen</button>
+                    <button class="player-tab-button" type="button" data-player-tab="testdata">Testdata</button>
+                    <button class="player-tab-button" type="button" data-player-tab="aanwezigheden">Aanwezigheden</button>
+                    <button class="player-tab-button" type="button" data-player-tab="gps">GPS-data</button>
                 </div>
             </div>
         </section>
@@ -302,62 +389,184 @@
         </section>
 
         <section class="content-grid">
-            <article class="content-card">
-                <h2>Aanwezigheden</h2>
-                <div class="content-body">
-                    <div class="info-list">
-                        {% for record in attendance_rows %}
-                            <div class="info-row">
-                                <span>{{ record.date|date:"d-m-Y" }}</span>
-                                <strong>{% if record.status %}{{ record.status.label }}{% else %}-{% endif %}</strong>
+            <div class="player-panel is-active" data-player-panel="opmerkingen">
+                <div class="panel-grid">
+                    <article class="content-card">
+                        <h2>Opmerkingen</h2>
+                        <div class="content-body">
+                            <div class="note-list">
+                                {% for note in recent_plan_notes %}
+                                    <div class="note-item">
+                                        <div class="note-meta">
+                                            <span>{{ note.plan.date|date:"d-m-Y" }}</span>
+                                            <span>{{ note.note_type_ref.label }}</span>
+                                        </div>
+                                        <p>{{ note.content }}</p>
+                                    </div>
+                                {% empty %}
+                                    <p class="muted">Nog geen opmerkingen vastgelegd.</p>
+                                {% endfor %}
                             </div>
-                        {% empty %}
-                            <p class="muted">Nog geen aanwezigheden voor deze speler.</p>
-                        {% endfor %}
-                    </div>
-                </div>
-            </article>
-
-            <article class="content-card">
-                <h2>GPS & wedstrijddata</h2>
-                <div class="content-body">
-                    <div class="info-list">
-                        <div class="info-row"><span>Training sessies</span><strong>{{ gps_totals.sessions }}</strong></div>
-                        <div class="info-row"><span>HSD</span><strong>{{ gps_totals.hsd|floatformat:0 }}</strong></div>
-                        <div class="info-row"><span>Sprints</span><strong>{{ gps_totals.sprints|floatformat:0 }}</strong></div>
-                        <div class="info-row"><span>Wedstrijden</span><strong>{{ match_totals.matches }}</strong></div>
-                        <div class="info-row"><span>Wedstrijdload</span><strong>{{ match_totals.load|floatformat:0 }}</strong></div>
-                    </div>
-                </div>
-            </article>
-
-            <article class="content-card">
-                <h2>Testdata</h2>
-                <div class="content-body">
-                    {% if latest_test %}
-                        <div class="info-list">
-                            <div class="info-row"><span>Datum</span><strong>{{ latest_test.session_date|date:"d-m-Y" }}</strong></div>
-                            <div class="info-row"><span>10m</span><strong>{{ latest_test.sprint_10|default:"-" }}</strong></div>
-                            <div class="info-row"><span>30m</span><strong>{{ latest_test.sprint_30|default:"-" }}</strong></div>
-                            <div class="info-row"><span>CMJ</span><strong>{{ latest_test.cmj|default:"-" }}</strong></div>
                         </div>
-                    {% else %}
-                        <p class="muted">Nog geen testdata gevonden.</p>
-                    {% endif %}
-                </div>
-            </article>
+                    </article>
 
-            <article class="content-card">
-                <h2>Wellness & sRPE</h2>
-                <div class="content-body">
-                    <div class="info-list">
-                        <div class="info-row"><span>Laatste wellness</span><strong>{% if latest_wellness %}{{ latest_wellness.date|date:"d-m-Y" }}{% else %}-{% endif %}</strong></div>
-                        <div class="info-row"><span>Wellness score</span><strong>{% if latest_wellness_score %}{{ latest_wellness_score|floatformat:1 }}{% else %}-{% endif %}</strong></div>
-                        <div class="info-row"><span>Laatste sRPE</span><strong>{% if latest_rpe %}{{ latest_rpe.rpe }}{% else %}-{% endif %}</strong></div>
-                    </div>
+                    <article class="content-card">
+                        <h2>MDO actiepunten</h2>
+                        <div class="content-body">
+                            <div class="note-list">
+                                {% for action in mdo_action_points %}
+                                    <div class="note-item">
+                                        <div class="note-meta">
+                                            <span>{% if action.deadline %}{{ action.deadline|date:"d-m-Y" }}{% else %}Geen deadline{% endif %}</span>
+                                            {% if action.is_done %}
+                                                <span class="status-pill done">Afgerond</span>
+                                            {% else %}
+                                                <span class="status-pill {{ action.status_color }}">{{ action.get_status_color_display }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <p>{{ action.title }}</p>
+                                        {% if action.owner %}<p class="muted">{{ action.owner }}</p>{% endif %}
+                                    </div>
+                                {% empty %}
+                                    <p class="muted">Geen open MDO-actiepunten.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </article>
                 </div>
-            </article>
+            </div>
+
+            <div class="player-panel" data-player-panel="testdata">
+                <article class="content-card">
+                    <h2>Testdata</h2>
+                    <div class="content-body">
+                        {% if recent_tests %}
+                            <table class="player-table">
+                                <thead>
+                                    <tr>
+                                        <th>Datum</th>
+                                        <th>10m</th>
+                                        <th>30m</th>
+                                        <th>CMJ</th>
+                                        <th>ISRT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for test in recent_tests %}
+                                        <tr>
+                                            <td>{{ test.session_date|date:"d-m-Y" }}</td>
+                                            <td>{{ test.sprint_10|default:"-" }}</td>
+                                            <td>{{ test.sprint_30|default:"-" }}</td>
+                                            <td>{{ test.cmj|default:"-" }}</td>
+                                            <td>{{ test.isrt|default:"-" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="muted">Nog geen testdata gevonden.</p>
+                        {% endif %}
+                    </div>
+                </article>
+            </div>
+
+            <div class="player-panel" data-player-panel="aanwezigheden">
+                <article class="content-card">
+                    <h2>Aanwezigheden</h2>
+                    <div class="content-body">
+                        <div class="info-list">
+                            {% for record in attendance_rows %}
+                                <div class="info-row">
+                                    <span>{{ record.date|date:"d-m-Y" }}</span>
+                                    <strong>{% if record.status %}{{ record.status.label }}{% else %}-{% endif %}</strong>
+                                </div>
+                            {% empty %}
+                                <p class="muted">Nog geen aanwezigheden voor deze speler.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </article>
+            </div>
+
+            <div class="player-panel" data-player-panel="gps">
+                <div class="panel-grid">
+                    <article class="content-card">
+                        <h2>GPS-data</h2>
+                        <div class="content-body">
+                            <div class="info-list">
+                                <div class="info-row"><span>Training sessies</span><strong>{{ gps_totals.sessions }}</strong></div>
+                                <div class="info-row"><span>Load 30d</span><strong>{{ gps_totals.load|floatformat:0 }}</strong></div>
+                                <div class="info-row"><span>Afstand 30d</span><strong>{{ gps_totals.distance|floatformat:0 }}</strong></div>
+                                <div class="info-row"><span>HSD</span><strong>{{ gps_totals.hsd|floatformat:0 }}</strong></div>
+                                <div class="info-row"><span>Sprints</span><strong>{{ gps_totals.sprints|floatformat:0 }}</strong></div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="content-card">
+                        <h2>Wedstrijddata</h2>
+                        <div class="content-body">
+                            <div class="info-list">
+                                <div class="info-row"><span>Wedstrijden</span><strong>{{ match_totals.matches }}</strong></div>
+                                <div class="info-row"><span>Wedstrijdload</span><strong>{{ match_totals.load|floatformat:0 }}</strong></div>
+                                <div class="info-row"><span>Afstand</span><strong>{{ match_totals.distance|floatformat:0 }}</strong></div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <article class="content-card">
+                    <h2>Laatste sessies</h2>
+                    <div class="content-body">
+                        {% if recent_training_rows %}
+                            <table class="player-table">
+                                <thead>
+                                    <tr>
+                                        <th>Datum</th>
+                                        <th>Load</th>
+                                        <th>Afstand</th>
+                                        <th>HSD</th>
+                                        <th>Sprints</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in recent_training_rows %}
+                                        <tr>
+                                            <td>{{ row.session_date|date:"d-m-Y" }}</td>
+                                            <td>{{ row.load|floatformat:0 }}</td>
+                                            <td>{{ row.total_distance|floatformat:0 }}</td>
+                                            <td>{{ row.hsd|floatformat:0 }}</td>
+                                            <td>{{ row.sprints|floatformat:0 }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="muted">Nog geen GPS-sessies gevonden.</p>
+                        {% endif %}
+                    </div>
+                </article>
+            </div>
         </section>
     </main>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const buttons = document.querySelectorAll("[data-player-tab]");
+    const panels = document.querySelectorAll("[data-player-panel]");
+
+    buttons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            const target = button.dataset.playerTab;
+            buttons.forEach(function (item) {
+                item.classList.toggle("is-active", item === button);
+            });
+            panels.forEach(function (panel) {
+                panel.classList.toggle("is-active", panel.dataset.playerPanel === target);
+            });
+        });
+    });
+});
+</script>
 {% endblock %}
