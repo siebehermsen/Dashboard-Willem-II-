@@ -33,10 +33,10 @@
 {% if active_page == "nutrition" %}
 
 
-<!-- SPELERSELECTIE + INTAKE -->
+<!-- SPELERSELECTIE + AANDACHTSPUNT -->
 <section class="player-section">
     <div class="nutrition-section-head">
-      <h3>Intake formulier voeding</h3>
+      <h3>Aandachtspunt per speler</h3>
       <a
         class="performance-link-btn"
         href="https://performancevoeding.nl/login/nec-nijmegen/"
@@ -66,19 +66,15 @@
 <div class="player-card">
   <div class="player-card-top">
     <h3 class="player-name">{{ selected_player.name }}</h3>
-    <span class="player-subtitle">Intake gesprek - voeding</span>
+    <span class="player-subtitle">Voeding aandachtspunt</span>
   </div>
 </div>
 
 <!-- =========================
-     INTAKE FORM
+     AANDACHTSPUNT FORM
 ========================= -->
 <div class="focus-card">
-  <h4>Intake formulier</h4>
-  <p class="intake-subtext">
-    Vul de intake in en klik op <strong>Opslaan</strong>.
-    De informatie wordt gekoppeld aan deze speler.
-  </p>
+  <h4>Aandachtspunt</h4>
 
   <form method="POST" novalidate class="intake-form">
     {% csrf_token %}
@@ -89,96 +85,7 @@
     <!-- Speler koppeling -->
     <input type="hidden" name="player_id" value="{{ selected_player.id }}">
 
-    <!-- Rij 1: Naam + Datum -->
-    <div class="intake-grid">
-      <div class="intake-field">
-        <label class="intake-label"><strong>Naam</strong></label>
-        <input class="form-control" value="{{ selected_player.name }}" disabled>
-      </div>
-
-      <div class="intake-field">
-        <label class="intake-label"><strong>Datum</strong></label>
-        <input type="date"
-               class="form-control"
-               name="date"
-               value="{{ intake.date|date:'Y-m-d' }}">
-      </div>
-    </div>
-
-    <!-- Doel -->
-    <div class="intake-field mt-2">
-      <label class="intake-label"><strong>Doel</strong></label>
-      <input class="form-control"
-             name="goal"
-             value="{{ intake.goal|default_if_none:'' }}"
-             placeholder="Bijv. aankomen, vetverlies, energie rond training, herstel verbeteren">
-    </div>
-
-    <hr class="intake-divider">
-
-    <!-- Wat eet hij? -->
-    <h5 class="intake-section-title">Wat eet hij gemiddeld?</h5>
-
-    <div class="intake-field">
-      <label class="intake-label"><strong>Ontbijt</strong></label>
-      <input class="form-control"
-             name="breakfast"
-             value="{{ intake.breakfast|default_if_none:'' }}"
-             placeholder="Bijv. yoghurt + fruit + granola">
-    </div>
-
-    <div class="intake-field mt-2">
-      <label class="intake-label"><strong>Snack 1</strong></label>
-      <input class="form-control"
-             name="snack1"
-             value="{{ intake.snack1|default_if_none:'' }}"
-             placeholder="Bijv. banaan + kwark / mueslireep">
-    </div>
-
-    <div class="intake-field mt-2">
-      <label class="intake-label"><strong>Lunch</strong></label>
-      <input class="form-control"
-             name="lunch"
-             value="{{ intake.lunch|default_if_none:'' }}"
-             placeholder="Bijv. brood + kipfilet + melk">
-    </div>
-
-    <div class="intake-field mt-2">
-      <label class="intake-label"><strong>Snack 2</strong></label>
-      <input class="form-control"
-             name="snack2"
-             value="{{ intake.snack2|default_if_none:'' }}"
-             placeholder="Bijv. noten / eiwitreep / fruit">
-    </div>
-
-    <div class="intake-field mt-2">
-      <label class="intake-label"><strong>Avondeten</strong></label>
-      <input class="form-control"
-             name="dinner"
-             value="{{ intake.dinner|default_if_none:'' }}"
-             placeholder="Bijv. pasta/rijst/aardappels + groente + vlees/vis">
-    </div>
-
-    <div class="intake-field mt-2">
-      <label class="intake-label"><strong>Snack 3</strong></label>
-      <input class="form-control"
-             name="snack3"
-             value="{{ intake.snack3|default_if_none:'' }}"
-             placeholder="Bijv. kwark / boterham / herstelshake">
-    </div>
-
-    <div class="intake-field mt-2">
-      <label class="intake-label"><strong>Supplementen</strong></label>
-      <input class="form-control"
-             name="supplements"
-             value="{{ intake.supplements|default_if_none:'' }}"
-             placeholder="Bijv. creatine, omega 3, vitamine D">
-    </div>
-
-    <hr class="intake-divider">
-
     <section class="attention-section">
-      <h4>Aandachtspunt per speler</h4>
       <div class="intake-field">
         <textarea name="next_meeting_goal"
                   class="form-control attention-textarea"
@@ -190,7 +97,7 @@
     <!-- FIXED OPSLAAN KNOP (los van layout) -->
     <div class="intake-save-fixed">
       <button type="submit" class="btn btn-primary intake-save-btn">
-        Opslaan intake
+        Aandachtspunt opslaan
       </button>
     </div>
 
@@ -199,7 +106,7 @@
 
 {% else %}
 <div class="alert alert-info mt-3">
-  Selecteer eerst een speler om intake in te vullen.
+  Selecteer eerst een speler om een aandachtspunt in te vullen.
 </div>
 {% endif %}
 

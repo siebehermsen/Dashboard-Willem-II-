@@ -884,6 +884,8 @@ def nutrition_view(request):
                 except ValueError:
                     parsed_date = None
                     messages.warning(request, "Datum kon niet worden gelezen. Gebruik het datumveld (YYYY-MM-DD).")
+            else:
+                parsed_date = datetime.now().date()
 
             with transaction.atomic():
                 session, _ = NutritionIntakeSession.objects.update_or_create(
@@ -895,13 +897,9 @@ def nutrition_view(request):
                     },
                 )
                 meal_values = {
-                    "breakfast": request.POST.get("breakfast", "").strip(),
-                    "snack1": request.POST.get("snack1", "").strip(),
-                    "lunch": request.POST.get("lunch", "").strip(),
-                    "snack2": request.POST.get("snack2", "").strip(),
-                    "dinner": request.POST.get("dinner", "").strip(),
-                    "snack3": request.POST.get("snack3", "").strip(),
-                    "supplements": request.POST.get("supplements", "").strip(),
+                    meal_key: request.POST.get(meal_key, "").strip()
+                    for meal_key in ("breakfast", "snack1", "lunch", "snack2", "dinner", "snack3", "supplements")
+                    if meal_key in request.POST
                 }
                 for meal_key, value in meal_values.items():
                     NutritionIntakeItem.objects.update_or_create(
@@ -916,7 +914,7 @@ def nutrition_view(request):
                     profile.nutrition_focus = request.POST.get("nutrition_focus", "").strip()
                     profile.save(update_fields=["nutrition_focus", "updated_at"])
 
-            messages.success(request, f"Intake voor {p.name} is opgeslagen.")
+            messages.success(request, f"Aandachtspunt voor {p.name} is opgeslagen.")
             return redirect(f"/nutrition/?player_id={p.id}")
 
         # Als POST wel komt maar geen herkenbare payload had:
