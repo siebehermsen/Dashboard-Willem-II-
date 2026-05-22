@@ -35,7 +35,17 @@
 
 <!-- SPELERSELECTIE + INTAKE -->
 <section class="player-section">
-    <h3>Intake formulier voeding</h3>
+    <div class="nutrition-section-head">
+      <h3>Intake formulier voeding</h3>
+      <a
+        class="performance-link-btn"
+        href="https://performancevoeding.nl/login/nec-nijmegen/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Open voedingsapp
+      </a>
+    </div>
 
     <!-- Spelerkeuze -->
     <form method="get" action="" class="player-form mb-3">
@@ -759,13 +769,42 @@
     margin-top: 30px;
 }
 
+.nutrition-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
 .player-section h3 {
     font-size: 1.25rem;
     font-weight: 700;
     color: #1f2a44;
-    margin-bottom: 14px;
+    margin: 0;
 }
 
+.performance-link-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: #d7192a;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 800;
+    box-shadow: 0 10px 24px rgba(215, 25, 42, 0.22);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.performance-link-btn:hover {
+    transform: translateY(-1px);
+    background: #bd1222;
+    color: #ffffff;
+    box-shadow: 0 14px 30px rgba(215, 25, 42, 0.28);
 }
 
 /* Modal */
