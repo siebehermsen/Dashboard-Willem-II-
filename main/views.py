@@ -2457,6 +2457,37 @@ def academie_team(request, team_code):
         "condition": sum(1 for item in test_table_rows if item["has_condition"]),
         "complete": sum(1 for item in test_table_rows if item["complete_count"] >= 3),
     }
+    test_metric_config = [
+        ("sprint_10", "10 meter sprint", "sec"),
+        ("sprint_30", "30 meter sprint", "sec"),
+        ("cmj", "CMJ", "cm"),
+        ("squat_jump", "Squat jump", "cm"),
+        ("isrt", "ISRT", ""),
+        ("weight_value", "Gewicht", "kg"),
+        ("skinfold_sum", "Huidplooien", "mm"),
+        ("fat_value", "Vetpercentage", "%"),
+    ]
+    test_chart_labels = [item["player"].name for item in test_table_rows]
+    test_chart_data = {}
+    for code, label, unit in test_metric_config:
+        values = []
+        dates = []
+        for item in test_table_rows:
+            if code in {"weight_value", "skinfold_sum", "fat_value"}:
+                value = item.get(code)
+                date_value = item.get("weight_date") or item.get("anthropometry_date")
+            else:
+                row = item.get("row") or {}
+                value = row.get(code)
+                date_value = item.get("test_date")
+            values.append(round(float(value), 2) if value is not None else None)
+            dates.append(date_value.strftime("%d-%m-%Y") if date_value else "-")
+        test_chart_data[code] = {
+            "label": label,
+            "unit": unit,
+            "values": values,
+            "dates": dates,
+        }
 
     latest_matches = {}
     for row in sorted(match_rows, key=lambda item: item["session_date"], reverse=True):
@@ -2486,6 +2517,9 @@ def academie_team(request, team_code):
         "gps_totals": gps_totals,
         "test_table_rows": test_table_rows,
         "test_summary": test_summary,
+        "test_metric_config": test_metric_config,
+        "test_chart_labels": json.dumps(test_chart_labels),
+        "test_chart_data": json.dumps(test_chart_data),
         "match_table_rows": match_table_rows,
         "match_totals": match_totals,
         "gps_chart_labels": json.dumps([item["player"].name for item in gps_rows]),

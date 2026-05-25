@@ -294,6 +294,76 @@
     background: #eef2f7;
     color: #69758c;
 }
+.test-selector-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+.test-selector-btn {
+    background: #eef2f7;
+    border: 1px solid #d8e0ea;
+    border-radius: 999px;
+    color: #1f2a44;
+    cursor: pointer;
+    font-weight: 900;
+    padding: 9px 14px;
+}
+.test-selector-btn.is-active {
+    background: #cf202f;
+    border-color: #cf202f;
+    color: #fff;
+}
+.test-chart-card {
+    background: #f8fafc;
+    border: 1px solid #dde5ef;
+    border-radius: 12px;
+    padding: 18px;
+}
+.test-chart-head {
+    align-items: baseline;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+.test-chart-head h3 {
+    color: #1f2a44;
+    margin: 0;
+}
+.test-chart-head span {
+    color: #69758c;
+    font-weight: 900;
+}
+.test-chart-wrap {
+    height: 440px;
+}
+.test-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+}
+.test-detail-card {
+    background: #fff;
+    border: 1px solid #dde5ef;
+    border-radius: 10px;
+    padding: 14px;
+}
+.test-detail-card strong {
+    color: #1f2a44;
+    display: block;
+    margin-bottom: 6px;
+}
+.test-detail-card span {
+    color: #69758c;
+    font-weight: 800;
+}
+.test-detail-card b {
+    color: #cf202f;
+    float: right;
+}
 @media (max-width: 900px) {
     .academy-page {
         grid-template-columns: 1fr;
@@ -442,60 +512,26 @@
             <article class="academy-card">
                 <div class="academy-card-head">
                     <h2>Testdata</h2>
-                    <span class="academy-muted">Laatste beschikbare metingen per speler</span>
+                    <span class="academy-muted">Selecteer een test en vergelijk spelers</span>
                 </div>
-                <div class="academy-table-wrap">
-                    <table class="academy-table">
-                        <thead>
-                            <tr>
-                                <th>Speler</th>
-                                <th>Sprint & sprong</th>
-                                <th>Gewicht & huidplooien</th>
-                                <th>Conditie</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in test_table_rows %}
-                                <tr>
-                                    <td>{{ item.player.name }}</td>
-                                    <td>
-                                        <div class="test-metric-stack">
-                                            <div class="test-metric-line"><span class="test-metric-label">Datum</span><span class="test-metric-value">{% if item.test_date %}{{ item.test_date|date:"d-m-Y" }}{% else %}-{% endif %}</span></div>
-                                            <div class="test-metric-line"><span class="test-metric-label">10m</span><span class="test-metric-value">{% if item.row.sprint_10 %}{{ item.row.sprint_10|floatformat:2 }}{% else %}-{% endif %}</span></div>
-                                            <div class="test-metric-line"><span class="test-metric-label">30m</span><span class="test-metric-value">{% if item.row.sprint_30 %}{{ item.row.sprint_30|floatformat:2 }}{% else %}-{% endif %}</span></div>
-                                            <div class="test-metric-line"><span class="test-metric-label">CMJ</span><span class="test-metric-value">{% if item.row.cmj %}{{ item.row.cmj|floatformat:1 }}{% else %}-{% endif %}</span></div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="test-metric-stack">
-                                            <div class="test-metric-line"><span class="test-metric-label">Meting</span><span class="test-metric-value">{% if item.weight_date %}{{ item.weight_date|date:"d-m-Y" }}{% elif item.anthropometry_date %}{{ item.anthropometry_date|date:"d-m-Y" }}{% else %}-{% endif %}</span></div>
-                                            <div class="test-metric-line"><span class="test-metric-label">Gewicht</span><span class="test-metric-value">{% if item.weight_value %}{{ item.weight_value|floatformat:1 }} kg{% else %}-{% endif %}</span></div>
-                                            <div class="test-metric-line"><span class="test-metric-label">Huidplooien</span><span class="test-metric-value">{% if item.skinfold_sum %}{{ item.skinfold_sum|floatformat:1 }} mm{% else %}-{% endif %}</span></div>
-                                            <div class="test-metric-line"><span class="test-metric-label">Vet%</span><span class="test-metric-value">{% if item.fat_value %}{{ item.fat_value|floatformat:1 }}%{% else %}-{% endif %}</span></div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="test-metric-stack">
-                                            <div class="test-metric-line"><span class="test-metric-label">ISRT</span><span class="test-metric-value">{% if item.row.isrt %}{{ item.row.isrt|floatformat:1 }}{% else %}-{% endif %}</span></div>
-                                            <div class="test-metric-line"><span class="test-metric-label">Squat jump</span><span class="test-metric-value">{% if item.row.squat_jump %}{{ item.row.squat_jump|floatformat:1 }}{% else %}-{% endif %}</span></div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {% if item.complete_count >= 3 %}
-                                            <span class="test-status complete">Compleet</span>
-                                        {% elif item.complete_count %}
-                                            <span class="test-status partial">{{ item.complete_count }}/3 gevuld</span>
-                                        {% else %}
-                                            <span class="test-status empty">Geen data</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr><td colspan="5" class="academy-muted">Geen spelers in dit team.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="academy-card-body">
+                    <div class="test-selector-row" aria-label="Kies test">
+                        {% for code, label, unit in test_metric_config %}
+                            <button class="test-selector-btn {% if forloop.first %}is-active{% endif %}" type="button" data-test-metric="{{ code }}">{{ label }}</button>
+                        {% endfor %}
+                    </div>
+
+                    <div class="test-chart-card">
+                        <div class="test-chart-head">
+                            <h3 id="testChartTitle">10 meter sprint</h3>
+                            <span id="testChartUnit">sec</span>
+                        </div>
+                        <div class="test-chart-wrap">
+                            <canvas id="academyTestChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="test-detail-grid" id="testDetailGrid"></div>
                 </div>
             </article>
         </section>
@@ -596,6 +632,100 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
+    }
+
+    const testCanvas = document.getElementById("academyTestChart");
+    const testButtons = document.querySelectorAll("[data-test-metric]");
+    const testTitle = document.getElementById("testChartTitle");
+    const testUnit = document.getElementById("testChartUnit");
+    const detailGrid = document.getElementById("testDetailGrid");
+    const testLabels = {{ test_chart_labels|safe }};
+    const testData = {{ test_chart_data|safe }};
+    let testChart = null;
+
+    function formatValue(value, unit) {
+        if (value === null || value === undefined) return "-";
+        const formatted = Number(value).toLocaleString("nl-NL", {
+            minimumFractionDigits: unit === "sec" ? 2 : 0,
+            maximumFractionDigits: unit === "sec" ? 2 : 1,
+        });
+        return unit ? `${formatted} ${unit}` : formatted;
+    }
+
+    function renderTestMetric(metricCode) {
+        const metric = testData[metricCode];
+        if (!metric || !testCanvas) return;
+        testTitle.textContent = metric.label;
+        testUnit.textContent = metric.unit || "waarde";
+        const values = metric.values;
+        const chartValues = values.map((value) => value === null ? 0 : value);
+        const colors = values.map((value) => value === null ? "#d8e0ea" : "#cf202f");
+
+        if (testChart) {
+            testChart.destroy();
+        }
+        testChart = new Chart(testCanvas, {
+            type: "bar",
+            data: {
+                labels: testLabels,
+                datasets: [{
+                    label: metric.label,
+                    data: chartValues,
+                    backgroundColor: colors,
+                    borderRadius: 8,
+                    maxBarThickness: 42,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const raw = values[context.dataIndex];
+                                return `${metric.label}: ${formatValue(raw, metric.unit)}`;
+                            },
+                            afterLabel: function (context) {
+                                return `Datum: ${metric.dates[context.dataIndex] || "-"}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: "#69758c", maxRotation: 45, minRotation: 0 },
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: "#69758c" },
+                        grid: { color: "rgba(105, 117, 140, 0.18)" }
+                    }
+                }
+            }
+        });
+
+        if (detailGrid) {
+            detailGrid.innerHTML = testLabels.map((name, index) => `
+                <div class="test-detail-card">
+                    <strong>${name}</strong>
+                    <span>${metric.dates[index] || "-"}</span>
+                    <b>${formatValue(values[index], metric.unit)}</b>
+                </div>
+            `).join("");
+        }
+    }
+
+    if (testCanvas && testButtons.length) {
+        testButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                testButtons.forEach((item) => item.classList.toggle("is-active", item === button));
+                renderTestMetric(button.dataset.testMetric);
+            });
+        });
+        renderTestMetric(testButtons[0].dataset.testMetric);
     }
 });
 </script>
