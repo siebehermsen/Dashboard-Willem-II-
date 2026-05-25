@@ -2374,14 +2374,89 @@ def academie_team(request, team_code):
     latest_tests = {}
     for row in sorted(test_rows, key=lambda item: item["session_date"], reverse=True):
         latest_tests.setdefault(row["player_id"], row)
+
+    latest_weights = {}
+    for weight in WeightEntry.objects.filter(player_id__in=player_ids).select_related("player").order_by("player_id", "-date", "-id"):
+        latest_weights.setdefault(weight.player_id, weight)
+
+    latest_anthropometry = {}
+    for session in (
+        AnthropometrySession.objects
+        .filter(player_id__in=player_ids)
+        .select_related("player")
+        .prefetch_related("measurements")
+        .order_by("player_id", "-date", "-id")
+    ):
+        latest_anthropometry.setdefault(session.player_id, session)
+
     test_table_rows = [
-        {
-            "player": player,
-            "row": latest_tests.get(player.id),
-            "test_url": f"{reverse('testdata')}?player_id={player.id}&tab=profiel",
-        }
-        for player in players
     ]
+    for player in players:
+        row = latest_tests.get(player.id)
+        weight_entry = latest_weights.get(player.id)
+        anthropometry = latest_anthropometry.get(player.id)
+        profile = getattr(player, "monitoring_profile", None)
+        skinfold_sum = None
+        if row and row.get("sum_skinfolds") is not None:
+            skinfold_sum = row.get("sum_skinfolds")
+        elif anthropometry:
+            skinfold_values = [
+                measurement.value
+                for measurement in anthropometry.measurements.all()
+                if measurement.category == "skinfold"
+            ]
+            skinfold_sum = sum(skinfold_values) if skinfold_values else None
+        elif profile:
+            skinfold_sum = profile.sum_skinfolds
+
+        weight_value = None
+        weight_date = None
+        if weight_entry:
+            weight_value = weight_entry.weight
+            weight_date = weight_entry.date
+        elif anthropometry and anthropometry.body_mass is not None:
+            weight_value = anthropometry.body_mass
+            weight_date = anthropometry.date
+        elif row and row.get("curr_weight") is not None:
+            weight_value = row.get("curr_weight")
+            weight_date = row.get("session_date")
+        elif profile:
+            weight_value = profile.curr_weight
+
+        fat_value = None
+        if anthropometry and anthropometry.fat_average is not None:
+            fat_value = anthropometry.fat_average
+        elif profile:
+            fat_value = profile.fat_perc
+
+        has_speed = bool(row and any(row.get(code) is not None for code in ("sprint_10", "sprint_30", "cmj")))
+        has_body = any(value is not None for value in (weight_value, skinfold_sum, fat_value))
+        has_condition = bool(row and row.get("isrt") is not None)
+
+        test_table_rows.append(
+            {
+                "player": player,
+                "row": row,
+                "test_url": f"{reverse('testdata')}?player_id={player.id}&tab=profiel",
+                "test_date": row.get("session_date") if row else None,
+                "weight_value": weight_value,
+                "weight_date": weight_date,
+                "skinfold_sum": skinfold_sum,
+                "fat_value": fat_value,
+                "anthropometry_date": anthropometry.date if anthropometry else None,
+                "has_speed": has_speed,
+                "has_body": has_body,
+                "has_condition": has_condition,
+                "complete_count": sum([has_speed, has_body, has_condition]),
+            }
+        )
+
+    test_summary = {
+        "speed": sum(1 for item in test_table_rows if item["has_speed"]),
+        "body": sum(1 for item in test_table_rows if item["has_body"]),
+        "condition": sum(1 for item in test_table_rows if item["has_condition"]),
+        "complete": sum(1 for item in test_table_rows if item["complete_count"] >= 3),
+    }
 
     latest_matches = {}
     for row in sorted(match_rows, key=lambda item: item["session_date"], reverse=True):
@@ -2410,6 +2485,7 @@ def academie_team(request, team_code):
         "gps_rows": gps_rows,
         "gps_totals": gps_totals,
         "test_table_rows": test_table_rows,
+        "test_summary": test_summary,
         "match_table_rows": match_table_rows,
         "match_totals": match_totals,
         "gps_chart_labels": json.dumps([item["player"].name for item in gps_rows]),

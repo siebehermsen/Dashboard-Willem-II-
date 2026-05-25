@@ -228,6 +228,72 @@
 .academy-chart {
     min-height: 380px;
 }
+.test-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 16px;
+}
+.test-overview-card {
+    background: #f6f8fb;
+    border: 1px solid #dde5ef;
+    border-radius: 10px;
+    padding: 16px;
+}
+.test-overview-card span {
+    color: #69758c;
+    display: block;
+    font-size: 0.74rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+.test-overview-card strong {
+    color: #1f2a44;
+    font-size: 1.9rem;
+    line-height: 1;
+}
+.test-metric-stack {
+    display: grid;
+    gap: 7px;
+    min-width: 210px;
+}
+.test-metric-line {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+.test-metric-label {
+    color: #69758c;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.test-metric-value {
+    color: #1f2a44;
+    font-weight: 900;
+}
+.test-status {
+    border-radius: 999px;
+    display: inline-block;
+    font-size: 0.74rem;
+    font-weight: 900;
+    padding: 7px 10px;
+}
+.test-status.complete {
+    background: #dcfce7;
+    color: #166534;
+}
+.test-status.partial {
+    background: #ffedd5;
+    color: #9a3412;
+}
+.test-status.empty {
+    background: #eef2f7;
+    color: #69758c;
+}
 @media (max-width: 900px) {
     .academy-page {
         grid-template-columns: 1fr;
@@ -239,6 +305,9 @@
         padding-right: 0;
     }
     .academy-kpis {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+    .test-overview-grid {
         grid-template-columns: repeat(2, minmax(140px, 1fr));
     }
 }
@@ -357,39 +426,73 @@
         <section class="academy-panel" data-academy-panel="test">
             <article class="academy-card">
                 <div class="academy-card-head">
+                    <h2>Testoverzicht</h2>
+                    <span class="academy-muted">Snelheid, lichaam en conditie</span>
+                </div>
+                <div class="academy-card-body">
+                    <div class="test-overview-grid">
+                        <div class="test-overview-card"><span>Sprint / sprong</span><strong>{{ test_summary.speed }}</strong></div>
+                        <div class="test-overview-card"><span>Gewicht / huidplooi</span><strong>{{ test_summary.body }}</strong></div>
+                        <div class="test-overview-card"><span>Conditie</span><strong>{{ test_summary.condition }}</strong></div>
+                        <div class="test-overview-card"><span>Compleet profiel</span><strong>{{ test_summary.complete }}</strong></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="academy-card">
+                <div class="academy-card-head">
                     <h2>Testdata</h2>
-                    <span class="academy-muted">Laatste test per speler</span>
+                    <span class="academy-muted">Laatste beschikbare metingen per speler</span>
                 </div>
                 <div class="academy-table-wrap">
                     <table class="academy-table">
                         <thead>
                             <tr>
                                 <th>Speler</th>
-                                <th>Datum</th>
-                                <th>10m</th>
-                                <th>30m</th>
-                                <th>CMJ</th>
-                                <th>ISRT</th>
-                                <th></th>
+                                <th>Sprint & sprong</th>
+                                <th>Gewicht & huidplooien</th>
+                                <th>Conditie</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for item in test_table_rows %}
                                 <tr>
                                     <td>{{ item.player.name }}</td>
-                                    {% if item.row %}
-                                        <td>{{ item.row.session_date|date:"d-m-Y" }}</td>
-                                        <td>{{ item.row.sprint_10|default:"-" }}</td>
-                                        <td>{{ item.row.sprint_30|default:"-" }}</td>
-                                        <td>{{ item.row.cmj|default:"-" }}</td>
-                                        <td>{{ item.row.isrt|default:"-" }}</td>
-                                        <td><a class="academy-open-link" href="{{ item.test_url }}">Open</a></td>
-                                    {% else %}
-                                        <td colspan="6" class="academy-muted">Geen testdata gevonden.</td>
-                                    {% endif %}
+                                    <td>
+                                        <div class="test-metric-stack">
+                                            <div class="test-metric-line"><span class="test-metric-label">Datum</span><span class="test-metric-value">{% if item.test_date %}{{ item.test_date|date:"d-m-Y" }}{% else %}-{% endif %}</span></div>
+                                            <div class="test-metric-line"><span class="test-metric-label">10m</span><span class="test-metric-value">{% if item.row.sprint_10 %}{{ item.row.sprint_10|floatformat:2 }}{% else %}-{% endif %}</span></div>
+                                            <div class="test-metric-line"><span class="test-metric-label">30m</span><span class="test-metric-value">{% if item.row.sprint_30 %}{{ item.row.sprint_30|floatformat:2 }}{% else %}-{% endif %}</span></div>
+                                            <div class="test-metric-line"><span class="test-metric-label">CMJ</span><span class="test-metric-value">{% if item.row.cmj %}{{ item.row.cmj|floatformat:1 }}{% else %}-{% endif %}</span></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="test-metric-stack">
+                                            <div class="test-metric-line"><span class="test-metric-label">Meting</span><span class="test-metric-value">{% if item.weight_date %}{{ item.weight_date|date:"d-m-Y" }}{% elif item.anthropometry_date %}{{ item.anthropometry_date|date:"d-m-Y" }}{% else %}-{% endif %}</span></div>
+                                            <div class="test-metric-line"><span class="test-metric-label">Gewicht</span><span class="test-metric-value">{% if item.weight_value %}{{ item.weight_value|floatformat:1 }} kg{% else %}-{% endif %}</span></div>
+                                            <div class="test-metric-line"><span class="test-metric-label">Huidplooien</span><span class="test-metric-value">{% if item.skinfold_sum %}{{ item.skinfold_sum|floatformat:1 }} mm{% else %}-{% endif %}</span></div>
+                                            <div class="test-metric-line"><span class="test-metric-label">Vet%</span><span class="test-metric-value">{% if item.fat_value %}{{ item.fat_value|floatformat:1 }}%{% else %}-{% endif %}</span></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="test-metric-stack">
+                                            <div class="test-metric-line"><span class="test-metric-label">ISRT</span><span class="test-metric-value">{% if item.row.isrt %}{{ item.row.isrt|floatformat:1 }}{% else %}-{% endif %}</span></div>
+                                            <div class="test-metric-line"><span class="test-metric-label">Squat jump</span><span class="test-metric-value">{% if item.row.squat_jump %}{{ item.row.squat_jump|floatformat:1 }}{% else %}-{% endif %}</span></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if item.complete_count >= 3 %}
+                                            <span class="test-status complete">Compleet</span>
+                                        {% elif item.complete_count %}
+                                            <span class="test-status partial">{{ item.complete_count }}/3 gevuld</span>
+                                        {% else %}
+                                            <span class="test-status empty">Geen data</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% empty %}
-                                <tr><td colspan="7" class="academy-muted">Geen spelers in dit team.</td></tr>
+                                <tr><td colspan="5" class="academy-muted">Geen spelers in dit team.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
