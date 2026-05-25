@@ -37,6 +37,22 @@
     margin: 0 0 18px;
     text-transform: uppercase;
 }
+.academy-back-link {
+    align-items: center;
+    background: #cf202f;
+    border-radius: 999px;
+    color: #fff;
+    display: inline-flex;
+    font-weight: 900;
+    margin: 0 0 24px;
+    padding: 11px 18px;
+    text-decoration: none;
+    box-shadow: 0 12px 24px rgba(207, 32, 47, 0.2);
+}
+.academy-back-link:hover {
+    color: #fff;
+    transform: translateY(-1px);
+}
 .academy-team-link {
     display: block;
     margin: 0 0 14px;
@@ -385,6 +401,7 @@
 
 <div class="academy-page">
     <aside class="academy-side">
+        <a class="academy-back-link" href="{% url 'dashboard' %}">Terug</a>
         <p class="academy-side-title">Naar teamomgeving</p>
         {% for code in academy_codes %}
             <a class="academy-team-link {% if code == selected_team_code %}is-active{% endif %}" href="{% url 'academie_team' code %}">{{ code }}</a>
