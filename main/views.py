@@ -1919,6 +1919,8 @@ def fysiek_rapport(request):
     import json
 
     players = Player.objects.select_related("monitoring_profile", "position_ref").all().order_by("name")
+    selected_player_name = request.GET.get("player") or ""
+    selected_player = players.filter(name=selected_player_name).first() if selected_player_name else None
     training_rows_all = fetch_performance_rows("training")
     match_rows_all = fetch_performance_rows("match")
     all_dates = [row["session_date"] for row in training_rows_all + match_rows_all if row.get("session_date")]
@@ -1931,6 +1933,9 @@ def fysiek_rapport(request):
 
     training_rows = [row for row in training_rows_all if in_report_week(row)]
     match_rows = [row for row in match_rows_all if in_report_week(row)]
+    if selected_player:
+        training_rows = [row for row in training_rows if row.get("player_name") == selected_player.name]
+        match_rows = [row for row in match_rows if row.get("player_name") == selected_player.name]
     combined_rows = [*training_rows, *match_rows]
 
     def val(row, key):
@@ -2042,6 +2047,7 @@ def fysiek_rapport(request):
 
     context = {
         "players": players,
+        "selected_player": selected_player,
         "active_page": "rapport",
         "report_summary": report_summary,
         "player_report_rows": player_report_rows[:10],

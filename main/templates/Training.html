@@ -31,9 +31,31 @@
     </a>
 </div>
 
+<section class="app-data-summary-card">
+    <span class="app-data-kicker">NEC data</span>
+    <h2>
+        {% if active_page == "wedstrijd" %}
+            Wedstrijddata
+        {% elif active_page == "rapport" %}
+            Fysiek rapport
+        {% else %}
+            Trainingsdata
+        {% endif %}
+    </h2>
+    <p>
+        {% if active_page == "rapport" %}
+            Selecteer een speler en bekijk direct zijn fysieke weekrapport.
+        {% elif selected_player %}
+            Overzicht voor {{ selected_player.name }}.
+        {% else %}
+            Teamoverzicht met de belangrijkste belasting en intensiteitsdata.
+        {% endif %}
+    </p>
+</section>
+
 {% if active_page != "rapport" %}
 <!-- UPLOADFORMULIER -->
-<section class="card fade-in" style="margin-bottom: 25px;">
+<section class="card fade-in upload-card" style="margin-bottom: 25px;">
     <h3>Upload StatsSports CSV-bestand</h3>
 
     {% if active_page == "wedstrijd" %}
@@ -1394,6 +1416,20 @@ setMatchMetric(selectedMetricMatchState, false);
         <button type="button" class="report-print-btn" onclick="window.print()">Print / PDF</button>
     </div>
 
+    <section class="selection-section report-player-select">
+        <form method="get" action="{% url 'fysiek_rapport' %}" class="player-form">
+            <label for="report-player"><strong>Speler fysiek rapport:</strong></label>
+            <select name="player" id="report-player" onchange="this.form.submit()">
+                <option value="">-- Teamrapport --</option>
+                {% for player in players %}
+                    <option value="{{ player.name }}" {% if selected_player and selected_player.name == player.name %}selected{% endif %}>
+                        {{ player.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </section>
+
     <section class="report-kpi-grid">
         <article class="report-kpi-card">
             <span>Totale load</span>
@@ -2527,6 +2563,47 @@ html.app-ui.app-mode main.container {
     padding: 14px;
 }
 
+html.app-ui.app-mode .app-data-summary-card {
+    display: block;
+}
+
+.app-data-summary-card {
+    display: none;
+}
+
+html.app-ui.app-mode .app-data-summary-card {
+    margin: 0 0 14px;
+    padding: 18px 16px;
+    border: 1px solid rgba(31, 42, 68, 0.08);
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(207, 32, 47, 0.09), rgba(0, 111, 61, 0.08));
+    box-shadow: 0 14px 30px rgba(20, 34, 66, 0.08);
+}
+
+html.app-ui.app-mode .app-data-kicker {
+    display: block;
+    margin-bottom: 6px;
+    color: #6b7890;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+html.app-ui.app-mode .app-data-summary-card h2 {
+    margin: 0;
+    color: #1f2a44;
+    font-size: 1.45rem;
+    line-height: 1.12;
+}
+
+html.app-ui.app-mode .app-data-summary-card p {
+    margin: 8px 0 0;
+    color: #5f6d86;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
 html.app-ui.app-mode .page-header {
     align-items: flex-start;
     gap: 12px;
@@ -2559,16 +2636,26 @@ html.app-ui.app-mode .badge {
 
 html.app-ui.app-mode .data-tabs-container {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
     margin: 16px 0 18px;
 }
 
 html.app-ui.app-mode .data-tab {
-    padding: 11px 10px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    min-height: 48px;
+    padding: 10px 8px;
     border-radius: 14px;
-    font-size: 0.9rem;
+    font-size: 0.82rem;
+    line-height: 1.15;
     text-align: center;
+}
+
+html.app-ui.app-mode .upload-card,
+html.app-ui.app-mode .weektargets-card {
+    display: none;
 }
 
 html.app-ui.app-mode .card,
@@ -2581,6 +2668,11 @@ html.app-ui.app-mode .kpi-card {
 
 html.app-ui.app-mode .selection-section {
     margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid rgba(31, 42, 68, 0.08);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 10px 22px rgba(20, 34, 66, 0.06);
 }
 
 html.app-ui.app-mode .player-form {
@@ -2624,6 +2716,57 @@ html.app-ui.app-mode .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     margin: 16px 0;
+}
+
+html.app-ui.app-mode .physical-report-head {
+    padding: 0;
+    margin-bottom: 14px;
+    box-shadow: none;
+    background: transparent;
+}
+
+html.app-ui.app-mode .physical-report-head h2 {
+    font-size: 1.2rem;
+    line-height: 1.18;
+}
+
+html.app-ui.app-mode .physical-report-head p,
+html.app-ui.app-mode .report-print-btn {
+    display: none;
+}
+
+html.app-ui.app-mode .report-player-select {
+    margin-bottom: 14px;
+}
+
+html.app-ui.app-mode .report-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+html.app-ui.app-mode .report-kpi-card {
+    min-height: 96px;
+    padding: 14px;
+    border-radius: 16px;
+}
+
+html.app-ui.app-mode .report-kpi-card span {
+    font-size: 0.72rem;
+}
+
+html.app-ui.app-mode .report-kpi-card strong {
+    font-size: 1.3rem;
+}
+
+html.app-ui.app-mode .report-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+html.app-ui.app-mode .report-table-card {
+    display: none;
 }
 
 html.app-ui.app-mode .kpi-card h4 {
