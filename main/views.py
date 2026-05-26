@@ -289,6 +289,7 @@ def home(request):
 def dashboard(request):
     player_app_user = _is_player_app_user(request.user)
     player_app_player = _player_for_user(request.user) if player_app_user else None
+    player_app_preview_mode = request.GET.get("app_view") == "player" and not player_app_user
 
     # ---------- BASIS ----------
     players_qs = Player.objects.select_related("monitoring_profile").all().order_by("name")
@@ -326,6 +327,37 @@ def dashboard(request):
 
     # ---------- FORM HANDLING (WEEKPROGRAMMA + SEIZOENSIMPORT) ----------
     if request.method == "POST":
+        if request.POST.get("form_type") == "player_app_wellness":
+            date_obj = parse_date(request.POST.get("date", "")) or timezone.now().date()
+            player_id = request.POST.get("player_id")
+            player = get_object_or_404(Player, id=player_id)
+            if player_app_user and (not player_app_player or player.id != player_app_player.id):
+                raise PermissionDenied
+
+            WellnessEntry.objects.update_or_create(
+                player=player,
+                date=date_obj,
+                defaults={
+                    "sleep": _clean_int_or_none(request.POST.get("sleep")),
+                    "mood": _clean_int_or_none(request.POST.get("mood")),
+                    "fitness": _clean_int_or_none(request.POST.get("fitness")),
+                    "soreness": _clean_int_or_none(request.POST.get("soreness")),
+                    "comment": request.POST.get("comment", ""),
+                },
+            )
+
+            srpe = _clean_int_or_none(request.POST.get("srpe"))
+            if srpe is not None:
+                RPEEntry.objects.update_or_create(
+                    player=player,
+                    date=date_obj,
+                    defaults={"rpe": srpe},
+                )
+
+            redirect_url = f"{reverse('dashboard')}?app_view=player"
+            if player_app_preview_mode:
+                redirect_url = f"{redirect_url}&player_id={player.id}"
+            return redirect(redirect_url)
 
         # ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ SEIZOENSPLANNING IMPORTEREN (harde reset)
         if request.POST.get("form_type") == "seed_matches":
@@ -567,6 +599,27 @@ def dashboard(request):
             }
         )
 
+    player_app_form_player = player_app_player
+    if player_app_preview_mode:
+        requested_player_id = request.GET.get("player_id")
+        if requested_player_id:
+            player_app_form_player = next((player for player in players if str(player.id) == str(requested_player_id)), None)
+        if player_app_form_player is None and players:
+            player_app_form_player = players[0]
+
+    player_app_today = today
+    player_app_today_wellness = None
+    player_app_today_rpe = None
+    if player_app_form_player:
+        player_app_today_wellness = WellnessEntry.objects.filter(
+            player=player_app_form_player,
+            date=player_app_today,
+        ).first()
+        player_app_today_rpe = RPEEntry.objects.filter(
+            player=player_app_form_player,
+            date=player_app_today,
+        ).first()
+
     # ---------- CONTEXT ----------
     context = {
         "title": "NEC Dashboard",
@@ -594,6 +647,11 @@ def dashboard(request):
         "next_week_url": f"{reverse('dashboard')}?week={next_week_start.isoformat()}",
         "current_week_url": f"{reverse('dashboard')}?week={(today - timedelta(days=today.weekday())).isoformat()}",
         "player_app_player": player_app_player,
+        "player_app_preview_mode": player_app_preview_mode,
+        "player_app_form_player": player_app_form_player,
+        "player_app_today": player_app_today,
+        "player_app_today_wellness": player_app_today_wellness,
+        "player_app_today_rpe": player_app_today_rpe,
     }
 
     return render(request, "Load_dashboard.html", context)

@@ -825,6 +825,115 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         width: 100%;
     }
 
+    html.app-mode .dashboard-player-form {
+        display: grid;
+        gap: 16px;
+    }
+
+    html.app-mode .dashboard-player-field {
+        display: grid;
+        gap: 8px;
+    }
+
+    html.app-mode .dashboard-player-field label,
+    html.app-mode .dashboard-player-slider-top span:first-child {
+        color: #10213f;
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    html.app-mode .dashboard-player-field select,
+    html.app-mode .dashboard-player-field textarea {
+        border: 1px solid #dbe4f0;
+        border-radius: 16px;
+        box-sizing: border-box;
+        color: #10213f;
+        font: inherit;
+        font-size: 0.95rem;
+        min-height: 48px;
+        padding: 12px 14px;
+        width: 100%;
+    }
+
+    html.app-mode .dashboard-player-field textarea {
+        min-height: 88px;
+        resize: vertical;
+    }
+
+    html.app-mode .dashboard-player-slider {
+        display: grid;
+        gap: 9px;
+        padding: 14px;
+        border: 1px solid #dfe7f2;
+        border-radius: 18px;
+        background: #f8fbff;
+    }
+
+    html.app-mode .dashboard-player-slider-top {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    html.app-mode .dashboard-player-slider-value {
+        background: #10213f;
+        border-radius: 999px;
+        color: #ffffff;
+        font-size: 0.86rem;
+        font-weight: 900;
+        min-width: 86px;
+        padding: 7px 11px;
+        text-align: center;
+    }
+
+    html.app-mode .dashboard-player-slider input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: linear-gradient(90deg, #10213f 0%, #cf202f 100%);
+        border-radius: 999px;
+        height: 12px;
+        outline: none;
+        width: 100%;
+    }
+
+    html.app-mode .dashboard-player-slider input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        background: #ffffff;
+        border: 4px solid #cf202f;
+        border-radius: 50%;
+        box-shadow: 0 4px 14px rgba(31, 42, 68, 0.25);
+        height: 34px;
+        width: 34px;
+    }
+
+    html.app-mode .dashboard-player-slider input[type="range"]::-moz-range-thumb {
+        background: #ffffff;
+        border: 4px solid #cf202f;
+        border-radius: 50%;
+        box-shadow: 0 4px 14px rgba(31, 42, 68, 0.25);
+        height: 28px;
+        width: 28px;
+    }
+
+    html.app-mode .dashboard-player-save {
+        align-items: center;
+        background: #cf202f;
+        border: none;
+        border-radius: 18px;
+        box-shadow: 0 14px 28px rgba(207, 32, 47, 0.24);
+        color: #fff;
+        display: flex;
+        font-size: 1rem;
+        font-weight: 900;
+        justify-content: center;
+        min-height: 56px;
+        width: 100%;
+    }
+
     html.app-mode .dashboard-app-topbar {
         display: flex;
         align-items: center;
@@ -1474,14 +1583,75 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         {% if PLAYER_APP_MODE %}
         <section class="dashboard-player-card" aria-label="Speleromgeving">
             <h2>Wellness & RPE</h2>
-            {% if player_app_player %}
-                <p>{{ player_app_player.name }}, vul hier je dagelijkse check en sRPE in.</p>
-            {% elif PLAYER_APP_PREVIEW_MODE %}
-                <p>Preview van de spelersapp. Spelers zien hier alleen hun eigen Wellness & RPE.</p>
+            {% if player_app_form_player %}
+                <p>{% if PLAYER_APP_PREVIEW_MODE %}Preview voor {{ player_app_form_player.name }}.{% else %}{{ player_app_form_player.name }}, vul je dagelijkse check direct in.{% endif %}</p>
+                <form class="dashboard-player-form" method="post" action="{% url 'dashboard' %}?app_view=player">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="player_app_wellness">
+                    <input type="hidden" name="date" value="{{ player_app_today|date:'Y-m-d' }}">
+                    {% if PLAYER_APP_PREVIEW_MODE %}
+                    <div class="dashboard-player-field">
+                        <label for="dashboardPlayerSelect">Speler</label>
+                        <select id="dashboardPlayerSelect" name="player_id">
+                            {% for player in players %}
+                                <option value="{{ player.id }}" {% if player_app_form_player.id == player.id %}selected{% endif %}>{{ player.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% else %}
+                    <input type="hidden" name="player_id" value="{{ player_app_form_player.id }}">
+                    {% endif %}
+
+                    <div class="dashboard-player-slider" data-slider-labels="1:Heel goed,2:Goed,3:Oké,4:Slecht">
+                        <div class="dashboard-player-slider-top">
+                            <span>Slaap</span>
+                            <span class="dashboard-player-slider-value"></span>
+                        </div>
+                        <input type="range" name="sleep" min="1" max="4" step="1" value="{{ player_app_today_wellness.sleep|default:'2' }}">
+                    </div>
+
+                    <div class="dashboard-player-slider" data-slider-labels="1:Heel goed,2:Goed,3:Matig,4:Slecht">
+                        <div class="dashboard-player-slider-top">
+                            <span>Gevoel</span>
+                            <span class="dashboard-player-slider-value"></span>
+                        </div>
+                        <input type="range" name="mood" min="1" max="4" step="1" value="{{ player_app_today_wellness.mood|default:'2' }}">
+                    </div>
+
+                    <div class="dashboard-player-slider" data-slider-labels="1:Heel fit,2:Fit,3:Oké,4:Vermoeid">
+                        <div class="dashboard-player-slider-top">
+                            <span>Fitheid</span>
+                            <span class="dashboard-player-slider-value"></span>
+                        </div>
+                        <input type="range" name="fitness" min="1" max="4" step="1" value="{{ player_app_today_wellness.fitness|default:'2' }}">
+                    </div>
+
+                    <div class="dashboard-player-slider" data-slider-labels="1:Geen,2:Licht,3:Veel">
+                        <div class="dashboard-player-slider-top">
+                            <span>Spierpijn</span>
+                            <span class="dashboard-player-slider-value"></span>
+                        </div>
+                        <input type="range" name="soreness" min="1" max="3" step="1" value="{{ player_app_today_wellness.soreness|default:'1' }}">
+                    </div>
+
+                    <div class="dashboard-player-slider" data-slider-labels="1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10">
+                        <div class="dashboard-player-slider-top">
+                            <span>sRPE</span>
+                            <span class="dashboard-player-slider-value"></span>
+                        </div>
+                        <input type="range" name="srpe" min="1" max="10" step="1" value="{{ player_app_today_rpe.rpe|default:'5' }}">
+                    </div>
+
+                    <div class="dashboard-player-field">
+                        <label for="dashboardPlayerComment">Opmerking</label>
+                        <textarea id="dashboardPlayerComment" name="comment" placeholder="Optioneel">{{ player_app_today_wellness.comment|default:'' }}</textarea>
+                    </div>
+
+                    <button class="dashboard-player-save" type="submit">Opslaan</button>
+                </form>
             {% else %}
                 <p>Je login is nog niet gekoppeld aan een spelerprofiel. Vraag staf om je account te koppelen.</p>
             {% endif %}
-            <a class="dashboard-player-action" href="{% url 'wellness' %}{% if PLAYER_APP_PREVIEW_MODE %}?app_view=player{% endif %}">Invullen</a>
         </section>
         {% else %}
         <div class="dashboard-app-view-tabs" role="tablist" aria-label="Dashboard tabs">
@@ -1967,6 +2137,44 @@ function cancelEdit(id, oldDate, oldAct, oldNotes) {
         </form>
     `;
 }
+
+function updateDashboardPlayerSlider(slider) {
+    const input = slider.querySelector('input[type="range"]');
+    const output = slider.querySelector(".dashboard-player-slider-value");
+    if (!input || !output) {
+        return;
+    }
+
+    const labels = {};
+    (slider.dataset.sliderLabels || "").split(",").forEach((item) => {
+        const parts = item.split(":");
+        if (parts.length >= 2) {
+            labels[parts[0]] = parts.slice(1).join(":");
+        }
+    });
+    output.textContent = labels[input.value] || input.value;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".dashboard-player-slider").forEach(updateDashboardPlayerSlider);
+
+    const playerSelect = document.getElementById("dashboardPlayerSelect");
+    if (playerSelect) {
+        playerSelect.addEventListener("change", () => {
+            const url = new URL(window.location.href);
+            url.searchParams.set("app_view", "player");
+            url.searchParams.set("player_id", playerSelect.value);
+            window.location.href = url.toString();
+        });
+    }
+});
+
+document.addEventListener("input", (event) => {
+    const slider = event.target.closest(".dashboard-player-slider");
+    if (slider) {
+        updateDashboardPlayerSlider(slider);
+    }
+});
 </script>
 
 <!-- ðŸ—“ï¸ MODAL: Trainingsdag toevoegen -->
