@@ -100,8 +100,8 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, "Slaap")
         self.assertContains(response, "app_view=staff")
 
-    def test_player_app_dashboard_form_saves_wellness_and_rpe(self):
-        response = self.client.post(
+    def test_player_app_dashboard_forms_save_wellness_and_rpe(self):
+        wellness_response = self.client.post(
             reverse("dashboard") + "?app_view=player",
             {
                 "form_type": "player_app_wellness",
@@ -111,13 +111,24 @@ class DashboardPersistenceTests(TestCase):
                 "mood": "2",
                 "fitness": "3",
                 "soreness": "2",
-                "srpe": "8",
                 "comment": "Direct vanuit spelersapp",
             },
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertIn("app_view=player", response["Location"])
+        rpe_response = self.client.post(
+            reverse("dashboard") + "?app_view=player",
+            {
+                "form_type": "player_app_srpe",
+                "player_id": self.player.id,
+                "date": "2026-05-15",
+                "srpe": "8",
+            },
+        )
+
+        self.assertEqual(wellness_response.status_code, 302)
+        self.assertEqual(rpe_response.status_code, 302)
+        self.assertIn("app_view=player", wellness_response["Location"])
+        self.assertIn("app_view=player", rpe_response["Location"])
 
         wellness = WellnessEntry.objects.get(player=self.player, date=date(2026, 5, 15))
         self.assertEqual(wellness.sleep, 1)

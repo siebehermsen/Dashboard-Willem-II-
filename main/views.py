@@ -327,32 +327,34 @@ def dashboard(request):
 
     # ---------- FORM HANDLING (WEEKPROGRAMMA + SEIZOENSIMPORT) ----------
     if request.method == "POST":
-        if request.POST.get("form_type") == "player_app_wellness":
+        if request.POST.get("form_type") in {"player_app_wellness", "player_app_srpe"}:
             date_obj = parse_date(request.POST.get("date", "")) or timezone.now().date()
             player_id = request.POST.get("player_id")
             player = get_object_or_404(Player, id=player_id)
             if player_app_user and (not player_app_player or player.id != player_app_player.id):
                 raise PermissionDenied
 
-            WellnessEntry.objects.update_or_create(
-                player=player,
-                date=date_obj,
-                defaults={
-                    "sleep": _clean_int_or_none(request.POST.get("sleep")),
-                    "mood": _clean_int_or_none(request.POST.get("mood")),
-                    "fitness": _clean_int_or_none(request.POST.get("fitness")),
-                    "soreness": _clean_int_or_none(request.POST.get("soreness")),
-                    "comment": request.POST.get("comment", ""),
-                },
-            )
-
-            srpe = _clean_int_or_none(request.POST.get("srpe"))
-            if srpe is not None:
-                RPEEntry.objects.update_or_create(
+            if request.POST.get("form_type") == "player_app_wellness":
+                WellnessEntry.objects.update_or_create(
                     player=player,
                     date=date_obj,
-                    defaults={"rpe": srpe},
+                    defaults={
+                        "sleep": _clean_int_or_none(request.POST.get("sleep")),
+                        "mood": _clean_int_or_none(request.POST.get("mood")),
+                        "fitness": _clean_int_or_none(request.POST.get("fitness")),
+                        "soreness": _clean_int_or_none(request.POST.get("soreness")),
+                        "comment": request.POST.get("comment", ""),
+                    },
                 )
+
+            if request.POST.get("form_type") == "player_app_srpe":
+                srpe = _clean_int_or_none(request.POST.get("srpe"))
+                if srpe is not None:
+                    RPEEntry.objects.update_or_create(
+                        player=player,
+                        date=date_obj,
+                        defaults={"rpe": srpe},
+                    )
 
             redirect_url = f"{reverse('dashboard')}?app_view=player"
             if player_app_preview_mode:
