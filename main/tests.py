@@ -89,6 +89,15 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Verhoogd blessurerisico")
         self.assertContains(response, "Agenda")
+        self.assertContains(response, "Stafapp")
+        self.assertContains(response, "Spelersapp")
+
+    def test_staff_can_preview_player_app_mode(self):
+        response = self.client.get(reverse("dashboard") + "?app_view=player")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Preview van de spelersapp")
+        self.assertContains(response, "app_view=staff")
 
     def test_dashboard_agenda_can_show_requested_week(self):
         DayProgramEntry.objects.create(

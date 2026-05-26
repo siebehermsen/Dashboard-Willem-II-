@@ -832,6 +832,43 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         margin-bottom: 18px;
     }
 
+    html.app-mode .dashboard-app-topbar-main {
+        align-items: center;
+        display: flex;
+        gap: 14px;
+        min-width: 0;
+    }
+
+    html.app-mode .dashboard-app-mode-switch {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin: 0 0 18px;
+        padding: 5px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(16, 33, 63, 0.08);
+        box-shadow: 0 12px 28px rgba(20, 34, 66, 0.08);
+    }
+
+    html.app-mode .dashboard-app-mode-switch a {
+        align-items: center;
+        border-radius: 14px;
+        color: #10213f;
+        display: flex;
+        font-size: 0.9rem;
+        font-weight: 900;
+        justify-content: center;
+        min-height: 44px;
+        text-decoration: none;
+    }
+
+    html.app-mode .dashboard-app-mode-switch a.is-active {
+        background: #cf202f;
+        color: #ffffff;
+        box-shadow: 0 12px 22px rgba(207, 32, 47, 0.20);
+    }
+
     html.app-mode .dashboard-app-logo {
         width: 52px;
         height: 52px;
@@ -1418,12 +1455,21 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 <main class="container dashboard-page">
     <section class="dashboard-app-shell" aria-label="App dashboard home" data-app-view="home">
         <div class="dashboard-app-topbar">
-            <img class="dashboard-app-logo" src="{% static 'icons/nec-logo.svg' %}" alt="NEC">
-            <div>
-                <p class="dashboard-app-kicker">Dashboard app</p>
-                <h1 class="dashboard-app-title">Hallo {{ request.user.first_name|default:request.user.username }}</h1>
+            <div class="dashboard-app-topbar-main">
+                <img class="dashboard-app-logo" src="{% static 'icons/nec-logo.svg' %}" alt="NEC">
+                <div>
+                    <p class="dashboard-app-kicker">Dashboard app</p>
+                    <h1 class="dashboard-app-title">Hallo {{ request.user.first_name|default:request.user.username }}</h1>
+                </div>
             </div>
         </div>
+
+        {% if CAN_SWITCH_APP_MODE %}
+        <div class="dashboard-app-mode-switch" aria-label="App weergave wisselen">
+            <a href="{% url 'dashboard' %}?app_view=staff" class="{% if CURRENT_APP_VIEW == 'staff' %}is-active{% endif %}">Stafapp</a>
+            <a href="{% url 'dashboard' %}?app_view=player" class="{% if CURRENT_APP_VIEW == 'player' %}is-active{% endif %}">Spelersapp</a>
+        </div>
+        {% endif %}
 
         {% if PLAYER_APP_MODE %}
         <section class="dashboard-player-card" aria-label="Speleromgeving">
