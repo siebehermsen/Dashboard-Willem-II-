@@ -1535,6 +1535,9 @@ def training(request):
     import math
     from .models import TrainingWeekTarget
 
+    player_app_user = _is_player_app_user(request.user)
+    player_app_player = _player_for_user(request.user) if player_app_user else None
+
     metric_field_map = {
         "load": "load",
         "total_distance": "total_distance",
