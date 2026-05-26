@@ -218,6 +218,26 @@ html.app-ui.app-mode .wellness-container {
     background: transparent;
 }
 
+html.app-ui.app-mode .player-wellness-app .combined-summary,
+html.app-ui.app-mode .player-wellness-app .tabs {
+    display: none;
+}
+
+html.app-ui.app-mode .player-wellness-app .wellness-table-wrapper {
+    margin-top: 16px;
+}
+
+html.app-ui.app-mode .player-wellness-app .player-link-warning {
+    background: #fff;
+    border: 1px solid #d9e2ef;
+    border-radius: 18px;
+    color: #6b778e;
+    font-weight: 700;
+    line-height: 1.45;
+    margin: 14px 0 0;
+    padding: 18px;
+}
+
 html.app-ui.app-mode h1 {
     font-size: 1.55rem;
     text-align: left;
@@ -450,8 +470,13 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
 }
 </style>
 
-<div class="wellness-container">
+<div class="wellness-container {% if player_app_user %}player-wellness-app{% endif %}">
     <h1>Wellness & RPE</h1>
+    {% if player_app_user and not player_app_player %}
+    <div class="player-link-warning">
+        Je account is nog niet gekoppeld aan een spelerprofiel. Vraag staf om je login aan jouw speler te koppelen.
+    </div>
+    {% endif %}
 
     <div class="date-selector">
         <span class="date-label">Datum:</span>
@@ -602,7 +627,7 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
             {% endfor %}
         </tbody>
 
-        <tbody id="tbody-filled" class="hidden">
+        <tbody id="tbody-filled" class="{% if not player_app_user %}hidden{% endif %}">
             {% for entry in wellness_rows %}
             <tr>
                 <td class="player-name" data-label="Speler">{{ entry.player.name }}</td>

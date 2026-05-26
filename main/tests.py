@@ -29,7 +29,7 @@ from .models import (
     WeightEntry,
     WellnessEntry,
 )
-from .permissions import ROLE_ADMIN, ROLE_READ_ONLY, ROLE_TRAINER
+from .permissions import ROLE_ADMIN, ROLE_PLAYER, ROLE_READ_ONLY, ROLE_TRAINER
 
 
 @override_settings(
@@ -152,6 +152,57 @@ class DashboardPersistenceTests(TestCase):
         entry.refresh_from_db()
         self.assertEqual(entry.sleep, 5)
         self.assertEqual(entry.comment, "Bijgewerkt")
+
+    def test_player_app_user_only_sees_and_saves_own_wellness(self):
+        player_user = get_user_model().objects.create_user(username="player-login", password="test-pass")
+        player_group = Group.objects.create(name=ROLE_PLAYER)
+        player_user.groups.add(player_group)
+        self.player.user = player_user
+        self.player.save(update_fields=["user"])
+        self.client.force_login(player_user)
+
+        response = self.client.get(reverse("wellness"), {"date": "2026-05-15"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.player.name)
+        self.assertNotContains(response, self.other_player.name)
+
+        own_response = self.client.post(
+            reverse("wellness"),
+            {
+                "player_id": self.player.id,
+                "date": "2026-05-15",
+                "sleep": "2",
+                "mood": "2",
+                "fitness": "2",
+                "soreness": "1",
+                "srpe": "6",
+                "comment": "Eigen invoer",
+            },
+        )
+        other_response = self.client.post(
+            reverse("wellness"),
+            {
+                "player_id": self.other_player.id,
+                "date": "2026-05-15",
+                "sleep": "2",
+                "mood": "2",
+                "fitness": "2",
+                "soreness": "1",
+                "comment": "Niet toegestaan",
+            },
+        )
+
+        self.assertEqual(own_response.status_code, 302)
+        self.assertEqual(other_response.status_code, 403)
+        self.assertTrue(
+            WellnessEntry.objects.filter(
+                player=self.player,
+                date=date(2026, 5, 15),
+                comment="Eigen invoer",
+            ).exists()
+        )
+        self.assertFalse(WellnessEntry.objects.filter(player=self.other_player).exists())
 
     def test_rpe_post_creates_and_updates_one_entry_per_player_date(self):
         training_type = RPETrainingType.objects.get(name="Training")

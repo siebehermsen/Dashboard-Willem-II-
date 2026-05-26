@@ -8,6 +8,7 @@ ROLE_PERFORMANCE = "Performance Staff"
 ROLE_MEDICAL = "Medisch"
 ROLE_TRAINER = "Trainer"
 ROLE_READ_ONLY = "Alleen lezen"
+ROLE_PLAYER = "Speler"
 
 ROLE_CHOICES = (
     (ROLE_ADMIN, "Admin"),
@@ -17,7 +18,7 @@ ROLE_CHOICES = (
     (ROLE_READ_ONLY, "Alleen lezen"),
 )
 
-ALL_DASHBOARD_ROLES = {role for role, _label in ROLE_CHOICES}
+ALL_DASHBOARD_ROLES = {role for role, _label in ROLE_CHOICES} | {ROLE_PLAYER}
 
 
 def has_dashboard_role(user, allowed_roles):

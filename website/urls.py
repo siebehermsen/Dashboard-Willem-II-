@@ -6,7 +6,7 @@ from main import views
 from django.conf import settings
 from django.conf.urls.static import static
 from main.views import skinfold_view, huidplooimeting_pdf
-from main.permissions import ROLE_ADMIN, ROLE_MEDICAL, ROLE_PERFORMANCE, ROLE_TRAINER, role_required
+from main.permissions import ROLE_ADMIN, ROLE_MEDICAL, ROLE_PERFORMANCE, ROLE_PLAYER, ROLE_TRAINER, role_required
 
 
 
@@ -25,7 +25,7 @@ urlpatterns = [
 
     # ---------- BASIS ----------
     path("admin/", admin.site.urls),
-    path("dashboard/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, ROLE_TRAINER, allow_read_only_get=True)(views.dashboard), name="dashboard"),
+    path("dashboard/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, ROLE_TRAINER, ROLE_PLAYER, allow_read_only_get=True)(views.dashboard), name="dashboard"),
     path("", RedirectView.as_view(pattern_name="login", permanent=False), name="home"),
 
     path("add_rehab/", role_required(ROLE_ADMIN, ROLE_MEDICAL)(views.add_rehab), name="add_rehab"),
@@ -52,7 +52,7 @@ urlpatterns = [
     path("fysiek-rapport/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.fysiek_rapport), name="fysiek_rapport"),
     path("upload_wedstrijddata/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE)(views.upload_wedstrijddata), name="upload_wedstrijddata"),
     path("testdata/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, allow_read_only_get=True)(views.testdata), name="testdata"),
-    path("wellness/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, ROLE_TRAINER, allow_read_only_get=True)(views.wellness), name="wellness"),
+    path("wellness/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, ROLE_TRAINER, ROLE_PLAYER, allow_read_only_get=True)(views.wellness), name="wellness"),
     path("academie/<str:team_code>/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.academie_team), name="academie_team"),
     path("academie/<str:team_code>/speler/<int:player_id>/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.academie_player), name="academie_player"),
     path("individuele_programmas/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.individuele_programmas), name="individuele_programmas"),

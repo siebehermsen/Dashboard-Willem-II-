@@ -5,8 +5,8 @@ from .models import DayProgramEntry, InjuryCase, PerformanceSession, Player, Sta
 # ---------- SPELERS ----------
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ("name", "prev_weight_display", "curr_weight_display", "sum_skinfolds_display", "fat_perc_display", "weight_diff_display")
-    search_fields = ("name",)
+    list_display = ("name", "user", "prev_weight_display", "curr_weight_display", "sum_skinfolds_display", "fat_perc_display", "weight_diff_display")
+    search_fields = ("name", "user__username", "user__email")
     list_filter = ()
 
     def get_queryset(self, request):

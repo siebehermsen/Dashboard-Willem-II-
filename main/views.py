@@ -35,6 +35,7 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Avg, Q
 from django import forms
+from django.core.exceptions import PermissionDenied
 from datetime import datetime, timedelta
 from types import SimpleNamespace
 from django.conf import settings
@@ -69,7 +70,7 @@ from .models import (
     PlayerPosition,
     StaffRole,
 )
-from .permissions import ROLE_CHOICES, ROLE_ADMIN, role_required
+from .permissions import ALL_DASHBOARD_ROLES, ROLE_CHOICES, ROLE_ADMIN, ROLE_PLAYER, role_required
 from .performance_3nf import fetch_performance_rows, mean, upsert_performance_session_metrics
 
 
@@ -99,6 +100,28 @@ def _sync_user_dashboard_role(user, dashboard_role):
         user.groups.add(group)
     user.is_staff = dashboard_role == ROLE_ADMIN or user.is_superuser
     user.save()
+
+
+def _is_player_app_user(user):
+    if not getattr(user, "is_authenticated", False) or user.is_superuser:
+        return False
+    if not user.groups.filter(name=ROLE_PLAYER).exists():
+        return False
+    staff_roles = ALL_DASHBOARD_ROLES - {ROLE_PLAYER}
+    return not user.groups.filter(name__in=staff_roles).exists()
+
+
+def _player_for_user(user):
+    if not getattr(user, "is_authenticated", False):
+        return None
+    player = getattr(user, "player_profile", None)
+    if player:
+        return player
+    username = (user.get_username() or "").strip()
+    if not username:
+        return None
+    normalized_username = username.replace(".", " ").replace("_", " ").replace("-", " ").strip()
+    return Player.objects.filter(Q(name__iexact=username) | Q(name__iexact=normalized_username)).first()
 
 
 def logout_view(request):
@@ -264,9 +287,14 @@ def home(request):
 # ---------- DASHBOARD ----------
 @login_required
 def dashboard(request):
+    player_app_user = _is_player_app_user(request.user)
+    player_app_player = _player_for_user(request.user) if player_app_user else None
 
     # ---------- BASIS ----------
-    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    players_qs = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    if player_app_user:
+        players_qs = players_qs.filter(id=player_app_player.id) if player_app_player else players_qs.none()
+    players = list(players_qs)
     dayprograms = DayProgramEntry.objects.all().order_by("date")
     weekform = WeekProgramForm()
 
@@ -565,6 +593,7 @@ def dashboard(request):
         "previous_week_url": f"{reverse('dashboard')}?week={previous_week_start.isoformat()}",
         "next_week_url": f"{reverse('dashboard')}?week={next_week_start.isoformat()}",
         "current_week_url": f"{reverse('dashboard')}?week={(today - timedelta(days=today.weekday())).isoformat()}",
+        "player_app_player": player_app_player,
     }
 
     return render(request, "Load_dashboard.html", context)
@@ -1462,7 +1491,10 @@ def training(request):
         selected_metric = "load"
     selected_metric_field = metric_field_map[selected_metric]
 
-    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    players_qs = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    if player_app_user:
+        players_qs = players_qs.filter(id=player_app_player.id) if player_app_player else players_qs.none()
+    players = list(players_qs)
     week_targets, _ = TrainingWeekTarget.objects.get_or_create(
         name="Geplande weektargets training"
     )
@@ -3783,6 +3815,8 @@ def rpe_view_old(request):
 
 def wellness(request):
     """Wellness dashboard met onderscheid tussen ingevuld en niet ingevuld."""
+    player_app_user = _is_player_app_user(request.user)
+    player_app_player = _player_for_user(request.user) if player_app_user else None
 
     # 1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Datum ophalen & converteren naar date-object
     selected_date = request.GET.get("date")
@@ -3794,11 +3828,14 @@ def wellness(request):
         date = timezone.now().date()
 
     # 2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Spelers ophalen
-    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    players_qs = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    if player_app_user:
+        players_qs = players_qs.filter(id=player_app_player.id) if player_app_player else players_qs.none()
+    players = list(players_qs)
 
     # 3) Entries van deze datum ophalen
-    existing_entries = WellnessEntry.objects.select_related("player").filter(date=date)
-    rpe_entries = RPEEntry.objects.select_related("player", "training_type_ref").filter(date=date)
+    existing_entries = WellnessEntry.objects.select_related("player").filter(date=date, player__in=players)
+    rpe_entries = RPEEntry.objects.select_related("player", "training_type_ref").filter(date=date, player__in=players)
 
     filled_player_ids = set(existing_entries.values_list("player_id", flat=True))
     rpe_by_player = {entry.player_id: entry for entry in rpe_entries}
@@ -3823,7 +3860,9 @@ def wellness(request):
         # Datum van POST opnieuw correct converteren
         date_obj = datetime.strptime(date_post, "%Y-%m-%d").date()
 
-        player = Player.objects.get(id=player_id)
+        player = get_object_or_404(Player, id=player_id)
+        if player_app_user and (not player_app_player or player.id != player_app_player.id):
+            raise PermissionDenied
 
         WellnessEntry.objects.update_or_create(
             player=player,
@@ -3875,15 +3914,17 @@ def wellness(request):
 
     # 6) Context + render
     return render(request, "wellness.html", {
-    "date": date.strftime("%Y-%m-%d"),
-    "players_filled": players_filled,
-    "players_not_filled": players_not_filled,
-    "existing_entries": existing_entries,
-    "wellness_rows": wellness_rows,
-    "rpe_entries": rpe_entries,
-    "rpe_by_player": rpe_by_player,
-    "combined_rows": combined_rows,
-})
+        "date": date.strftime("%Y-%m-%d"),
+        "player_app_user": player_app_user,
+        "player_app_player": player_app_player,
+        "players_filled": players_filled,
+        "players_not_filled": players_not_filled,
+        "existing_entries": existing_entries,
+        "wellness_rows": wellness_rows,
+        "rpe_entries": rpe_entries,
+        "rpe_by_player": rpe_by_player,
+        "combined_rows": combined_rows,
+    })
 
 
 

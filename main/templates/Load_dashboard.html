@@ -788,6 +788,43 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         box-shadow: 0 16px 30px rgba(207, 32, 47, 0.22);
     }
 
+    html.app-mode .dashboard-player-card {
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(16, 33, 63, 0.08);
+        border-radius: 24px;
+        box-shadow: 0 16px 34px rgba(20, 34, 66, 0.10);
+        padding: 22px;
+    }
+
+    html.app-mode .dashboard-player-card h2 {
+        margin: 0 0 8px;
+        color: #10213f;
+        font-size: 1.28rem;
+        line-height: 1.15;
+    }
+
+    html.app-mode .dashboard-player-card p {
+        margin: 0 0 18px;
+        color: #5f6f8e;
+        font-size: 0.95rem;
+        line-height: 1.45;
+    }
+
+    html.app-mode .dashboard-player-action {
+        align-items: center;
+        background: #cf202f;
+        border-radius: 18px;
+        box-shadow: 0 14px 28px rgba(207, 32, 47, 0.24);
+        color: #fff;
+        display: flex;
+        font-size: 1rem;
+        font-weight: 900;
+        justify-content: center;
+        min-height: 56px;
+        text-decoration: none;
+        width: 100%;
+    }
+
     html.app-mode .dashboard-app-topbar {
         display: flex;
         align-items: center;
@@ -1388,6 +1425,17 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
             </div>
         </div>
 
+        {% if PLAYER_APP_MODE %}
+        <section class="dashboard-player-card" aria-label="Speleromgeving">
+            <h2>Wellness & RPE</h2>
+            {% if player_app_player %}
+                <p>{{ player_app_player.name }}, vul hier je dagelijkse check en sRPE in.</p>
+            {% else %}
+                <p>Je login is nog niet gekoppeld aan een spelerprofiel. Vraag staf om je account te koppelen.</p>
+            {% endif %}
+            <a class="dashboard-player-action" href="{% url 'wellness' %}">Invullen</a>
+        </section>
+        {% else %}
         <div class="dashboard-app-view-tabs" role="tablist" aria-label="Dashboard tabs">
             <button type="button" class="dashboard-app-view-tab is-active" data-app-dashboard-tab="home" role="tab" aria-selected="true">
                 Home
@@ -1614,8 +1662,10 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                 </form>
             </div>
         </div>
+        {% endif %}
     </section>
 
+    {% if not PLAYER_APP_MODE %}
     <div class="dashboard-desktop-shell">
 
     <section class="academy-switchboard" aria-label="Academie teams">
@@ -2499,6 +2549,7 @@ function closeAppWeekModal() {
 
 
 </div>
+    {% endif %}
 
 {% endblock %}
 
