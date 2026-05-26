@@ -488,12 +488,6 @@
             <span class="brand-title">Performance Dashboard</span>
             <span class="brand-subtitle">Snelle navigatie voor staf en monitoring</span>
         </div>
-        {% if CAN_SWITCH_APP_MODE %}
-        <div class="app-mode-switch" aria-label="App weergave wisselen">
-            <a href="{{ request.path }}?app_view=staff" class="{% if CURRENT_APP_VIEW == 'staff' %}is-active{% endif %}">Stafapp</a>
-            <a href="{{ request.path }}?app_view=player" class="{% if CURRENT_APP_VIEW == 'player' %}is-active{% endif %}">Spelersapp</a>
-        </div>
-        {% endif %}
     </div>
 
     <nav aria-label="Hoofdnavigatie">
