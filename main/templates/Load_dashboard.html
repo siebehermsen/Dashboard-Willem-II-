@@ -756,6 +756,38 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         order: 2;
     }
 
+    html.app-mode .dashboard-app-shell[data-app-view="home"] .dashboard-app-agenda-card,
+    html.app-mode .dashboard-app-shell[data-app-view="agenda"] .dashboard-app-panel[aria-label="Navigatie"],
+    html.app-mode .dashboard-app-shell[data-app-view="agenda"] .dashboard-app-panel[aria-label="Blessurerisico"] {
+        display: none;
+    }
+
+    html.app-mode .dashboard-app-view-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin: 4px 0 18px;
+    }
+
+    html.app-mode .dashboard-app-view-tab {
+        border: 1px solid rgba(16, 33, 63, 0.10);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.92);
+        color: #10213f;
+        min-height: 52px;
+        padding: 0 14px;
+        font-size: 0.95rem;
+        font-weight: 900;
+        box-shadow: 0 12px 28px rgba(20, 34, 66, 0.08);
+    }
+
+    html.app-mode .dashboard-app-view-tab.is-active {
+        background: #cf202f;
+        border-color: #cf202f;
+        color: #fff;
+        box-shadow: 0 16px 30px rgba(207, 32, 47, 0.22);
+    }
+
     html.app-mode .dashboard-app-topbar {
         display: flex;
         align-items: center;
@@ -1066,8 +1098,8 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
     }
 
     html.app-mode .dashboard-app-agenda-nav {
-        display: flex;
-        align-items: center;
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr) 38px;
         gap: 8px;
         margin-top: 10px;
     }
@@ -1077,7 +1109,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         align-items: center;
         justify-content: center;
         min-height: 34px;
-        padding: 0 10px;
+        padding: 0 8px;
         border: 1px solid #dbe3ef;
         border-radius: 999px;
         background: #f7f9fc;
@@ -1347,7 +1379,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 </style>
 
 <main class="container dashboard-page">
-    <section class="dashboard-app-shell" aria-label="App dashboard home">
+    <section class="dashboard-app-shell" aria-label="App dashboard home" data-app-view="home">
         <div class="dashboard-app-topbar">
             <img class="dashboard-app-logo" src="{% static 'icons/nec-logo.svg' %}" alt="NEC">
             <div>
@@ -1356,8 +1388,14 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
             </div>
         </div>
 
-
-
+        <div class="dashboard-app-view-tabs" role="tablist" aria-label="Dashboard tabs">
+            <button type="button" class="dashboard-app-view-tab is-active" data-app-dashboard-tab="home" role="tab" aria-selected="true">
+                Home
+            </button>
+            <button type="button" class="dashboard-app-view-tab" data-app-dashboard-tab="agenda" role="tab" aria-selected="false">
+                Agenda
+            </button>
+        </div>
 
         <section class="dashboard-app-summary" aria-label="Dashboard samenvatting">
             <article class="dashboard-app-stat">
@@ -2159,8 +2197,30 @@ const appWeekResponsible = document.getElementById("appWeekResponsible");
 const appWeekPhysicalNote = document.getElementById("appWeekPhysicalNote");
 const appWeekActivities = document.getElementById("appWeekActivities");
 const appWeekNotes = document.getElementById("appWeekNotes");
+const dashboardAppShell = document.querySelector(".dashboard-app-shell");
+
+function setDashboardAppView(view) {
+    if (!dashboardAppShell) {
+        return;
+    }
+
+    const nextView = view === "agenda" ? "agenda" : "home";
+    dashboardAppShell.dataset.appView = nextView;
+    document.querySelectorAll("[data-app-dashboard-tab]").forEach((button) => {
+        const isActive = button.dataset.appDashboardTab === nextView;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+}
 
 document.addEventListener("click", (event) => {
+    const appDashboardTab = event.target.closest("[data-app-dashboard-tab]");
+    if (appDashboardTab) {
+        event.preventDefault();
+        setDashboardAppView(appDashboardTab.dataset.appDashboardTab);
+        return;
+    }
+
     const weekNavLink = event.target.closest(".home-agenda-nav-link");
     if (weekNavLink) {
         event.preventDefault();
