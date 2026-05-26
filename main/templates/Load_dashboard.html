@@ -748,16 +748,12 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 28px);
     }
 
-    html.app-mode .dashboard-app-panel[aria-label="Huidige weekplanning"] {
+    html.app-mode .dashboard-app-panel[aria-label="Agenda"] {
         order: 1;
     }
 
-    html.app-mode .dashboard-app-panel[aria-label="Volgende wedstrijd"] {
-        order: 2;
-    }
-
     html.app-mode .dashboard-app-panel[aria-label="Navigatie"] {
-        order: 3;
+        order: 2;
     }
 
     html.app-mode .dashboard-app-topbar {
@@ -1057,6 +1053,153 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         font-size: 0.86rem;
     }
 
+    html.app-mode .dashboard-app-agenda-card {
+        padding: 18px 16px;
+    }
+
+    html.app-mode .dashboard-app-agenda-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    html.app-mode .dashboard-app-agenda-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    html.app-mode .dashboard-app-agenda-nav a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 0 10px;
+        border: 1px solid #dbe3ef;
+        border-radius: 999px;
+        background: #f7f9fc;
+        color: #10213f;
+        font-size: 0.82rem;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    html.app-mode .dashboard-app-agenda-add {
+        align-items: center;
+        background: #cf202f;
+        border: none;
+        border-radius: 18px;
+        box-shadow: 0 14px 28px rgba(207, 32, 47, 0.24);
+        color: #fff;
+        display: inline-flex;
+        flex: 0 0 auto;
+        font-size: 1.45rem;
+        font-weight: 900;
+        height: 50px;
+        justify-content: center;
+        line-height: 1;
+        width: 50px;
+    }
+
+    html.app-mode .dashboard-app-agenda-list {
+        display: grid;
+        gap: 10px;
+    }
+
+    html.app-mode .dashboard-app-agenda-day {
+        border: 1px solid #dfe7f2;
+        border-radius: 16px;
+        background: #f9fbfe;
+        padding: 12px;
+    }
+
+    html.app-mode .dashboard-app-agenda-day.is-today {
+        background: #fffaf0;
+        border-color: #f0d899;
+    }
+
+    html.app-mode .dashboard-app-agenda-day-head {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    html.app-mode .dashboard-app-agenda-day-label {
+        color: #10213f;
+        font-size: 0.92rem;
+        font-weight: 900;
+    }
+
+    html.app-mode .dashboard-app-agenda-day-add {
+        border: none;
+        border-radius: 999px;
+        background: #eef3f9;
+        color: #cf202f;
+        font-size: 0.76rem;
+        font-weight: 900;
+        padding: 6px 10px;
+    }
+
+    html.app-mode .dashboard-app-agenda-events {
+        display: grid;
+        gap: 8px;
+        min-height: 52px;
+    }
+
+    html.app-mode .dashboard-app-agenda-empty {
+        align-items: center;
+        border: 1px dashed #d5ddeb;
+        border-radius: 12px;
+        color: #7a879d;
+        display: flex;
+        font-size: 0.84rem;
+        min-height: 50px;
+        padding: 0 12px;
+    }
+
+    html.app-mode .dashboard-app-agenda-event {
+        border: none;
+        border-radius: 13px;
+        box-shadow: 0 8px 16px rgba(20, 34, 66, 0.09);
+        color: #fff;
+        display: grid;
+        gap: 3px;
+        padding: 10px 12px;
+        text-align: left;
+        width: 100%;
+    }
+
+    html.app-mode .dashboard-app-agenda-event.category-training { background: #40aa4d; }
+    html.app-mode .dashboard-app-agenda-event.category-kracht { background: #68159f; }
+    html.app-mode .dashboard-app-agenda-event.category-testing,
+    html.app-mode .dashboard-app-agenda-event.category-data { background: #596cc0; }
+    html.app-mode .dashboard-app-agenda-event.category-wedstrijd,
+    html.app-mode .dashboard-app-agenda-event.category-toernooi { background: #e73435; }
+    html.app-mode .dashboard-app-agenda-event.category-rust { background: #8c8c8c; }
+    html.app-mode .dashboard-app-agenda-event.category-overig { background: #1f9d96; }
+
+    html.app-mode .dashboard-app-agenda-event-meta {
+        font-size: 0.78rem;
+        font-weight: 800;
+        opacity: 0.9;
+    }
+
+    html.app-mode .dashboard-app-agenda-event-title {
+        font-size: 0.96rem;
+        font-weight: 900;
+        line-height: 1.2;
+    }
+
+    html.app-mode .dashboard-app-agenda-event-notes {
+        font-size: 0.78rem;
+        line-height: 1.35;
+        opacity: 0.9;
+    }
+
     html.app-mode .dashboard-app-modal {
         display: none;
         position: fixed;
@@ -1119,7 +1262,8 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         font-weight: 700;
     }
 
-    html.app-mode .dashboard-app-form-group input {
+    html.app-mode .dashboard-app-form-group input,
+    html.app-mode .dashboard-app-form-group select {
         width: 100%;
         box-sizing: border-box;
         padding: 12px 14px;
@@ -1236,59 +1380,69 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 
 
 
-        <section class="dashboard-app-panel" aria-label="Volgende wedstrijd">
-            <h2 class="dashboard-app-panel-title">Volgende wedstrijd</h2>
-            {% if upcoming_match %}
-                <div class="dashboard-app-match-row">
-                    <div class="dashboard-app-team">
-                        {% if home_logo %}
-                            <img src="{{ home_logo }}" alt="{{ home_name }}">
-                        {% endif %}
-                        <span>{{ home_name }}</span>
-                    </div>
-                    <div class="dashboard-app-versus">VS</div>
-                    <div class="dashboard-app-team">
-                        {% if away_logo %}
-                            <img src="{{ away_logo }}" alt="{{ away_name }}">
-                        {% endif %}
-                        <span>{{ away_name }}</span>
-                    </div>
-                </div>
-                <p class="dashboard-app-match-time">{{ upcoming_match.kickoff|date:"l d F Y - H:i" }}</p>
-            {% else %}
-                <p class="dashboard-app-alert-copy">Er staat nu geen volgende wedstrijd ingepland.</p>
-            {% endif %}
-        </section>
-
-        <section class="dashboard-app-panel" aria-label="Huidige weekplanning">
-            <div class="dashboard-app-week-head">
+        <section class="dashboard-app-panel dashboard-app-agenda-card" aria-label="Agenda">
+            <div class="dashboard-app-agenda-head">
                 <div>
-                    <h2 class="dashboard-app-panel-title">Huidige weekplanning</h2>
+                    <h2 class="dashboard-app-panel-title">Agenda</h2>
                     <p class="dashboard-app-week-range">{{ current_week_start|date:"d M" }} - {{ current_week_end|date:"d M" }}</p>
+                    <nav class="dashboard-app-agenda-nav" aria-label="Weeknavigatie">
+                        <a class="home-agenda-nav-link" href="{{ previous_week_url }}" aria-label="Vorige week">&lsaquo;</a>
+                        <a class="home-agenda-nav-link" href="{{ current_week_url }}">Deze week</a>
+                        <a class="home-agenda-nav-link" href="{{ next_week_url }}" aria-label="Volgende week">&rsaquo;</a>
+                    </nav>
                 </div>
-                <button type="button" id="openWeekModalMobile" class="dashboard-app-week-add">Toevoegen</button>
+                <button type="button" id="openWeekModalMobile" class="dashboard-app-agenda-add" aria-label="Training toevoegen">+</button>
             </div>
 
-            <div class="dashboard-app-week">
-                {% for day in current_week_dayprograms %}
-                    <article class="dashboard-app-week-card" id="app-week-card-{{ day.id }}">
-                            <div class="dashboard-app-week-actions">
+            <div class="dashboard-app-agenda-list">
+                {% for day in week_agenda_days %}
+                    <section class="dashboard-app-agenda-day {% if day.is_today %}is-today{% endif %}" data-app-agenda-day-date="{{ day.date|date:'Y-m-d' }}">
+                        <div class="dashboard-app-agenda-day-head">
+                            <span class="dashboard-app-agenda-day-label">{{ day.label }}</span>
+                            <button type="button" class="dashboard-app-agenda-day-add">Toevoegen</button>
+                        </div>
+                        <div class="dashboard-app-agenda-events">
+                            {% for item in day.items %}
                                 <button
                                     type="button"
-                                    class="action-btn btn-edit"
-                                    onclick="openAppWeekModal('edit', '{{ day.id }}', '{{ day.date|date:"Y-m-d"|escapejs }}', '{{ day.activities|default:""|escapejs }}', '{{ day.notes|default:""|escapejs }}')"
-                                >Bewerk</button>
-                                <form action="{% url 'delete_weekday' day.id %}" method="POST">
-                                    {% csrf_token %}
-                                    <button type="submit" class="action-btn btn-delete">Verwijder</button>
-                                </form>
-                            </div>
-                            <p class="dashboard-app-week-date">{{ day.date|date:"l d F" }}</p>
-                            <p class="dashboard-app-week-activities">{{ day.activities|default:"-" }}</p>
-                            <p class="dashboard-app-week-notes">{{ day.notes|default:"Geen bijzonderheden." }}</p>
-                    </article>
+                                    class="dashboard-app-agenda-event category-{{ item.css_category }}"
+                                    data-agenda-id="{{ item.entry.id }}"
+                                    data-agenda-date="{{ item.entry.date|date:'Y-m-d' }}"
+                                    data-agenda-team="{{ item.entry.team|escapejs }}"
+                                    data-agenda-category="{{ item.entry.category|escapejs }}"
+                                    data-agenda-context="{{ item.entry.context|escapejs }}"
+                                    data-agenda-location="{{ item.entry.location|escapejs }}"
+                                    data-agenda-start-time="{% if item.entry.start_time %}{{ item.entry.start_time|time:'H:i' }}{% endif %}"
+                                    data-agenda-end-time="{% if item.entry.end_time %}{{ item.entry.end_time|time:'H:i' }}{% endif %}"
+                                    data-agenda-responsible="{{ item.entry.responsible|escapejs }}"
+                                    data-agenda-physical-note="{{ item.entry.physical_note|escapejs }}"
+                                    data-agenda-notes="{{ item.entry.notes|default:''|escapejs }}"
+                                >
+                                    <span class="dashboard-app-agenda-event-meta">
+                                        {% if item.entry.start_time %}{{ item.entry.start_time|time:"H:i" }}{% endif %}
+                                        {% if item.entry.end_time %} - {{ item.entry.end_time|time:"H:i" }}{% endif %}
+                                        {% if item.entry.team %} · {{ item.entry.team }}{% endif %}
+                                    </span>
+                                    <span class="dashboard-app-agenda-event-title">
+                                        {{ item.category_label }}
+                                        {% if item.entry.context %} - {{ item.entry.context }}{% endif %}
+                                    </span>
+                                    {% if item.entry.location or item.entry.responsible or item.entry.notes or item.entry.physical_note %}
+                                        <span class="dashboard-app-agenda-event-notes">
+                                            {% if item.entry.location %}{{ item.entry.location }}{% endif %}
+                                            {% if item.entry.responsible %}{% if item.entry.location %} · {% endif %}{{ item.entry.responsible }}{% endif %}
+                                            {% if item.entry.notes %}{% if item.entry.location or item.entry.responsible %} · {% endif %}{{ item.entry.notes }}{% endif %}
+                                            {% if item.entry.physical_note %}{% if item.entry.location or item.entry.responsible or item.entry.notes %} · {% endif %}{{ item.entry.physical_note }}{% endif %}
+                                        </span>
+                                    {% endif %}
+                                </button>
+                            {% empty %}
+                                <button type="button" class="dashboard-app-agenda-empty">Nog niets gepland</button>
+                            {% endfor %}
+                        </div>
+                    </section>
                 {% empty %}
-                    <p class="dashboard-app-week-empty">Er staat nog geen weekplanning voor deze week ingevoerd.</p>
+                    <p class="dashboard-app-week-empty">Er staat nog geen agenda voor deze week ingevoerd.</p>
                 {% endfor %}
             </div>
         </section>
@@ -1995,6 +2149,14 @@ const appWeekModal = document.getElementById("appWeekModal");
 const appWeekForm = document.getElementById("appWeekForm");
 const appWeekModalTitle = document.getElementById("appWeekModalTitle");
 const appWeekDate = document.getElementById("appWeekDate");
+const appWeekTeam = document.getElementById("appWeekTeam");
+const appWeekCategory = document.getElementById("appWeekCategory");
+const appWeekContext = document.getElementById("appWeekContext");
+const appWeekLocation = document.getElementById("appWeekLocation");
+const appWeekStartTime = document.getElementById("appWeekStartTime");
+const appWeekEndTime = document.getElementById("appWeekEndTime");
+const appWeekResponsible = document.getElementById("appWeekResponsible");
+const appWeekPhysicalNote = document.getElementById("appWeekPhysicalNote");
 const appWeekActivities = document.getElementById("appWeekActivities");
 const appWeekNotes = document.getElementById("appWeekNotes");
 
@@ -2029,11 +2191,31 @@ document.addEventListener("click", (event) => {
             agendaCategory: "training",
         });
     }
+
+    const appAgendaEvent = event.target.closest(".dashboard-app-agenda-event[data-agenda-id]");
+    if (appAgendaEvent) {
+        event.preventDefault();
+        event.stopPropagation();
+        openAppWeekModal("edit", appAgendaEvent.dataset);
+        return;
+    }
+
+    const appAgendaDay = event.target.closest(".dashboard-app-agenda-day[data-app-agenda-day-date]");
+    if (appAgendaDay) {
+        event.preventDefault();
+        openAppWeekModal("add", {
+            agendaDate: appAgendaDay.dataset.appAgendaDayDate,
+            agendaCategory: "training",
+        });
+    }
 });
 
 if (openWeekBtnMobile) {
     openWeekBtnMobile.addEventListener("click", () => {
-        openAppWeekModal("add");
+        openAppWeekModal("add", {
+            agendaDate: "{{ current_week_start|date:'Y-m-d' }}",
+            agendaCategory: "training",
+        });
     });
 }
 
@@ -2063,6 +2245,13 @@ if (deleteWeekForm) {
     });
 }
 
+if (appWeekForm) {
+    appWeekForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        submitAgendaForm(appWeekForm);
+    });
+}
+
 window.addEventListener("click", (e) => {
     if (e.target === weekModal) {
         closeDesktopWeekModal();
@@ -2083,6 +2272,8 @@ function replaceAgendaFromHtml(html, url, pushState = false) {
     const nextDocument = parser.parseFromString(html, "text/html");
     const nextAgenda = nextDocument.querySelector(".home-agenda-card");
     const currentAgenda = document.querySelector(".home-agenda-card");
+    const nextAppAgenda = nextDocument.querySelector(".dashboard-app-agenda-card");
+    const currentAppAgenda = document.querySelector(".dashboard-app-agenda-card");
 
     if (!nextAgenda || !currentAgenda) {
         window.location.href = url;
@@ -2090,6 +2281,9 @@ function replaceAgendaFromHtml(html, url, pushState = false) {
     }
 
     currentAgenda.replaceWith(nextAgenda);
+    if (nextAppAgenda && currentAppAgenda) {
+        currentAppAgenda.replaceWith(nextAppAgenda);
+    }
     if (pushState) {
         window.history.pushState({ agendaUrl: url }, "", url);
     } else {
@@ -2135,6 +2329,7 @@ async function submitAgendaForm(form) {
         });
         const html = await response.text();
         closeDesktopWeekModal();
+        closeAppWeekModal();
         replaceAgendaFromHtml(html, response.url || window.location.href, false);
     } catch (error) {
         form.submit();
@@ -2195,28 +2390,33 @@ function closeDesktopWeekModal() {
     }
 }
 
-function openAppWeekModal(mode, id = "", date = "", activities = "", notes = "") {
+function openAppWeekModal(mode, data = {}) {
     if (!appWeekModal || !appWeekForm || !appWeekModalTitle) {
         return;
     }
 
-    if (mode === "edit" && id) {
+    const isEdit = mode === "edit" && data.agendaId;
+    appWeekForm.reset();
+
+    if (isEdit) {
         appWeekModalTitle.textContent = "Trainingsdag bewerken";
-        appWeekForm.action = `/edit-weekday/${id}/`;
+        appWeekForm.action = `/edit-weekday/${data.agendaId}/`;
     } else {
         appWeekModalTitle.textContent = "Trainingsdag toevoegen";
         appWeekForm.action = "{% url 'add_weekday' %}";
     }
 
-    if (appWeekDate) {
-        appWeekDate.value = date || "";
-    }
-    if (appWeekActivities) {
-        appWeekActivities.value = activities || "";
-    }
-    if (appWeekNotes) {
-        appWeekNotes.value = notes || "";
-    }
+    setValue(appWeekDate, data.agendaDate);
+    setValue(appWeekTeam, data.agendaTeam);
+    setValue(appWeekCategory, data.agendaCategory || "training");
+    setValue(appWeekContext, data.agendaContext);
+    setValue(appWeekLocation, data.agendaLocation);
+    setValue(appWeekStartTime, data.agendaStartTime);
+    setValue(appWeekEndTime, data.agendaEndTime);
+    setValue(appWeekResponsible, data.agendaResponsible);
+    setValue(appWeekPhysicalNote, data.agendaPhysicalNote);
+    setValue(appWeekActivities, "Agenda-item");
+    setValue(appWeekNotes, data.agendaNotes);
 
     appWeekModal.classList.add("is-open");
     appWeekModal.setAttribute("aria-hidden", "false");
