@@ -101,6 +101,10 @@
         display: none;
     }
 
+    .app-back-link {
+        display: none;
+    }
+
     /* =========================
        NAVIGATIE
     ========================= */
@@ -196,6 +200,25 @@
     html.app-ui.app-mode .header-left {
         gap: 14px;
         min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    html.app-ui.app-mode .app-back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 13px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        color: #ffffff;
+        font-size: 0.86rem;
+        font-weight: 800;
+        line-height: 1;
+        text-decoration: none;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+        white-space: nowrap;
     }
 
     html.app-ui.app-mode .header-left img {
@@ -232,19 +255,17 @@
     }
 
     html.app-ui.app-mode .brand-subtitle {
-        font-size: 0.86rem;
-        color: rgba(226, 232, 240, 0.78);
+        display: none;
     }
 
     html.app-ui.app-mode nav {
         gap: 10px;
         flex-wrap: wrap;
+        flex: 0 0 auto;
     }
 
     html.app-ui.app-mode .site-nav-links {
-        gap: 10px;
-        flex-wrap: wrap;
-        white-space: normal;
+        display: none;
     }
 
     html.app-ui.app-mode nav a {
@@ -391,15 +412,12 @@
 
     @media (max-width: 1100px) {
         html.app-ui.app-mode nav {
-            width: 100%;
-            order: 3;
+            width: auto;
+            order: 0;
         }
 
         html.app-ui.app-mode .site-nav-links {
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            padding-bottom: 4px;
-            scrollbar-width: thin;
+            display: none;
         }
 
         html.app-ui.app-mode .site-nav-actions {
@@ -420,6 +438,7 @@
 <body class="{% if request.GET.pdf %}pdf-mode{% endif %}">    
 <header>
     <div class="header-left">
+        <a class="app-back-link" href="{% url 'dashboard' %}" aria-label="Terug naar basispagina">Terug</a>
         <img src="{% static 'icons/nec-logo.svg' %}" alt="NEC logo">
         <div class="brand-copy">
             <span class="brand-kicker">NEC Nijmegen</span>
