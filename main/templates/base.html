@@ -105,6 +105,10 @@
         display: none;
     }
 
+    .app-mode-switch {
+        display: none;
+    }
+
     /* =========================
        NAVIGATIE
     ========================= */
@@ -256,6 +260,45 @@
 
     html.app-ui.app-mode .brand-subtitle {
         display: none;
+    }
+
+    html.app-ui.app-mode .app-mode-switch {
+        display: inline-flex;
+        gap: 6px;
+        padding: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    html.app-ui.app-mode .app-mode-switch a {
+        align-items: center;
+        border: 0;
+        border-radius: 999px;
+        box-shadow: none;
+        display: inline-flex;
+        font-size: 0.76rem;
+        font-weight: 900;
+        justify-content: center;
+        min-height: 34px;
+        padding: 0 12px;
+        text-decoration: none;
+    }
+
+    html.app-ui.app-mode .app-mode-switch a.is-active {
+        background: #ffffff;
+        color: #10213f;
+    }
+
+    html.app-ui.app-mode .app-mode-switch a:not(.is-active) {
+        background: transparent;
+        color: rgba(255, 255, 255, 0.82);
+    }
+
+    html.app-ui.app-mode .app-mode-switch a:hover {
+        transform: none;
+        box-shadow: none;
     }
 
     html.app-ui.app-mode nav {
@@ -445,6 +488,12 @@
             <span class="brand-title">Performance Dashboard</span>
             <span class="brand-subtitle">Snelle navigatie voor staf en monitoring</span>
         </div>
+        {% if CAN_SWITCH_APP_MODE %}
+        <div class="app-mode-switch" aria-label="App weergave wisselen">
+            <a href="{{ request.path }}?app_view=staff" class="{% if CURRENT_APP_VIEW == 'staff' %}is-active{% endif %}">Stafapp</a>
+            <a href="{{ request.path }}?app_view=player" class="{% if CURRENT_APP_VIEW == 'player' %}is-active{% endif %}">Spelersapp</a>
+        </div>
+        {% endif %}
     </div>
 
     <nav aria-label="Hoofdnavigatie">

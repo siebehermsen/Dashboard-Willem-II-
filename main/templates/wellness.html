@@ -470,7 +470,7 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
 }
 </style>
 
-<div class="wellness-container {% if player_app_user %}player-wellness-app{% endif %}">
+<div class="wellness-container {% if PLAYER_APP_MODE %}player-wellness-app{% endif %}">
     <h1>Wellness & RPE</h1>
     {% if player_app_user and not player_app_player %}
     <div class="player-link-warning">
@@ -627,7 +627,7 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
             {% endfor %}
         </tbody>
 
-        <tbody id="tbody-filled" class="{% if not player_app_user %}hidden{% endif %}">
+        <tbody id="tbody-filled" class="{% if not PLAYER_APP_MODE %}hidden{% endif %}">
             {% for entry in wellness_rows %}
             <tr>
                 <td class="player-name" data-label="Speler">{{ entry.player.name }}</td>

@@ -1430,10 +1430,12 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
             <h2>Wellness & RPE</h2>
             {% if player_app_player %}
                 <p>{{ player_app_player.name }}, vul hier je dagelijkse check en sRPE in.</p>
+            {% elif PLAYER_APP_PREVIEW_MODE %}
+                <p>Preview van de spelersapp. Spelers zien hier alleen hun eigen Wellness & RPE.</p>
             {% else %}
                 <p>Je login is nog niet gekoppeld aan een spelerprofiel. Vraag staf om je account te koppelen.</p>
             {% endif %}
-            <a class="dashboard-player-action" href="{% url 'wellness' %}">Invullen</a>
+            <a class="dashboard-player-action" href="{% url 'wellness' %}{% if PLAYER_APP_PREVIEW_MODE %}?app_view=player{% endif %}">Invullen</a>
         </section>
         {% else %}
         <div class="dashboard-app-view-tabs" role="tablist" aria-label="Dashboard tabs">
