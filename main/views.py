@@ -612,6 +612,14 @@ def dashboard(request):
     player_app_today = today
     player_app_today_wellness = None
     player_app_today_rpe = None
+    player_app_gps_summary = {
+        "sessions": 0,
+        "load": 0,
+        "distance_km": 0,
+        "hsd_m": 0,
+        "sprints": 0,
+    }
+    player_app_gps_recent = []
     if player_app_form_player:
         player_app_today_wellness = WellnessEntry.objects.filter(
             player=player_app_form_player,
@@ -621,6 +629,34 @@ def dashboard(request):
             player=player_app_form_player,
             date=player_app_today,
         ).first()
+        gps_since = today - timedelta(days=30)
+        gps_rows = [
+            row
+            for row in fetch_performance_rows("training", player_app_form_player)
+            if row.get("session_date") and row["session_date"] >= gps_since
+        ]
+        gps_rows.sort(key=lambda row: row["session_date"], reverse=True)
+        total_load = sum(float(row.get("load") or 0) for row in gps_rows)
+        total_distance = sum(float(row.get("total_distance") or 0) for row in gps_rows)
+        total_hsd = sum(float(row.get("hsd") or 0) for row in gps_rows)
+        total_sprints = sum(float(row.get("sprints") or 0) for row in gps_rows)
+        player_app_gps_summary = {
+            "sessions": len(gps_rows),
+            "load": round(total_load, 0),
+            "distance_km": round(total_distance / 1000, 1),
+            "hsd_m": round(total_hsd, 0),
+            "sprints": round(total_sprints, 0),
+        }
+        player_app_gps_recent = [
+            {
+                "date": row["session_date"],
+                "load": round(float(row.get("load") or 0), 0),
+                "distance_km": round(float(row.get("total_distance") or 0) / 1000, 1),
+                "hsd_m": round(float(row.get("hsd") or 0), 0),
+                "sprints": round(float(row.get("sprints") or 0), 0),
+            }
+            for row in gps_rows[:5]
+        ]
 
     # ---------- CONTEXT ----------
     context = {
@@ -654,6 +690,8 @@ def dashboard(request):
         "player_app_today": player_app_today,
         "player_app_today_wellness": player_app_today_wellness,
         "player_app_today_rpe": player_app_today_rpe,
+        "player_app_gps_summary": player_app_gps_summary,
+        "player_app_gps_recent": player_app_gps_recent,
     }
 
     return render(request, "Load_dashboard.html", context)

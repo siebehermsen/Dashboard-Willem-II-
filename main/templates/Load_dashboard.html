@@ -836,6 +836,97 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         padding-top: 18px;
     }
 
+    html.app-mode .dashboard-player-gps {
+        border-top: 1px solid #e3eaf4;
+        display: grid;
+        gap: 14px;
+        margin-top: 18px;
+        padding-top: 18px;
+    }
+
+    html.app-mode .dashboard-player-gps-head {
+        align-items: flex-end;
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+    }
+
+    html.app-mode .dashboard-player-gps h3 {
+        color: #10213f;
+        font-size: 1.12rem;
+        line-height: 1.15;
+        margin: 0 0 4px;
+    }
+
+    html.app-mode .dashboard-player-gps p {
+        color: #687792;
+        font-size: 0.88rem;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    html.app-mode .dashboard-player-gps-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    html.app-mode .dashboard-player-gps-kpi {
+        background: #f8fbff;
+        border: 1px solid #dfe7f2;
+        border-radius: 16px;
+        padding: 12px;
+    }
+
+    html.app-mode .dashboard-player-gps-kpi span {
+        color: #6c7890;
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+    }
+
+    html.app-mode .dashboard-player-gps-kpi strong {
+        color: #10213f;
+        display: block;
+        font-size: 1.18rem;
+        line-height: 1;
+    }
+
+    html.app-mode .dashboard-player-gps-list {
+        display: grid;
+        gap: 8px;
+    }
+
+    html.app-mode .dashboard-player-gps-row,
+    html.app-mode .dashboard-player-gps-empty {
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid #e2e9f3;
+        border-radius: 14px;
+        color: #10213f;
+        display: grid;
+        gap: 4px;
+        padding: 11px 12px;
+    }
+
+    html.app-mode .dashboard-player-gps-row {
+        grid-template-columns: 52px 1fr 1fr 1fr;
+    }
+
+    html.app-mode .dashboard-player-gps-row strong {
+        font-size: 0.9rem;
+    }
+
+    html.app-mode .dashboard-player-gps-row span,
+    html.app-mode .dashboard-player-gps-empty {
+        color: #65738c;
+        font-size: 0.82rem;
+        font-weight: 800;
+    }
+
     html.app-mode .dashboard-player-form-title {
         color: #10213f;
         font-size: 1.12rem;
@@ -1707,6 +1798,45 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 
                     <button class="dashboard-player-save" type="submit">sRPE opslaan</button>
                 </form>
+
+                <section class="dashboard-player-gps" aria-label="Trainingsdata speler">
+                    <div class="dashboard-player-gps-head">
+                        <div>
+                            <h3>{% if PLAYER_APP_PREVIEW_MODE %}Trainingsdata{% else %}Mijn trainingsdata{% endif %}</h3>
+                            <p>Laatste 30 dagen</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-player-gps-grid">
+                        <div class="dashboard-player-gps-kpi">
+                            <span>Sessies</span>
+                            <strong>{{ player_app_gps_summary.sessions }}</strong>
+                        </div>
+                        <div class="dashboard-player-gps-kpi">
+                            <span>Afstand</span>
+                            <strong>{{ player_app_gps_summary.distance_km }} km</strong>
+                        </div>
+                        <div class="dashboard-player-gps-kpi">
+                            <span>HSD</span>
+                            <strong>{{ player_app_gps_summary.hsd_m }} m</strong>
+                        </div>
+                        <div class="dashboard-player-gps-kpi">
+                            <span>Sprints</span>
+                            <strong>{{ player_app_gps_summary.sprints }}</strong>
+                        </div>
+                    </div>
+                    <div class="dashboard-player-gps-list">
+                        {% for session in player_app_gps_recent %}
+                            <div class="dashboard-player-gps-row">
+                                <strong>{{ session.date|date:"d-m" }}</strong>
+                                <span>{{ session.distance_km }} km</span>
+                                <span>{{ session.hsd_m }} m HSD</span>
+                                <span>{{ session.sprints }} sprints</span>
+                            </div>
+                        {% empty %}
+                            <div class="dashboard-player-gps-empty">Nog geen trainingsdata beschikbaar.</div>
+                        {% endfor %}
+                    </div>
+                </section>
             {% else %}
                 <p>Je login is nog niet gekoppeld aan een spelerprofiel. Vraag staf om je account te koppelen.</p>
             {% endif %}

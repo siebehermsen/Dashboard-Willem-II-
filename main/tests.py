@@ -56,6 +56,7 @@ class DashboardPersistenceTests(TestCase):
         RPETrainingType.objects.create(name="Training")
 
         PerformanceSessionKind.objects.create(code="test", label="Test")
+        PerformanceSessionKind.objects.create(code="training", label="Training")
         for code in (
             "sprint_10",
             "sprint_30",
@@ -65,6 +66,10 @@ class DashboardPersistenceTests(TestCase):
             "curr_weight",
             "length",
             "sum_skinfolds",
+            "total_distance",
+            "hsd",
+            "sprints",
+            "load",
         ):
             PerformanceMetricType.objects.create(
                 code=code,
@@ -139,6 +144,43 @@ class DashboardPersistenceTests(TestCase):
 
         rpe = RPEEntry.objects.get(player=self.player, date=date(2026, 5, 15))
         self.assertEqual(rpe.rpe, 8)
+
+    def test_player_app_dashboard_shows_own_trainingdata(self):
+        player_user = get_user_model().objects.create_user(username="player-gps", password="test-pass")
+        player_group = Group.objects.create(name=ROLE_PLAYER)
+        player_user.groups.add(player_group)
+        self.player.user = player_user
+        self.player.save(update_fields=["user"])
+        training_kind = PerformanceSessionKind.objects.get(code="training")
+        session = PerformanceSession.objects.create(
+            player=self.player,
+            session_kind_ref=training_kind,
+            session_date=date(2026, 5, 15),
+            week=20,
+            source_legacy_table="test",
+            source_legacy_id=1,
+        )
+        for code, value in {
+            "total_distance": 5306,
+            "hsd": 251,
+            "sprints": 17,
+            "load": 400,
+        }.items():
+            PerformanceMetric.objects.create(
+                session=session,
+                metric_type=PerformanceMetricType.objects.get(code=code),
+                value=value,
+            )
+
+        self.client.force_login(player_user)
+        response = self.client.get(reverse("dashboard") + "?app_view=player")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Mijn trainingsdata")
+        self.assertContains(response, "5,3 km")
+        self.assertContains(response, "251,0 m")
+        self.assertContains(response, "17")
+        self.assertNotContains(response, "dashboardPlayerSelect")
 
     def test_dashboard_agenda_can_show_requested_week(self):
         DayProgramEntry.objects.create(
