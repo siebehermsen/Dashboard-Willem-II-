@@ -912,7 +912,14 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 
     html.app-mode .dashboard-player-slider-track {
         margin-top: 10px;
+        padding-top: 42px;
         position: relative;
+    }
+
+    html.app-mode .dashboard-player-slider-track .dashboard-player-slider-value {
+        left: var(--slider-label-left, 50%);
+        top: 0;
+        z-index: 2;
     }
 
     html.app-mode .dashboard-player-slider input[type="range"] {
@@ -920,10 +927,12 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         appearance: none;
         background: linear-gradient(90deg, #10213f 0%, #cf202f 100%);
         border-radius: 999px;
+        display: block;
         height: 12px;
         outline: none;
         position: relative;
         width: 100%;
+        z-index: 1;
     }
 
     html.app-mode .dashboard-player-slider input[type="range"]::-webkit-slider-thumb {
@@ -1702,6 +1711,69 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                 <p>Je login is nog niet gekoppeld aan een spelerprofiel. Vraag staf om je account te koppelen.</p>
             {% endif %}
         </section>
+        <script>
+        (function () {
+            function parseSliderLabels(slider) {
+                const labels = {};
+                (slider.dataset.sliderLabels || "").split(",").forEach((item) => {
+                    const parts = item.split(":");
+                    if (parts.length >= 2) {
+                        labels[parts[0]] = parts.slice(1).join(":");
+                    }
+                });
+                return labels;
+            }
+
+            window.updateDashboardPlayerSlider = function (slider) {
+                if (!slider) {
+                    return;
+                }
+                const input = slider.querySelector('input[type="range"]');
+                const output = slider.querySelector(".dashboard-player-slider-value");
+                const track = slider.querySelector(".dashboard-player-slider-track");
+                if (!input || !output || !track) {
+                    return;
+                }
+
+                const labels = parseSliderLabels(slider);
+                const min = Number(input.min || 0);
+                const max = Number(input.max || 100);
+                const value = Number(input.value || min);
+                const percentage = max > min ? ((value - min) / (max - min)) * 100 : 0;
+                const clamped = Math.max(0, Math.min(100, percentage));
+
+                output.textContent = labels[input.value] || input.value;
+                track.style.setProperty("--slider-label-left", `${clamped}%`);
+
+                if (clamped <= 6) {
+                    output.style.transform = "translateX(0)";
+                } else if (clamped >= 94) {
+                    output.style.transform = "translateX(-100%)";
+                } else {
+                    output.style.transform = "translateX(-50%)";
+                }
+            };
+
+            function initDashboardPlayerSliders() {
+                document.querySelectorAll(".dashboard-player-slider").forEach(window.updateDashboardPlayerSlider);
+            }
+
+            initDashboardPlayerSliders();
+            document.addEventListener("DOMContentLoaded", initDashboardPlayerSliders);
+            document.addEventListener("input", (event) => {
+                const slider = event.target.closest(".dashboard-player-slider");
+                if (slider) {
+                    window.updateDashboardPlayerSlider(slider);
+                }
+            });
+            document.addEventListener("change", (event) => {
+                const slider = event.target.closest(".dashboard-player-slider");
+                if (slider) {
+                    window.updateDashboardPlayerSlider(slider);
+                }
+            });
+        })();
+        </script>
         {% else %}
         <div class="dashboard-app-view-tabs" role="tablist" aria-label="Dashboard tabs">
             <button type="button" class="dashboard-app-view-tab is-active" data-app-dashboard-tab="home" role="tab" aria-selected="true">
