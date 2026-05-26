@@ -475,39 +475,6 @@
                 </div>
             </article>
 
-            <article class="academy-card">
-                <div class="academy-card-head">
-                    <h3>Spelers GPS</h3>
-                </div>
-                <div class="academy-table-wrap">
-                    <table class="academy-table">
-                        <thead>
-                            <tr>
-                                <th>Speler</th>
-                                <th>Sessies</th>
-                                <th>Load</th>
-                                <th>Afstand</th>
-                                <th>HSD</th>
-                                <th>Sprints</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in gps_rows %}
-                                <tr>
-                                    <td>{{ row.player.name }}</td>
-                                    <td>{{ row.sessions }}</td>
-                                    <td>{{ row.load|floatformat:0 }}</td>
-                                    <td>{{ row.total_distance|floatformat:0 }}</td>
-                                    <td>{{ row.hsd|floatformat:0 }}</td>
-                                    <td>{{ row.sprints|floatformat:0 }}</td>
-                                </tr>
-                            {% empty %}
-                                <tr><td colspan="6" class="academy-muted">Nog geen GPS-data voor dit team.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </article>
         </section>
 
         <section class="academy-panel" data-academy-panel="test">
