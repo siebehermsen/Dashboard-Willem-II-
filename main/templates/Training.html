@@ -1397,7 +1397,7 @@ setMatchMetric(selectedMetricMatchState, false);
 {% if active_page == "rapport" %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<section class="physical-report-shell">
+<section class="physical-report-shell" data-physical-report-shell>
     <div class="physical-report-head">
         <div>
             <span class="report-kicker">Fysiek rapport</span>
@@ -1414,7 +1414,7 @@ setMatchMetric(selectedMetricMatchState, false);
         </div>
         <div class="report-team-tabs" aria-label="Teamselectie fysiek rapport">
             {% for code in report_team_codes %}
-                <a href="{% url 'fysiek_rapport' %}?team={{ code }}" class="report-team-tab {% if selected_team_code == code %}active{% endif %}">
+                <a href="{% url 'fysiek_rapport' %}?team={{ code }}" class="report-team-tab {% if selected_team_code == code %}active{% endif %}" data-report-team-link>
                     {{ code }}
                 </a>
             {% endfor %}
@@ -1909,6 +1909,73 @@ if (document.readyState === "loading") {
 } else {
     initPhysicalReportCharts();
 }
+
+(() => {
+    if (window.physicalReportAjaxReady) {
+        return;
+    }
+    window.physicalReportAjaxReady = true;
+
+    const destroyPhysicalReportCharts = () => {
+        if (!window.Chart?.instances) {
+            return;
+        }
+        Object.values(window.Chart.instances).forEach((chart) => {
+            const canvasId = chart?.canvas?.id || "";
+            if (canvasId.startsWith("physical")) {
+                chart.destroy();
+            }
+        });
+    };
+
+    const executePhysicalReportScript = (doc) => {
+        const scripts = Array.from(doc.scripts);
+        const reportScript = scripts.find((script) => script.textContent.includes("initPhysicalReportCharts"));
+        if (!reportScript) {
+            return;
+        }
+        new Function(reportScript.textContent)();
+    };
+
+    document.addEventListener("click", async (event) => {
+        const link = event.target.closest("[data-report-team-link]");
+        if (!link) {
+            return;
+        }
+        event.preventDefault();
+
+        const currentShell = document.querySelector("[data-physical-report-shell]");
+        if (!currentShell || link.classList.contains("active")) {
+            return;
+        }
+
+        currentShell.classList.add("is-loading");
+        try {
+            const response = await fetch(link.href, {
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+            });
+            if (!response.ok) {
+                throw new Error("Teamrapport laden is mislukt.");
+            }
+
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, "text/html");
+            const nextShell = doc.querySelector("[data-physical-report-shell]");
+            if (!nextShell) {
+                throw new Error("Teamrapport kon niet worden opgebouwd.");
+            }
+
+            destroyPhysicalReportCharts();
+            currentShell.replaceWith(nextShell);
+            window.history.pushState({}, "", link.href);
+            executePhysicalReportScript(doc);
+        } catch (error) {
+            window.location.href = link.href;
+        } finally {
+            document.querySelector("[data-physical-report-shell]")?.classList.remove("is-loading");
+        }
+    });
+})();
 </script>
 {% endif %}
 
@@ -2110,12 +2177,17 @@ main.container {
     transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
 }
 
-.report-team-tab:hover,
-.report-team-tab.active {
-    border-color: #d71920;
-    background: #d71920;
-    color: #fff;
-}
+    .report-team-tab:hover,
+    .report-team-tab.active {
+        border-color: #d71920;
+        background: #d71920;
+        color: #fff;
+    }
+
+    .physical-report-shell.is-loading {
+        opacity: 0.55;
+        pointer-events: none;
+    }
 
 .report-kpi-grid {
     display: grid;
