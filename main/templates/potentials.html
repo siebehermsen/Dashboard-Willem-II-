@@ -4,7 +4,8 @@
 {% block content %}
 <style>
     .potentials-shell {
-        max-width: 1320px;
+        width: min(96vw, 1760px);
+        max-width: none;
         margin: 0 auto;
     }
 
@@ -43,8 +44,8 @@
 
     .potentials-layout {
         display: grid;
-        grid-template-columns: 330px minmax(0, 1fr);
-        gap: 18px;
+        grid-template-columns: 320px minmax(0, 1fr);
+        gap: 22px;
         align-items: start;
     }
 
@@ -360,7 +361,7 @@
 
     .potential-physical-profile {
         display: grid;
-        grid-template-columns: 250px minmax(0, 560px);
+        grid-template-columns: 250px minmax(0, 720px);
         gap: 18px;
         align-items: start;
     }
