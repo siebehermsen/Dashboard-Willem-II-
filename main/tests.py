@@ -102,8 +102,10 @@ class DashboardPersistenceTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Preview voor")
-        self.assertContains(response, "Slaap")
+        self.assertContains(response, "Spelersapp")
+        self.assertContains(response, "Dagelijkse check en sessiebelasting invullen.")
         self.assertContains(response, "player_tab=data")
+        self.assertNotContains(response, "Slaap")
         self.assertContains(response, "app_view=staff")
 
     def test_player_app_dashboard_forms_save_wellness_and_rpe(self):
@@ -179,7 +181,6 @@ class DashboardPersistenceTests(TestCase):
         response = self.client.get(reverse("dashboard") + "?app_view=player&player_tab=data")
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "player_tab=wellness")
         self.assertContains(response, "Mijn trainingsdata")
         self.assertContains(response, "5,3 km")
         self.assertContains(response, "251,0 m")
