@@ -3897,6 +3897,81 @@ def potentials(request):
     def get_latest_program(player):
         return Programma.objects.filter(player=player).order_by("-created_at").first()
 
+    def strength_program_key(player):
+        return f"strength:{player.id}"
+
+    def empty_strength_program():
+        return {
+            "thema": "",
+            "frequentie": "",
+            "doelstelling": "",
+            "evaluatie": "",
+        }
+
+    def parse_strength_program(note):
+        data = empty_strength_program()
+        if not note or not note.text:
+            return data
+        try:
+            saved_data = json.loads(note.text)
+        except (TypeError, ValueError):
+            return data
+        for key in data:
+            data[key] = saved_data.get(key, "")
+        return data
+
+    attention_status_labels = {
+        "open": "Open",
+        "mee_bezig": "Mee bezig",
+        "afgerond": "Afgerond",
+    }
+
+    def parse_attention_note(note):
+        data = {
+            "text": note.text,
+            "date": note.created_at.date(),
+            "owner": "",
+            "status": "open",
+            "status_label": attention_status_labels["open"],
+            "created_at": timezone.localtime(note.created_at),
+        }
+        try:
+            saved_data = json.loads(note.text)
+        except (TypeError, ValueError):
+            return data
+        if not isinstance(saved_data, dict):
+            return data
+
+        raw_date = parse_date(str(saved_data.get("date") or ""))
+        status = saved_data.get("status") if saved_data.get("status") in attention_status_labels else "open"
+        data.update({
+            "text": saved_data.get("text") or "",
+            "date": raw_date or note.created_at.date(),
+            "owner": saved_data.get("owner") or "",
+            "status": status,
+            "status_label": attention_status_labels[status],
+        })
+        return data
+
+    def wants_potential_json():
+        return (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+        )
+
+    def potential_post_response(url, message, level="success", status=200, payload=None):
+        if wants_potential_json():
+            data = {
+                "ok": level != "error",
+                "level": level,
+                "message": message,
+            }
+            if payload:
+                data.update(payload)
+            return JsonResponse(data, status=status)
+        getattr(messages, level)(request, message)
+        return redirect(url)
+
     if request.method == "POST":
         action = (request.POST.get("action") or "").strip()
         selected_player_id = request.POST.get("selected_player_id") or request.POST.get("player_id")
@@ -3942,22 +4017,82 @@ def potentials(request):
             programma.video_links = (request.POST.get("video_links") or "").strip()
             programma.evaluatie_datum = parse_date(request.POST.get("evaluatie_datum") or "")
             programma.save()
-            messages.success(request, "Succesvol opgeslagen. Individueel programma bijgewerkt.")
-            return redirect(f"{reverse('potentials')}?player_id={selected_player.id}")
+            return potential_post_response(
+                f"{reverse('potentials')}?player_id={selected_player.id}",
+                "Succesvol opgeslagen. Individueel programma bijgewerkt.",
+                payload={"program_id": programma.id},
+            )
+
+        if action == "save_strength_program" and selected_player:
+            strength_data = {
+                "thema": (request.POST.get("strength_thema") or "").strip(),
+                "frequentie": (request.POST.get("strength_frequentie") or "").strip(),
+                "doelstelling": (request.POST.get("strength_doelstelling") or "").strip(),
+                "evaluatie": (request.POST.get("strength_evaluatie") or "").strip(),
+            }
+            note = OverigNote.objects.filter(
+                note_type="section",
+                page_key="potentials",
+                section_key=strength_program_key(selected_player),
+            ).first()
+            if note:
+                note.text = json.dumps(strength_data, ensure_ascii=False)
+                note.save(update_fields=["text"])
+            else:
+                OverigNote.objects.create(
+                    note_type="section",
+                    page_key="potentials",
+                    section_key=strength_program_key(selected_player),
+                    text=json.dumps(strength_data, ensure_ascii=False),
+                )
+            return potential_post_response(
+                f"{reverse('potentials')}?player_id={selected_player.id}",
+                "Succesvol opgeslagen. Krachtprogramma bijgewerkt.",
+            )
 
         if action == "add_attention" and selected_player:
             text = (request.POST.get("attention_text") or "").strip()
             if text:
-                OverigNote.objects.create(
+                attention_date = parse_date(request.POST.get("attention_date") or "") or timezone.localdate()
+                attention_owner = (request.POST.get("attention_owner") or "").strip()
+                attention_status = (request.POST.get("attention_status") or "open").strip()
+                if attention_status not in attention_status_labels:
+                    attention_status = "open"
+                note_data = {
+                    "text": text,
+                    "date": attention_date.isoformat(),
+                    "owner": attention_owner,
+                    "status": attention_status,
+                }
+                note = OverigNote.objects.create(
                     note_type="note",
                     page_key="potentials",
                     section_key=f"player:{selected_player.id}",
-                    text=text,
+                    text=json.dumps(note_data, ensure_ascii=False),
                 )
-                messages.success(request, "Succesvol opgeslagen. Aandachtspunt toegevoegd.")
+                return potential_post_response(
+                    f"{reverse('potentials')}?player_id={selected_player.id}",
+                    "Succesvol opgeslagen. Aandachtspunt toegevoegd.",
+                    payload={
+                        "reset_form": True,
+                        "item_type": "attention",
+                        "item": {
+                            "text": text,
+                            "date": attention_date.strftime("%d-%m-%Y"),
+                            "owner": attention_owner,
+                            "status": attention_status,
+                            "status_label": attention_status_labels[attention_status],
+                            "created_at": timezone.localtime(note.created_at).strftime("%d-%m-%Y %H:%M"),
+                        },
+                    },
+                )
             else:
-                messages.error(request, "Vul eerst een aandachtspunt in.")
-            return redirect(f"{reverse('potentials')}?player_id={selected_player.id}")
+                return potential_post_response(
+                    f"{reverse('potentials')}?player_id={selected_player.id}",
+                    "Vul eerst een aandachtspunt in.",
+                    level="error",
+                    status=400,
+                )
 
         if action == "add_exercise" and selected_player:
             programma = get_latest_program(selected_player) or Programma.objects.create(
@@ -3966,8 +4101,12 @@ def potentials(request):
             )
             exercise_name = (request.POST.get("exercise_name") or "").strip()
             if not exercise_name:
-                messages.error(request, "Vul eerst een oefening in.")
-                return redirect(f"{reverse('potentials')}?player_id={selected_player.id}")
+                return potential_post_response(
+                    f"{reverse('potentials')}?player_id={selected_player.id}",
+                    "Vul eerst een oefening in.",
+                    level="error",
+                    status=400,
+                )
 
             naam_ref, _ = ProgrammaOefeningNaam.objects.get_or_create(name=exercise_name)
             frequentie_raw = (request.POST.get("exercise_frequency") or "").strip()
@@ -3983,7 +4122,7 @@ def potentials(request):
             except ValueError:
                 rpe_value = None
 
-            ProgrammaOefening.objects.create(
+            oefening = ProgrammaOefening.objects.create(
                 programma=programma,
                 naam_ref=naam_ref,
                 frequentie_ref=frequentie_ref,
@@ -3992,8 +4131,22 @@ def potentials(request):
                 rpe_value=rpe_value,
                 opmerkingen=(request.POST.get("exercise_notes") or "").strip(),
             )
-            messages.success(request, "Succesvol opgeslagen. Oefening toegevoegd.")
-            return redirect(f"{reverse('potentials')}?player_id={selected_player.id}")
+            return potential_post_response(
+                f"{reverse('potentials')}?player_id={selected_player.id}",
+                "Succesvol opgeslagen. Oefening toegevoegd.",
+                payload={
+                    "reset_form": True,
+                    "program_id": programma.id,
+                    "item_type": "exercise",
+                    "item": {
+                        "name": oefening.naam_ref.name if oefening.naam_ref else "-",
+                        "duration": oefening.duur_text_override or "-",
+                        "rpe": oefening.rpe_value or "-",
+                        "frequency": oefening.frequentie_ref.name if oefening.frequentie_ref else "-",
+                        "notes": oefening.opmerkingen or "-",
+                    },
+                },
+            )
 
         if action == "remove_potential" and selected_player:
             OverigNote.objects.filter(
@@ -4053,6 +4206,7 @@ def potentials(request):
     beweeganalyse_scores = []
     beweeganalyse_attention_points = []
     beweeganalyse_average_score = None
+    strength_program = empty_strength_program()
 
     if selected_player:
         if programma:
@@ -4061,11 +4215,20 @@ def potentials(request):
                 "frequentie_ref",
                 "duur_unit_ref",
             ).filter(programma=programma).order_by("id")
-        attention_notes = OverigNote.objects.filter(
-            note_type="note",
+        attention_notes = [
+            parse_attention_note(note)
+            for note in OverigNote.objects.filter(
+                note_type="note",
+                page_key="potentials",
+                section_key=f"player:{selected_player.id}",
+            ).order_by("-created_at", "-id")[:8]
+        ]
+        strength_note = OverigNote.objects.filter(
+            note_type="section",
             page_key="potentials",
-            section_key=f"player:{selected_player.id}",
-        ).order_by("-created_at", "-id")[:8]
+            section_key=strength_program_key(selected_player),
+        ).first()
+        strength_program = parse_strength_program(strength_note)
         latest_wellness = WellnessEntry.objects.filter(player=selected_player).order_by("-date").first()
         latest_rpe = RPEEntry.objects.filter(player=selected_player).order_by("-date").first()
         latest_speed_test = PlayerSpeedTest.objects.filter(player=selected_player).order_by("-test_date").first()
@@ -4268,6 +4431,7 @@ def potentials(request):
         "beweeganalyse_scores": beweeganalyse_scores,
         "beweeganalyse_attention_points": beweeganalyse_attention_points,
         "beweeganalyse_average_score": beweeganalyse_average_score,
+        "strength_program": strength_program,
     })
 
 def rpe_view(request):

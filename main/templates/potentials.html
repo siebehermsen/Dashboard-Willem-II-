@@ -675,6 +675,37 @@
         margin-top: 6px;
     }
 
+    .potential-note-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .potential-note-pill {
+        border-radius: 999px;
+        background: #eef3fa;
+        color: #667386;
+        font-size: 0.78rem;
+        font-weight: 900;
+        padding: 5px 9px;
+    }
+
+    .potential-note-pill.status-open {
+        background: #fff4f4;
+        color: #d71920;
+    }
+
+    .potential-note-pill.status-mee_bezig {
+        background: #fff7df;
+        color: #9a6a00;
+    }
+
+    .potential-note-pill.status-afgerond {
+        background: #edf9f1;
+        color: #147a3d;
+    }
+
     .exercise-row {
         display: grid;
         grid-template-columns: 1.4fr 0.7fr 0.55fr 0.8fr 1.4fr;
@@ -782,6 +813,7 @@
             <h1>Potentials</h1>
         </div>
     </div>
+    <div class="site-messages potential-ajax-messages" aria-live="polite" aria-label="Meldingen" hidden></div>
 
     <div class="potentials-layout">
         <aside class="potentials-panel">
@@ -1059,7 +1091,7 @@
                             <div class="potential-section-title">
                                 <h3>Krachtprogramma</h3>
                             </div>
-                            <form class="potentials-form" method="post">
+                            <form class="potentials-form" method="post" data-potential-ajax>
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="save_strength_program">
                                 <input type="hidden" name="selected_player_id" value="{{ selected_player.id }}">
@@ -1093,7 +1125,7 @@
                         <div class="potential-section-title">
                             <h3>Individueel programma</h3>
                         </div>
-                        <form class="potentials-form" method="post">
+                        <form class="potentials-form" method="post" data-potential-ajax>
                             {% csrf_token %}
                             <input type="hidden" name="action" value="save_program">
                             <input type="hidden" name="selected_player_id" value="{{ selected_player.id }}">
@@ -1140,17 +1172,21 @@
                         <div class="potential-section-title">
                             <h3>Aandachtspunten</h3>
                         </div>
-                        <div class="potential-list">
+                        <div class="potential-list" data-potential-attention-list>
                             {% for note in attention_notes %}
                                 <div class="potential-list-item">
                                     {{ note.text }}
-                                    <small>{{ note.created_at|date:"d-m-Y H:i" }}</small>
+                                    <div class="potential-note-meta">
+                                        <span class="potential-note-pill">{{ note.date|date:"d-m-Y" }}</span>
+                                        <span class="potential-note-pill status-{{ note.status }}">{{ note.status_label }}</span>
+                                        {% if note.owner %}<span class="potential-note-pill">{{ note.owner }}</span>{% endif %}
+                                    </div>
                                 </div>
                             {% empty %}
                                 <div class="empty-state">Nog geen aandachtspunten toegevoegd.</div>
                             {% endfor %}
                         </div>
-                        <form class="potentials-form" method="post" style="margin-top:14px;">
+                        <form class="potentials-form" method="post" style="margin-top:14px;" data-potential-ajax>
                             {% csrf_token %}
                             <input type="hidden" name="action" value="add_attention">
                             <input type="hidden" name="selected_player_id" value="{{ selected_player.id }}">
@@ -1158,6 +1194,24 @@
                                 Nieuw aandachtspunt
                                 <textarea name="attention_text" placeholder="Bijv. sneller openen na aanname, meer coaching in restverdediging..."></textarea>
                             </label>
+                            <div class="potential-grid">
+                                <label>
+                                    Datum
+                                    <input type="date" name="attention_date" value="{% now 'Y-m-d' %}">
+                                </label>
+                                <label>
+                                    Eigenaar
+                                    <input type="text" name="attention_owner" placeholder="Bijv. trainer, fysio of speler">
+                                </label>
+                                <label>
+                                    Status
+                                    <select name="attention_status">
+                                        <option value="open">Open</option>
+                                        <option value="mee_bezig">Mee bezig</option>
+                                        <option value="afgerond">Afgerond</option>
+                                    </select>
+                                </label>
+                            </div>
                             <button class="potentials-btn secondary" type="submit">Aandachtspunt opslaan</button>
                         </form>
                     </article>
@@ -1177,7 +1231,7 @@
                         <div class="potential-section-title">
                             <h3>Oefeningen en werkvormen</h3>
                         </div>
-                        <div class="potential-list">
+                        <div class="potential-list" data-potential-exercise-list>
                             <div class="exercise-row header">
                                 <span>Oefening</span>
                                 <span>Duur</span>
@@ -1197,7 +1251,7 @@
                                 <div class="empty-state">Nog geen oefeningen gekoppeld.</div>
                             {% endfor %}
                         </div>
-                        <form class="potentials-form" method="post" style="margin-top:14px;">
+                        <form class="potentials-form" method="post" style="margin-top:14px;" data-potential-ajax>
                             {% csrf_token %}
                             <input type="hidden" name="action" value="add_exercise">
                             <input type="hidden" name="selected_player_id" value="{{ selected_player.id }}">
@@ -1293,6 +1347,140 @@
                 }
 
                 setPotentialTab(tab.dataset.potentialTab);
+            });
+        });
+
+        const ajaxMessageBox = document.querySelector(".potential-ajax-messages");
+        const showPotentialMessage = (message, level = "success") => {
+            if (!ajaxMessageBox) {
+                return;
+            }
+            ajaxMessageBox.hidden = false;
+            ajaxMessageBox.innerHTML = "";
+            const item = document.createElement("div");
+            item.className = `site-message ${level}`;
+            item.setAttribute("role", level === "error" ? "alert" : "status");
+            item.textContent = message;
+            ajaxMessageBox.appendChild(item);
+            window.setTimeout(() => {
+                item.remove();
+                if (!ajaxMessageBox.children.length) {
+                    ajaxMessageBox.hidden = true;
+                }
+            }, 3500);
+        };
+
+        const removeEmptyState = (list) => {
+            list?.querySelector(".empty-state")?.remove();
+        };
+
+        const appendAttention = (item) => {
+            const list = document.querySelector("[data-potential-attention-list]");
+            if (!list || !item) {
+                return;
+            }
+            removeEmptyState(list);
+            const row = document.createElement("div");
+            row.className = "potential-list-item";
+            row.textContent = item.text || "";
+            const meta = document.createElement("div");
+            meta.className = "potential-note-meta";
+            [
+                { text: item.date || "-", className: "" },
+                { text: item.status_label || "Open", className: `status-${item.status || "open"}` },
+                { text: item.owner || "", className: "" },
+            ].forEach((pill) => {
+                if (!pill.text) {
+                    return;
+                }
+                const element = document.createElement("span");
+                element.className = `potential-note-pill ${pill.className}`.trim();
+                element.textContent = pill.text;
+                meta.appendChild(element);
+            });
+            row.appendChild(meta);
+            list.prepend(row);
+        };
+
+        const appendExercise = (item) => {
+            const list = document.querySelector("[data-potential-exercise-list]");
+            if (!list || !item) {
+                return;
+            }
+            removeEmptyState(list);
+            const row = document.createElement("div");
+            row.className = "potential-list-item exercise-row";
+            ["name", "duration", "rpe", "frequency", "notes"].forEach((key) => {
+                const cell = document.createElement("span");
+                cell.textContent = item[key] || "-";
+                row.appendChild(cell);
+            });
+            const header = list.querySelector(".exercise-row.header");
+            if (header?.nextSibling) {
+                list.insertBefore(row, header.nextSibling);
+            } else {
+                list.appendChild(row);
+            }
+        };
+
+        const ensureProgramId = (form, programId) => {
+            if (!programId) {
+                return;
+            }
+            let input = form.querySelector('input[name="program_id"]');
+            if (!input) {
+                input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "program_id";
+                form.appendChild(input);
+            }
+            input.value = programId;
+        };
+
+        document.querySelectorAll("form[data-potential-ajax]").forEach((form) => {
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalText = submitButton?.textContent;
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = "Opslaan...";
+                }
+
+                try {
+                    const response = await fetch(form.action || window.location.href, {
+                        method: "POST",
+                        body: new FormData(form),
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest",
+                            "Accept": "application/json",
+                        },
+                    });
+                    const data = await response.json();
+                    if (!response.ok || data.ok === false) {
+                        throw new Error(data.message || "Opslaan is mislukt.");
+                    }
+
+                    ensureProgramId(form, data.program_id);
+                    if (data.item_type === "attention") {
+                        appendAttention(data.item);
+                    }
+                    if (data.item_type === "exercise") {
+                        appendExercise(data.item);
+                        ensureProgramId(document.querySelector('form[data-potential-ajax] input[name="action"][value="save_program"]')?.closest("form") || form, data.program_id);
+                    }
+                    if (data.reset_form) {
+                        form.reset();
+                    }
+                    showPotentialMessage(data.message || "Succesvol opgeslagen.", data.level || "success");
+                } catch (error) {
+                    showPotentialMessage(error.message || "Opslaan is mislukt.", "error");
+                } finally {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = originalText;
+                    }
+                }
             });
         });
 

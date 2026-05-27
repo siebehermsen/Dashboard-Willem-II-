@@ -721,6 +721,9 @@ class DashboardPersistenceTests(TestCase):
                 "action": "add_attention",
                 "selected_player_id": self.player.id,
                 "attention_text": "Meer scannen voor de eerste aanname.",
+                "attention_date": "2026-05-27",
+                "attention_owner": "Trainer",
+                "attention_status": "mee_bezig",
             },
         )
         exercise_response = self.client.post(
@@ -735,20 +738,64 @@ class DashboardPersistenceTests(TestCase):
                 "exercise_notes": "Volledige rust tussen herhalingen.",
             },
         )
+        strength_response = self.client.post(
+            reverse("potentials"),
+            {
+                "action": "save_strength_program",
+                "selected_player_id": self.player.id,
+                "strength_thema": "Explosieve kracht",
+                "strength_frequentie": "2x per week",
+                "strength_doelstelling": "Meer kracht in de eerste meters.",
+                "strength_evaluatie": "Evalueren na vier weken met sprinttest.",
+            },
+        )
 
         self.assertEqual(program_response.status_code, 302)
         self.assertEqual(attention_response.status_code, 302)
         self.assertEqual(exercise_response.status_code, 302)
+        self.assertEqual(strength_response.status_code, 302)
         self.assertTrue(Programma.objects.filter(player=self.player, doel="Eerste meters dominanter maken").exists())
         self.assertTrue(
             OverigNote.objects.filter(
                 note_type="note",
                 page_key="potentials",
                 section_key=f"player:{self.player.id}",
-                text="Meer scannen voor de eerste aanname.",
+                text__contains="Meer scannen voor de eerste aanname.",
+            ).exists()
+        )
+        self.assertTrue(
+            OverigNote.objects.filter(
+                note_type="note",
+                page_key="potentials",
+                section_key=f"player:{self.player.id}",
+                text__contains="mee_bezig",
             ).exists()
         )
         self.assertTrue(ProgrammaOefening.objects.filter(programma__player=self.player, naam_ref__name="Resisted sprint 10m").exists())
+        self.assertTrue(
+            OverigNote.objects.filter(
+                note_type="section",
+                page_key="potentials",
+                section_key=f"strength:{self.player.id}",
+                text__contains="Explosieve kracht",
+            ).exists()
+        )
+        ajax_response = self.client.post(
+            reverse("potentials"),
+            {
+                "action": "save_strength_program",
+                "selected_player_id": self.player.id,
+                "strength_thema": "Maximale kracht",
+                "strength_frequentie": "1x per week",
+                "strength_doelstelling": "Robuuster worden in duels.",
+                "strength_evaluatie": "Elke maand evalueren.",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            HTTP_ACCEPT="application/json",
+        )
+
+        self.assertEqual(ajax_response.status_code, 200)
+        self.assertEqual(ajax_response.json()["message"], "Succesvol opgeslagen. Krachtprogramma bijgewerkt.")
 
         page = self.client.get(reverse("potentials") + f"?player_id={self.player.id}")
         self.assertEqual(page.status_code, 200)
@@ -759,9 +806,13 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(page, "Aanwezigheid")
         self.assertContains(page, "Lengte en gewicht")
         self.assertContains(page, "Beweeganalyse")
+        self.assertContains(page, "Krachtprogramma")
         self.assertContains(page, "Open volledig fysiek profiel")
         self.assertContains(page, "Eerste meters dominanter maken")
         self.assertContains(page, "Meer scannen voor de eerste aanname.")
+        self.assertContains(page, "Mee bezig")
+        self.assertContains(page, "Trainer")
+        self.assertContains(page, "Maximale kracht")
 
         home = self.client.get(reverse("potentials"))
         self.assertEqual(home.status_code, 200)
