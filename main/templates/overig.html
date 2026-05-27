@@ -394,6 +394,71 @@
         font-weight: 700;
     }
 
+    .photo-upload-grid {
+        display: grid;
+        grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .photo-upload-form input[type="file"] {
+        width: 100%;
+        border: 1px dashed #cfd8e7;
+        border-radius: 12px;
+        background: #fbfdff;
+        padding: 12px;
+        color: #1f2a44;
+        box-sizing: border-box;
+    }
+
+    .player-photo-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 12px;
+    }
+
+    .player-photo-card {
+        border: 1px solid #e5ebf4;
+        border-radius: 14px;
+        background: #f8fbff;
+        padding: 12px;
+    }
+
+    .player-photo-preview {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        border-radius: 10px;
+        background: #eef2f8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        color: #61708a;
+        font-size: 0.86rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .player-photo-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .player-photo-name {
+        color: #1f2a44;
+        font-weight: 800;
+        line-height: 1.3;
+    }
+
+    @media (max-width: 991px) {
+        .photo-upload-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
     @media (max-width: 991px) {
         .overig-topbar {
             flex-direction: column-reverse;
@@ -421,7 +486,7 @@
     <section class="overig-hero">
         <div class="overig-kicker">Overig omgeving</div>
         <h2 class="section-title">Overig</h2>
-        <p class="subtitle">Een centrale plek voor gesprekken, high potentials, groei, notities en jeugdontwikkeling.</p>
+        <p class="subtitle">Een centrale plek voor gesprekken, high potentials, groei, notities en spelersfoto's.</p>
     </section>
 
     <div class="overig-grid">
@@ -469,12 +534,12 @@
             </div>
         </a>
 
-        <a href="/overig/?page=jeugd" class="text-decoration-none text-dark">
+        <a href="/overig/?page=fotos" class="text-decoration-none text-dark">
             <div class="overig-card">
-                <div class="card-tag">JW</div>
+                <div class="card-tag">FU</div>
                 <div>
-                    <h4>NEC Jeugd</h4>
-                    <p>Materialen, werkwijze en ontwikkelstructuren.</p>
+                    <h4>Foto's uploaden</h4>
+                    <p>Spelersfoto's toevoegen of vervangen per speler.</p>
                 </div>
                 <span class="card-cta">&rsaquo;</span>
             </div>
@@ -673,69 +738,63 @@
 
 
     <!-- ============================
-     NEC JEUGD PAGINA
+     FOTO'S UPLOADEN PAGINA
 ============================= -->
-{% if page == "jeugd" %}
+{% if page == "fotos" %}
 <section class="overig-workspace">
     <div class="overig-topbar">
         <div class="overig-page-hero">
-            <h3>NEC Jeugd</h3>
-            <p>Bundel werkwijze, begeleiding en ontwikkelstructuur voor jeugdspelers op een vaste plek voor staf en begeleiding.</p>
+            <h3>Foto's uploaden</h3>
+            <p>Voeg spelersfoto's toe of vervang bestaande foto's. De foto wordt direct gebruikt op plekken waar het spelerprofiel zichtbaar is.</p>
         </div>
         <a href="/overig/" class="overig-back-link">Terug</a>
     </div>
 
-    <div class="overig-page-grid">
-        <div class="overig-panel">
-            <h4>Leerlijn en werkwijze</h4>
-            <p>Opleidingsvisie, speelwijze, kernwaarden en dagelijkse afspraken.</p>
-            <form method="post">
+    <div class="photo-upload-grid">
+        <div class="overig-panel photo-upload-form">
+            <h4>Spelersfoto uploaden</h4>
+            <p>Selecteer een speler en kies een JPG, PNG of WEBP-bestand.</p>
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                <input type="hidden" name="section" value="leerlijn">
-                <textarea class="overig-textarea" name="text">{{ jeugd_texts.leerlijn }}</textarea>
+                <div class="overig-field">
+                    <label for="photo-player">Speler</label>
+                    <select id="photo-player" name="player_id" required>
+                        <option value="">Kies speler</option>
+                        {% for player in players %}
+                            <option value="{{ player.id }}">{{ player.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="overig-field mt-3">
+                    <label for="player-photo-upload">Foto</label>
+                    <input id="player-photo-upload" type="file" name="player_image" accept="image/*" required>
+                </div>
                 <div class="overig-actions">
-                    <button type="submit" class="overig-btn red">Opslaan</button>
+                    <button type="submit" class="overig-btn red">Foto opslaan</button>
                 </div>
             </form>
         </div>
 
         <div class="overig-panel">
-            <h4>Individuele begeleiding</h4>
-            <p>POP-momenten, extra begeleiding, communicatie en rollen rondom de speler.</p>
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="section" value="individueel">
-                <textarea class="overig-textarea" name="text">{{ jeugd_texts.individueel }}</textarea>
-                <div class="overig-actions">
-                    <button type="submit" class="overig-btn">Opslaan</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="overig-panel">
-            <h4>Processen en afspraken</h4>
-            <p>Selectie, doorstroom, oudercommunicatie en afstemming tussen teams.</p>
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="section" value="processen">
-                <textarea class="overig-textarea" name="text">{{ jeugd_texts.processen }}</textarea>
-                <div class="overig-actions">
-                    <button type="submit" class="overig-btn">Opslaan</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="overig-panel">
-            <h4>Toekomst en doelen</h4>
-            <p>Korte termijn focus, seizoensthema's en ontwikkeldoelen richting volgende fase.</p>
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="section" value="toekomst">
-                <textarea class="overig-textarea" name="text">{{ jeugd_texts.toekomst }}</textarea>
-                <div class="overig-actions">
-                    <button type="submit" class="overig-btn">Opslaan</button>
-                </div>
-            </form>
+            <h4>Huidige spelersfoto's</h4>
+            <div class="player-photo-list">
+                {% for player in players %}
+                    <div class="player-photo-card">
+                        <div class="player-photo-preview">
+                            {% if player.image %}
+                                <img src="{{ player.image.url }}" alt="{{ player.name }}">
+                            {% else %}
+                                Geen foto
+                            {% endif %}
+                        </div>
+                        <div class="player-photo-name">{{ player.name }}</div>
+                    </div>
+                {% empty %}
+                    <div class="overig-list-card">
+                        <p>Er zijn nog geen spelers toegevoegd.</p>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </section>

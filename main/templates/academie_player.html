@@ -273,6 +273,119 @@
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
+.gps-overview-card {
+    background: #fff;
+    border: 1px solid #dde5ef;
+    border-radius: 16px;
+    box-shadow: 0 14px 30px rgba(31, 42, 68, 0.07);
+    overflow: hidden;
+}
+.gps-overview-head {
+    align-items: flex-start;
+    border-bottom: 1px solid #e4e9f1;
+    display: flex;
+    gap: 18px;
+    justify-content: space-between;
+    padding: 20px 22px;
+}
+.gps-overview-head h2 {
+    border-bottom: 0;
+    margin: 0 0 6px;
+    padding: 0;
+}
+.gps-overview-head p {
+    color: #69758c;
+    font-weight: 800;
+    line-height: 1.45;
+    margin: 0;
+}
+.gps-pill {
+    background: #eef2f7;
+    border-radius: 999px;
+    color: #1f2a44;
+    flex: 0 0 auto;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    padding: 8px 12px;
+    text-transform: uppercase;
+}
+.gps-kpi-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(5, minmax(120px, 1fr));
+    padding: 18px 22px 6px;
+}
+.gps-kpi-card {
+    background: #f8fafc;
+    border: 1px solid #e4e9f1;
+    border-radius: 12px;
+    padding: 14px;
+}
+.gps-kpi-card span {
+    color: #69758c;
+    display: block;
+    font-size: 0.74rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+.gps-kpi-card strong {
+    color: #1f2a44;
+    font-size: 1.45rem;
+    line-height: 1;
+}
+.gps-metric-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px 22px 0;
+}
+.gps-metric-btn {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    color: #1f2a44;
+    cursor: pointer;
+    font-weight: 900;
+    min-height: 38px;
+    padding: 0 16px;
+}
+.gps-metric-btn.is-active {
+    background: #cf202f;
+    border-color: #cf202f;
+    color: #fff;
+}
+.gps-chart-wrap {
+    height: 360px;
+    padding: 18px 22px 8px;
+}
+.gps-day-summary {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    padding: 10px 22px 22px;
+}
+.gps-day-card {
+    background: #f8fafc;
+    border: 1px solid #e4e9f1;
+    border-radius: 12px;
+    min-width: 0;
+    padding: 12px;
+}
+.gps-day-card span,
+.gps-day-card small {
+    color: #69758c;
+    display: block;
+    font-weight: 800;
+}
+.gps-day-card strong {
+    color: #1f2a44;
+    display: block;
+    font-size: 1.2rem;
+    margin: 5px 0;
+}
 .note-list {
     display: grid;
     gap: 12px;
@@ -335,6 +448,13 @@
     }
     .metric-grid {
         grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+    .gps-kpi-grid,
+    .gps-day-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .gps-overview-head {
+        flex-direction: column;
     }
 }
 </style>
@@ -499,61 +619,47 @@
             </div>
 
             <div class="player-panel" data-player-panel="gps">
-                <div class="panel-grid">
-                    <article class="content-card">
-                        <h2>GPS-data</h2>
-                        <div class="content-body">
-                            <div class="info-list">
-                                <div class="info-row"><span>Training sessies</span><strong>{{ gps_totals.sessions }}</strong></div>
-                                <div class="info-row"><span>Load 30d</span><strong>{{ gps_totals.load|floatformat:0 }}</strong></div>
-                                <div class="info-row"><span>Afstand 30d</span><strong>{{ gps_totals.distance|floatformat:0 }}</strong></div>
-                                <div class="info-row"><span>HSD</span><strong>{{ gps_totals.hsd|floatformat:0 }}</strong></div>
-                                <div class="info-row"><span>Sprints</span><strong>{{ gps_totals.sprints|floatformat:0 }}</strong></div>
-                            </div>
+                <article class="gps-overview-card">
+                    <div class="gps-overview-head">
+                        <div>
+                            <h2>GPS-data</h2>
+                            <p>Weekbeeld met trainings- en wedstrijdbelasting. Kies een metriek om de grafiek te wisselen; groen toont ACWR.</p>
                         </div>
-                    </article>
+                        <span class="gps-pill">Laatste 7 dagen</span>
+                    </div>
 
-                    <article class="content-card">
-                        <h2>Wedstrijddata</h2>
-                        <div class="content-body">
-                            <div class="info-list">
-                                <div class="info-row"><span>Wedstrijden</span><strong>{{ match_totals.matches }}</strong></div>
-                                <div class="info-row"><span>Wedstrijdload</span><strong>{{ match_totals.load|floatformat:0 }}</strong></div>
-                                <div class="info-row"><span>Afstand</span><strong>{{ match_totals.distance|floatformat:0 }}</strong></div>
+                    <div class="gps-kpi-grid">
+                        <div class="gps-kpi-card"><span>Training sessies 30d</span><strong>{{ gps_totals.sessions }}</strong></div>
+                        <div class="gps-kpi-card"><span>Load 30d</span><strong>{{ gps_totals.load|floatformat:0 }}</strong></div>
+                        <div class="gps-kpi-card"><span>Afstand 30d</span><strong>{{ gps_totals.distance|floatformat:0 }}</strong></div>
+                        <div class="gps-kpi-card"><span>Wedstrijden</span><strong>{{ match_totals.matches }}</strong></div>
+                        <div class="gps-kpi-card"><span>Sprints 30d</span><strong>{{ gps_totals.sprints|floatformat:0 }}</strong></div>
+                    </div>
+
+                    <div class="gps-metric-row" aria-label="GPS grafiekmetriek">
+                        <button class="gps-metric-btn is-active" type="button" data-gps-metric="td">TD</button>
+                        <button class="gps-metric-btn" type="button" data-gps-metric="load">Load</button>
+                        <button class="gps-metric-btn" type="button" data-gps-metric="d15">D15</button>
+                        <button class="gps-metric-btn" type="button" data-gps-metric="d20">D20</button>
+                        <button class="gps-metric-btn" type="button" data-gps-metric="d25">D25</button>
+                        <button class="gps-metric-btn" type="button" data-gps-metric="sprints">Sprints</button>
+                    </div>
+
+                    <div class="gps-chart-wrap">
+                        <canvas id="academyPlayerGpsChart"></canvas>
+                    </div>
+
+                    <div class="gps-day-summary" aria-label="Dagoverzicht laatste 7 dagen">
+                        {% for day in gps_week_rows %}
+                            <div class="gps-day-card">
+                                <span>{{ day.label }}</span>
+                                <strong>{{ day.load|floatformat:0 }}</strong>
+                                <small>{{ day.distance_km|floatformat:2 }} km</small>
+                                <small>{{ day.sprints|floatformat:0 }} sprints</small>
                             </div>
-                        </div>
-                    </article>
-                </div>
-
-                <article class="content-card">
-                    <h2>Laatste sessies</h2>
-                    <div class="content-body">
-                        {% if recent_training_rows %}
-                            <table class="player-table">
-                                <thead>
-                                    <tr>
-                                        <th>Datum</th>
-                                        <th>Load</th>
-                                        <th>Afstand</th>
-                                        <th>HSD</th>
-                                        <th>Sprints</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for row in recent_training_rows %}
-                                        <tr>
-                                            <td>{{ row.session_date|date:"d-m-Y" }}</td>
-                                            <td>{{ row.load|floatformat:0 }}</td>
-                                            <td>{{ row.total_distance|floatformat:0 }}</td>
-                                            <td>{{ row.hsd|floatformat:0 }}</td>
-                                            <td>{{ row.sprints|floatformat:0 }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        {% else %}
+                        {% empty %}
                             <p class="muted">Nog geen GPS-sessies gevonden.</p>
-                        {% endif %}
+                        {% endfor %}
                     </div>
                 </article>
             </div>
@@ -561,6 +667,15 @@
     </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ gps_labels|json_script:"academy-gps-labels" }}
+{{ gps_acwr_values|json_script:"academy-gps-acwr" }}
+{{ gps_td_values|json_script:"academy-gps-td" }}
+{{ gps_load_values|json_script:"academy-gps-load" }}
+{{ gps_d15_values|json_script:"academy-gps-d15" }}
+{{ gps_d20_values|json_script:"academy-gps-d20" }}
+{{ gps_d25_values|json_script:"academy-gps-d25" }}
+{{ gps_sprints_values|json_script:"academy-gps-sprints" }}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const buttons = document.querySelectorAll("[data-player-tab]");
@@ -582,6 +697,144 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
+
+    const gpsCanvas = document.getElementById("academyPlayerGpsChart");
+    if (gpsCanvas && window.Chart) {
+        const readJson = function (id) {
+            const el = document.getElementById(id);
+            return el ? JSON.parse(el.textContent) : [];
+        };
+        const labels = readJson("academy-gps-labels");
+        const acwrValues = readJson("academy-gps-acwr");
+        const metricData = {
+            td: {
+                label: "Totale afstand",
+                values: readJson("academy-gps-td"),
+                unit: "m",
+                color: "#1666c5",
+            },
+            load: {
+                label: "Load",
+                values: readJson("academy-gps-load"),
+                unit: "au",
+                color: "#1f2a44",
+            },
+            d15: {
+                label: "D15",
+                values: readJson("academy-gps-d15"),
+                unit: "m",
+                color: "#cf202f",
+            },
+            d20: {
+                label: "D20",
+                values: readJson("academy-gps-d20"),
+                unit: "m",
+                color: "#64748b",
+            },
+            d25: {
+                label: "D25",
+                values: readJson("academy-gps-d25"),
+                unit: "m",
+                color: "#d6a21d",
+            },
+            sprints: {
+                label: "Sprints",
+                values: readJson("academy-gps-sprints"),
+                unit: "",
+                color: "#00a676",
+            },
+        };
+
+        const gpsChart = new Chart(gpsCanvas, {
+            type: "bar",
+            data: {
+                labels,
+                datasets: [
+                    {
+                        type: "bar",
+                        label: metricData.td.label,
+                        data: metricData.td.values,
+                        backgroundColor: metricData.td.color,
+                        borderRadius: 8,
+                        yAxisID: "y",
+                    },
+                    {
+                        type: "line",
+                        label: "ACWR",
+                        data: acwrValues,
+                        borderColor: "#00b33c",
+                        backgroundColor: "#00b33c",
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        tension: 0.35,
+                        yAxisID: "y1",
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "top",
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 10,
+                            font: { weight: "700" },
+                        },
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                if (context.dataset.label === "ACWR") {
+                                    return "ACWR: " + context.parsed.y;
+                                }
+                                const activeMetric = metricData[gpsCanvas.dataset.metric || "td"];
+                                const suffix = activeMetric.unit ? " " + activeMetric.unit : "";
+                                return activeMetric.label + ": " + context.parsed.y + suffix;
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: "#526078", font: { weight: "700" } },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: "rgba(31,42,68,0.08)" },
+                        ticks: { color: "#526078" },
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: "right",
+                        suggestedMax: 2,
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: "#526078" },
+                    },
+                },
+            },
+        });
+
+        document.querySelectorAll("[data-gps-metric]").forEach(function (metricButton) {
+            metricButton.addEventListener("click", function () {
+                const metric = metricButton.dataset.gpsMetric;
+                const config = metricData[metric];
+                if (!config) {
+                    return;
+                }
+                document.querySelectorAll("[data-gps-metric]").forEach(function (item) {
+                    item.classList.toggle("is-active", item === metricButton);
+                });
+                gpsCanvas.dataset.metric = metric;
+                gpsChart.data.datasets[0].label = config.label;
+                gpsChart.data.datasets[0].data = config.values;
+                gpsChart.data.datasets[0].backgroundColor = config.color;
+                gpsChart.update();
+            });
+        });
+    }
 });
 </script>
 {% endblock %}

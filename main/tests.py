@@ -220,6 +220,11 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, "Wedstrijddata")
         self.assertContains(response, self.player.name)
 
+        player_response = self.client.get(reverse("academie_player", args=["O17", self.player.id]))
+        self.assertEqual(player_response.status_code, 200)
+        self.assertContains(player_response, "Laatste 7 dagen")
+        self.assertContains(player_response, "academyPlayerGpsChart")
+
     def test_wellness_post_creates_and_updates_one_entry_per_player_date(self):
         payload = {
             "player_id": self.player.id,
@@ -636,17 +641,14 @@ class DashboardPersistenceTests(TestCase):
             reverse("overig") + "?page=hp",
             {"section": "focus", "text": "Speler A extra volgen"},
         )
-        jeugd_response = self.client.post(
-            reverse("overig") + "?page=jeugd",
-            {"section": "leerlijn", "text": "Heldere ontwikkellijn"},
-        )
+        fotos_response = self.client.get(reverse("overig") + "?page=fotos")
 
         self.assertEqual(pop_response.status_code, 302)
         self.assertEqual(hp_response.status_code, 302)
-        self.assertEqual(jeugd_response.status_code, 302)
+        self.assertEqual(fotos_response.status_code, 200)
         self.assertTrue(OverigNote.objects.filter(page_key="pop", section_key="actieplan").exists())
         self.assertTrue(OverigNote.objects.filter(page_key="hp", section_key="focus").exists())
-        self.assertTrue(OverigNote.objects.filter(page_key="jeugd", section_key="leerlijn").exists())
+        self.assertContains(fotos_response, "Foto's uploaden")
 
     def test_fysiek_rapport_page_loads_without_uploaded_data(self):
         response = self.client.get(reverse("fysiek_rapport"))

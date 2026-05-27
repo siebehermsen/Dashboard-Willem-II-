@@ -2708,6 +2708,62 @@ def academie_player(request, team_code, player_id):
         "matches": len(rows_match),
     }
 
+    performance_rows = [*rows_training, *rows_match]
+    latest_session_date = max(
+        (row.get("session_date") for row in performance_rows if row.get("session_date")),
+        default=timezone.localdate(),
+    )
+    week_start = latest_session_date - timedelta(days=6)
+    week_dates = [week_start + timedelta(days=index) for index in range(7)]
+    previous_start = week_start - timedelta(days=21)
+    current_week_rows = [
+        row for row in performance_rows
+        if row.get("session_date") and week_start <= row["session_date"] <= latest_session_date
+    ]
+    previous_rows = [
+        row for row in performance_rows
+        if row.get("session_date") and previous_start <= row["session_date"] < week_start
+    ]
+    chronic_daily_load = sum(val(row, "load") for row in previous_rows) / 21 if previous_rows else 0
+
+    gps_labels = []
+    gps_td_values = []
+    gps_load_values = []
+    gps_d15_values = []
+    gps_d20_values = []
+    gps_d25_values = []
+    gps_sprints_values = []
+    gps_acwr_values = []
+    gps_week_rows = []
+
+    for day in week_dates:
+        day_rows = [row for row in current_week_rows if row.get("session_date") == day]
+        total_distance = sum(val(row, "total_distance") for row in day_rows)
+        load = sum(val(row, "load") for row in day_rows)
+        d15 = sum(val(row, "hsd") for row in day_rows)
+        d20 = d15
+        d25 = sum(val(row, "his") for row in day_rows)
+        sprints = sum(val(row, "sprints") for row in day_rows)
+        acwr = round(load / chronic_daily_load, 2) if chronic_daily_load else 0
+        day_label = day.strftime("%a %d-%m")
+
+        gps_labels.append(day_label)
+        gps_td_values.append(round(total_distance, 1))
+        gps_load_values.append(round(load, 1))
+        gps_d15_values.append(round(d15, 1))
+        gps_d20_values.append(round(d20, 1))
+        gps_d25_values.append(round(d25, 1))
+        gps_sprints_values.append(round(sprints, 1))
+        gps_acwr_values.append(acwr)
+        gps_week_rows.append({
+            "date": day,
+            "label": day_label,
+            "load": round(load, 0),
+            "distance_km": round(total_distance / 1000, 2),
+            "sprints": round(sprints, 0),
+            "acwr": acwr,
+        })
+
     latest_test = sorted(rows_test, key=lambda row: row["session_date"], reverse=True)[0] if rows_test else None
     recent_tests = sorted(rows_test, key=lambda row: row["session_date"], reverse=True)[:10]
     recent_training_rows = sorted(recent_training, key=lambda row: row["session_date"], reverse=True)[:12]
@@ -2746,6 +2802,15 @@ def academie_player(request, team_code, player_id):
         "recent_tests": recent_tests,
         "recent_training_rows": recent_training_rows,
         "recent_match_rows": recent_match_rows,
+        "gps_week_rows": gps_week_rows,
+        "gps_labels": gps_labels,
+        "gps_td_values": gps_td_values,
+        "gps_load_values": gps_load_values,
+        "gps_d15_values": gps_d15_values,
+        "gps_d20_values": gps_d20_values,
+        "gps_d25_values": gps_d25_values,
+        "gps_sprints_values": gps_sprints_values,
+        "gps_acwr_values": gps_acwr_values,
         "attendance_rows": attendance_rows,
         "attendance_total_count": attendance_total_count,
         "attendance_present_count": attendance_present_count,
@@ -4382,31 +4447,33 @@ def overig(request):
         })
 
     # ======================================
-    # NEC JEUGD
+    # SPELERSFOTO'S UPLOADEN
     # ======================================
     if page == "jeugd":
+        return redirect("/overig/?page=fotos")
+
+    if page == "fotos":
         if request.method == "POST":
-            section = request.POST.get("section")
-            text = request.POST.get("text", "")
-            if section:
-                OverigNote.objects.create(
-                    note_type="section",
-                    page_key="jeugd",
-                    section_key=section,
-                    text=text.strip(),
-                )
-            return redirect("/overig/?page=jeugd")
+            player_id = request.POST.get("player_id")
+            image = request.FILES.get("player_image")
+
+            if not player_id:
+                messages.error(request, "Kies eerst een speler.")
+                return redirect("/overig/?page=fotos")
+            if not image:
+                messages.error(request, "Kies een foto om te uploaden.")
+                return redirect("/overig/?page=fotos")
+
+            player = get_object_or_404(Player, id=player_id)
+            player.image = image
+            player.save(update_fields=["image"])
+            messages.success(request, f"Foto van {player.name} bijgewerkt.")
+            return redirect("/overig/?page=fotos")
 
         return render(request, 'overig.html', {
-            'page': 'jeugd',
+            'page': 'fotos',
             'players': players,
             'staff': staff_members,
-            "jeugd_texts": {
-                "leerlijn": section_text("jeugd", "leerlijn"),
-                "individueel": section_text("jeugd", "individueel"),
-                "processen": section_text("jeugd", "processen"),
-                "toekomst": section_text("jeugd", "toekomst"),
-            },
         })
 
     # ======================================
