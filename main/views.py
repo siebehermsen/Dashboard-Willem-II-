@@ -4024,6 +4024,8 @@ def potentials(request):
     latest_wellness = None
     latest_rpe = None
     latest_speed_test = None
+    latest_test = None
+    potential_percentiles = {}
     week_load = 0
     week_distance = 0
     week_sprints = 0
@@ -4054,12 +4056,49 @@ def potentials(request):
         latest_rpe = RPEEntry.objects.filter(player=selected_player).order_by("-date").first()
         latest_speed_test = PlayerSpeedTest.objects.filter(player=selected_player).order_by("-test_date").first()
         latest_session_date = timezone.localdate()
+        all_test_rows = fetch_performance_rows("test")
         test_rows = sorted(
-            fetch_performance_rows("test", selected_player),
+            [row for row in all_test_rows if row["player_id"] == selected_player.id],
             key=lambda row: row.get("session_date") or date.min,
             reverse=True,
         )
         recent_tests = test_rows[:8]
+        latest_test = recent_tests[0] if recent_tests else None
+
+        def metric_values(code):
+            values = []
+            for row in all_test_rows:
+                raw_value = row.get(code)
+                if raw_value is not None:
+                    try:
+                        values.append(float(raw_value))
+                    except (TypeError, ValueError):
+                        pass
+            return values
+
+        def percentile(value, code, reverse=False):
+            values = metric_values(code)
+            if value is None or not values:
+                return None
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError):
+                return None
+            min_value = min(values)
+            max_value = max(values)
+            if min_value == max_value:
+                return 50
+            if reverse:
+                return round(100 * (max_value - numeric) / (max_value - min_value))
+            return round(100 * (numeric - min_value) / (max_value - min_value))
+
+        if latest_test:
+            potential_percentiles = {
+                "sprint": percentile(latest_test.get("sprint_10"), "sprint_10", reverse=True),
+                "cmj": percentile(latest_test.get("cmj"), "cmj"),
+                "isrt": percentile(latest_test.get("isrt"), "isrt"),
+                "submax": percentile(latest_test.get("submax"), "submax"),
+            }
         performance_rows = [
             *fetch_performance_rows("training", selected_player),
             *fetch_performance_rows("match", selected_player),
@@ -4122,6 +4161,8 @@ def potentials(request):
         "latest_wellness": latest_wellness,
         "latest_rpe": latest_rpe,
         "latest_speed_test": latest_speed_test,
+        "latest_test": latest_test,
+        "potential_percentiles": potential_percentiles,
         "week_load": week_load,
         "week_distance": week_distance,
         "week_sprints": week_sprints,

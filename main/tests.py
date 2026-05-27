@@ -758,6 +758,7 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(page, "GPS-data")
         self.assertContains(page, "Aanwezigheid")
         self.assertContains(page, "Lengte en gewicht")
+        self.assertContains(page, "Open volledig fysiek profiel")
         self.assertContains(page, "Eerste meters dominanter maken")
         self.assertContains(page, "Meer scannen voor de eerste aanname.")
 
