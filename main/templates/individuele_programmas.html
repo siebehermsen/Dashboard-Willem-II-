@@ -1160,14 +1160,14 @@
 
             <div class="ind-profile-grid">
               <div class="ind-profile-tile">
-                <span>Wellness</span>
+                <span>Welzijn</span>
                 <strong>{% if player_profile_overview.latest_wellness_avg %}{{ player_profile_overview.latest_wellness_avg|floatformat:1 }}{% else %}-{% endif %}</strong>
                 <small>{% if player_profile_overview.latest_wellness %}{{ player_profile_overview.latest_wellness.date|date:"d-m-Y" }}{% else %}Geen recente invoer{% endif %}</small>
               </div>
               <div class="ind-profile-tile">
                 <span>RPE</span>
                 <strong>{% if player_profile_overview.latest_rpe %}{{ player_profile_overview.latest_rpe.rpe }}{% else %}-{% endif %}</strong>
-                <small>{% if player_profile_overview.latest_rpe %}Load {{ player_profile_overview.latest_rpe.session_load|default:"-" }}{% else %}Geen recente invoer{% endif %}</small>
+                <small>{% if player_profile_overview.latest_rpe %}Belasting {{ player_profile_overview.latest_rpe.session_load|default:"-" }}{% else %}Geen recente invoer{% endif %}</small>
               </div>
               <div class="ind-profile-tile">
                 <span>GPS 7d</span>
@@ -1328,24 +1328,24 @@
 
     <section>
     <div class="ind-tab-nav" role="tablist" aria-label="Onderdelen individueel trainen">
-      <button class="ind-tab-btn {% if focus_tab == 'sprint-acceleratie' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'sprint-acceleratie' %}true{% else %}false{% endif %}" data-tab="sprint-acceleratie" data-label="Sprint Acceleratie & Posture">Sprint Acceleratie & Posture</button>
+      <button class="ind-tab-btn {% if focus_tab == 'sprint-acceleratie' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'sprint-acceleratie' %}true{% else %}false{% endif %}" data-tab="sprint-acceleratie" data-label="Sprintacceleratie en houding">Sprintacceleratie en houding</button>
       <button class="ind-tab-btn {% if focus_tab == 'hip-lock' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'hip-lock' %}true{% else %}false{% endif %}" data-tab="hip-lock" data-label="Hip Lock & Footplant">Hip Lock & Footplant</button>
       <button class="ind-tab-btn {% if focus_tab == 'core-control' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'core-control' %}true{% else %}false{% endif %}" data-tab="core-control" data-label="Core Control & Armcontrole">Core Control & Armcontrole</button>
-      <button class="ind-tab-btn {% if focus_tab == 'cod' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'cod' %}true{% else %}false{% endif %}" data-tab="cod" data-label="CoD - Remmen, Posture & Heraccelereren">CoD - Remmen, Posture & Heraccelereren</button>
+      <button class="ind-tab-btn {% if focus_tab == 'cod' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'cod' %}true{% else %}false{% endif %}" data-tab="cod" data-label="CoD - remmen, houding en heraccelereren">CoD - remmen, houding en heraccelereren</button>
       <button class="ind-tab-btn {% if focus_tab == 'specifieke-hip-lock-cod' %}is-active{% endif %}" type="button" role="tab" aria-selected="{% if focus_tab == 'specifieke-hip-lock-cod' %}true{% else %}false{% endif %}" data-tab="specifieke-hip-lock-cod" data-label="Specifieke Hip Lock CoD-vorm">Specifieke Hip Lock CoD-vorm</button>
     </div>
 
     <article class="ind-card ind-content-card {% if focus_tab == 'sprint-acceleratie' %}is-active{% endif %}" data-panel="sprint-acceleratie">
         <div class="ind-card-head">
-          <h3>Sprint Acceleratie & Posture</h3>
+          <h3>Sprintacceleratie en houding</h3>
           <p>Technische focus om spelers beter in hun val- en versnellingspositie te houden.</p>
         </div>
         <div class="ind-section-grid">
           <div class="ind-section">
-            <span class="ind-tag">Posture</span>
+            <span class="ind-tag">Houding</span>
             <ul>
               <li><strong>Hip thrust-variant:</strong> nadruk op krachtige heupinzet als basis voor acceleratie.</li>
-              <li><strong>Resisted sprint met explosieve heupinzet:</strong> leer spelers actief vanuit de heup te versnellen.</li>
+              <li><strong>Sprint met weerstand en explosieve heupinzet:</strong> leer spelers actief vanuit de heup te versnellen.</li>
               <li><strong>Posterior pelvic tilt:</strong> buikspanning en oblique-spanning organiseren voor betere romppositie.</li>
               <li><strong>Weerstandspositie vasthouden:</strong> resisted sprint even statisch vasthouden in ideaal postuur.</li>
               <li><strong>Naar voren blijven:</strong> speler mag in de beginfase niet te vroeg oprichten.</li>
@@ -1380,7 +1380,7 @@
             <ul>
               <li><strong>Wall drills:</strong> basis voor kniepositie, romphoek en actieve voet.</li>
               <li><strong>Bounding:</strong> focus op lang in de lucht blijven en landing bewust uitstellen.</li>
-              <li><strong>Resisted sprints:</strong> extra nadruk op het vasthouden van de hip lock-positie tijdens acceleratie.</li>
+              <li><strong>Sprints met weerstand:</strong> extra nadruk op het vasthouden van de hip lock-positie tijdens acceleratie.</li>
             </ul>
           </div>
           <div class="ind-section">
@@ -1429,14 +1429,14 @@
 
     <article class="ind-card ind-content-card {% if focus_tab == 'cod' %}is-active{% endif %}" data-panel="cod">
         <div class="ind-card-head">
-          <h3>CoD - Remmen, Posture & Heraccelereren</h3>
+          <h3>CoD - remmen, houding en heraccelereren</h3>
           <p>Praktische coachpunten om spelers efficienter te laten vertragen, laden en opnieuw te laten versnellen.</p>
         </div>
         <div class="ind-section-grid">
           <div class="ind-section">
-            <span class="ind-tag">Posture in CoD</span>
+            <span class="ind-tag">Houding in CoD</span>
             <ul>
-              <li><strong>Posture in meerdere richtingen:</strong> van achter naar voren, zijwaarts en voorwaarts organiseren.</li>
+              <li><strong>Houding in meerdere richtingen:</strong> van achter naar voren, zijwaarts en voorwaarts organiseren.</li>
               <li><strong>Snel hoogteverschil creeren:</strong> op het laatste moment zo snel mogelijk zakken.</li>
               <li><strong>Lineair remmen en weer versnellen:</strong> eventueel met weerstandsbanden toevoegen.</li>
             </ul>
@@ -1532,7 +1532,7 @@
             <div class="mdo-main-head">
               <div>
                 <h3>Weekstart fysieke status</h3>
-                <p class="ind-help">GPS, wedstrijdbelasting, wellness en sRPE van de laatste beschikbare 7 dagen.</p>
+                <p class="ind-help">GPS, wedstrijdbelasting, welzijn en sRPE van de laatste beschikbare 7 dagen.</p>
               </div>
               <form method="get" class="mdo-player-switch">
                 <label class="ind-label" for="mdo_player_id">Speler</label>
@@ -1550,7 +1550,7 @@
 
             <div class="mdo-kpi-grid">
               <div class="mdo-kpi">
-                <span>Load 7d</span>
+                <span>Belasting 7d</span>
                 <strong>{{ mdo_kpis.load|floatformat:0 }}</strong>
               </div>
               <div class="mdo-kpi">
@@ -1562,7 +1562,7 @@
                 <strong>{{ mdo_kpis.sprints|floatformat:0 }}</strong>
               </div>
               <div class="mdo-kpi">
-                <span>Wellness</span>
+                <span>Welzijn</span>
                 <strong>{% if mdo_kpis.avg_wellness %}{{ mdo_kpis.avg_wellness|floatformat:1 }}{% else %}-{% endif %}</strong>
               </div>
               <div class="mdo-kpi">
@@ -1597,15 +1597,15 @@
           </article>
 
           <article class="mdo-strip-card">
-            <h3>Wellness en sRPE</h3>
+            <h3>Welzijn en sRPE</h3>
             <p class="ind-help" style="margin-bottom:14px;">Per dag zichtbaar of de speler ingevuld heeft en hoe de respons eruitziet.</p>
             <div class="mdo-week-table">
               {% for day in mdo_wellness_rows %}
                 <div class="mdo-day">
                   <strong>{{ day.label }}</strong>
-                  <span>Wellness: {% if day.wellness_avg %}{{ day.wellness_avg|floatformat:1 }}{% else %}-{% endif %}</span>
+                  <span>Welzijn: {% if day.wellness_avg %}{{ day.wellness_avg|floatformat:1 }}{% else %}-{% endif %}</span>
                   <span>RPE: {% if day.rpe %}{{ day.rpe }}{% else %}-{% endif %}</span>
-                  <span>Load: {% if day.session_load %}{{ day.session_load }}{% else %}-{% endif %}</span>
+                  <span>Belasting: {% if day.session_load %}{{ day.session_load }}{% else %}-{% endif %}</span>
                 </div>
               {% endfor %}
             </div>

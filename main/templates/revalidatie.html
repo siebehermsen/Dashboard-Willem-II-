@@ -714,7 +714,7 @@
     <div id="analysisContent" {% if not selected_player %}style="display:none;"{% endif %}>
         <div class="analysis-summary">
             <div class="summary-card">
-                <span class="label" id="latestMetricLabel">Laatste Load</span>
+                <span class="label" id="latestMetricLabel">Laatste belasting</span>
                 <span class="value" id="latestMetricValue">-</span>
             </div>
             <div class="summary-card">
@@ -728,14 +728,14 @@
         </div>
         <div class="analysis-controls" id="analysisControls">
             <div class="metric-buttons">
-                <button type="button" class="metric-btn active" data-metric="load">Load</button>
+                <button type="button" class="metric-btn active" data-metric="load">Belasting</button>
                 <button type="button" class="metric-btn" data-metric="total_distance">TD</button>
                 <button type="button" class="metric-btn" data-metric="hsd">D15</button>
                 <button type="button" class="metric-btn" data-metric="d20">D20</button>
                 <button type="button" class="metric-btn" data-metric="d25">D25</button>
                 <button type="button" class="metric-btn" data-metric="acc">Acc</button>
                 <button type="button" class="metric-btn" data-metric="dec">Dec</button>
-                <button type="button" class="metric-btn" data-metric="max_speed">Max Speed</button>
+                <button type="button" class="metric-btn" data-metric="max_speed">Max snelheid</button>
                 <button type="button" class="metric-btn" data-metric="sprints">Sprints</button>
             </div>
         </div>
@@ -802,9 +802,9 @@
                         <th>D25 (m)</th>
                         <th>Acc</th>
                         <th>Dec</th>
-                        <th>Max Speed (km/u)</th>
+                        <th>Max snelheid (km/u)</th>
                         <th>Sprints</th>
-                        <th>Load</th>
+                        <th>Belasting</th>
                     </tr>
                 </thead>
                 <tbody id="analysisTableBody">
@@ -1054,8 +1054,8 @@
 
       <tr>
         <td>
-          High intensity run (20-24 km/u lineair)
-          <input type="hidden" name="onderdeel[]" value="High intensity run (20-24 km/u lineair)">
+          Hoge-intensiteitsloop (20-24 km/u lineair)
+          <input type="hidden" name="onderdeel[]" value="Hoge-intensiteitsloop (20-24 km/u lineair)">
         </td>
         <td><input type="checkbox" name="afgevinkt[]"></td>
         <td><input type="number" name="duur[]"></td>
@@ -1490,14 +1490,14 @@ let rehabChart = null;
 let currentMetric = 'load';
 
 const metricConfig = {
-    load: { label: 'Load', key: 'loads', axisTitle: 'Load', color: 'rgba(31, 42, 68, 0.85)', decimals: 0 },
+    load: { label: 'Belasting', key: 'loads', axisTitle: 'Belasting', color: 'rgba(31, 42, 68, 0.85)', decimals: 0 },
     total_distance: { label: 'TD', key: 'distances', axisTitle: 'Totale afstand (m)', color: 'rgba(38, 84, 124, 0.85)', decimals: 0 },
     hsd: { label: 'D15', key: 'hsd', axisTitle: 'D15 / HIR (m)', color: 'rgba(47, 111, 147, 0.85)', decimals: 0 },
     d20: { label: 'D20', key: 'd20', axisTitle: 'D20 (m)', color: 'rgba(65, 131, 166, 0.85)', decimals: 0 },
     d25: { label: 'D25', key: 'd25', axisTitle: 'D25 (m)', color: 'rgba(77, 141, 173, 0.85)', decimals: 0 },
     acc: { label: 'Acc', key: 'acc', axisTitle: 'Acceleraties (aantal)', color: 'rgba(87, 150, 178, 0.85)', decimals: 0 },
     dec: { label: 'Dec', key: 'dec', axisTitle: 'Deceleraties (aantal)', color: 'rgba(100, 160, 189, 0.85)', decimals: 0 },
-    max_speed: { label: 'Max Speed', key: 'maxSpeed', axisTitle: 'Max speed (km/u)', color: 'rgba(112, 172, 199, 0.85)', decimals: 1 },
+    max_speed: { label: 'Max snelheid', key: 'maxSpeed', axisTitle: 'Max snelheid (km/u)', color: 'rgba(112, 172, 199, 0.85)', decimals: 1 },
     sprints: { label: 'Sprints', key: 'sprints', axisTitle: 'Sprints (aantal)', color: 'rgba(83, 150, 185, 0.85)', decimals: 0 }
 };
 
@@ -1711,14 +1711,14 @@ function renderRehabBuildPlan() {
                 <details class="target-breakdown">
                     <summary>${row.profileTitle}</summary>
                     <div class="target-lines">
-                        <div class="target-chip"><strong>Load</strong>${row.loadTargetText}</div>
+                        <div class="target-chip"><strong>Belasting</strong>${row.loadTargetText}</div>
                         <div class="target-chip"><strong>TD</strong>${row.distanceTargetText}</div>
                         <div class="target-chip"><strong>D15</strong>${row.hsdTargetText}</div>
                         <div class="target-chip"><strong>D20</strong>${row.d20TargetText}</div>
                         <div class="target-chip"><strong>D25</strong>${row.d25TargetText}</div>
                         <div class="target-chip"><strong>Acc</strong>${row.accTargetText}</div>
                         <div class="target-chip"><strong>Dec</strong>${row.decTargetText}</div>
-                        <div class="target-chip"><strong>Max Speed</strong>${row.maxSpeedTargetText}</div>
+                        <div class="target-chip"><strong>Max snelheid</strong>${row.maxSpeedTargetText}</div>
                         <div class="target-chip"><strong>Sprints</strong>${row.sprintsTargetText}</div>
                     </div>
                 </details>
@@ -1730,7 +1730,7 @@ function renderRehabBuildPlan() {
     `).join('');
 
     if (plannerCurrentWeekLoadEl) plannerCurrentWeekLoadEl.textContent = `${Math.round(currentWeekLoad)}`;
-    if (plannerTargetWeekLoadEl) plannerTargetWeekLoadEl.textContent = 'Load, TD, D15, D20, D25, Acc, Dec, Max Speed, Sprints';
+    if (plannerTargetWeekLoadEl) plannerTargetWeekLoadEl.textContent = 'Belasting, TD, D15, D20, D25, Acc, Dec, Max snelheid, Sprints';
     if (plannerGrowthPerWeekEl) plannerGrowthPerWeekEl.textContent = `${(growth * 100).toFixed(1)}%`;
 
     if (rehabPlanNoteEl) {
@@ -1749,7 +1749,7 @@ function updateSummary() {
     const latestLoad = latestNumber(state.loads);
     const latestAcwr = latestNumber(state.acwr);
 
-    latestMetricLabelEl.textContent = 'Laatste Load';
+    latestMetricLabelEl.textContent = 'Laatste belasting';
     latestMetricValueEl.textContent = latestLoad !== null ? `${latestLoad.toFixed(0)}` : '-';
     latestAcwrEl.textContent = latestAcwr !== null ? `${latestAcwr.toFixed(2)}` : '-';
 

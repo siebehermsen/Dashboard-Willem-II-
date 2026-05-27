@@ -153,7 +153,7 @@
 <!-- KPI-BOXEN -->
 <section class="kpi-grid">
     <div class="kpi-card">
-        <h4>Gemiddelde Load</h4>
+        <h4>Gemiddelde belasting</h4>
         <p class="kpi-value">{{ avg_load|default:"-" }}</p>
     </div>
 
@@ -178,18 +178,18 @@
     <div class="chart-header">
         <h3>Vergelijking tussen spelers</h3>
         <div class="metric-buttons">
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Belasting</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max snelheid</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
         </div>
     </div>
-    <p class="subtext">Totale load, afstand en sprints per speler.</p>
+    <p class="subtext">Totale belasting, afstand en sprints per speler.</p>
     <div class="chart-area">
         <canvas id="playerComparisonChart"></canvas>
     </div>
@@ -198,22 +198,22 @@
 <!-- EWMA -->
 <section class="card chart-card fade-in chart-card-ewma">
     <div class="chart-header">
-        <h3>Acute vs. Chronische Load (EWMA)</h3>
+        <h3>Acute vs. chronische belasting (EWMA)</h3>
 
         <div class="metric-buttons">
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Belasting</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max snelheid</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
         </div>
     </div>
 
-    <p class="subtext">Exponential moving average van de wekelijkse trainingsload.</p>
+    <p class="subtext">Exponentieel gewogen gemiddelde van de wekelijkse trainingsbelasting.</p>
     <div class="chart-area chart-area-small">
         <canvas id="ewmaChart"></canvas>
     </div>
@@ -239,7 +239,7 @@ const playerDec = {{ chart_dec|safe }};
 const hasSignal = (arr) => Array.isArray(arr) && arr.some((v) => Number(v || 0) > 0);
 const hasLoadSignal = hasSignal(playerLoad);
 const effectivePlayerLoadData = hasLoadSignal ? playerLoad : playerDistance;
-const effectivePlayerLoadLabel = hasLoadSignal ? "Totale Load" : "Totale Afstand (m)";
+const effectivePlayerLoadLabel = hasLoadSignal ? "Totale belasting" : "Totale afstand (m)";
 const effectivePlayerLoadUnit = hasLoadSignal ? "" : " m";
 const initialSelectedMetric = "{{ selected_metric|default:'load'|escapejs }}";
 let selectedMetricState = initialSelectedMetric;
@@ -284,7 +284,7 @@ const comparisonDatasets = {
     ],
     total_distance: [
         {
-            label: "Totale Afstand (m)",
+            label: "Totale afstand (m)",
             data: playerDistance,
             backgroundColor: metricBlue,
             borderRadius: 8,
@@ -354,7 +354,7 @@ const comparisonDatasets = {
     ],
     max_speed: [
         {
-            label: "Max Speed (km/u)",
+            label: "Max snelheid (km/u)",
             data: playerMaxSpeed,
             backgroundColor: metricBlue,
             borderRadius: 8,
@@ -365,7 +365,7 @@ const comparisonDatasets = {
 };
 
 const metricAxisTitle = {
-    load: hasLoadSignal ? "Load" : "Afstand (m)",
+    load: hasLoadSignal ? "Belasting" : "Afstand (m)",
     total_distance: "Afstand (m)",
     hsd: "D15 / HSD (m)",
     d20: "D20 (m)",
@@ -373,7 +373,7 @@ const metricAxisTitle = {
     sprints: "Sprints (aantal)",
     acc: "Acceleraties (aantal)",
     dec: "Deceleraties (aantal)",
-    max_speed: "Max speed (km/u)"
+    max_speed: "Max snelheid (km/u)"
 };
 let weeklyTrainingChart = null;
 
@@ -387,10 +387,10 @@ const weeklyMetricMeta = {
     load: {
         key: hasDailyLoadSignal ? "load" : "total_distance",
         pointsKey: hasDailyLoadSignal ? "points_load" : "points_total_distance",
-        label: hasDailyLoadSignal ? "Load" : "TD",
+        label: hasDailyLoadSignal ? "Belasting" : "TD",
         color: metricBlueSoft,
         unit: hasDailyLoadSignal ? "" : " m",
-        axis: hasDailyLoadSignal ? "Load" : "Afstand (m)"
+        axis: hasDailyLoadSignal ? "Belasting" : "Afstand (m)"
     },
     total_distance: { key: "total_distance", pointsKey: "points_total_distance", label: "TD", color: metricBlueSoft, unit: " m", axis: "Afstand (m)" },
     hsd: { key: "hsd", pointsKey: "points_hsd", label: "D15", color: metricBlueSoft, unit: " m", axis: "D15 / HSD (m)" },
@@ -398,7 +398,7 @@ const weeklyMetricMeta = {
     d25: { key: "d25", pointsKey: "points_d25", label: "D25", color: metricBlueSoft, unit: " m", axis: "D25 (m)" },
     acc: { key: "acc", pointsKey: "points_acc", label: "Acc", color: metricBlueSoft, unit: "x", axis: "Acceleraties (aantal)" },
     dec: { key: "dec", pointsKey: "points_dec", label: "Dec", color: metricBlueSoft, unit: "x", axis: "Deceleraties (aantal)" },
-    max_speed: { key: "max_speed", pointsKey: "points_max_speed", label: "Max Speed", color: metricBlueSoft, unit: " km/u", axis: "Max speed (km/u)" },
+    max_speed: { key: "max_speed", pointsKey: "points_max_speed", label: "Max snelheid", color: metricBlueSoft, unit: " km/u", axis: "Max snelheid (km/u)" },
     sprints: { key: "sprints", pointsKey: "points_sprints", label: "Sprints", color: metricBlueSoft, unit: "x", axis: "Sprints (aantal)" }
 };
 const weeklySeries = {
@@ -497,10 +497,10 @@ const setComparisonMetric = (metric, pushUrl = true) => {
         playerComparisonChart.data.datasets = activeComparisonDatasets;
         const axisId = activeComparisonDatasets[0]?.yAxisID || "y";
         if (axisId === "y2") {
-            playerComparisonChart.options.scales.y.title.text = "Load / Afstand (m)";
+            playerComparisonChart.options.scales.y.title.text = "Belasting / afstand (m)";
             playerComparisonChart.options.scales.y2.title.text = metricAxisTitle[metric] || "Sprints (aantal)";
         } else {
-            playerComparisonChart.options.scales.y.title.text = metricAxisTitle[metric] || "Load / Afstand (m)";
+            playerComparisonChart.options.scales.y.title.text = metricAxisTitle[metric] || "Belasting / afstand (m)";
             playerComparisonChart.options.scales.y2.title.text = "Sprints (aantal)";
         }
         playerComparisonChart.update();
@@ -547,7 +547,7 @@ if (playerLabels.length > 0) {
                 },
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: "Load / Afstand (m)" },
+                    title: { display: true, text: "Belasting / afstand (m)" },
                     ticks: {
                         callback: (value) => nlNumber(value)
                     },
@@ -608,7 +608,7 @@ if (ewmaCanvas && ewmaWeeks.length > 0) {
             labels: ewmaWeeks.map(w => "Week " + w),
             datasets: [
                 {
-                    label: 'Acute Load (EWMA-7)',
+                    label: 'Acute belasting (EWMA-7)',
                     data: ewmaAcute,
                     borderColor: 'rgba(231,76,60,0.9)',
                     backgroundColor: 'rgba(231,76,60,0.15)',
@@ -618,7 +618,7 @@ if (ewmaCanvas && ewmaWeeks.length > 0) {
                     pointRadius: 4
                 },
                 {
-                    label: 'Chronic Load (EWMA-28)',
+                    label: 'Chronische belasting (EWMA-28)',
                     data: ewmaChronic,
                     borderColor: 'rgba(52,152,219,0.9)',
                     backgroundColor: 'rgba(52,152,219,0.15)',
@@ -644,7 +644,7 @@ if (ewmaCanvas && ewmaWeeks.length > 0) {
                     beginAtZero: false,
                     suggestedMin: ewmaMin * 0.9,
                     suggestedMax: ewmaMax * 1.1,
-                    title: { display: true, text: 'Load' },
+                    title: { display: true, text: 'Belasting' },
                     ticks: {
                         callback: (value) => nlNumber(value, 1)
                     },
@@ -798,14 +798,14 @@ if (document.readyState === "loading") {
     <div class="chart-header">
         <h3>Trainingsdata per maand</h3>
         <div class="metric-buttons">
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Belasting</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max snelheid</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
         </div>
     </div>
@@ -822,14 +822,14 @@ if (document.readyState === "loading") {
         <div class="chart-header">
             <h3>Trainingsdata per week</h3>
             <div class="metric-buttons">
-                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Belasting</a>
                 <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
                 <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
                 <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
                 <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
                 <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
                 <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
-                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+                <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max snelheid</a>
                 <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
             </div>
         </div>
@@ -844,9 +844,9 @@ if (document.readyState === "loading") {
                     <th>D25 (m)</th>
                     <th>Acc</th>
                     <th>Dec</th>
-                    <th>Max Speed (km/u)</th>
+                    <th>Max snelheid (km/u)</th>
                     <th>Sprints</th>
-                    <th>Load</th>
+                    <th>Belasting</th>
                     <th>ACWR</th>
                 </tr>
             </thead>
@@ -952,14 +952,14 @@ if (document.readyState === "loading") {
     <div class="chart-header">
         <h3>Laatste 5 wedstrijden - Overzicht</h3>
         <div class="metric-buttons">
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Belasting</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max snelheid</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
         </div>
     </div>
@@ -1001,14 +1001,14 @@ if (document.readyState === "loading") {
     <div class="chart-header">
         <h3>Laatste 5 wedstrijden - Ruwe data (grafiek)</h3>
         <div class="metric-buttons">
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Belasting</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max snelheid</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
         </div>
     </div>
@@ -1033,18 +1033,18 @@ if (document.readyState === "loading") {
     <div class="chart-header">
         <h3>Teamoverzicht - Laatste wedstrijd</h3>
         <div class="metric-buttons">
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Load</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=load" class="metric-btn {% if selected_metric == 'load' %}active{% endif %}">Belasting</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=total_distance" class="metric-btn {% if selected_metric == 'total_distance' %}active{% endif %}">TD</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=hsd" class="metric-btn {% if selected_metric == 'hsd' %}active{% endif %}">D15</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d20" class="metric-btn {% if selected_metric == 'd20' %}active{% endif %}">D20</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=d25" class="metric-btn {% if selected_metric == 'd25' %}active{% endif %}">D25</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=acc" class="metric-btn {% if selected_metric == 'acc' %}active{% endif %}">Acc</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=dec" class="metric-btn {% if selected_metric == 'dec' %}active{% endif %}">Dec</a>
-            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max Speed</a>
+            <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=max_speed" class="metric-btn {% if selected_metric == 'max_speed' %}active{% endif %}">Max snelheid</a>
             <a href="?{% if selected_player %}player={{ selected_player.name|urlencode }}&{% endif %}metric=sprints" class="metric-btn {% if selected_metric == 'sprints' %}active{% endif %}">Sprints</a>
         </div>
     </div>
-    <p class="subtext">Totale afstand, high-intensity running en sprints per speler in kilometers.</p>
+    <p class="subtext">Totale afstand, lopen op hoge intensiteit en sprints per speler in kilometers.</p>
 
     <!-- DATA INLADEN VIA DJANGO -->
     {{ team_labels|json_script:"team_labels" }}
@@ -1110,14 +1110,14 @@ const teamD25KM      = teamD25.map(v => v / 1000);
 
 const rawMatchDatasets = {
     load: {
-        label: "Load",
+        label: "Belasting",
         data: matchLoad,
         unit: "",
-        axisTitle: "Load",
+        axisTitle: "Belasting",
         backgroundColor: metricBlue
     },
     total_distance: {
-        label: "Totale Afstand (m)",
+        label: "Totale afstand (m)",
         data: matchTD,
         unit: " m",
         axisTitle: "Afstand (m)",
@@ -1166,24 +1166,24 @@ const rawMatchDatasets = {
         backgroundColor: metricBlue
     },
     max_speed: {
-        label: "Max Speed (km/u)",
+        label: "Max snelheid (km/u)",
         data: matchMaxSpeed,
         unit: " km/u",
-        axisTitle: "Max speed (km/u)",
+        axisTitle: "Max snelheid (km/u)",
         backgroundColor: metricBlue
     }
 };
 
 const teamMatchDatasets = {
     load: {
-        label: "Load",
+        label: "Belasting",
         data: teamLoad,
         unit: "",
-        axisTitle: "Load",
+        axisTitle: "Belasting",
         backgroundColor: metricBlue
     },
     total_distance: {
-        label: "Totale Afstand (km)",
+        label: "Totale afstand (km)",
         data: teamDistanceKM,
         unit: " km",
         axisTitle: "Afstand (km)",
@@ -1232,10 +1232,10 @@ const teamMatchDatasets = {
         backgroundColor: metricBlue
     },
     max_speed: {
-        label: "Max Speed (km/u)",
+        label: "Max snelheid (km/u)",
         data: teamMaxSpeed,
         unit: " km/u",
-        axisTitle: "Max speed (km/u)",
+        axisTitle: "Max snelheid (km/u)",
         backgroundColor: metricBlue
     }
 };
@@ -1432,7 +1432,7 @@ setMatchMetric(selectedMetricMatchState, false);
 
     <section class="report-kpi-grid">
         <article class="report-kpi-card">
-            <span>Totale load</span>
+            <span>Totale belasting</span>
             <strong>{{ report_summary.total_load|floatformat:0 }}</strong>
         </article>
         <article class="report-kpi-card">
@@ -1452,7 +1452,7 @@ setMatchMetric(selectedMetricMatchState, false);
             <strong>{{ report_summary.active_players }}</strong>
         </article>
         <article class="report-kpi-card">
-            <span>Load per speler</span>
+            <span>Belasting per speler</span>
             <strong>{{ report_summary.avg_load_per_player|floatformat:0 }}</strong>
         </article>
     </section>
@@ -1462,10 +1462,10 @@ setMatchMetric(selectedMetricMatchState, false);
             <div class="chart-header">
                 <div>
                     <h3>Weekbelasting</h3>
-                    <p class="subtext">Dagen naast elkaar. Wissel hieronder tussen load, afstand en intensiteit.</p>
+                    <p class="subtext">Dagen naast elkaar. Wissel hieronder tussen belasting, afstand en intensiteit.</p>
                 </div>
                 <div class="report-metric-buttons" aria-label="Weekbelasting metric">
-                    <button type="button" class="report-metric-btn active" data-report-week-metric="load">Load</button>
+                    <button type="button" class="report-metric-btn active" data-report-week-metric="load">Belasting</button>
                     <button type="button" class="report-metric-btn" data-report-week-metric="distance">Afstand</button>
                     <button type="button" class="report-metric-btn" data-report-week-metric="hsd">D15</button>
                     <button type="button" class="report-metric-btn" data-report-week-metric="his">HIS</button>
@@ -1481,8 +1481,8 @@ setMatchMetric(selectedMetricMatchState, false);
         <article class="card chart-card report-card">
             <div class="chart-header">
                 <div>
-                    <h3>Top spelers load</h3>
-                    <p class="subtext">Hoogste gecombineerde load uit training en wedstrijd.</p>
+                    <h3>Top spelers belasting</h3>
+                    <p class="subtext">Hoogste gecombineerde belasting uit training en wedstrijd.</p>
                 </div>
             </div>
             <div class="chart-area chart-area-small">
@@ -1494,11 +1494,11 @@ setMatchMetric(selectedMetricMatchState, false);
             <div class="chart-header">
                 <div>
                     <h3>Afstand per sessie</h3>
-                    <p class="subtext">Trainingen en wedstrijden apart naast elkaar. Wissel tussen load en intensiteitsmetrics.</p>
+                    <p class="subtext">Trainingen en wedstrijden apart naast elkaar. Wissel tussen belasting en intensiteitsmetrics.</p>
                 </div>
                 <div class="report-metric-buttons" aria-label="Sessie metric">
                     <button type="button" class="report-metric-btn active" data-report-session-metric="distance">Afstand</button>
-                    <button type="button" class="report-metric-btn" data-report-session-metric="load">Load</button>
+                    <button type="button" class="report-metric-btn" data-report-session-metric="load">Belasting</button>
                     <button type="button" class="report-metric-btn" data-report-session-metric="hsd">D15</button>
                     <button type="button" class="report-metric-btn" data-report-session-metric="his">HIS</button>
                     <button type="button" class="report-metric-btn" data-report-session-metric="sprints">Sprints</button>
@@ -1513,8 +1513,8 @@ setMatchMetric(selectedMetricMatchState, false);
         <article class="card chart-card report-card">
             <div class="chart-header">
                 <div>
-                    <h3>Load per helft</h3>
-                    <p class="subtext">Wedstrijdload per speler, opgesplitst in eerste en tweede helft.</p>
+                    <h3>Belasting per helft</h3>
+                    <p class="subtext">Wedstrijdbelasting per speler, opgesplitst in eerste en tweede helft.</p>
                 </div>
                 <div class="report-metric-buttons" aria-label="Wedstrijdhelft">
                     <button type="button" class="report-metric-btn active" data-report-half="first">Eerste helft</button>
@@ -1539,7 +1539,7 @@ setMatchMetric(selectedMetricMatchState, false);
                 <thead>
                     <tr>
                         <th>Speler</th>
-                        <th>Load</th>
+                        <th>Belasting</th>
                         <th>Afstand</th>
                         <th>D15</th>
                         <th>HIS</th>
@@ -1627,7 +1627,7 @@ const initPhysicalReportCharts = () => {
     let weekLoadChart = null;
     const reportWeekMetrics = {
         load: {
-            label: "Load",
+            label: "Belasting",
             data: reportDailyTrainingLoad.map((value, index) => Number(value || 0) + Number(reportDailyMatchLoad[index] || 0)),
             color: "#1f2a44",
             unit: "",
@@ -1715,7 +1715,7 @@ const initPhysicalReportCharts = () => {
                     ...reportBaseOptions.scales,
                     y: {
                         ...reportBaseOptions.scales.y,
-                        title: { display: true, text: "Load" }
+                        title: { display: true, text: "Belasting" }
                     }
                 }
             }
@@ -1736,7 +1736,7 @@ const initPhysicalReportCharts = () => {
             type: "bar",
             data: {
                 labels: reportPlayerLabels,
-                datasets: [{ label: "Load", data: reportPlayerLoad, backgroundColor: "#1f2a44" }]
+                datasets: [{ label: "Belasting", data: reportPlayerLoad, backgroundColor: "#1f2a44" }]
             },
             options: {
                 ...reportBaseOptions,
@@ -1756,7 +1756,7 @@ const initPhysicalReportCharts = () => {
             decimals: 1
         },
         load: {
-            label: "Load",
+            label: "Belasting",
             data: reportSessionLoad,
             color: "#1f2a44",
             unit: "",
@@ -1863,12 +1863,12 @@ const initPhysicalReportCharts = () => {
     let halfLoadChart = null;
     const halfLoadConfig = {
         first: {
-            label: "Load eerste helft",
+            label: "Belasting eerste helft",
             data: reportFirstHalfLoad,
             color: "#1f2a44"
         },
         second: {
-            label: "Load tweede helft",
+            label: "Belasting tweede helft",
             data: reportSecondHalfLoad,
             color: "#b60000"
         }

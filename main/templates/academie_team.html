@@ -464,7 +464,7 @@
                 </div>
                 <div class="academy-card-body">
                     <div class="academy-kpis">
-                        <div class="academy-kpi"><span>Load</span><strong>{{ gps_totals.load|floatformat:0 }}</strong></div>
+                        <div class="academy-kpi"><span>Belasting</span><strong>{{ gps_totals.load|floatformat:0 }}</strong></div>
                         <div class="academy-kpi"><span>Afstand</span><strong>{{ gps_totals.distance|floatformat:0 }}</strong></div>
                         <div class="academy-kpi"><span>HSD</span><strong>{{ gps_totals.hsd|floatformat:0 }}</strong></div>
                         <div class="academy-kpi"><span>Sprints</span><strong>{{ gps_totals.sprints|floatformat:0 }}</strong></div>
@@ -529,7 +529,7 @@
                 <div class="academy-card-body">
                     <div class="academy-kpis">
                         <div class="academy-kpi"><span>Wedstrijden</span><strong>{{ match_totals.matches }}</strong></div>
-                        <div class="academy-kpi"><span>Load</span><strong>{{ match_totals.load|floatformat:0 }}</strong></div>
+                        <div class="academy-kpi"><span>Belasting</span><strong>{{ match_totals.load|floatformat:0 }}</strong></div>
                         <div class="academy-kpi"><span>Afstand</span><strong>{{ match_totals.distance|floatformat:0 }}</strong></div>
                         <div class="academy-kpi"><span>Sprints</span><strong>{{ match_totals.sprints|floatformat:0 }}</strong></div>
                     </div>
@@ -544,7 +544,7 @@
                                 <th>Speler</th>
                                 <th>Datum</th>
                                 <th>Week</th>
-                                <th>Load</th>
+                                <th>Belasting</th>
                                 <th>Afstand</th>
                                 <th>HSD</th>
                                 <th>Sprints</th>
@@ -596,7 +596,7 @@ document.addEventListener("DOMContentLoaded", function () {
             data: {
                 labels: {{ gps_chart_labels|safe }},
                 datasets: [
-                    { label: "Load", data: {{ gps_chart_load|safe }}, backgroundColor: "#1f2a44" },
+                    { label: "Belasting", data: {{ gps_chart_load|safe }}, backgroundColor: "#1f2a44" },
                     { label: "Afstand", data: {{ gps_chart_distance|safe }}, backgroundColor: "#cf202f" }
                 ]
             },
@@ -611,7 +611,7 @@ document.addEventListener("DOMContentLoaded", function () {
             data: {
                 labels: {{ match_chart_labels|safe }},
                 datasets: [
-                    { label: "Wedstrijd load", data: {{ match_chart_load|safe }}, backgroundColor: "#cf202f" }
+                    { label: "Wedstrijdbelasting", data: {{ match_chart_load|safe }}, backgroundColor: "#cf202f" }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false }

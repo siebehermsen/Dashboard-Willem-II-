@@ -3350,10 +3350,10 @@ def individuele_programmas(request):
         active_view = "dagprogramma"
     focus_tab = (request.GET.get("focus_tab") or "sprint-acceleratie").strip().lower()
     focus_tab_options = {
-        "sprint-acceleratie": "Sprint Acceleratie & Posture",
+        "sprint-acceleratie": "Sprintacceleratie en houding",
         "hip-lock": "Hip Lock & Footplant",
         "core-control": "Core Control & Armcontrole",
-        "cod": "CoD - Remmen, Posture & Heraccelereren",
+        "cod": "CoD - remmen, houding en heraccelereren",
         "specifieke-hip-lock-cod": "Specifieke Hip Lock CoD-vorm",
     }
     if focus_tab not in focus_tab_options:
@@ -3779,7 +3779,7 @@ def individuele_programmas(request):
         "video_previews": video_previews,
         "focus_tab": focus_tab,
         "focus_tab_options": focus_tab_options,
-        "focus_tab_label": focus_tab_options.get(focus_tab, "Sprint Acceleratie & Posture"),
+        "focus_tab_label": focus_tab_options.get(focus_tab, "Sprintacceleratie en houding"),
         "active_individual_view": active_view,
         **mdo_context,
     }
