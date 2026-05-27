@@ -218,6 +218,15 @@
         margin-bottom: 18px;
     }
 
+    .potential-profile-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-left: auto;
+    }
+
     .potential-profile-title {
         display: flex;
         align-items: center;
@@ -469,14 +478,16 @@
                                 </div>
                             </div>
                         </div>
-                        <form method="post">
+                        <div class="potential-profile-actions">
+                            <a class="potentials-btn back" href="{% url 'potentials' %}">Terug</a>
+                            <form method="post">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="remove_potential">
                             <input type="hidden" name="selected_player_id" value="{{ selected_player.id }}">
                             <button class="potentials-btn light" type="submit">Uit lijst halen</button>
-                        </form>
+                            </form>
+                        </div>
                     </div>
-                    <a class="potentials-btn back" href="{% url 'potentials' %}">Terug naar Potentials</a>
 
                     <div class="potential-kpis">
                         <div class="potential-kpi">
