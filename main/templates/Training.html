@@ -1401,24 +1401,24 @@ setMatchMetric(selectedMetricMatchState, false);
     <div class="physical-report-head">
         <div>
             <span class="report-kicker">Fysiek rapport</span>
-            <h2>Weekoverzicht fysieke belasting</h2>
-            <p>Samenvatting van training- en wedstrijddata over {{ report_summary.range_label }}. Ontworpen als compact overzicht voor staf en hoofdtrainer.</p>
+            <h2>{{ selected_team_label }} fysiek rapport</h2>
+            <p>Samenvatting van training- en wedstrijddata over {{ report_summary.range_label }} voor het geselecteerde academieteam.</p>
         </div>
         <button type="button" class="report-print-btn" onclick="window.print()">Print / PDF</button>
     </div>
 
-    <section class="selection-section report-player-select">
-        <form method="get" action="{% url 'fysiek_rapport' %}" class="player-form">
-            <label for="report-player"><strong>Speler fysiek rapport:</strong></label>
-            <select name="player" id="report-player" onchange="this.form.submit()">
-                <option value="">-- Teamrapport --</option>
-                {% for player in players %}
-                    <option value="{{ player.name }}" {% if selected_player and selected_player.name == player.name %}selected{% endif %}>
-                        {{ player.name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </form>
+    <section class="selection-section report-team-select">
+        <div class="report-team-select-head">
+            <strong>Kies team</strong>
+            <span>Bekijk het fysieke weekrapport per academieteam.</span>
+        </div>
+        <div class="report-team-tabs" aria-label="Teamselectie fysiek rapport">
+            {% for code in report_team_codes %}
+                <a href="{% url 'fysiek_rapport' %}?team={{ code }}" class="report-team-tab {% if selected_team_code == code %}active{% endif %}">
+                    {{ code }}
+                </a>
+            {% endfor %}
+        </div>
     </section>
 
     <section class="report-kpi-grid">
@@ -2064,6 +2064,57 @@ main.container {
     cursor: pointer;
     box-shadow: 0 10px 22px rgba(182, 0, 0, 0.16);
     white-space: nowrap;
+}
+
+.report-team-select {
+    display: grid;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid #e1e8f2;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 8px 18px rgba(31, 42, 68, 0.05);
+}
+
+.report-team-select-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px;
+    color: #1f2a44;
+}
+
+.report-team-select-head span {
+    color: #61708a;
+    font-weight: 700;
+}
+
+.report-team-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.report-team-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    min-height: 42px;
+    border: 1px solid #d7dfec;
+    border-radius: 999px;
+    background: #fff;
+    color: #1f2a44;
+    text-decoration: none;
+    font-weight: 900;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.report-team-tab:hover,
+.report-team-tab.active {
+    border-color: #d71920;
+    background: #d71920;
+    color: #fff;
 }
 
 .report-kpi-grid {
@@ -2726,7 +2777,8 @@ html.app-ui.app-mode .report-print-btn {
     display: none;
 }
 
-html.app-ui.app-mode .report-player-select {
+html.app-ui.app-mode .report-player-select,
+html.app-ui.app-mode .report-team-select {
     margin-bottom: 14px;
 }
 

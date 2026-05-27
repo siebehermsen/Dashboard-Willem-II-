@@ -2,6 +2,8 @@ from datetime import date
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.contrib.messages import get_messages
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
@@ -371,6 +373,34 @@ class DashboardPersistenceTests(TestCase):
         metric = PerformanceMetric.objects.get(session=session, metric_type__code="sprint_10")
         self.assertEqual(metric.value, 1.79)
 
+    def test_gps_training_upload_rejects_duplicate_player_date_rows(self):
+        csv_content = (
+            "Player Last Name,Session Date,Total Distance,HIR (M>20 KM/U),Sprints\n"
+            "Speler,15/05/2026,5306,251,17\n"
+        ).encode("utf-8")
+
+        first_response = self.client.post(
+            reverse("upload_file"),
+            {"file": SimpleUploadedFile("training.csv", csv_content, content_type="text/csv")},
+        )
+        second_response = self.client.post(
+            reverse("upload_file"),
+            {"file": SimpleUploadedFile("training.csv", csv_content, content_type="text/csv")},
+        )
+
+        self.assertEqual(first_response.status_code, 302)
+        self.assertEqual(second_response.status_code, 302)
+        self.assertEqual(
+            PerformanceSession.objects.filter(
+                player=self.player,
+                session_kind_ref__code="training",
+                session_date=date(2026, 5, 15),
+            ).count(),
+            1,
+        )
+        message_text = " ".join(str(message) for message in get_messages(second_response.wsgi_request))
+        self.assertIn("dubbele trainingregel", message_text)
+
     def test_nutrition_intake_post_persists_and_updates_session_items(self):
         payload = {
             "player_id": self.player.id,
@@ -660,7 +690,10 @@ class DashboardPersistenceTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Fysiek rapport")
-        self.assertContains(response, "Weekoverzicht fysieke belasting")
+        self.assertContains(response, "O21 fysiek rapport")
+        self.assertContains(response, "Kies team")
+        self.assertContains(response, "O12")
+        self.assertNotContains(response, "Speler fysiek rapport")
 
     def test_mdo_tab_persists_player_note(self):
         response = self.client.post(

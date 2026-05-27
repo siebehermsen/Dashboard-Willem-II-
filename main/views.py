@@ -66,6 +66,8 @@ from .models import (
     BeweeganalyseSessie,
     BeweeganalyseBeoordeling,
     PerformanceMetricType,
+    PerformanceSession,
+    PerformanceSessionKind,
     PlayerMonitoringProfile,
     PlayerPosition,
     StaffRole,
@@ -2056,8 +2058,28 @@ def fysiek_rapport(request):
     import json
 
     players = Player.objects.select_related("monitoring_profile", "position_ref").all().order_by("name")
-    selected_player_name = request.GET.get("player") or ""
-    selected_player = players.filter(name=selected_player_name).first() if selected_player_name else None
+    report_team_codes = _academy_codes()
+    selected_team_code = (request.GET.get("team") or report_team_codes[0]).strip().upper()
+    if selected_team_code not in report_team_codes:
+        selected_team_code = report_team_codes[0]
+    selected_team = Team.objects.filter(
+        Q(code__iexact=selected_team_code) | Q(name__iexact=selected_team_code),
+        is_active=True,
+    ).first()
+    selected_team_label = selected_team.name if selected_team else selected_team_code
+    team_players = Player.objects.none()
+    if selected_team:
+        today = timezone.localdate()
+        team_players = (
+            players
+            .filter(
+                is_active=True,
+                team_assignments__team=selected_team,
+            )
+            .filter(Q(team_assignments__end_date__isnull=True) | Q(team_assignments__end_date__gte=today))
+            .distinct()
+        )
+    team_player_ids = set(team_players.values_list("id", flat=True))
     training_rows_all = fetch_performance_rows("training")
     match_rows_all = fetch_performance_rows("match")
     all_dates = [row["session_date"] for row in training_rows_all + match_rows_all if row.get("session_date")]
@@ -2068,11 +2090,8 @@ def fysiek_rapport(request):
         session_date = row.get("session_date")
         return session_date and report_start <= session_date <= report_end
 
-    training_rows = [row for row in training_rows_all if in_report_week(row)]
-    match_rows = [row for row in match_rows_all if in_report_week(row)]
-    if selected_player:
-        training_rows = [row for row in training_rows if row.get("player_name") == selected_player.name]
-        match_rows = [row for row in match_rows if row.get("player_name") == selected_player.name]
+    training_rows = [row for row in training_rows_all if in_report_week(row) and row.get("player_id") in team_player_ids]
+    match_rows = [row for row in match_rows_all if in_report_week(row) and row.get("player_id") in team_player_ids]
     combined_rows = [*training_rows, *match_rows]
 
     def val(row, key):
@@ -2184,8 +2203,10 @@ def fysiek_rapport(request):
 
     context = {
         "players": players,
-        "selected_player": selected_player,
         "active_page": "rapport",
+        "report_team_codes": report_team_codes,
+        "selected_team_code": selected_team_code,
+        "selected_team_label": selected_team_label,
         "report_summary": report_summary,
         "player_report_rows": player_report_rows[:10],
         "report_daily_labels": json.dumps(daily_labels),
@@ -5876,6 +5897,136 @@ from django.shortcuts import redirect
 from django.contrib import messages
 import csv
 from datetime import datetime
+import unicodedata
+
+
+GPS_TRAINING_METRICS = {
+    "total_distance": ("Total Distance", "m", "distance"),
+    "hsd": ("HIR (M>20 KM/U)", "m", "speed"),
+    "sprints": ("Sprints", "", "speed"),
+    "load": ("Load", "au", "load"),
+}
+
+GPS_MATCH_METRICS = {
+    "accelerations": ("Accelerations", "", "intensity"),
+    "decelerations": ("Decelerations", "", "intensity"),
+    "hsd": ("HIR (M>20 KM/U)", "m", "speed"),
+    "his": ("HIS (M>25 KM/U)", "m", "speed"),
+    "total_distance": ("Total Distance", "m", "distance"),
+    "sprints": ("Sprints", "", "speed"),
+    "load": ("HML Distance", "m", "load"),
+    "first_half_load": ("Load eerste helft", "au", "load"),
+    "second_half_load": ("Load tweede helft", "au", "load"),
+}
+
+
+def _decode_uploaded_csv(uploaded_file):
+    raw = uploaded_file.read()
+    for encoding in ("utf-8-sig", "utf-8", "cp1252", "latin-1"):
+        try:
+            return raw.decode(encoding).splitlines()
+        except UnicodeDecodeError:
+            continue
+    raise UnicodeDecodeError("csv", raw, 0, 1, "CSV kon niet worden gelezen")
+
+
+def _normalize_csv_value(value):
+    return str(value or "").replace('"', "").strip()
+
+
+def _normalize_name(value):
+    normalized = unicodedata.normalize("NFKD", _normalize_csv_value(value).lower())
+    return "".join(char for char in normalized if not unicodedata.combining(char))
+
+
+def _csv_float(value):
+    cleaned = _normalize_csv_value(value)
+    if not cleaned:
+        return 0.0
+    cleaned = cleaned.replace(" ", "")
+    if "," in cleaned and "." not in cleaned:
+        cleaned = cleaned.replace(",", ".")
+    try:
+        return float(cleaned)
+    except ValueError:
+        return 0.0
+
+
+def _csv_int(value):
+    try:
+        return int(round(_csv_float(value)))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _parse_statsports_date(value):
+    cleaned = _normalize_csv_value(value)
+    for date_format in ("%d/%m/%Y", "%d-%m-%Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(cleaned, date_format).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _csv_has_columns(reader, required_columns):
+    fieldnames = {str(field or "").strip().lower() for field in (reader.fieldnames or [])}
+    return all(column.lower() in fieldnames for column in required_columns)
+
+
+def _csv_has_any_column(reader, column_names):
+    fieldnames = {str(field or "").strip().lower() for field in (reader.fieldnames or [])}
+    return any(column.lower() in fieldnames for column in column_names)
+
+
+def _ensure_gps_metric_types(metric_map):
+    for code, (label, unit, category) in metric_map.items():
+        PerformanceMetricType.objects.get_or_create(
+            code=code,
+            defaults={"label": label, "unit": unit, "category": category, "is_active": True},
+        )
+
+
+def _find_player_from_gps_lastname(players, csv_lastname, *, allow_contains=False):
+    normalized_lastname = _normalize_name(csv_lastname)
+    if not normalized_lastname:
+        return None
+    for player in players:
+        player_name = _normalize_name(player.name)
+        player_lastname = player_name.split()[-1] if player_name.split() else ""
+        if player_lastname == normalized_lastname:
+            return player
+        if allow_contains and normalized_lastname in player_name:
+            return player
+    return None
+
+
+def _gps_session_exists(player, session_kind, session_date):
+    kind = PerformanceSessionKind.objects.filter(code=session_kind).first()
+    if not kind:
+        return False
+    return PerformanceSession.objects.filter(
+        player=player,
+        session_kind_ref=kind,
+        session_date=session_date,
+    ).exists()
+
+
+def _show_gps_import_feedback(request, *, imported, duplicates, skipped, invalid_dates, unknown_players, label):
+    if imported:
+        messages.success(request, f"Succesvol opgeslagen. {imported} {label}regels geïmporteerd.")
+    else:
+        messages.error(request, f"Er zijn geen {label}regels geïmporteerd.")
+    if duplicates:
+        messages.error(
+            request,
+            f"{duplicates} dubbele {label}regel(s) overgeslagen. Deze speler-datum-combinatie bestaat al of stond dubbel in het bestand.",
+        )
+    if invalid_dates or unknown_players or skipped:
+        messages.warning(
+            request,
+            f"Controleer je CSV: {invalid_dates} ongeldige datum(s), {unknown_players} onbekende speler(s), {skipped} lege/onvolledige rij(en) overgeslagen.",
+        )
 
 
 def upload_file(request):
@@ -5883,70 +6034,87 @@ def upload_file(request):
     if request.method == 'POST' and request.FILES.get('file'):
         csv_file = request.FILES['file']
 
-        if not csv_file.name.endswith('.csv'):
+        if not csv_file.name.lower().endswith('.csv'):
             messages.error(request, 'Upload een geldig CSV-bestand (.csv).')
             return redirect('training')
 
-        decoded_file = csv_file.read().decode('utf-8').splitlines()
-        reader = csv.DictReader(decoded_file)
+        try:
+            decoded_file = _decode_uploaded_csv(csv_file)
+        except UnicodeDecodeError:
+            messages.error(request, 'Het CSV-bestand kon niet worden gelezen. Exporteer het bestand opnieuw als CSV met UTF-8 of Windows-1252 encoding.')
+            return redirect('training')
 
-        def safe_float(value):
-            try:
-                return float(value)
-            except Exception:
-                return 0.0
+        reader = csv.DictReader(decoded_file, skipinitialspace=True)
+        if not reader.fieldnames:
+            messages.error(request, 'Het CSV-bestand bevat geen kolomkoppen.')
+            return redirect('training')
+        if not _csv_has_columns(reader, ("Player Last Name", "Session Date")):
+            messages.error(request, 'Het CSV-bestand mist verplichte kolommen: Player Last Name en Session Date.')
+            return redirect('training')
+        if not _csv_has_any_column(reader, ("Total Distance", "HIR (M>20 KM/U)", "Sprints")):
+            messages.error(request, 'Het CSV-bestand bevat geen herkenbare GPS-kolommen zoals Total Distance, HIR of Sprints.')
+            return redirect('training')
 
-        def safe_int(value):
-            try:
-                return int(float(value))
-            except Exception:
-                return 0
-
+        _ensure_gps_metric_types(GPS_TRAINING_METRICS)
+        players = list(Player.objects.all())
+        seen_sessions = set()
         count = 0
+        duplicates = 0
+        skipped = 0
+        invalid_dates = 0
+        unknown_players = 0
 
         for row in reader:
-            try:
-                csv_lastname = (row.get('Player Last Name') or '').replace('"', '').strip().lower()
-                if not csv_lastname:
-                    continue
-
-                player = None
-                for p in Player.objects.all():
-                    db_lastname = p.name.lower().strip().split()[-1]
-                    if db_lastname == csv_lastname:
-                        player = p
-                        break
-
-                if not player:
-                    continue
-
-                date_raw = (row.get('Session Date') or '').replace('"', '').strip()
-                try:
-                    date_obj = datetime.strptime(date_raw, '%d/%m/%Y').date()
-                except Exception:
-                    continue
-
-                week = date_obj.isocalendar()[1]
-                upsert_performance_session_metrics(
-                    player=player,
-                    session_kind='training',
-                    session_date=date_obj,
-                    week=week,
-                    metrics={
-                        'total_distance': safe_float(row.get('Total Distance')),
-                        'hsd': safe_float(row.get('HIR (M>20 KM/U)')),
-                        'sprints': safe_int(row.get('Sprints')),
-                        'load': 0,
-                    },
-                    source_tag='main_upload_training',
-                )
-                count += 1
-            except Exception:
+            csv_lastname = _normalize_csv_value(row.get('Player Last Name'))
+            if not csv_lastname:
+                skipped += 1
                 continue
 
-        messages.success(request, f'Succesvol opgeslagen. {count} trainingsregels geïmporteerd in 3NF.')
+            player = _find_player_from_gps_lastname(players, csv_lastname)
+            if not player:
+                unknown_players += 1
+                continue
+
+            date_obj = _parse_statsports_date(row.get('Session Date'))
+            if not date_obj:
+                invalid_dates += 1
+                continue
+
+            session_key = (player.id, "training", date_obj)
+            if session_key in seen_sessions or _gps_session_exists(player, "training", date_obj):
+                duplicates += 1
+                continue
+
+            week = date_obj.isocalendar()[1]
+            upsert_performance_session_metrics(
+                player=player,
+                session_kind='training',
+                session_date=date_obj,
+                week=week,
+                metrics={
+                    'total_distance': _csv_float(row.get('Total Distance')),
+                    'hsd': _csv_float(row.get('HIR (M>20 KM/U)')),
+                    'sprints': _csv_int(row.get('Sprints')),
+                    'load': 0,
+                },
+                source_tag='main_upload_training',
+            )
+            seen_sessions.add(session_key)
+            count += 1
+
+        _show_gps_import_feedback(
+            request,
+            imported=count,
+            duplicates=duplicates,
+            skipped=skipped,
+            invalid_dates=invalid_dates,
+            unknown_players=unknown_players,
+            label="training",
+        )
         return redirect('training')
 
+    if request.method == 'POST':
+        messages.error(request, 'Kies eerst een CSV-bestand om te uploaden.')
     return redirect('training')
 
 
@@ -5955,120 +6123,126 @@ def upload_wedstrijddata(request):
     if request.method == 'POST' and request.FILES.get('file'):
         csv_file = request.FILES['file']
 
-        if not csv_file.name.endswith('.csv'):
+        if not csv_file.name.lower().endswith('.csv'):
             messages.error(request, 'Upload een geldig CSV-bestand (.csv).')
             return redirect('training')
 
-        decoded = csv_file.read().decode('utf-8').splitlines()
+        try:
+            decoded = _decode_uploaded_csv(csv_file)
+        except UnicodeDecodeError:
+            messages.error(request, 'Het CSV-bestand kon niet worden gelezen. Exporteer het bestand opnieuw als CSV met UTF-8 of Windows-1252 encoding.')
+            return redirect('training')
+
         reader = csv.DictReader(decoded, skipinitialspace=True)
-
-        def safe_float(v):
-            try:
-                return float(v)
-            except Exception:
-                return 0.0
-
-        def safe_int(v):
-            try:
-                return int(float(v))
-            except Exception:
-                return 0
+        if not reader.fieldnames:
+            messages.error(request, 'Het CSV-bestand bevat geen kolomkoppen.')
+            return redirect('training')
+        if not _csv_has_columns(reader, ("Player Last Name", "Session Date")):
+            messages.error(request, 'Het CSV-bestand mist verplichte kolommen: Player Last Name en Session Date.')
+            return redirect('training')
+        if not _csv_has_any_column(reader, ("Total Distance", "HIR (M>20 KM/U)", "Sprints", "HML Distance")):
+            messages.error(request, 'Het CSV-bestand bevat geen herkenbare wedstrijd-GPS-kolommen zoals Total Distance, HIR, Sprints of HML Distance.')
+            return redirect('training')
 
         def first_available_float(row, names):
             normalized = {str(key).strip().lower(): value for key, value in row.items()}
             for name in names:
                 raw_value = normalized.get(name.strip().lower())
                 if raw_value not in (None, ""):
-                    return safe_float(raw_value)
+                    return _csv_float(raw_value)
             return 0.0
 
-        for code, label in (
-            ("first_half_load", "Load eerste helft"),
-            ("second_half_load", "Load tweede helft"),
-        ):
-            PerformanceMetricType.objects.get_or_create(
-                code=code,
-                defaults={"label": label, "unit": "au", "category": "load", "is_active": True},
-            )
-
+        _ensure_gps_metric_types(GPS_MATCH_METRICS)
+        players = list(Player.objects.all())
+        seen_sessions = set()
         count = 0
+        duplicates = 0
+        skipped = 0
+        invalid_dates = 0
+        unknown_players = 0
 
         for row in reader:
-            try:
-                csv_lastname = (row.get('Player Last Name') or '').strip().lower()
-                if not csv_lastname:
-                    continue
-
-                csv_lastname = csv_lastname.replace('Ã„Â', 'c').replace('Ã„â€¡', 'c').replace('Ã…Â¡', 's')
-
-                player = None
-                for p in Player.objects.all():
-                    name_clean = p.name.lower().replace('Ã„Â', 'c').replace('Ã„â€¡', 'c').replace('Ã…Â¡', 's')
-                    if csv_lastname in name_clean:
-                        player = p
-                        break
-
-                if not player:
-                    continue
-
-                raw_date = (row.get('Session Date') or '').strip()
-                try:
-                    match_date = datetime.strptime(raw_date, '%d/%m/%Y').date()
-                except Exception:
-                    continue
-
-                week = match_date.isocalendar()[1]
-                first_half_load = first_available_float(row, [
-                    "First Half HML Distance",
-                    "HML Distance First Half",
-                    "HML Distance 1st Half",
-                    "1st Half HML Distance",
-                    "HML Distance (1st Half)",
-                    "HML Distance 1H",
-                    "First Half Load",
-                    "Load First Half",
-                    "Load 1st Half",
-                    "1st Half Load",
-                    "Eerste helft load",
-                ])
-                second_half_load = first_available_float(row, [
-                    "Second Half HML Distance",
-                    "HML Distance Second Half",
-                    "HML Distance 2nd Half",
-                    "2nd Half HML Distance",
-                    "HML Distance (2nd Half)",
-                    "HML Distance 2H",
-                    "Second Half Load",
-                    "Load Second Half",
-                    "Load 2nd Half",
-                    "2nd Half Load",
-                    "Tweede helft load",
-                ])
-                upsert_performance_session_metrics(
-                    player=player,
-                    session_kind='match',
-                    session_date=match_date,
-                    week=week,
-                    metrics={
-                        'accelerations': safe_int(row.get('Accelerations (Absolute)')),
-                        'decelerations': safe_int(row.get('Decelerations (Absolute)')),
-                        'hsd': safe_float(row.get('HIR (M>20 KM/U)')),
-                        'his': safe_float(row.get('HIS (M>25 KM/U)')),
-                        'total_distance': safe_float(row.get('Total Distance')),
-                        'sprints': safe_int(row.get('Sprints')),
-                        'load': safe_float(row.get('HML Distance')),
-                        'first_half_load': first_half_load,
-                        'second_half_load': second_half_load,
-                    },
-                    source_tag='main_upload_match',
-                )
-                count += 1
-            except Exception:
+            csv_lastname = _normalize_csv_value(row.get('Player Last Name'))
+            if not csv_lastname:
+                skipped += 1
                 continue
 
-        messages.success(request, f'Succesvol opgeslagen. {count} wedstrijdregels geïmporteerd in 3NF.')
+            player = _find_player_from_gps_lastname(players, csv_lastname, allow_contains=True)
+            if not player:
+                unknown_players += 1
+                continue
+
+            match_date = _parse_statsports_date(row.get('Session Date'))
+            if not match_date:
+                invalid_dates += 1
+                continue
+
+            session_key = (player.id, "match", match_date)
+            if session_key in seen_sessions or _gps_session_exists(player, "match", match_date):
+                duplicates += 1
+                continue
+
+            week = match_date.isocalendar()[1]
+            first_half_load = first_available_float(row, [
+                "First Half HML Distance",
+                "HML Distance First Half",
+                "HML Distance 1st Half",
+                "1st Half HML Distance",
+                "HML Distance (1st Half)",
+                "HML Distance 1H",
+                "First Half Load",
+                "Load First Half",
+                "Load 1st Half",
+                "1st Half Load",
+                "Eerste helft load",
+            ])
+            second_half_load = first_available_float(row, [
+                "Second Half HML Distance",
+                "HML Distance Second Half",
+                "HML Distance 2nd Half",
+                "2nd Half HML Distance",
+                "HML Distance (2nd Half)",
+                "HML Distance 2H",
+                "Second Half Load",
+                "Load Second Half",
+                "Load 2nd Half",
+                "2nd Half Load",
+                "Tweede helft load",
+            ])
+            upsert_performance_session_metrics(
+                player=player,
+                session_kind='match',
+                session_date=match_date,
+                week=week,
+                metrics={
+                    'accelerations': _csv_int(row.get('Accelerations (Absolute)')),
+                    'decelerations': _csv_int(row.get('Decelerations (Absolute)')),
+                    'hsd': _csv_float(row.get('HIR (M>20 KM/U)')),
+                    'his': _csv_float(row.get('HIS (M>25 KM/U)')),
+                    'total_distance': _csv_float(row.get('Total Distance')),
+                    'sprints': _csv_int(row.get('Sprints')),
+                    'load': _csv_float(row.get('HML Distance')),
+                    'first_half_load': first_half_load,
+                    'second_half_load': second_half_load,
+                },
+                source_tag='main_upload_match',
+            )
+            seen_sessions.add(session_key)
+            count += 1
+
+        _show_gps_import_feedback(
+            request,
+            imported=count,
+            duplicates=duplicates,
+            skipped=skipped,
+            invalid_dates=invalid_dates,
+            unknown_players=unknown_players,
+            label="wedstrijd",
+        )
         return redirect('training')
 
+    if request.method == 'POST':
+        messages.error(request, 'Kies eerst een CSV-bestand om te uploaden.')
     return redirect('training')
 
 
