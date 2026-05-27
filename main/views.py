@@ -4688,6 +4688,7 @@ from .models import Player, PlayerSpeedTest, HitAsrPlanSession, HitAsrPlanEntry
 
 def hit_page(request):
     """HIT pagina: calculator + individualiserings-tools."""
+    hit_redirect_url = request.path
     action = request.POST.get("asr_form_action") if request.method == "POST" else None
 
     if request.method == "POST" and action == "save_asr_tests":
@@ -4729,7 +4730,7 @@ def hit_page(request):
             messages.success(request, f"{saved} MSS/MAS testwaarden opgeslagen voor {test_date}.")
         else:
             messages.warning(request, "Geen geldige MSS/MAS testwaarden opgeslagen.")
-        return redirect("/hit/")
+        return redirect(hit_redirect_url)
 
     if request.method == "POST" and action == "save_asr_plan":
         plan_date_raw = (request.POST.get("asr_plan_date") or "").strip()
@@ -4749,7 +4750,7 @@ def hit_page(request):
 
         if mas_percent <= 0:
             messages.warning(request, "Ongeldige intensiteit (%MAS).")
-            return redirect("/hit/")
+            return redirect(hit_redirect_url)
 
         player_ids = request.POST.getlist("asr_player_id[]")
         mss_values = request.POST.getlist("asr_mss[]")
@@ -4808,7 +4809,7 @@ def hit_page(request):
 
         if not rows:
             messages.warning(request, "Geen geldige spelersregels om ASR-planning op te slaan.")
-            return redirect("/hit/")
+            return redirect(hit_redirect_url)
 
         with transaction.atomic():
             plan = HitAsrPlanSession.objects.create(
@@ -4823,7 +4824,7 @@ def hit_page(request):
                 ]
             )
         messages.success(request, f"ASR-planning opgeslagen ({len(rows)} spelers) voor {plan_date}.")
-        return redirect("/hit/")
+        return redirect(hit_redirect_url)
 
     players = Player.objects.select_related("monitoring_profile").all().order_by("name")
     latest_by_player = {}
@@ -4939,6 +4940,9 @@ def overig(request):
 
     staff_members = Staff.objects.all().order_by('name')
     players = Player.objects.all().order_by('name')
+
+    if page == "hit":
+        return redirect("overig_hit")
 
     def section_text(page_key: str, section_key: str) -> str:
         item = (

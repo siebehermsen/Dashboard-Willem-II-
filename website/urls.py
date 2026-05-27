@@ -59,6 +59,7 @@ urlpatterns = [
     path("individueel_programma_opslaan/<int:player_id>/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER)(views.individueel_programma_opslaan), name="individueel_programma_opslaan"),
     path("rpe/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.rpe_view), name="rpe"),
     path('hit/', role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.hit_page), name='hit'),
+    path("overig/hit/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.hit_page), name="overig_hit"),
     path("aanwezigheden/", role_required(ROLE_ADMIN, ROLE_TRAINER, allow_read_only_get=True)(views.aanwezigheden_pagina), name="aanwezigheden"),
     path("aanwezigheden/update/<int:record_id>/", role_required(ROLE_ADMIN, ROLE_TRAINER)(views.aanwezigheden_update), name="aanwezigheden_update"),
     path("beweeganalyse/", role_required(ROLE_ADMIN, ROLE_MEDICAL, ROLE_PERFORMANCE, allow_read_only_get=True)(views.beweeganalyse), name="beweeganalyse"),

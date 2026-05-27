@@ -644,13 +644,16 @@ class DashboardPersistenceTests(TestCase):
             {"section": "focus", "text": "Speler A extra volgen"},
         )
         fotos_response = self.client.get(reverse("overig") + "?page=fotos")
+        hit_response = self.client.get(reverse("overig_hit"))
 
         self.assertEqual(pop_response.status_code, 302)
         self.assertEqual(hp_response.status_code, 302)
         self.assertEqual(fotos_response.status_code, 200)
+        self.assertEqual(hit_response.status_code, 200)
         self.assertTrue(OverigNote.objects.filter(page_key="pop", section_key="actieplan").exists())
         self.assertTrue(OverigNote.objects.filter(page_key="hp", section_key="focus").exists())
         self.assertContains(fotos_response, "Foto's uploaden")
+        self.assertContains(hit_response, "HIT Calculator")
 
     def test_fysiek_rapport_page_loads_without_uploaded_data(self):
         response = self.client.get(reverse("fysiek_rapport"))
