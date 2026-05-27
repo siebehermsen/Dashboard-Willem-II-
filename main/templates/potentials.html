@@ -295,6 +295,67 @@
         font-weight: 950;
     }
 
+    .potential-status-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .potential-status-tab {
+        border: 1px solid #d3deed;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #1f2a44;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 950;
+        padding: 10px 18px;
+    }
+
+    .potential-status-tab.is-active {
+        background: #d71920;
+        border-color: #d71920;
+        color: #ffffff;
+    }
+
+    .potential-status-panel {
+        display: none;
+    }
+
+    .potential-status-panel.is-active {
+        display: block;
+    }
+
+    .potential-status-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .potential-status-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: #1f2a44;
+        font-weight: 750;
+    }
+
+    .potential-status-table th,
+    .potential-status-table td {
+        border-bottom: 1px solid #e5ebf4;
+        padding: 10px 8px;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .potential-status-table th {
+        color: #667386;
+        font-size: 0.78rem;
+        font-weight: 950;
+        text-transform: uppercase;
+    }
+
     .potential-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -390,6 +451,10 @@
         }
 
         .potential-kpis {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .potential-status-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
@@ -507,6 +572,149 @@
                             <strong>{% if latest_rpe %}{{ latest_rpe.rpe }}{% else %}-{% endif %}</strong>
                         </div>
                     </div>
+
+                    <div class="potential-status-tabs" role="tablist" aria-label="Fysieke status">
+                        <button class="potential-status-tab is-active" type="button" data-potential-tab="testdata">Testdata</button>
+                        <button class="potential-status-tab" type="button" data-potential-tab="gps">GPS-data</button>
+                        <button class="potential-status-tab" type="button" data-potential-tab="aanwezigheid">Aanwezigheid</button>
+                        <button class="potential-status-tab" type="button" data-potential-tab="lengte-gewicht">Lengte en gewicht</button>
+                    </div>
+
+                    <section class="potential-status-panel is-active" data-potential-panel="testdata">
+                        <div class="potential-status-grid">
+                            <div class="potential-kpi">
+                                <span>Laatste MSS</span>
+                                <strong>{% if latest_speed_test %}{{ latest_speed_test.mss_kmh|floatformat:1 }}{% else %}-{% endif %}</strong>
+                            </div>
+                            <div class="potential-kpi">
+                                <span>Laatste MAS</span>
+                                <strong>{% if latest_speed_test %}{{ latest_speed_test.mas_kmh|floatformat:1 }}{% else %}-{% endif %}</strong>
+                            </div>
+                            <div class="potential-kpi">
+                                <span>CMJ</span>
+                                <strong>{% if recent_tests.0.cmj %}{{ recent_tests.0.cmj|floatformat:1 }}{% else %}-{% endif %}</strong>
+                            </div>
+                            <div class="potential-kpi">
+                                <span>ISRT</span>
+                                <strong>{% if recent_tests.0.isrt %}{{ recent_tests.0.isrt|floatformat:0 }}{% else %}-{% endif %}</strong>
+                            </div>
+                        </div>
+                        <table class="potential-status-table">
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>10m</th>
+                                    <th>30m</th>
+                                    <th>CMJ</th>
+                                    <th>ISRT</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in recent_tests %}
+                                    <tr>
+                                        <td>{{ row.session_date|date:"d-m-Y" }}</td>
+                                        <td>{{ row.sprint_10|default:"-" }}</td>
+                                        <td>{{ row.sprint_30|default:"-" }}</td>
+                                        <td>{{ row.cmj|default:"-" }}</td>
+                                        <td>{{ row.isrt|default:"-" }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="5">Nog geen testdata beschikbaar.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <section class="potential-status-panel" data-potential-panel="gps">
+                        <div class="potential-status-grid">
+                            <div class="potential-kpi"><span>Weekbelasting</span><strong>{{ week_load|floatformat:0 }}</strong></div>
+                            <div class="potential-kpi"><span>Afstand</span><strong>{{ week_distance|floatformat:1 }} km</strong></div>
+                            <div class="potential-kpi"><span>Sprints</span><strong>{{ week_sprints|floatformat:0 }}</strong></div>
+                            <div class="potential-kpi"><span>D15</span><strong>{% if gps_week_rows %}{{ gps_week_rows.6.hsd|floatformat:0 }}{% else %}-{% endif %}</strong></div>
+                        </div>
+                        <table class="potential-status-table">
+                            <thead>
+                                <tr>
+                                    <th>Dag</th>
+                                    <th>Belasting</th>
+                                    <th>Afstand</th>
+                                    <th>D15</th>
+                                    <th>Sprints</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in gps_week_rows %}
+                                    <tr>
+                                        <td>{{ row.label }}</td>
+                                        <td>{{ row.load|floatformat:0 }}</td>
+                                        <td>{{ row.distance_km|floatformat:2 }} km</td>
+                                        <td>{{ row.hsd|floatformat:0 }}</td>
+                                        <td>{{ row.sprints|floatformat:0 }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="5">Nog geen GPS-data beschikbaar.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <section class="potential-status-panel" data-potential-panel="aanwezigheid">
+                        <div class="potential-status-grid">
+                            <div class="potential-kpi"><span>Aanwezig</span><strong>{{ attendance_present_count }}</strong></div>
+                            <div class="potential-kpi"><span>Registraties</span><strong>{{ attendance_total_count }}</strong></div>
+                            <div class="potential-kpi"><span>Percentage</span><strong>{% if attendance_percentage != None %}{{ attendance_percentage }}%{% else %}-{% endif %}</strong></div>
+                            <div class="potential-kpi"><span>Periode</span><strong>30d</strong></div>
+                        </div>
+                        <table class="potential-status-table">
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>Status</th>
+                                    <th>Afgerond</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in attendance_rows %}
+                                    <tr>
+                                        <td>{{ row.date|date:"d-m-Y" }}</td>
+                                        <td>{{ row.status.label }}</td>
+                                        <td>{% if row.completed %}Ja{% else %}Nee{% endif %}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="3">Nog geen aanwezigheidsdata beschikbaar.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <section class="potential-status-panel" data-potential-panel="lengte-gewicht">
+                        <div class="potential-status-grid">
+                            <div class="potential-kpi"><span>Gewicht</span><strong>{% if latest_weight %}{{ latest_weight.weight|floatformat:1 }} kg{% else %}-{% endif %}</strong></div>
+                            <div class="potential-kpi"><span>Lengte</span><strong>{% if latest_anthropometry.length %}{{ latest_anthropometry.length|floatformat:1 }} cm{% else %}-{% endif %}</strong></div>
+                            <div class="potential-kpi"><span>Huidplooien</span><strong>{% if latest_anthropometry.fat_average %}{{ latest_anthropometry.fat_average|floatformat:1 }}{% elif latest_anthropometry.sum_skinfolds %}{{ latest_anthropometry.sum_skinfolds|floatformat:1 }}{% else %}-{% endif %}</strong></div>
+                            <div class="potential-kpi"><span>Laatste meting</span><strong>{% if latest_weight %}{{ latest_weight.date|date:"d-m" }}{% elif latest_anthropometry %}{{ latest_anthropometry.date|date:"d-m" }}{% else %}-{% endif %}</strong></div>
+                        </div>
+                        <table class="potential-status-table">
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>Gewicht</th>
+                                    <th>Lengte</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in weight_rows %}
+                                    <tr>
+                                        <td>{{ row.date|date:"d-m-Y" }}</td>
+                                        <td>{{ row.weight|floatformat:1 }} kg</td>
+                                        <td>{% if latest_anthropometry.length %}{{ latest_anthropometry.length|floatformat:1 }} cm{% else %}-{% endif %}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="3">Nog geen lengte- of gewichtsdata beschikbaar.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </section>
                 </article>
 
                 <div class="potential-grid">
@@ -678,4 +886,20 @@
         </div>
     </div>
 </section>
+<script>
+    (() => {
+        const tabs = document.querySelectorAll("[data-potential-tab]");
+        const panels = document.querySelectorAll("[data-potential-panel]");
+
+        tabs.forEach((tab) => {
+            tab.addEventListener("click", () => {
+                const target = tab.dataset.potentialTab;
+                tabs.forEach((item) => item.classList.toggle("is-active", item === tab));
+                panels.forEach((panel) => {
+                    panel.classList.toggle("is-active", panel.dataset.potentialPanel === target);
+                });
+            });
+        });
+    })();
+</script>
 {% endblock %}

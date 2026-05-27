@@ -3316,6 +3316,7 @@ from django.contrib import messages
 from datetime import date
 
 from .models import (
+    AnthropometrySession,
     AttendanceRecord,
     AttendanceStatus,
     IndividualDayPlan,
@@ -3331,6 +3332,7 @@ from .models import (
     ProgrammaOefeningNaam,
     RPEEntry,
     WellnessEntry,
+    WeightEntry,
 )
 
 # -------------------------------------
@@ -4025,6 +4027,16 @@ def potentials(request):
     week_load = 0
     week_distance = 0
     week_sprints = 0
+    recent_tests = []
+    gps_week_rows = []
+    attendance_rows = []
+    attendance_total_count = 0
+    attendance_present_count = 0
+    attendance_percentage = None
+    latest_weight = None
+    weight_rows = []
+    latest_anthropometry = None
+    anthropometry_rows = []
 
     if selected_player:
         if programma:
@@ -4042,6 +4054,12 @@ def potentials(request):
         latest_rpe = RPEEntry.objects.filter(player=selected_player).order_by("-date").first()
         latest_speed_test = PlayerSpeedTest.objects.filter(player=selected_player).order_by("-test_date").first()
         latest_session_date = timezone.localdate()
+        test_rows = sorted(
+            fetch_performance_rows("test", selected_player),
+            key=lambda row: row.get("session_date") or date.min,
+            reverse=True,
+        )
+        recent_tests = test_rows[:8]
         performance_rows = [
             *fetch_performance_rows("training", selected_player),
             *fetch_performance_rows("match", selected_player),
@@ -4066,6 +4084,32 @@ def potentials(request):
         week_load = round(sum(row_float(row, "load") for row in week_rows), 0)
         week_distance = round(sum(row_float(row, "total_distance") for row in week_rows) / 1000, 1)
         week_sprints = round(sum(row_float(row, "sprints") for row in week_rows), 0)
+        day_names_short = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"]
+        gps_week_rows = []
+        for day_offset in range(7):
+            current_day = week_start + timedelta(days=day_offset)
+            day_rows = [row for row in week_rows if row.get("session_date") == current_day]
+            gps_week_rows.append({
+                "label": f"{day_names_short[current_day.weekday()]} {current_day.strftime('%d-%m')}",
+                "load": round(sum(row_float(row, "load") for row in day_rows), 0),
+                "distance_km": round(sum(row_float(row, "total_distance") for row in day_rows) / 1000, 2),
+                "sprints": round(sum(row_float(row, "sprints") for row in day_rows), 0),
+                "hsd": round(sum(row_float(row, "hsd") for row in day_rows), 0),
+            })
+        attendance_qs = (
+            AttendanceRecord.objects
+            .select_related("status")
+            .filter(player=selected_player, date__gte=timezone.localdate() - timedelta(days=30))
+            .order_by("-date")
+        )
+        attendance_total_count = attendance_qs.count()
+        attendance_present_count = attendance_qs.filter(completed=True).count()
+        attendance_percentage = round((attendance_present_count / attendance_total_count) * 100) if attendance_total_count else None
+        attendance_rows = attendance_qs[:10]
+        weight_rows = list(WeightEntry.objects.filter(player=selected_player).order_by("-date")[:8])
+        latest_weight = weight_rows[0] if weight_rows else None
+        anthropometry_rows = list(AnthropometrySession.objects.filter(player=selected_player).order_by("-date", "-id")[:5])
+        latest_anthropometry = anthropometry_rows[0] if anthropometry_rows else None
 
     return render(request, "potentials.html", {
         "players": players,
@@ -4081,6 +4125,16 @@ def potentials(request):
         "week_load": week_load,
         "week_distance": week_distance,
         "week_sprints": week_sprints,
+        "recent_tests": recent_tests,
+        "gps_week_rows": gps_week_rows,
+        "attendance_rows": attendance_rows,
+        "attendance_total_count": attendance_total_count,
+        "attendance_present_count": attendance_present_count,
+        "attendance_percentage": attendance_percentage,
+        "latest_weight": latest_weight,
+        "weight_rows": weight_rows,
+        "latest_anthropometry": latest_anthropometry,
+        "anthropometry_rows": anthropometry_rows,
     })
 
 def rpe_view(request):

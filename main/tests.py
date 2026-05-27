@@ -753,6 +753,10 @@ class DashboardPersistenceTests(TestCase):
         page = self.client.get(reverse("potentials") + f"?player_id={self.player.id}")
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, "Potentials")
+        self.assertContains(page, "Testdata")
+        self.assertContains(page, "GPS-data")
+        self.assertContains(page, "Aanwezigheid")
+        self.assertContains(page, "Lengte en gewicht")
         self.assertContains(page, "Eerste meters dominanter maken")
         self.assertContains(page, "Meer scannen voor de eerste aanname.")
 
