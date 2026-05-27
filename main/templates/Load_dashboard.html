@@ -1726,7 +1726,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                 <div class="dashboard-app-nav" aria-label="Spelersapp onderdelen">
                     <a class="dashboard-app-link" href="{% url 'dashboard' %}?app_view=player&player_tab=wellness{% if PLAYER_APP_PREVIEW_MODE %}&player_id={{ player_app_form_player.id }}{% endif %}">
                         <span class="dashboard-app-link-main">
-                            <span class="dashboard-app-link-title">Welzijn & RPE</span>
+                            <span class="dashboard-app-link-title">Wellness & RPE</span>
                             <span class="dashboard-app-link-text">Dagelijkse check en sessiebelasting invullen.</span>
                         </span>
                         <span class="dashboard-app-link-accent">&rsaquo;</span>
@@ -1742,7 +1742,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                 {% endif %}
 
                 {% if player_app_tab == 'wellness' %}
-                <h2>Welzijn & RPE</h2>
+                <h2>Wellness & RPE</h2>
                 <p>{% if PLAYER_APP_PREVIEW_MODE %}Preview voor {{ player_app_form_player.name }}.{% else %}{{ player_app_form_player.name }}, vul je dagelijkse check direct in.{% endif %}</p>
                 <form class="dashboard-player-form" method="post" action="{% url 'dashboard' %}?app_view=player&player_tab=wellness">
                     {% csrf_token %}
@@ -1761,7 +1761,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                     <input type="hidden" name="player_id" value="{{ player_app_form_player.id }}">
                     {% endif %}
 
-                    <p class="dashboard-player-form-title">Welzijn</p>
+                    <p class="dashboard-player-form-title">Wellness</p>
 
                     <div class="dashboard-player-slider" data-slider-labels="1:Slecht,2:Oké,3:Goed,4:Heel goed">
                         <div class="dashboard-player-slider-top">
@@ -1808,7 +1808,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                         <textarea id="dashboardPlayerComment" name="comment" placeholder="Optioneel">{{ player_app_today_wellness.comment|default:'' }}</textarea>
                     </div>
 
-                    <button class="dashboard-player-save" type="submit">Welzijn opslaan</button>
+                    <button class="dashboard-player-save" type="submit">Wellness opslaan</button>
                 </form>
 
                 <form class="dashboard-player-form" method="post" action="{% url 'dashboard' %}?app_view=player&player_tab=wellness">
@@ -2048,7 +2048,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
             <div class="dashboard-app-nav">
                 <a class="dashboard-app-link" href="{% url 'wellness' %}">
                     <span class="dashboard-app-link-main">
-                        <span class="dashboard-app-link-title">Welzijn & RPE</span>
+                        <span class="dashboard-app-link-title">Wellness & RPE</span>
                         <span class="dashboard-app-link-text">Dagelijkse checks, sessiebelasting en opvallende signalen.</span>
                     </span>
                     <span class="dashboard-app-link-accent">&rsaquo;</span>
@@ -2249,7 +2249,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
     </div>
     <div class="alerts-grid">
         <div class="alert-panel">
-            <h3>Welzijn bijzonderheden</h3>
+            <h3>Wellness bijzonderheden</h3>
             {% if wellness_alerts %}
                 <ul class="alert-list">
                     {% for alert in wellness_alerts %}

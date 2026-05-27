@@ -1154,7 +1154,7 @@
 
             <div class="ind-profile-grid">
               <div class="ind-profile-tile">
-                <span>Welzijn</span>
+                <span>Wellness</span>
                 <strong>{% if player_profile_overview.latest_wellness_avg %}{{ player_profile_overview.latest_wellness_avg|floatformat:1 }}{% else %}-{% endif %}</strong>
                 <small>{% if player_profile_overview.latest_wellness %}{{ player_profile_overview.latest_wellness.date|date:"d-m-Y" }}{% else %}Geen recente invoer{% endif %}</small>
               </div>
@@ -1526,7 +1526,7 @@
             <div class="mdo-main-head">
               <div>
                 <h3>Weekstart fysieke status</h3>
-                <p class="ind-help">GPS, wedstrijdbelasting, welzijn en sRPE van de laatste beschikbare 7 dagen.</p>
+                <p class="ind-help">GPS, wedstrijdbelasting, wellness en sRPE van de laatste beschikbare 7 dagen.</p>
               </div>
               <form method="get" class="mdo-player-switch">
                 <label class="ind-label" for="mdo_player_id">Speler</label>
@@ -1556,7 +1556,7 @@
                 <strong>{{ mdo_kpis.sprints|floatformat:0 }}</strong>
               </div>
               <div class="mdo-kpi">
-                <span>Welzijn</span>
+                <span>Wellness</span>
                 <strong>{% if mdo_kpis.avg_wellness %}{{ mdo_kpis.avg_wellness|floatformat:1 }}{% else %}-{% endif %}</strong>
               </div>
               <div class="mdo-kpi">
@@ -1591,13 +1591,13 @@
           </article>
 
           <article class="mdo-strip-card">
-            <h3>Welzijn en sRPE</h3>
+            <h3>Wellness en sRPE</h3>
             <p class="ind-help" style="margin-bottom:14px;">Per dag zichtbaar of de speler ingevuld heeft en hoe de respons eruitziet.</p>
             <div class="mdo-week-table">
               {% for day in mdo_wellness_rows %}
                 <div class="mdo-day">
                   <strong>{{ day.label }}</strong>
-                  <span>Welzijn: {% if day.wellness_avg %}{{ day.wellness_avg|floatformat:1 }}{% else %}-{% endif %}</span>
+                  <span>Wellness: {% if day.wellness_avg %}{{ day.wellness_avg|floatformat:1 }}{% else %}-{% endif %}</span>
                   <span>RPE: {% if day.rpe %}{{ day.rpe }}{% else %}-{% endif %}</span>
                   <span>Belasting: {% if day.session_load %}{{ day.session_load }}{% else %}-{% endif %}</span>
                 </div>
