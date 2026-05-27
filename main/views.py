@@ -4049,6 +4049,10 @@ def potentials(request):
     weight_chart_values_json = "[]"
     length_chart_labels_json = "[]"
     length_chart_values_json = "[]"
+    latest_beweeganalyse_sessie = None
+    beweeganalyse_scores = []
+    beweeganalyse_attention_points = []
+    beweeganalyse_average_score = None
 
     if selected_player:
         if programma:
@@ -4201,6 +4205,28 @@ def potentials(request):
         weight_chart_values_json = json.dumps([round(float(row.weight), 1) for row in weight_history])
         length_chart_labels_json = json.dumps([row.date.strftime("%d-%m-%Y") for row in length_history])
         length_chart_values_json = json.dumps([round(float(row.length), 1) for row in length_history])
+        latest_beweeganalyse_sessie = (
+            BeweeganalyseSessie.objects
+            .filter(player=selected_player)
+            .prefetch_related("beoordelingen__punt__onderdeel")
+            .order_by("-date", "-updated_at", "-id")
+            .first()
+        )
+        if latest_beweeganalyse_sessie:
+            beweeganalyse_scores = sorted(
+                latest_beweeganalyse_sessie.beoordelingen.all(),
+                key=lambda beoordeling: (
+                    beoordeling.punt.onderdeel.sort_order,
+                    beoordeling.punt.sort_order,
+                    beoordeling.punt.title,
+                ),
+            )
+            scored_values = [score.score for score in beweeganalyse_scores if score.score is not None]
+            beweeganalyse_average_score = round(sum(scored_values) / len(scored_values), 1) if scored_values else None
+            beweeganalyse_attention_points = [
+                score for score in beweeganalyse_scores
+                if score.priority_flag or (score.comment or "").strip()
+            ]
 
     return render(request, "potentials.html", {
         "players": players,
@@ -4238,6 +4264,10 @@ def potentials(request):
         "weight_chart_values_json": weight_chart_values_json,
         "length_chart_labels_json": length_chart_labels_json,
         "length_chart_values_json": length_chart_values_json,
+        "latest_beweeganalyse_sessie": latest_beweeganalyse_sessie,
+        "beweeganalyse_scores": beweeganalyse_scores,
+        "beweeganalyse_attention_points": beweeganalyse_attention_points,
+        "beweeganalyse_average_score": beweeganalyse_average_score,
     })
 
 def rpe_view(request):
