@@ -319,11 +319,13 @@
         color: #ffffff;
     }
 
-    .potential-status-panel {
+    .potential-status-panel,
+    .potential-tab-content {
         display: none;
     }
 
-    .potential-status-panel.is-active {
+    .potential-status-panel.is-active,
+    .potential-tab-content.is-active {
         display: block;
     }
 
@@ -574,13 +576,14 @@
                     </div>
 
                     <div class="potential-status-tabs" role="tablist" aria-label="Fysieke status">
-                        <button class="potential-status-tab is-active" type="button" data-potential-tab="testdata">Testdata</button>
+                        <button class="potential-status-tab is-active" type="button" data-potential-tab="overzicht">Overzicht</button>
+                        <button class="potential-status-tab" type="button" data-potential-tab="testdata">Testdata</button>
                         <button class="potential-status-tab" type="button" data-potential-tab="gps">GPS-data</button>
                         <button class="potential-status-tab" type="button" data-potential-tab="aanwezigheid">Aanwezigheid</button>
                         <button class="potential-status-tab" type="button" data-potential-tab="lengte-gewicht">Lengte en gewicht</button>
                     </div>
 
-                    <section class="potential-status-panel is-active" data-potential-panel="testdata">
+                    <section class="potential-status-panel" data-potential-panel="testdata">
                         <div class="potential-status-grid">
                             <div class="potential-kpi">
                                 <span>Laatste MSS</span>
@@ -717,6 +720,7 @@
                     </section>
                 </article>
 
+                <div class="potential-tab-content is-active" data-potential-panel="overzicht">
                 <div class="potential-grid">
                     <article class="potentials-card potential-wide">
                         <div class="potential-section-title">
@@ -855,6 +859,7 @@
                             <button class="potentials-btn secondary" type="submit">Oefening toevoegen</button>
                         </form>
                     </article>
+                </div>
                 </div>
             {% else %}
                 <article class="potentials-card">
