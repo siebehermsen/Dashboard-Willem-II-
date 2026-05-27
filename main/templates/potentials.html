@@ -360,9 +360,9 @@
 
     .potential-physical-profile {
         display: grid;
-        grid-template-columns: 250px minmax(0, 1fr);
+        grid-template-columns: 250px minmax(0, 560px);
         gap: 18px;
-        align-items: stretch;
+        align-items: start;
     }
 
     .potential-physical-player {
@@ -413,7 +413,7 @@
 
     .potential-profile-metrics {
         display: grid;
-        grid-template-columns: repeat(4, minmax(145px, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 14px;
     }
 
@@ -424,6 +424,7 @@
         padding: 16px 14px;
         text-align: center;
         box-shadow: 0 10px 22px rgba(31, 42, 68, 0.06);
+        min-height: 215px;
     }
 
     .potential-profile-metric h3 {
@@ -755,30 +756,6 @@
 
                         <a class="potentials-btn secondary potential-test-link" href="{% url 'testdata' %}?player_id={{ selected_player.id }}&tab=profiel">Open volledig fysiek profiel</a>
 
-                        <table class="potential-status-table">
-                            <thead>
-                                <tr>
-                                    <th>Datum</th>
-                                    <th>10m</th>
-                                    <th>30m</th>
-                                    <th>CMJ</th>
-                                    <th>ISRT</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for row in recent_tests %}
-                                    <tr>
-                                        <td>{{ row.session_date|date:"d-m-Y" }}</td>
-                                        <td>{{ row.sprint_10|default:"-" }}</td>
-                                        <td>{{ row.sprint_30|default:"-" }}</td>
-                                        <td>{{ row.cmj|default:"-" }}</td>
-                                        <td>{{ row.isrt|default:"-" }}</td>
-                                    </tr>
-                                {% empty %}
-                                    <tr><td colspan="5">Nog geen testdata beschikbaar.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
                     </section>
 
                     <section class="potential-status-panel" data-potential-panel="gps">
