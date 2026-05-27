@@ -770,25 +770,6 @@
                         </div>
                     </div>
 
-                    <div class="potential-kpis">
-                        <div class="potential-kpi">
-                            <span>Weekbelasting</span>
-                            <strong>{{ week_load|floatformat:0 }}</strong>
-                        </div>
-                        <div class="potential-kpi">
-                            <span>Afstand</span>
-                            <strong>{{ week_distance|floatformat:1 }} km</strong>
-                        </div>
-                        <div class="potential-kpi">
-                            <span>Sprints</span>
-                            <strong>{{ week_sprints|floatformat:0 }}</strong>
-                        </div>
-                        <div class="potential-kpi">
-                            <span>RPE</span>
-                            <strong>{% if latest_rpe %}{{ latest_rpe.rpe }}{% else %}-{% endif %}</strong>
-                        </div>
-                    </div>
-
                     <div class="potential-status-tabs" role="tablist" aria-label="Fysieke status">
                         <button class="potential-status-tab is-active" type="button" data-potential-tab="overzicht">Overzicht</button>
                         <button class="potential-status-tab" type="button" data-potential-tab="testdata">Testdata</button>
