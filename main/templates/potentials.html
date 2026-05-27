@@ -4,8 +4,7 @@
 {% block content %}
 <style>
     .potentials-shell {
-        width: min(96vw, 1760px);
-        max-width: none;
+        max-width: 1320px;
         margin: 0 auto;
     }
 
@@ -44,8 +43,8 @@
 
     .potentials-layout {
         display: grid;
-        grid-template-columns: 320px minmax(0, 1fr);
-        gap: 22px;
+        grid-template-columns: 330px minmax(0, 1fr);
+        gap: 18px;
         align-items: start;
     }
 
@@ -361,7 +360,7 @@
 
     .potential-physical-profile {
         display: grid;
-        grid-template-columns: 250px minmax(0, 720px);
+        grid-template-columns: 250px minmax(0, 560px);
         gap: 18px;
         align-items: start;
     }
@@ -557,6 +556,76 @@
         height: 285px;
     }
 
+    .potential-video-wrap {
+        border: 1px solid #e1e8f2;
+        border-radius: 18px;
+        background: #0f172a;
+        overflow: hidden;
+        margin: 14px 0;
+    }
+
+    .potential-video-wrap video {
+        width: 100%;
+        max-height: 460px;
+        display: block;
+        background: #0f172a;
+    }
+
+    .potential-ba-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 14px;
+        margin-top: 14px;
+    }
+
+    .potential-ba-card {
+        border: 1px solid #e1e8f2;
+        border-radius: 18px;
+        background: #ffffff;
+        padding: 16px;
+        box-shadow: 0 10px 22px rgba(31, 42, 68, 0.05);
+    }
+
+    .potential-ba-card h3 {
+        margin: 0 0 12px;
+        color: #1f2a44;
+        font-size: 1.05rem;
+        font-weight: 950;
+    }
+
+    .potential-ba-item {
+        border-top: 1px solid #e5ebf4;
+        padding: 11px 0;
+        color: #1f2a44;
+        font-weight: 800;
+        line-height: 1.4;
+    }
+
+    .potential-ba-item:first-of-type {
+        border-top: 0;
+        padding-top: 0;
+    }
+
+    .potential-ba-item small {
+        display: block;
+        color: #667386;
+        font-weight: 800;
+        margin-top: 4px;
+    }
+
+    .potential-score-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        background: #d71920;
+        color: #ffffff;
+        font-weight: 950;
+        margin-right: 8px;
+    }
+
     .potential-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -675,6 +744,10 @@
             grid-template-columns: 1fr;
         }
 
+        .potential-ba-grid {
+            grid-template-columns: 1fr;
+        }
+
         .exercise-row {
             grid-template-columns: 1fr;
         }
@@ -777,6 +850,7 @@
                         <button class="potential-status-tab" type="button" data-potential-tab="gps">GPS-data</button>
                         <button class="potential-status-tab" type="button" data-potential-tab="aanwezigheid">Aanwezigheid</button>
                         <button class="potential-status-tab" type="button" data-potential-tab="lengte-gewicht">Lengte en gewicht</button>
+                        <button class="potential-status-tab" type="button" data-potential-tab="beweeganalyse">Beweeganalyse</button>
                     </div>
 
                     <section class="potential-status-panel" data-potential-panel="testdata">
@@ -921,6 +995,58 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </section>
+
+                    <section class="potential-status-panel" data-potential-panel="beweeganalyse">
+                        <div class="potential-status-grid">
+                            <div class="potential-kpi"><span>Laatste analyse</span><strong>{% if latest_beweeganalyse_sessie %}{{ latest_beweeganalyse_sessie.date|date:"d-m" }}{% else %}-{% endif %}</strong></div>
+                            <div class="potential-kpi"><span>Gem. score</span><strong>{% if beweeganalyse_average_score %}{{ beweeganalyse_average_score|floatformat:1 }}{% else %}-{% endif %}</strong></div>
+                            <div class="potential-kpi"><span>Aandachtspunten</span><strong>{{ beweeganalyse_attention_points|length }}</strong></div>
+                            <div class="potential-kpi"><span>Video</span><strong>{% if latest_beweeganalyse_sessie and latest_beweeganalyse_sessie.video_file %}Ja{% else %}Nee{% endif %}</strong></div>
+                        </div>
+
+                        {% if latest_beweeganalyse_sessie and latest_beweeganalyse_sessie.video_file %}
+                            <div class="potential-video-wrap">
+                                <video controls preload="metadata">
+                                    <source src="{{ latest_beweeganalyse_sessie.video_file.url }}">
+                                    Je browser ondersteunt geen video playback.
+                                </video>
+                            </div>
+                        {% else %}
+                            <div class="empty-state">Nog geen beweeganalyse-video beschikbaar voor deze speler.</div>
+                        {% endif %}
+
+                        <div class="potential-ba-grid">
+                            <div class="potential-ba-card">
+                                <h3>Aandachtspunten</h3>
+                                {% for item in beweeganalyse_attention_points %}
+                                    <div class="potential-ba-item">
+                                        {% if item.priority_flag %}<span class="potential-score-pill">!</span>{% endif %}
+                                        {{ item.punt.title }}
+                                        <small>{{ item.punt.onderdeel.name }}{% if item.comment %} - {{ item.comment }}{% endif %}</small>
+                                    </div>
+                                {% empty %}
+                                    <div class="empty-state">Nog geen aandachtspunten vastgelegd.</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="potential-ba-card">
+                                <h3>Beoordeling</h3>
+                                {% for item in beweeganalyse_scores %}
+                                    <div class="potential-ba-item">
+                                        <span class="potential-score-pill">{% if item.score %}{{ item.score }}{% else %}-{% endif %}</span>
+                                        {{ item.punt.title }}
+                                        <small>{{ item.punt.onderdeel.name }}</small>
+                                    </div>
+                                {% empty %}
+                                    <div class="empty-state">Nog geen beoordeling opgeslagen.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {% if selected_player %}
+                            <a class="potentials-btn secondary potential-test-link" href="{% url 'beweeganalyse' %}?player_id={{ selected_player.id }}{% if latest_beweeganalyse_sessie %}&analysis_date={{ latest_beweeganalyse_sessie.date|date:'Y-m-d' }}{% endif %}">Open beweeganalyse</a>
+                        {% endif %}
                     </section>
                 </article>
 
