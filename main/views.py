@@ -2735,6 +2735,7 @@ def academie_player(request, team_code, player_id):
     gps_sprints_values = []
     gps_acwr_values = []
     gps_week_rows = []
+    day_names_short = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"]
 
     for day in week_dates:
         day_rows = [row for row in current_week_rows if row.get("session_date") == day]
@@ -2745,7 +2746,7 @@ def academie_player(request, team_code, player_id):
         d25 = sum(val(row, "his") for row in day_rows)
         sprints = sum(val(row, "sprints") for row in day_rows)
         acwr = round(load / chronic_daily_load, 2) if chronic_daily_load else 0
-        day_label = day.strftime("%a %d-%m")
+        day_label = f"{day_names_short[day.weekday()]} {day.strftime('%d-%m')}"
 
         gps_labels.append(day_label)
         gps_td_values.append(round(total_distance, 1))
@@ -3587,6 +3588,7 @@ def individuele_programmas(request):
         mdo_sprints_values = []
         mdo_acwr_values = []
         mdo_week_rows = []
+        day_names_short = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"]
 
         for day in week_dates:
             day_rows = [row for row in current_week_rows if row.get("session_date") == day]
@@ -3597,7 +3599,7 @@ def individuele_programmas(request):
             d25 = sum(_row_value(row, "his") for row in day_rows)
             sprints = sum(_row_value(row, "sprints") for row in day_rows)
             acwr = round((load / chronic_daily_load), 2) if chronic_daily_load else 0
-            day_label = day.strftime("%a %d-%m")
+            day_label = f"{day_names_short[day.weekday()]} {day.strftime('%d-%m')}"
             mdo_labels.append(day_label)
             mdo_td_values.append(round(total_distance, 1))
             mdo_load_values.append(round(load, 1))

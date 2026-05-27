@@ -629,8 +629,8 @@
                     </div>
 
                     <div class="gps-kpi-grid">
-                        <div class="gps-kpi-card"><span>Training sessies 30d</span><strong>{{ gps_totals.sessions }}</strong></div>
-                        <div class="gps-kpi-card"><span>Load 30d</span><strong>{{ gps_totals.load|floatformat:0 }}</strong></div>
+                        <div class="gps-kpi-card"><span>Trainingssessies 30d</span><strong>{{ gps_totals.sessions }}</strong></div>
+                        <div class="gps-kpi-card"><span>Belasting 30d</span><strong>{{ gps_totals.load|floatformat:0 }}</strong></div>
                         <div class="gps-kpi-card"><span>Afstand 30d</span><strong>{{ gps_totals.distance|floatformat:0 }}</strong></div>
                         <div class="gps-kpi-card"><span>Wedstrijden</span><strong>{{ match_totals.matches }}</strong></div>
                         <div class="gps-kpi-card"><span>Sprints 30d</span><strong>{{ gps_totals.sprints|floatformat:0 }}</strong></div>
@@ -638,7 +638,7 @@
 
                     <div class="gps-metric-row" aria-label="GPS grafiekmetriek">
                         <button class="gps-metric-btn is-active" type="button" data-gps-metric="td">TD</button>
-                        <button class="gps-metric-btn" type="button" data-gps-metric="load">Load</button>
+                        <button class="gps-metric-btn" type="button" data-gps-metric="load">Belasting</button>
                         <button class="gps-metric-btn" type="button" data-gps-metric="d15">D15</button>
                         <button class="gps-metric-btn" type="button" data-gps-metric="d20">D20</button>
                         <button class="gps-metric-btn" type="button" data-gps-metric="d25">D25</button>
@@ -714,7 +714,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 color: "#1666c5",
             },
             load: {
-                label: "Load",
+                label: "Belasting",
                 values: readJson("academy-gps-load"),
                 unit: "au",
                 color: "#1f2a44",
