@@ -43,7 +43,7 @@
 
     .potentials-layout {
         display: grid;
-        grid-template-columns: 310px minmax(0, 1fr);
+        grid-template-columns: 330px minmax(0, 1fr);
         gap: 18px;
         align-items: start;
     }
@@ -76,33 +76,70 @@
 
     .potential-player-list {
         display: grid;
-        gap: 8px;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 12px;
         margin-bottom: 18px;
     }
 
     .potential-player-link {
         display: grid;
-        gap: 3px;
-        padding: 12px 13px;
+        gap: 10px;
+        padding: 12px;
         border: 1px solid #dfe7f2;
-        border-radius: 12px;
+        border-radius: 18px;
         color: #1f2a44;
         text-decoration: none;
         font-weight: 900;
-        background: #f8fbff;
+        background: #ffffff;
+        box-shadow: 0 8px 18px rgba(31, 42, 68, 0.05);
+        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .potential-player-link:hover {
+        transform: translateY(-2px);
+        border-color: #cbd7e8;
+        box-shadow: 0 12px 24px rgba(31, 42, 68, 0.09);
     }
 
     .potential-player-link.is-active {
-        background: #1f2a44;
-        border-color: #1f2a44;
-        color: #ffffff;
+        border-color: #d71920;
+        box-shadow: 0 0 0 2px rgba(215, 25, 32, 0.14), 0 12px 24px rgba(31, 42, 68, 0.10);
     }
 
-    .potential-player-link span {
-        color: inherit;
-        opacity: 0.72;
+    .potential-player-photo {
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #eef2f8, #dfe7f2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        color: #1f2a44;
+        font-size: 1.6rem;
+        font-weight: 950;
+    }
+
+    .potential-player-photo img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+    }
+
+    .potential-player-name {
+        color: #1f2a44;
+        font-size: 0.98rem;
+        line-height: 1.2;
+        text-align: center;
+    }
+
+    .potential-player-position {
+        color: #667386;
         font-size: 0.82rem;
         font-weight: 750;
+        line-height: 1.25;
+        text-align: center;
     }
 
     .potentials-form {
@@ -159,6 +196,11 @@
         color: #1f2a44;
     }
 
+    .potentials-btn.back {
+        background: #d71920;
+        color: #ffffff;
+    }
+
     .potentials-main {
         display: grid;
         gap: 16px;
@@ -174,6 +216,35 @@
         gap: 18px;
         align-items: flex-start;
         margin-bottom: 18px;
+    }
+
+    .potential-profile-title {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+    }
+
+    .potential-profile-avatar {
+        width: 76px;
+        height: 92px;
+        border-radius: 16px;
+        background: #eef2f8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        color: #1f2a44;
+        font-size: 1.4rem;
+        font-weight: 950;
+        flex: 0 0 auto;
+    }
+
+    .potential-profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
     }
 
     .potential-profile-head h2 {
@@ -282,6 +353,27 @@
         background: #fbfdff;
     }
 
+    .potentials-home-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-end;
+        margin-bottom: 16px;
+    }
+
+    .potentials-home-head h2 {
+        margin: 0;
+        color: #1f2a44;
+        font-size: 1.55rem;
+        font-weight: 950;
+    }
+
+    .potentials-home-head p {
+        margin: 6px 0 0;
+        color: #667386;
+        font-weight: 750;
+    }
+
     @media (max-width: 1100px) {
         .potentials-layout,
         .potential-grid {
@@ -300,6 +392,18 @@
             display: none;
         }
     }
+
+    @media (max-width: 560px) {
+        .potential-player-list {
+            grid-template-columns: 1fr;
+        }
+
+        .potential-profile-head,
+        .potential-profile-title {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
 </style>
 
 <section class="potentials-shell">
@@ -313,18 +417,7 @@
 
     <div class="potentials-layout">
         <aside class="potentials-panel">
-            <h2>Potentials</h2>
-            <div class="potential-player-list">
-                {% for player in potential_players %}
-                    <a class="potential-player-link {% if selected_player and selected_player.id == player.id %}is-active{% endif %}" href="{% url 'potentials' %}?player_id={{ player.id }}">
-                        {{ player.name }}
-                        <span>{% if player.position_ref %}{{ player.position_ref.name }}{% else %}Geen positie{% endif %}</span>
-                    </a>
-                {% empty %}
-                    <div class="empty-state">Nog geen spelers in Potentials.</div>
-                {% endfor %}
-            </div>
-
+            <h2>Speler toevoegen</h2>
             <form class="potentials-form" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="add_existing">
@@ -361,10 +454,19 @@
             {% if selected_player %}
                 <article class="potentials-card">
                     <div class="potential-profile-head">
-                        <div>
-                            <h2>{{ selected_player.name }}</h2>
-                            <div class="potential-meta">
-                                {% if selected_player.position_ref %}{{ selected_player.position_ref.name }}{% else %}Positie nog niet ingevuld{% endif %}
+                        <div class="potential-profile-title">
+                            <div class="potential-profile-avatar">
+                                {% if selected_player.image %}
+                                    <img src="{{ selected_player.image.url }}" alt="{{ selected_player.name }}">
+                                {% else %}
+                                    {{ selected_player.name|first }}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h2>{{ selected_player.name }}</h2>
+                                <div class="potential-meta">
+                                    {% if selected_player.position_ref %}{{ selected_player.position_ref.name }}{% else %}Positie nog niet ingevuld{% endif %}
+                                </div>
                             </div>
                         </div>
                         <form method="post">
@@ -374,6 +476,7 @@
                             <button class="potentials-btn light" type="submit">Uit lijst halen</button>
                         </form>
                     </div>
+                    <a class="potentials-btn back" href="{% url 'potentials' %}">Terug naar Potentials</a>
 
                     <div class="potential-kpis">
                         <div class="potential-kpi">
@@ -536,7 +639,29 @@
                 </div>
             {% else %}
                 <article class="potentials-card">
-                    <div class="empty-state">Voeg links een speler toe om een Potentials-dossier op te bouwen.</div>
+                    <div class="potentials-home-head">
+                        <div>
+                            <h2>Spelers</h2>
+                            <p>Klik op een speler om zijn individuele Potentials-omgeving te openen.</p>
+                        </div>
+                    </div>
+                    <div class="potential-player-list">
+                        {% for player in potential_players %}
+                            <a class="potential-player-link" href="{% url 'potentials' %}?player_id={{ player.id }}">
+                                <div class="potential-player-photo">
+                                    {% if player.image %}
+                                        <img src="{{ player.image.url }}" alt="{{ player.name }}">
+                                    {% else %}
+                                        {{ player.name|first }}
+                                    {% endif %}
+                                </div>
+                                <div class="potential-player-name">{{ player.name }}</div>
+                                <div class="potential-player-position">{% if player.position_ref %}{{ player.position_ref.name }}{% else %}Geen positie{% endif %}</div>
+                            </a>
+                        {% empty %}
+                            <div class="empty-state">Voeg links een speler toe om een Potentials-dossier op te bouwen.</div>
+                        {% endfor %}
+                    </div>
                 </article>
             {% endif %}
         </div>

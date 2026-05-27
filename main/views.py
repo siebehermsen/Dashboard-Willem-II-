@@ -4015,8 +4015,6 @@ def potentials(request):
     selected_player_id = request.GET.get("player_id")
     if selected_player_id:
         selected_player = Player.objects.select_related("position_ref").filter(id=selected_player_id).first()
-    if not selected_player and potential_players:
-        selected_player = potential_players[0]
 
     programma = get_latest_program(selected_player) if selected_player else None
     oefeningen = []

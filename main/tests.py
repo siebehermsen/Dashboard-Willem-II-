@@ -756,6 +756,11 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(page, "Eerste meters dominanter maken")
         self.assertContains(page, "Meer scannen voor de eerste aanname.")
 
+        home = self.client.get(reverse("potentials"))
+        self.assertEqual(home.status_code, 200)
+        self.assertContains(home, "Klik op een speler om zijn individuele Potentials-omgeving te openen.")
+        self.assertNotContains(home, "Individueel programma")
+
     def test_mdo_action_point_can_be_saved_and_completed(self):
         response = self.client.post(
             reverse("individuele_programmas") + f"?player_id={self.player.id}&view=mdo",
