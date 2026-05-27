@@ -891,31 +891,9 @@
 
                     <section class="potential-status-panel" data-potential-panel="aanwezigheid">
                         <div class="potential-status-grid">
-                            <div class="potential-kpi"><span>Aanwezig</span><strong>{{ attendance_present_count }}</strong></div>
-                            <div class="potential-kpi"><span>Registraties</span><strong>{{ attendance_total_count }}</strong></div>
                             <div class="potential-kpi"><span>Percentage</span><strong>{% if attendance_percentage != None %}{{ attendance_percentage }}%{% else %}-{% endif %}</strong></div>
                             <div class="potential-kpi"><span>Periode</span><strong>30d</strong></div>
                         </div>
-                        <table class="potential-status-table">
-                            <thead>
-                                <tr>
-                                    <th>Datum</th>
-                                    <th>Status</th>
-                                    <th>Afgerond</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for row in attendance_rows %}
-                                    <tr>
-                                        <td>{{ row.date|date:"d-m-Y" }}</td>
-                                        <td>{{ row.status.label }}</td>
-                                        <td>{% if row.completed %}Ja{% else %}Nee{% endif %}</td>
-                                    </tr>
-                                {% empty %}
-                                    <tr><td colspan="3">Nog geen aanwezigheidsdata beschikbaar.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
                     </section>
 
                     <section class="potential-status-panel" data-potential-panel="lengte-gewicht">
