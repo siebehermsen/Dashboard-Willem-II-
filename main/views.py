@@ -4045,6 +4045,10 @@ def potentials(request):
     weight_rows = []
     latest_anthropometry = None
     anthropometry_rows = []
+    weight_chart_labels_json = "[]"
+    weight_chart_values_json = "[]"
+    length_chart_labels_json = "[]"
+    length_chart_values_json = "[]"
 
     if selected_player:
         if programma:
@@ -4186,6 +4190,17 @@ def potentials(request):
         latest_weight = weight_rows[0] if weight_rows else None
         anthropometry_rows = list(AnthropometrySession.objects.filter(player=selected_player).order_by("-date", "-id")[:5])
         latest_anthropometry = anthropometry_rows[0] if anthropometry_rows else None
+        weight_history = list(WeightEntry.objects.filter(player=selected_player).order_by("date", "id"))
+        length_history = [
+            row for row in AnthropometrySession.objects.filter(
+                player=selected_player,
+                length__isnull=False,
+            ).order_by("date", "id")
+        ]
+        weight_chart_labels_json = json.dumps([row.date.strftime("%d-%m-%Y") for row in weight_history])
+        weight_chart_values_json = json.dumps([round(float(row.weight), 1) for row in weight_history])
+        length_chart_labels_json = json.dumps([row.date.strftime("%d-%m-%Y") for row in length_history])
+        length_chart_values_json = json.dumps([round(float(row.length), 1) for row in length_history])
 
     return render(request, "potentials.html", {
         "players": players,
@@ -4219,6 +4234,10 @@ def potentials(request):
         "weight_rows": weight_rows,
         "latest_anthropometry": latest_anthropometry,
         "anthropometry_rows": anthropometry_rows,
+        "weight_chart_labels_json": weight_chart_labels_json,
+        "weight_chart_values_json": weight_chart_values_json,
+        "length_chart_labels_json": length_chart_labels_json,
+        "length_chart_values_json": length_chart_values_json,
     })
 
 def rpe_view(request):
