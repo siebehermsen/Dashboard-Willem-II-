@@ -3325,7 +3325,10 @@ from .models import (
     OverigNote,
     Player,
     Programma,
+    ProgrammaDuurUnit,
+    ProgrammaFrequentie,
     ProgrammaOefening,
+    ProgrammaOefeningNaam,
     RPEEntry,
     WellnessEntry,
 )
@@ -3856,6 +3859,231 @@ def individueel_programma_opslaan(request, player_id):
         return redirect(f"/individuele_programmas/?player_id={player.id}")
 
     return redirect("individuele_programmas")
+
+
+def potentials(request):
+    players = Player.objects.select_related("position_ref").all().order_by("name")
+    selected_player = None
+
+    def potential_notes():
+        return OverigNote.objects.filter(
+            note_type="potential",
+            page_key="potentials",
+        ).order_by("-created_at", "-id")
+
+    def potential_player_ids():
+        ids = []
+        for note in potential_notes():
+            raw_id = (note.section_key or "").replace("player:", "", 1)
+            if raw_id.isdigit() and int(raw_id) not in ids:
+                ids.append(int(raw_id))
+        return ids
+
+    def ensure_potential(player, text="High Potential"):
+        section_key = f"player:{player.id}"
+        note, created = OverigNote.objects.get_or_create(
+            note_type="potential",
+            page_key="potentials",
+            section_key=section_key,
+            defaults={"text": text},
+        )
+        if not created and text and note.text != text:
+            note.text = text
+            note.save(update_fields=["text"])
+        return note
+
+    def get_latest_program(player):
+        return Programma.objects.filter(player=player).order_by("-created_at").first()
+
+    if request.method == "POST":
+        action = (request.POST.get("action") or "").strip()
+        selected_player_id = request.POST.get("selected_player_id") or request.POST.get("player_id")
+
+        if action == "add_existing":
+            player = get_object_or_404(Player, id=request.POST.get("player_id"))
+            ensure_potential(player, request.POST.get("potential_label", "High Potential").strip() or "High Potential")
+            messages.success(request, f"Succesvol opgeslagen. {player.name} is toegevoegd aan Potentials.")
+            return redirect(f"{reverse('potentials')}?player_id={player.id}")
+
+        if action == "create_player":
+            name = (request.POST.get("new_player_name") or "").strip()
+            position_name = (request.POST.get("new_player_position") or "").strip()
+            if not name:
+                messages.error(request, "Vul eerst een spelernaam in.")
+                return redirect(reverse("potentials"))
+            player = Player.objects.filter(name__iexact=name).first()
+            if not player:
+                position_obj = None
+                if position_name:
+                    position_obj, _ = PlayerPosition.objects.get_or_create(name=position_name)
+                player = Player.objects.create(name=name, position_ref=position_obj, is_active=True)
+                PlayerMonitoringProfile.objects.get_or_create(player=player)
+            ensure_potential(player)
+            messages.success(request, f"Succesvol opgeslagen. {player.name} is toegevoegd aan Potentials.")
+            return redirect(f"{reverse('potentials')}?player_id={player.id}")
+
+        if selected_player_id:
+            selected_player = get_object_or_404(Player, id=selected_player_id)
+            ensure_potential(selected_player)
+
+        if action == "save_program" and selected_player:
+            program_id = request.POST.get("program_id")
+            programma = Programma.objects.filter(player=selected_player, id=program_id).first() if program_id else None
+            if not programma:
+                programma = Programma(player=selected_player)
+            programma.doel = (request.POST.get("doel") or "").strip()
+            programma.sterke_punten = (request.POST.get("sterke_punten") or "").strip()
+            programma.verbeterpunten = (request.POST.get("verbeterpunten") or "").strip()
+            programma.plan_komende_periode = (request.POST.get("plan_komende_periode") or "").strip()
+            programma.fysiek_ontwikkelpunt = (request.POST.get("fysiek_ontwikkelpunt") or "").strip()
+            programma.ontwikkelaanpak = (request.POST.get("ontwikkelaanpak") or "").strip()
+            programma.video_links = (request.POST.get("video_links") or "").strip()
+            programma.evaluatie_datum = parse_date(request.POST.get("evaluatie_datum") or "")
+            programma.save()
+            messages.success(request, "Succesvol opgeslagen. Individueel programma bijgewerkt.")
+            return redirect(f"{reverse('potentials')}?player_id={selected_player.id}")
+
+        if action == "add_attention" and selected_player:
+            text = (request.POST.get("attention_text") or "").strip()
+            if text:
+                OverigNote.objects.create(
+                    note_type="note",
+                    page_key="potentials",
+                    section_key=f"player:{selected_player.id}",
+                    text=text,
+                )
+                messages.success(request, "Succesvol opgeslagen. Aandachtspunt toegevoegd.")
+            else:
+                messages.error(request, "Vul eerst een aandachtspunt in.")
+            return redirect(f"{reverse('potentials')}?player_id={selected_player.id}")
+
+        if action == "add_exercise" and selected_player:
+            programma = get_latest_program(selected_player) or Programma.objects.create(
+                player=selected_player,
+                doel="Individueel programma",
+            )
+            exercise_name = (request.POST.get("exercise_name") or "").strip()
+            if not exercise_name:
+                messages.error(request, "Vul eerst een oefening in.")
+                return redirect(f"{reverse('potentials')}?player_id={selected_player.id}")
+
+            naam_ref, _ = ProgrammaOefeningNaam.objects.get_or_create(name=exercise_name)
+            frequentie_raw = (request.POST.get("exercise_frequency") or "").strip()
+            frequentie_ref = None
+            if frequentie_raw:
+                frequentie_ref, _ = ProgrammaFrequentie.objects.get_or_create(name=frequentie_raw)
+            duur_raw = (request.POST.get("exercise_duration") or "").strip()
+            duur_unit_ref = None
+            if duur_raw:
+                duur_unit_ref, _ = ProgrammaDuurUnit.objects.get_or_create(name="min")
+            try:
+                rpe_value = int(request.POST.get("exercise_rpe") or 0) or None
+            except ValueError:
+                rpe_value = None
+
+            ProgrammaOefening.objects.create(
+                programma=programma,
+                naam_ref=naam_ref,
+                frequentie_ref=frequentie_ref,
+                duur_text_override=duur_raw,
+                duur_unit_ref=duur_unit_ref,
+                rpe_value=rpe_value,
+                opmerkingen=(request.POST.get("exercise_notes") or "").strip(),
+            )
+            messages.success(request, "Succesvol opgeslagen. Oefening toegevoegd.")
+            return redirect(f"{reverse('potentials')}?player_id={selected_player.id}")
+
+        if action == "remove_potential" and selected_player:
+            OverigNote.objects.filter(
+                note_type="potential",
+                page_key="potentials",
+                section_key=f"player:{selected_player.id}",
+            ).delete()
+            messages.success(request, f"{selected_player.name} is uit Potentials gehaald.")
+            return redirect(reverse("potentials"))
+
+    potential_ids = potential_player_ids()
+    potential_players = list(
+        Player.objects
+        .select_related("position_ref")
+        .filter(id__in=potential_ids)
+        .order_by("name")
+    )
+    potential_id_set = {player.id for player in potential_players}
+    available_players = players.exclude(id__in=potential_id_set)
+
+    selected_player_id = request.GET.get("player_id")
+    if selected_player_id:
+        selected_player = Player.objects.select_related("position_ref").filter(id=selected_player_id).first()
+    if not selected_player and potential_players:
+        selected_player = potential_players[0]
+
+    programma = get_latest_program(selected_player) if selected_player else None
+    oefeningen = []
+    attention_notes = []
+    latest_wellness = None
+    latest_rpe = None
+    latest_speed_test = None
+    week_load = 0
+    week_distance = 0
+    week_sprints = 0
+
+    if selected_player:
+        if programma:
+            oefeningen = ProgrammaOefening.objects.select_related(
+                "naam_ref",
+                "frequentie_ref",
+                "duur_unit_ref",
+            ).filter(programma=programma).order_by("id")
+        attention_notes = OverigNote.objects.filter(
+            note_type="note",
+            page_key="potentials",
+            section_key=f"player:{selected_player.id}",
+        ).order_by("-created_at", "-id")[:8]
+        latest_wellness = WellnessEntry.objects.filter(player=selected_player).order_by("-date").first()
+        latest_rpe = RPEEntry.objects.filter(player=selected_player).order_by("-date").first()
+        latest_speed_test = PlayerSpeedTest.objects.filter(player=selected_player).order_by("-test_date").first()
+        latest_session_date = timezone.localdate()
+        performance_rows = [
+            *fetch_performance_rows("training", selected_player),
+            *fetch_performance_rows("match", selected_player),
+        ]
+        if performance_rows:
+            latest_session_date = max(
+                (row.get("session_date") for row in performance_rows if row.get("session_date")),
+                default=latest_session_date,
+            )
+        week_start = latest_session_date - timedelta(days=6)
+        week_rows = [
+            row for row in performance_rows
+            if row.get("session_date") and week_start <= row["session_date"] <= latest_session_date
+        ]
+
+        def row_float(row, key):
+            try:
+                return float(row.get(key) or 0)
+            except (TypeError, ValueError):
+                return 0.0
+
+        week_load = round(sum(row_float(row, "load") for row in week_rows), 0)
+        week_distance = round(sum(row_float(row, "total_distance") for row in week_rows) / 1000, 1)
+        week_sprints = round(sum(row_float(row, "sprints") for row in week_rows), 0)
+
+    return render(request, "potentials.html", {
+        "players": players,
+        "available_players": available_players,
+        "potential_players": potential_players,
+        "selected_player": selected_player,
+        "programma": programma,
+        "oefeningen": oefeningen,
+        "attention_notes": attention_notes,
+        "latest_wellness": latest_wellness,
+        "latest_rpe": latest_rpe,
+        "latest_speed_test": latest_speed_test,
+        "week_load": week_load,
+        "week_distance": week_distance,
+        "week_sprints": week_sprints,
+    })
 
 def rpe_view(request):
     """Oude RPE-ingang doorsturen naar het gecombineerde Wellness & RPE overzicht."""

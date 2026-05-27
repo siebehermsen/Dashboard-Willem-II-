@@ -1,0 +1,545 @@
+{% extends "base.html" %}
+{% block title %}Potentials | NEC{% endblock %}
+
+{% block content %}
+<style>
+    .potentials-shell {
+        max-width: 1320px;
+        margin: 0 auto;
+    }
+
+    .potentials-hero {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-end;
+        margin-bottom: 18px;
+    }
+
+    .potentials-kicker {
+        color: #d71920;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 0.78rem;
+        margin-bottom: 8px;
+    }
+
+    .potentials-hero h1 {
+        margin: 0;
+        color: #1f2a44;
+        font-size: 2.25rem;
+        font-weight: 900;
+        line-height: 1.05;
+    }
+
+    .potentials-hero p {
+        margin: 8px 0 0;
+        color: #667386;
+        max-width: 760px;
+        line-height: 1.5;
+        font-weight: 650;
+    }
+
+    .potentials-layout {
+        display: grid;
+        grid-template-columns: 310px minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .potentials-panel,
+    .potentials-card {
+        background: #ffffff;
+        border: 1px solid #e1e8f2;
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(31, 42, 68, 0.06);
+    }
+
+    .potentials-panel {
+        padding: 18px;
+    }
+
+    .potentials-panel h2,
+    .potentials-card h2,
+    .potentials-card h3 {
+        margin: 0;
+        color: #1f2a44;
+        font-weight: 900;
+        line-height: 1.15;
+    }
+
+    .potentials-panel h2 {
+        font-size: 1.05rem;
+        margin-bottom: 12px;
+    }
+
+    .potential-player-list {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 18px;
+    }
+
+    .potential-player-link {
+        display: grid;
+        gap: 3px;
+        padding: 12px 13px;
+        border: 1px solid #dfe7f2;
+        border-radius: 12px;
+        color: #1f2a44;
+        text-decoration: none;
+        font-weight: 900;
+        background: #f8fbff;
+    }
+
+    .potential-player-link.is-active {
+        background: #1f2a44;
+        border-color: #1f2a44;
+        color: #ffffff;
+    }
+
+    .potential-player-link span {
+        color: inherit;
+        opacity: 0.72;
+        font-size: 0.82rem;
+        font-weight: 750;
+    }
+
+    .potentials-form {
+        display: grid;
+        gap: 10px;
+    }
+
+    .potentials-form label {
+        display: grid;
+        gap: 6px;
+        color: #1f2a44;
+        font-size: 0.82rem;
+        font-weight: 900;
+    }
+
+    .potentials-form input,
+    .potentials-form select,
+    .potentials-form textarea {
+        width: 100%;
+        border: 1px solid #dbe4f0;
+        border-radius: 11px;
+        padding: 10px 12px;
+        color: #1f2a44;
+        font: inherit;
+        font-weight: 650;
+        background: #fbfdff;
+        box-sizing: border-box;
+    }
+
+    .potentials-form textarea {
+        min-height: 104px;
+        resize: vertical;
+        line-height: 1.45;
+    }
+
+    .potentials-btn {
+        border: 0;
+        border-radius: 12px;
+        background: #d71920;
+        color: #ffffff;
+        cursor: pointer;
+        font-weight: 900;
+        padding: 11px 14px;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .potentials-btn.secondary {
+        background: #1f2a44;
+    }
+
+    .potentials-btn.light {
+        background: #eef2f8;
+        color: #1f2a44;
+    }
+
+    .potentials-main {
+        display: grid;
+        gap: 16px;
+    }
+
+    .potentials-card {
+        padding: 22px;
+    }
+
+    .potential-profile-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+        margin-bottom: 18px;
+    }
+
+    .potential-profile-head h2 {
+        font-size: 1.8rem;
+    }
+
+    .potential-meta {
+        color: #667386;
+        font-weight: 800;
+        margin-top: 5px;
+    }
+
+    .potential-kpis {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .potential-kpi {
+        background: #f8fbff;
+        border: 1px solid #e3eaf4;
+        border-radius: 14px;
+        padding: 14px;
+    }
+
+    .potential-kpi span {
+        display: block;
+        color: #667386;
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .potential-kpi strong {
+        color: #1f2a44;
+        font-size: 1.45rem;
+        font-weight: 950;
+    }
+
+    .potential-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .potential-wide {
+        grid-column: 1 / -1;
+    }
+
+    .potential-section-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .potential-section-title h3 {
+        font-size: 1.15rem;
+    }
+
+    .potential-list {
+        display: grid;
+        gap: 10px;
+    }
+
+    .potential-list-item {
+        border: 1px solid #e5ebf4;
+        border-radius: 12px;
+        background: #fbfdff;
+        padding: 12px 14px;
+        color: #1f2a44;
+        font-weight: 750;
+        line-height: 1.45;
+    }
+
+    .potential-list-item small {
+        display: block;
+        color: #7a879d;
+        font-weight: 800;
+        margin-top: 6px;
+    }
+
+    .exercise-row {
+        display: grid;
+        grid-template-columns: 1.4fr 0.7fr 0.55fr 0.8fr 1.4fr;
+        gap: 8px;
+        align-items: start;
+    }
+
+    .exercise-row.header {
+        color: #667386;
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .empty-state {
+        border: 1px dashed #cfd8e7;
+        border-radius: 16px;
+        padding: 22px;
+        color: #667386;
+        font-weight: 800;
+        background: #fbfdff;
+    }
+
+    @media (max-width: 1100px) {
+        .potentials-layout,
+        .potential-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .potential-kpis {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .exercise-row {
+            grid-template-columns: 1fr;
+        }
+
+        .exercise-row.header {
+            display: none;
+        }
+    }
+</style>
+
+<section class="potentials-shell">
+    <div class="potentials-hero">
+        <div>
+            <div class="potentials-kicker">High Potentials</div>
+            <h1>Potentials</h1>
+            <p>Selecteer spelers die extra opvolging krijgen en werk per speler een individueel programma, aandachtspunten en concrete oefeningen uit.</p>
+        </div>
+    </div>
+
+    <div class="potentials-layout">
+        <aside class="potentials-panel">
+            <h2>Potentials</h2>
+            <div class="potential-player-list">
+                {% for player in potential_players %}
+                    <a class="potential-player-link {% if selected_player and selected_player.id == player.id %}is-active{% endif %}" href="{% url 'potentials' %}?player_id={{ player.id }}">
+                        {{ player.name }}
+                        <span>{% if player.position_ref %}{{ player.position_ref.name }}{% else %}Geen positie{% endif %}</span>
+                    </a>
+                {% empty %}
+                    <div class="empty-state">Nog geen spelers in Potentials.</div>
+                {% endfor %}
+            </div>
+
+            <form class="potentials-form" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_existing">
+                <label>
+                    Bestaande speler toevoegen
+                    <select name="player_id" required>
+                        <option value="">Kies speler</option>
+                        {% for player in available_players %}
+                            <option value="{{ player.id }}">{{ player.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button class="potentials-btn" type="submit">Toevoegen</button>
+            </form>
+
+            <hr style="border:0;border-top:1px solid #e5ebf4;margin:18px 0;">
+
+            <form class="potentials-form" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_player">
+                <label>
+                    Nieuwe speler
+                    <input type="text" name="new_player_name" placeholder="Naam speler">
+                </label>
+                <label>
+                    Positie
+                    <input type="text" name="new_player_position" placeholder="Bijv. aanvaller">
+                </label>
+                <button class="potentials-btn secondary" type="submit">Nieuwe speler opslaan</button>
+            </form>
+        </aside>
+
+        <div class="potentials-main">
+            {% if selected_player %}
+                <article class="potentials-card">
+                    <div class="potential-profile-head">
+                        <div>
+                            <h2>{{ selected_player.name }}</h2>
+                            <div class="potential-meta">
+                                {% if selected_player.position_ref %}{{ selected_player.position_ref.name }}{% else %}Positie nog niet ingevuld{% endif %}
+                            </div>
+                        </div>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="remove_potential">
+                            <input type="hidden" name="selected_player_id" value="{{ selected_player.id }}">
+                            <button class="potentials-btn light" type="submit">Uit lijst halen</button>
+                        </form>
+                    </div>
+
+                    <div class="potential-kpis">
+                        <div class="potential-kpi">
+                            <span>Weekbelasting</span>
+                            <strong>{{ week_load|floatformat:0 }}</strong>
+                        </div>
+                        <div class="potential-kpi">
+                            <span>Afstand</span>
+                            <strong>{{ week_distance|floatformat:1 }} km</strong>
+                        </div>
+                        <div class="potential-kpi">
+                            <span>Sprints</span>
+                            <strong>{{ week_sprints|floatformat:0 }}</strong>
+                        </div>
+                        <div class="potential-kpi">
+                            <span>RPE</span>
+                            <strong>{% if latest_rpe %}{{ latest_rpe.rpe }}{% else %}-{% endif %}</strong>
+                        </div>
+                    </div>
+                </article>
+
+                <div class="potential-grid">
+                    <article class="potentials-card potential-wide">
+                        <div class="potential-section-title">
+                            <h3>Individueel programma</h3>
+                        </div>
+                        <form class="potentials-form" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="save_program">
+                            <input type="hidden" name="selected_player_id" value="{{ selected_player.id }}">
+                            {% if programma %}<input type="hidden" name="program_id" value="{{ programma.id }}">{% endif %}
+                            <div class="potential-grid">
+                                <label>
+                                    Doel
+                                    <input type="text" name="doel" value="{{ programma.doel|default:'' }}" placeholder="Bijv. explosiever worden in eerste meters">
+                                </label>
+                                <label>
+                                    Evaluatiedatum
+                                    <input type="date" name="evaluatie_datum" value="{% if programma.evaluatie_datum %}{{ programma.evaluatie_datum|date:'Y-m-d' }}{% endif %}">
+                                </label>
+                                <label>
+                                    Sterke punten
+                                    <textarea name="sterke_punten">{{ programma.sterke_punten|default:'' }}</textarea>
+                                </label>
+                                <label>
+                                    Aandachtspunten
+                                    <textarea name="verbeterpunten">{{ programma.verbeterpunten|default:'' }}</textarea>
+                                </label>
+                                <label>
+                                    Plan komende periode
+                                    <textarea name="plan_komende_periode">{{ programma.plan_komende_periode|default:'' }}</textarea>
+                                </label>
+                                <label>
+                                    Ontwikkelaanpak
+                                    <textarea name="ontwikkelaanpak">{{ programma.ontwikkelaanpak|default:'' }}</textarea>
+                                </label>
+                                <label class="potential-wide">
+                                    Fysiek ontwikkelpunt
+                                    <textarea name="fysiek_ontwikkelpunt">{{ programma.fysiek_ontwikkelpunt|default:'' }}</textarea>
+                                </label>
+                                <label class="potential-wide">
+                                    Videolinks
+                                    <textarea name="video_links" placeholder="Een link per regel">{{ programma.video_links|default:'' }}</textarea>
+                                </label>
+                            </div>
+                            <button class="potentials-btn" type="submit">Programma opslaan</button>
+                        </form>
+                    </article>
+
+                    <article class="potentials-card">
+                        <div class="potential-section-title">
+                            <h3>Aandachtspunten</h3>
+                        </div>
+                        <div class="potential-list">
+                            {% for note in attention_notes %}
+                                <div class="potential-list-item">
+                                    {{ note.text }}
+                                    <small>{{ note.created_at|date:"d-m-Y H:i" }}</small>
+                                </div>
+                            {% empty %}
+                                <div class="empty-state">Nog geen aandachtspunten toegevoegd.</div>
+                            {% endfor %}
+                        </div>
+                        <form class="potentials-form" method="post" style="margin-top:14px;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_attention">
+                            <input type="hidden" name="selected_player_id" value="{{ selected_player.id }}">
+                            <label>
+                                Nieuw aandachtspunt
+                                <textarea name="attention_text" placeholder="Bijv. sneller openen na aanname, meer coaching in restverdediging..."></textarea>
+                            </label>
+                            <button class="potentials-btn secondary" type="submit">Aandachtspunt opslaan</button>
+                        </form>
+                    </article>
+
+                    <article class="potentials-card">
+                        <div class="potential-section-title">
+                            <h3>Monitoring</h3>
+                        </div>
+                        <div class="potential-list">
+                            <div class="potential-list-item">Wellness: {% if latest_wellness %}{{ latest_wellness.date|date:"d-m-Y" }}{% else %}geen recente invoer{% endif %}</div>
+                            <div class="potential-list-item">Laatste RPE: {% if latest_rpe %}{{ latest_rpe.rpe }} op {{ latest_rpe.date|date:"d-m-Y" }}{% else %}geen recente invoer{% endif %}</div>
+                            <div class="potential-list-item">MSS/MAS: {% if latest_speed_test %}{{ latest_speed_test.mss_kmh|floatformat:1 }} / {{ latest_speed_test.mas_kmh|floatformat:1 }} km/u{% else %}geen recente test{% endif %}</div>
+                        </div>
+                    </article>
+
+                    <article class="potentials-card potential-wide">
+                        <div class="potential-section-title">
+                            <h3>Oefeningen en werkvormen</h3>
+                        </div>
+                        <div class="potential-list">
+                            <div class="exercise-row header">
+                                <span>Oefening</span>
+                                <span>Duur</span>
+                                <span>RPE</span>
+                                <span>Frequentie</span>
+                                <span>Opmerking</span>
+                            </div>
+                            {% for oefening in oefeningen %}
+                                <div class="potential-list-item exercise-row">
+                                    <span>{% if oefening.naam_ref %}{{ oefening.naam_ref.name }}{% else %}-{% endif %}</span>
+                                    <span>{{ oefening.duur_text_override|default:"-" }}</span>
+                                    <span>{{ oefening.rpe_value|default:"-" }}</span>
+                                    <span>{% if oefening.frequentie_ref %}{{ oefening.frequentie_ref.name }}{% else %}-{% endif %}</span>
+                                    <span>{{ oefening.opmerkingen|default:"-" }}</span>
+                                </div>
+                            {% empty %}
+                                <div class="empty-state">Nog geen oefeningen gekoppeld.</div>
+                            {% endfor %}
+                        </div>
+                        <form class="potentials-form" method="post" style="margin-top:14px;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_exercise">
+                            <input type="hidden" name="selected_player_id" value="{{ selected_player.id }}">
+                            <div class="exercise-row">
+                                <label>
+                                    Oefening
+                                    <input type="text" name="exercise_name" placeholder="Bijv. resisted sprint 10m">
+                                </label>
+                                <label>
+                                    Duur
+                                    <input type="text" name="exercise_duration" placeholder="15">
+                                </label>
+                                <label>
+                                    RPE
+                                    <input type="number" name="exercise_rpe" min="1" max="10" placeholder="7">
+                                </label>
+                                <label>
+                                    Frequentie
+                                    <input type="text" name="exercise_frequency" placeholder="2x per week">
+                                </label>
+                                <label>
+                                    Opmerking
+                                    <input type="text" name="exercise_notes" placeholder="Uitvoering, cue of opbouw">
+                                </label>
+                            </div>
+                            <button class="potentials-btn secondary" type="submit">Oefening toevoegen</button>
+                        </form>
+                    </article>
+                </div>
+            {% else %}
+                <article class="potentials-card">
+                    <div class="empty-state">Voeg links een speler toe om een Potentials-dossier op te bouwen.</div>
+                </article>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

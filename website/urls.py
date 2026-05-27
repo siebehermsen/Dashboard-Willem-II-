@@ -61,10 +61,11 @@ urlpatterns = [
     path('hit/', role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.hit_page), name='hit'),
     path("aanwezigheden/", role_required(ROLE_ADMIN, ROLE_TRAINER, allow_read_only_get=True)(views.aanwezigheden_pagina), name="aanwezigheden"),
     path("aanwezigheden/update/<int:record_id>/", role_required(ROLE_ADMIN, ROLE_TRAINER)(views.aanwezigheden_update), name="aanwezigheden_update"),
+    path("beweeganalyse/", role_required(ROLE_ADMIN, ROLE_MEDICAL, ROLE_PERFORMANCE, allow_read_only_get=True)(views.beweeganalyse), name="beweeganalyse"),
+    path("potentials/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_TRAINER, allow_read_only_get=True)(views.potentials), name="potentials"),
+    path("beleid/", role_required(ROLE_ADMIN, ROLE_TRAINER, allow_read_only_get=True)(views.beleid), name="beleid"),
     path("overig/", role_required(ROLE_ADMIN, ROLE_TRAINER, allow_read_only_get=True)(views.overig), name="overig"),
     path("staf/", views.staf, name="staf"),
-    path("beleid/", role_required(ROLE_ADMIN, ROLE_TRAINER, allow_read_only_get=True)(views.beleid), name="beleid"),
-    path("beweeganalyse/", role_required(ROLE_ADMIN, ROLE_MEDICAL, ROLE_PERFORMANCE, allow_read_only_get=True)(views.beweeganalyse), name="beweeganalyse"),
     path("huidplooimeting/pdf/", role_required(ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_MEDICAL, allow_read_only_get=True)(huidplooimeting_pdf), name="huidplooimeting_pdf"),
 
 
