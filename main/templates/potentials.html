@@ -780,7 +780,6 @@
         <div>
             <div class="potentials-kicker">High Potentials</div>
             <h1>Potentials</h1>
-            <p>Selecteer spelers die extra opvolging krijgen en werk per speler een individueel programma, aandachtspunten en concrete oefeningen uit.</p>
         </div>
     </div>
 
@@ -856,6 +855,7 @@
                         <button class="potential-status-tab" type="button" data-potential-tab="aanwezigheid">Aanwezigheid</button>
                         <button class="potential-status-tab" type="button" data-potential-tab="lengte-gewicht">Lengte en gewicht</button>
                         <button class="potential-status-tab" type="button" data-potential-tab="beweeganalyse">Beweeganalyse</button>
+                        <button class="potential-status-tab" type="button" data-potential-tab="krachtprogramma">Krachtprogramma</button>
                     </div>
 
                     <section class="potential-status-panel" data-potential-panel="testdata">
@@ -1052,6 +1052,38 @@
                         {% if selected_player %}
                             <a class="potentials-btn secondary potential-test-link" href="{% url 'beweeganalyse' %}?player_id={{ selected_player.id }}{% if latest_beweeganalyse_sessie %}&analysis_date={{ latest_beweeganalyse_sessie.date|date:'Y-m-d' }}{% endif %}">Open beweeganalyse</a>
                         {% endif %}
+                    </section>
+
+                    <section class="potential-status-panel" data-potential-panel="krachtprogramma">
+                        <article class="potentials-card potential-wide">
+                            <div class="potential-section-title">
+                                <h3>Krachtprogramma</h3>
+                            </div>
+                            <form class="potentials-form" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="save_strength_program">
+                                <input type="hidden" name="selected_player_id" value="{{ selected_player.id }}">
+                                <div class="potential-grid">
+                                    <label>
+                                        Thema
+                                        <input type="text" name="strength_thema" value="{{ strength_program.thema }}" placeholder="Bijv. explosieve kracht, rompstabiliteit of hamstringpreventie">
+                                    </label>
+                                    <label>
+                                        Frequentie
+                                        <input type="text" name="strength_frequentie" value="{{ strength_program.frequentie }}" placeholder="Bijv. 2x per week na training">
+                                    </label>
+                                    <label class="potential-wide">
+                                        Doelstelling
+                                        <textarea name="strength_doelstelling" placeholder="Wat moet deze speler met het krachtprogramma ontwikkelen?">{{ strength_program.doelstelling }}</textarea>
+                                    </label>
+                                    <label class="potential-wide">
+                                        Evaluatie
+                                        <textarea name="strength_evaluatie" placeholder="Wanneer en waarop evalueren we dit programma?">{{ strength_program.evaluatie }}</textarea>
+                                    </label>
+                                </div>
+                                <button class="potentials-btn" type="submit">Krachtprogramma opslaan</button>
+                            </form>
+                        </article>
                     </section>
                 </article>
 
