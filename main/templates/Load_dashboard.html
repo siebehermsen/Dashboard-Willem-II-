@@ -810,6 +810,37 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         line-height: 1.45;
     }
 
+    html.app-mode .dashboard-player-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    html.app-mode .dashboard-player-tab {
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid #dbe4f0;
+        border-radius: 18px;
+        color: #10213f;
+        display: flex;
+        font-size: 0.95rem;
+        font-weight: 900;
+        justify-content: center;
+        min-height: 54px;
+        padding: 0 12px;
+        text-align: center;
+        text-decoration: none;
+        box-shadow: 0 10px 22px rgba(20, 34, 66, 0.07);
+    }
+
+    html.app-mode .dashboard-player-tab.is-active {
+        background: #cf202f;
+        border-color: #cf202f;
+        color: #ffffff;
+        box-shadow: 0 16px 30px rgba(207, 32, 47, 0.22);
+    }
+
     html.app-mode .dashboard-player-action {
         align-items: center;
         background: #cf202f;
@@ -1709,10 +1740,16 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 
         {% if PLAYER_APP_MODE %}
         <section class="dashboard-player-card" aria-label="Speleromgeving">
-            <h2>Wellness & RPE</h2>
             {% if player_app_form_player %}
+                <div class="dashboard-player-tabs" role="tablist" aria-label="Spelersapp onderdelen">
+                    <a class="dashboard-player-tab {% if player_app_tab == 'wellness' %}is-active{% endif %}" href="{% url 'dashboard' %}?app_view=player&player_tab=wellness{% if PLAYER_APP_PREVIEW_MODE %}&player_id={{ player_app_form_player.id }}{% endif %}">Wellness & RPE</a>
+                    <a class="dashboard-player-tab {% if player_app_tab == 'data' %}is-active{% endif %}" href="{% url 'dashboard' %}?app_view=player&player_tab=data{% if PLAYER_APP_PREVIEW_MODE %}&player_id={{ player_app_form_player.id }}{% endif %}">Data</a>
+                </div>
+
+                {% if player_app_tab == 'wellness' %}
+                <h2>Wellness & RPE</h2>
                 <p>{% if PLAYER_APP_PREVIEW_MODE %}Preview voor {{ player_app_form_player.name }}.{% else %}{{ player_app_form_player.name }}, vul je dagelijkse check direct in.{% endif %}</p>
-                <form class="dashboard-player-form" method="post" action="{% url 'dashboard' %}?app_view=player">
+                <form class="dashboard-player-form" method="post" action="{% url 'dashboard' %}?app_view=player&player_tab=wellness">
                     {% csrf_token %}
                     <input type="hidden" name="form_type" value="player_app_wellness">
                     <input type="hidden" name="date" value="{{ player_app_today|date:'Y-m-d' }}">
@@ -1779,7 +1816,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                     <button class="dashboard-player-save" type="submit">Wellness opslaan</button>
                 </form>
 
-                <form class="dashboard-player-form" method="post" action="{% url 'dashboard' %}?app_view=player">
+                <form class="dashboard-player-form" method="post" action="{% url 'dashboard' %}?app_view=player&player_tab=wellness">
                     {% csrf_token %}
                     <input type="hidden" name="form_type" value="player_app_srpe">
                     <input type="hidden" name="date" value="{{ player_app_today|date:'Y-m-d' }}">
@@ -1798,7 +1835,9 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
 
                     <button class="dashboard-player-save" type="submit">sRPE opslaan</button>
                 </form>
+                {% endif %}
 
+                {% if player_app_tab == 'data' %}
                 <section class="dashboard-player-gps" aria-label="Trainingsdata speler">
                     <div class="dashboard-player-gps-head">
                         <div>
@@ -1837,6 +1876,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                         {% endfor %}
                     </div>
                 </section>
+                {% endif %}
             {% else %}
                 <p>Je login is nog niet gekoppeld aan een spelerprofiel. Vraag staf om je account te koppelen.</p>
             {% endif %}
@@ -2416,14 +2456,15 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".dashboard-player-slider").forEach(updateDashboardPlayerSlider);
 
     const playerSelect = document.getElementById("dashboardPlayerSelect");
-    if (playerSelect) {
-        playerSelect.addEventListener("change", () => {
-            const url = new URL(window.location.href);
-            url.searchParams.set("app_view", "player");
-            url.searchParams.set("player_id", playerSelect.value);
-            window.location.href = url.toString();
-        });
-    }
+            if (playerSelect) {
+                playerSelect.addEventListener("change", () => {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("app_view", "player");
+                    url.searchParams.set("player_tab", "{{ player_app_tab|default:'wellness' }}");
+                    url.searchParams.set("player_id", playerSelect.value);
+                    window.location.href = url.toString();
+                });
+            }
 });
 
 document.addEventListener("input", (event) => {

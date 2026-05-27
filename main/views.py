@@ -290,6 +290,9 @@ def dashboard(request):
     player_app_user = _is_player_app_user(request.user)
     player_app_player = _player_for_user(request.user) if player_app_user else None
     player_app_preview_mode = request.GET.get("app_view") == "player" and not player_app_user
+    player_app_tab = request.GET.get("player_tab", "wellness")
+    if player_app_tab not in {"wellness", "data"}:
+        player_app_tab = "wellness"
 
     # ---------- BASIS ----------
     players_qs = Player.objects.select_related("monitoring_profile").all().order_by("name")
@@ -356,7 +359,7 @@ def dashboard(request):
                         defaults={"rpe": srpe},
                     )
 
-            redirect_url = f"{reverse('dashboard')}?app_view=player"
+            redirect_url = f"{reverse('dashboard')}?app_view=player&player_tab=wellness"
             if player_app_preview_mode:
                 redirect_url = f"{redirect_url}&player_id={player.id}"
             return redirect(redirect_url)
@@ -686,6 +689,7 @@ def dashboard(request):
         "current_week_url": f"{reverse('dashboard')}?week={(today - timedelta(days=today.weekday())).isoformat()}",
         "player_app_player": player_app_player,
         "player_app_preview_mode": player_app_preview_mode,
+        "player_app_tab": player_app_tab,
         "player_app_form_player": player_app_form_player,
         "player_app_today": player_app_today,
         "player_app_today_wellness": player_app_today_wellness,
