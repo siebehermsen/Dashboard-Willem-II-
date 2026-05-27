@@ -4031,6 +4031,12 @@ def potentials(request):
     week_sprints = 0
     recent_tests = []
     gps_week_rows = []
+    gps_labels_json = "[]"
+    gps_td_json = "[]"
+    gps_load_json = "[]"
+    gps_d15_json = "[]"
+    gps_sprints_json = "[]"
+    gps_acwr_json = "[]"
     attendance_rows = []
     attendance_total_count = 0
     attendance_present_count = 0
@@ -4125,16 +4131,47 @@ def potentials(request):
         week_sprints = round(sum(row_float(row, "sprints") for row in week_rows), 0)
         day_names_short = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"]
         gps_week_rows = []
+        gps_labels = []
+        gps_td_values = []
+        gps_load_values = []
+        gps_d15_values = []
+        gps_sprints_values = []
+        gps_acwr_values = []
+        previous_start = week_start - timedelta(days=21)
+        previous_rows = [
+            row for row in performance_rows
+            if row.get("session_date") and previous_start <= row["session_date"] < week_start
+        ]
+        chronic_daily_load = sum(row_float(row, "load") for row in previous_rows) / 21 if previous_rows else 0
         for day_offset in range(7):
             current_day = week_start + timedelta(days=day_offset)
             day_rows = [row for row in week_rows if row.get("session_date") == current_day]
+            day_label = f"{day_names_short[current_day.weekday()]} {current_day.strftime('%d-%m')}"
+            load = round(sum(row_float(row, "load") for row in day_rows), 0)
+            distance_m = round(sum(row_float(row, "total_distance") for row in day_rows), 1)
+            distance_km = round(distance_m / 1000, 2)
+            sprints = round(sum(row_float(row, "sprints") for row in day_rows), 0)
+            hsd = round(sum(row_float(row, "hsd") for row in day_rows), 0)
+            acwr = round(load / chronic_daily_load, 2) if chronic_daily_load else 0
+            gps_labels.append(day_label)
+            gps_td_values.append(distance_m)
+            gps_load_values.append(load)
+            gps_d15_values.append(hsd)
+            gps_sprints_values.append(sprints)
+            gps_acwr_values.append(acwr)
             gps_week_rows.append({
-                "label": f"{day_names_short[current_day.weekday()]} {current_day.strftime('%d-%m')}",
-                "load": round(sum(row_float(row, "load") for row in day_rows), 0),
-                "distance_km": round(sum(row_float(row, "total_distance") for row in day_rows) / 1000, 2),
-                "sprints": round(sum(row_float(row, "sprints") for row in day_rows), 0),
-                "hsd": round(sum(row_float(row, "hsd") for row in day_rows), 0),
+                "label": day_label,
+                "load": load,
+                "distance_km": distance_km,
+                "sprints": sprints,
+                "hsd": hsd,
             })
+        gps_labels_json = json.dumps(gps_labels)
+        gps_td_json = json.dumps(gps_td_values)
+        gps_load_json = json.dumps(gps_load_values)
+        gps_d15_json = json.dumps(gps_d15_values)
+        gps_sprints_json = json.dumps(gps_sprints_values)
+        gps_acwr_json = json.dumps(gps_acwr_values)
         attendance_qs = (
             AttendanceRecord.objects
             .select_related("status")
@@ -4168,6 +4205,12 @@ def potentials(request):
         "week_sprints": week_sprints,
         "recent_tests": recent_tests,
         "gps_week_rows": gps_week_rows,
+        "gps_labels_json": gps_labels_json,
+        "gps_td_json": gps_td_json,
+        "gps_load_json": gps_load_json,
+        "gps_d15_json": gps_d15_json,
+        "gps_sprints_json": gps_sprints_json,
+        "gps_acwr_json": gps_acwr_json,
         "attendance_rows": attendance_rows,
         "attendance_total_count": attendance_total_count,
         "attendance_present_count": attendance_present_count,

@@ -466,6 +466,70 @@
         margin-top: 16px;
     }
 
+    .potential-metric-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 2px 0 16px;
+    }
+
+    .potential-metric-btn {
+        border: 1px solid #d3deed;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #1f2a44;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 950;
+        padding: 9px 16px;
+    }
+
+    .potential-metric-btn.is-active {
+        background: #d71920;
+        border-color: #d71920;
+        color: #ffffff;
+    }
+
+    .potential-chart-wrap {
+        height: 360px;
+        border: 1px solid #e1e8f2;
+        border-radius: 18px;
+        background: #ffffff;
+        padding: 18px;
+        box-shadow: 0 10px 22px rgba(31, 42, 68, 0.05);
+        margin-bottom: 14px;
+    }
+
+    .potential-day-summary {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .potential-load-day {
+        border: 1px solid #e1e8f2;
+        border-radius: 14px;
+        background: #f8fbff;
+        padding: 12px;
+        color: #1f2a44;
+    }
+
+    .potential-load-day span,
+    .potential-load-day small {
+        display: block;
+        color: #667386;
+        font-weight: 850;
+        line-height: 1.35;
+    }
+
+    .potential-load-day strong {
+        display: block;
+        color: #1f2a44;
+        font-size: 1.35rem;
+        font-weight: 950;
+        margin: 4px 0;
+    }
+
     .potential-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -573,6 +637,10 @@
         }
 
         .potential-profile-metrics {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .potential-day-summary {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
@@ -765,30 +833,30 @@
                             <div class="potential-kpi"><span>Sprints</span><strong>{{ week_sprints|floatformat:0 }}</strong></div>
                             <div class="potential-kpi"><span>D15</span><strong>{% if gps_week_rows %}{{ gps_week_rows.6.hsd|floatformat:0 }}{% else %}-{% endif %}</strong></div>
                         </div>
-                        <table class="potential-status-table">
-                            <thead>
-                                <tr>
-                                    <th>Dag</th>
-                                    <th>Belasting</th>
-                                    <th>Afstand</th>
-                                    <th>D15</th>
-                                    <th>Sprints</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for row in gps_week_rows %}
-                                    <tr>
-                                        <td>{{ row.label }}</td>
-                                        <td>{{ row.load|floatformat:0 }}</td>
-                                        <td>{{ row.distance_km|floatformat:2 }} km</td>
-                                        <td>{{ row.hsd|floatformat:0 }}</td>
-                                        <td>{{ row.sprints|floatformat:0 }}</td>
-                                    </tr>
-                                {% empty %}
-                                    <tr><td colspan="5">Nog geen GPS-data beschikbaar.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+
+                        <div class="potential-metric-row" aria-label="GPS grafiekmetriek">
+                            <button class="potential-metric-btn is-active" type="button" data-potential-gps-metric="td">TD</button>
+                            <button class="potential-metric-btn" type="button" data-potential-gps-metric="load">Belasting</button>
+                            <button class="potential-metric-btn" type="button" data-potential-gps-metric="d15">D15</button>
+                            <button class="potential-metric-btn" type="button" data-potential-gps-metric="sprints">Sprints</button>
+                        </div>
+
+                        <div class="potential-chart-wrap">
+                            <canvas id="potentialGpsChart"></canvas>
+                        </div>
+
+                        <div class="potential-day-summary" aria-label="Dagoverzicht laatste 7 dagen">
+                            {% for row in gps_week_rows %}
+                                <div class="potential-load-day">
+                                    <span>{{ row.label }}</span>
+                                    <strong>{{ row.load|floatformat:0 }}</strong>
+                                    <small>{{ row.distance_km|floatformat:2 }} km</small>
+                                    <small>{{ row.sprints|floatformat:0 }} sprints</small>
+                                </div>
+                            {% empty %}
+                                <div class="empty-state">Nog geen GPS-data beschikbaar.</div>
+                            {% endfor %}
+                        </div>
                     </section>
 
                     <section class="potential-status-panel" data-potential-panel="aanwezigheid">
@@ -1021,6 +1089,7 @@
         </div>
     </div>
 </section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     (() => {
         const tabs = document.querySelectorAll("[data-potential-tab]");
@@ -1035,6 +1104,104 @@
                 });
             });
         });
+
+        const gpsCanvas = document.getElementById("potentialGpsChart");
+        if (gpsCanvas && window.Chart) {
+            const labels = {{ gps_labels_json|safe }};
+            const acwrValues = {{ gps_acwr_json|safe }};
+            const metricData = {
+                td: {
+                    label: "Totale afstand",
+                    values: {{ gps_td_json|safe }},
+                    unit: "m",
+                    color: "#1666c5",
+                },
+                load: {
+                    label: "Belasting",
+                    values: {{ gps_load_json|safe }},
+                    unit: "au",
+                    color: "#1f2a44",
+                },
+                d15: {
+                    label: "D15",
+                    values: {{ gps_d15_json|safe }},
+                    unit: "m",
+                    color: "#d71920",
+                },
+                sprints: {
+                    label: "Sprints",
+                    values: {{ gps_sprints_json|safe }},
+                    unit: "",
+                    color: "#00a676",
+                },
+            };
+
+            const chart = new Chart(gpsCanvas, {
+                type: "bar",
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            type: "bar",
+                            label: metricData.td.label,
+                            data: metricData.td.values,
+                            backgroundColor: metricData.td.color,
+                            borderRadius: 8,
+                            yAxisID: "y",
+                        },
+                        {
+                            type: "line",
+                            label: "ACWR",
+                            data: acwrValues,
+                            borderColor: "#00b33c",
+                            backgroundColor: "#00b33c",
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            tension: 0.35,
+                            yAxisID: "y1",
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: "top",
+                            labels: { usePointStyle: true, boxWidth: 10, font: { weight: "700" } },
+                        },
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: "#526078", font: { weight: "700" } } },
+                        y: { beginAtZero: true, grid: { color: "rgba(31,42,68,0.08)" }, ticks: { color: "#526078" } },
+                        y1: {
+                            beginAtZero: true,
+                            position: "right",
+                            suggestedMax: 2,
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: "#526078" },
+                        },
+                    },
+                },
+            });
+
+            document.querySelectorAll("[data-potential-gps-metric]").forEach((button) => {
+                button.addEventListener("click", () => {
+                    const metric = button.dataset.potentialGpsMetric;
+                    const config = metricData[metric];
+                    if (!config) {
+                        return;
+                    }
+                    document.querySelectorAll("[data-potential-gps-metric]").forEach((item) => {
+                        item.classList.toggle("is-active", item === button);
+                    });
+                    chart.data.datasets[0].label = config.label;
+                    chart.data.datasets[0].data = config.values;
+                    chart.data.datasets[0].backgroundColor = config.color;
+                    chart.update();
+                });
+            });
+        }
     })();
 </script>
 {% endblock %}
