@@ -4,15 +4,6 @@
 {% block content %}
 <main class="container">
 
-   <!-- SUCCESS BERICHTEN -->
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-success mt-3" style="max-width: 600px; margin: 0 auto;">
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endif %}
-
 <!-- SWITCH KNOPPEN: TRAINING / WEDSTRIJDDATA -->
 <div class="data-tabs-container">
     <a href="{% url 'training' %}"

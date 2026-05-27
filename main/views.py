@@ -4469,7 +4469,7 @@ def overig(request):
             player = get_object_or_404(Player, id=player_id)
             player.image = image
             player.save(update_fields=["image"])
-            messages.success(request, f"Foto van {player.name} bijgewerkt.")
+            messages.success(request, f"Succesvol opgeslagen. Foto van {player.name} bijgewerkt.")
             return redirect("/overig/?page=fotos")
 
         return render(request, 'overig.html', {
@@ -4976,6 +4976,7 @@ def beleid(request):
                         section_key=section,
                         image=image,
                     )
+            messages.success(request, "Succesvol opgeslagen.")
         return redirect(f"/beleid/?tab={beleid_tab}&subtab={beleid_subtab}")
 
     return render(request, "beleid.html", {
@@ -5021,7 +5022,7 @@ def staf(request):
                 is_active=True,
             )
             PlayerMonitoringProfile.objects.get_or_create(player=player)
-            messages.success(request, f"Speler {player.name} toegevoegd.")
+            messages.success(request, f"Succesvol opgeslagen. Speler {player.name} toegevoegd.")
             return redirect("staf")
 
         if form_type == "edit_player":
@@ -5048,7 +5049,7 @@ def staf(request):
                 player.image = image
             player.save()
             PlayerMonitoringProfile.objects.get_or_create(player=player)
-            messages.success(request, f"Speler {player.name} bijgewerkt.")
+            messages.success(request, f"Succesvol opgeslagen. Speler {player.name} bijgewerkt.")
             return redirect("staf")
 
         if form_type == "add_staff":
@@ -5098,7 +5099,7 @@ def staf(request):
                     image=image if image else None,
                     user=user,
                 )
-                messages.success(request, "Staflid toegevoegd.")
+                messages.success(request, "Succesvol opgeslagen. Staflid toegevoegd.")
             except Exception:
                 messages.error(
                     request,
@@ -5170,7 +5171,7 @@ def staf(request):
                         _sync_user_dashboard_role(user, dashboard_role)
 
                     staff_member.save()
-                messages.success(request, "Staflid bijgewerkt.")
+                messages.success(request, "Succesvol opgeslagen. Staflid bijgewerkt.")
             except Exception:
                 messages.error(
                     request,
@@ -5362,7 +5363,7 @@ def upload_file(request):
             except Exception:
                 continue
 
-        messages.success(request, f'{count} trainingsregels succesvol geimporteerd in 3NF.')
+        messages.success(request, f'Succesvol opgeslagen. {count} trainingsregels geïmporteerd in 3NF.')
         return redirect('training')
 
     return redirect('training')
@@ -5484,7 +5485,7 @@ def upload_wedstrijddata(request):
             except Exception:
                 continue
 
-        messages.success(request, f'{count} wedstrijdregels succesvol geimporteerd in 3NF.')
+        messages.success(request, f'Succesvol opgeslagen. {count} wedstrijdregels geïmporteerd in 3NF.')
         return redirect('training')
 
     return redirect('training')
@@ -5587,7 +5588,7 @@ def beweeganalyse(request):
                                 sessie.video_file.delete(save=False)
                             sessie.video_file.name = compiled_rel
                             sessie.save(update_fields=["video_file", "updated_at"])
-                            messages.success(request, "Video geupload en compilatie (normaal + 0.5x) aangemaakt.")
+                            messages.success(request, "Succesvol opgeslagen. Video geüpload en compilatie (normaal + 0.5x) aangemaakt.")
                     finally:
                         if default_storage.exists(tmp_saved):
                             default_storage.delete(tmp_saved)

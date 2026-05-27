@@ -402,6 +402,41 @@
         padding: 0 20px;
     }
 
+    .site-messages {
+        display: grid;
+        gap: 10px;
+        margin: 0 auto 18px;
+        max-width: 980px;
+    }
+
+    .site-message {
+        border: 1px solid #dbe5f2;
+        border-left: 5px solid #1f7a4d;
+        border-radius: 14px;
+        background: #ffffff;
+        color: #1f2a44;
+        font-size: 0.95rem;
+        font-weight: 800;
+        line-height: 1.45;
+        padding: 13px 16px;
+        box-shadow: 0 10px 22px rgba(31, 42, 68, 0.08);
+    }
+
+    .site-message.success {
+        border-left-color: #0f9d58;
+        background: #f4fbf7;
+    }
+
+    .site-message.error {
+        border-left-color: #d71920;
+        background: #fff6f6;
+    }
+
+    .site-message.warning {
+        border-left-color: #d99a00;
+        background: #fffaf0;
+    }
+
     /* =========================
        FOOTER
     ========================= */
@@ -514,6 +549,15 @@
 </header>
 
 <main class="container">
+    {% if messages %}
+        <div class="site-messages" aria-live="polite" aria-label="Meldingen">
+            {% for message in messages %}
+                <div class="site-message {{ message.tags|default:'info' }}" role="{% if 'error' in message.tags %}alert{% else %}status{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
     {% block content %}
     {% endblock %}
 </main>

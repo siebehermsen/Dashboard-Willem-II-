@@ -1083,12 +1083,6 @@
     <h1>Individueel Overzicht</h1>
   </section>
 
-  {% if messages %}
-    {% for message in messages %}
-      <div class="ind-message">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
-
   {% if not selected_player %}
     <section class="ind-card" style="margin-bottom:22px;">
       <div class="ind-card-head">

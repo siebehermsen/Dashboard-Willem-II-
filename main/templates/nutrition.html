@@ -5,14 +5,6 @@
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <main class="container">
-{% if messages %}
-  {% for message in messages %}
-    <div class="alert alert-success" style="margin-top: 10px;">
-      {{ message }}
-    </div>
-  {% endfor %}
-{% endif %}
-
 <div class="page-toggle">
     <a
         href="{% url 'nutrition' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}"
