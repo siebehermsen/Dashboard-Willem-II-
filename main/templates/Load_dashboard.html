@@ -916,10 +916,6 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         grid-template-columns: 52px 1fr 1fr 1fr;
     }
 
-    html.app-mode .dashboard-player-test-row {
-        grid-template-columns: 76px 1fr 1fr 1fr;
-    }
-
     html.app-mode .dashboard-player-gps-row strong {
         font-size: 0.9rem;
     }
@@ -936,6 +932,95 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         font-size: 1.12rem;
         font-weight: 900;
         margin: 0;
+    }
+
+    html.app-mode .dashboard-player-test-tabs {
+        display: flex;
+        gap: 8px;
+        margin: 2px -2px 0;
+        overflow-x: auto;
+        padding: 2px 2px 8px;
+        scrollbar-width: none;
+    }
+
+    html.app-mode .dashboard-player-test-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    html.app-mode .dashboard-player-test-tab {
+        appearance: none;
+        background: #fff;
+        border: 1px solid #d5deec;
+        border-radius: 999px;
+        color: #10213f;
+        cursor: pointer;
+        flex: 0 0 auto;
+        font: inherit;
+        font-size: 0.86rem;
+        font-weight: 900;
+        min-height: 42px;
+        padding: 0 14px;
+    }
+
+    html.app-mode .dashboard-player-test-tab.is-active {
+        background: #cf202f;
+        border-color: #cf202f;
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(207, 32, 47, 0.22);
+    }
+
+    html.app-mode .dashboard-player-test-detail {
+        background: #f8fbff;
+        border: 1px solid #dfe7f2;
+        border-radius: 18px;
+        display: grid;
+        gap: 14px;
+        padding: 14px;
+    }
+
+    html.app-mode .dashboard-player-test-value {
+        display: grid;
+        gap: 5px;
+    }
+
+    html.app-mode .dashboard-player-test-value span {
+        color: #687792;
+        font-size: 0.76rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    html.app-mode .dashboard-player-test-value strong {
+        color: #10213f;
+        font-size: 2rem;
+        line-height: 1;
+    }
+
+    html.app-mode .dashboard-player-test-change {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #e2e9f3;
+        border-radius: 14px;
+        color: #687792;
+        display: flex;
+        font-size: 0.86rem;
+        font-weight: 900;
+        min-height: 42px;
+        padding: 0 12px;
+    }
+
+    html.app-mode .dashboard-player-test-chart {
+        background: #fff;
+        border: 1px solid #e2e9f3;
+        border-radius: 16px;
+        height: 230px;
+        padding: 10px;
+    }
+
+    html.app-mode .dashboard-player-test-chart canvas {
+        height: 100% !important;
+        width: 100% !important;
     }
 
     html.app-mode .dashboard-player-field {
@@ -1893,46 +1978,34 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                         </div>
                     </div>
                     {% if player_app_latest_test %}
-                    <div class="dashboard-player-gps-grid">
-                        <div class="dashboard-player-gps-kpi">
-                            <span>10 meter</span>
-                            <strong>{% if player_app_latest_test.sprint_10 %}{{ player_app_latest_test.sprint_10|floatformat:2 }} s{% else %}-{% endif %}</strong>
-                        </div>
-                        <div class="dashboard-player-gps-kpi">
-                            <span>30 meter</span>
-                            <strong>{% if player_app_latest_test.sprint_30 %}{{ player_app_latest_test.sprint_30|floatformat:2 }} s{% else %}-{% endif %}</strong>
-                        </div>
-                        <div class="dashboard-player-gps-kpi">
-                            <span>CMJ</span>
-                            <strong>{% if player_app_latest_test.cmj %}{{ player_app_latest_test.cmj|floatformat:1 }} cm{% else %}-{% endif %}</strong>
-                        </div>
-                        <div class="dashboard-player-gps-kpi">
-                            <span>ISRT</span>
-                            <strong>{% if player_app_latest_test.isrt %}{{ player_app_latest_test.isrt|floatformat:0 }} m{% else %}-{% endif %}</strong>
-                        </div>
-                        <div class="dashboard-player-gps-kpi">
-                            <span>Gewicht</span>
-                            <strong>{% if player_app_latest_test.curr_weight %}{{ player_app_latest_test.curr_weight|floatformat:1 }} kg{% else %}-{% endif %}</strong>
-                        </div>
-                        <div class="dashboard-player-gps-kpi">
-                            <span>Lengte</span>
-                            <strong>{% if player_app_latest_test.length %}{{ player_app_latest_test.length|floatformat:0 }} cm{% else %}-{% endif %}</strong>
-                        </div>
-                    </div>
-                    <div class="dashboard-player-gps-list">
-                        {% for test in player_app_recent_tests %}
-                            <div class="dashboard-player-gps-row dashboard-player-test-row">
-                                <strong>{{ test.date|date:"d-m-Y" }}</strong>
-                                <span>{% if test.sprint_10 %}10m {{ test.sprint_10|floatformat:2 }} s{% else %}10m -{% endif %}</span>
-                                <span>{% if test.cmj %}CMJ {{ test.cmj|floatformat:1 }} cm{% else %}CMJ -{% endif %}</span>
-                                <span>{% if test.isrt %}ISRT {{ test.isrt|floatformat:0 }} m{% else %}ISRT -{% endif %}</span>
-                            </div>
+                    <div class="dashboard-player-test-tabs" role="tablist" aria-label="Testdata onderdelen">
+                        {% for metric in player_app_test_metrics %}
+                            <button class="dashboard-player-test-tab {% if forloop.first %}is-active{% endif %}" type="button" data-player-test-metric="{{ metric.code }}">
+                                {{ metric.label }}
+                            </button>
                         {% endfor %}
+                    </div>
+                    <div class="dashboard-player-test-detail">
+                        <div class="dashboard-player-test-value">
+                            <span id="dashboardPlayerTestLabel">{% for metric in player_app_test_metrics %}{% if forloop.first %}{{ metric.label }}{% endif %}{% endfor %}</span>
+                            <strong id="dashboardPlayerTestValue">
+                                {% for metric in player_app_test_metrics %}
+                                    {% if forloop.first %}
+                                        {% if metric.has_data %}{{ metric.latest|floatformat:2 }} {{ metric.unit }}{% else %}-{% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </strong>
+                        </div>
+                        <div class="dashboard-player-test-change" id="dashboardPlayerTestChange">Trend wordt geladen.</div>
+                        <div class="dashboard-player-test-chart">
+                            <canvas id="dashboardPlayerTestChart"></canvas>
+                        </div>
                     </div>
                     {% else %}
                         <div class="dashboard-player-gps-empty">Nog geen testdata beschikbaar.</div>
                     {% endif %}
                 </section>
+                {{ player_app_test_trends|json_script:"dashboard-player-test-trends" }}
                 {% endif %}
             {% else %}
                 <p>Je login is nog niet gekoppeld aan een spelerprofiel. Vraag staf om je account te koppelen.</p>
@@ -1985,8 +2058,120 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                 document.querySelectorAll(".dashboard-player-slider").forEach(window.updateDashboardPlayerSlider);
             }
 
+            function initDashboardPlayerTestdata() {
+                const dataNode = document.getElementById("dashboard-player-test-trends");
+                const canvas = document.getElementById("dashboardPlayerTestChart");
+                const labelNode = document.getElementById("dashboardPlayerTestLabel");
+                const valueNode = document.getElementById("dashboardPlayerTestValue");
+                const changeNode = document.getElementById("dashboardPlayerTestChange");
+                const buttons = Array.from(document.querySelectorAll("[data-player-test-metric]"));
+                if (!dataNode || !canvas || !labelNode || !valueNode || !changeNode || !buttons.length || !window.Chart) {
+                    return;
+                }
+                if (canvas.dataset.chartReady === "1") {
+                    return;
+                }
+                canvas.dataset.chartReady = "1";
+
+                const trends = JSON.parse(dataNode.textContent || "{}");
+                const metrics = trends.metrics || {};
+                const labels = trends.labels || [];
+                const formatValue = (value, unit) => {
+                    if (value === null || value === undefined || value === "") {
+                        return "-";
+                    }
+                    const decimals = unit === "s" ? 2 : (unit === "kg" || unit === "cm" ? 1 : 0);
+                    return `${Number(value).toLocaleString("nl-NL", {
+                        minimumFractionDigits: decimals,
+                        maximumFractionDigits: decimals,
+                    })} ${unit}`.trim();
+                };
+                const formatChange = (metric) => {
+                    if (!metric || metric.change === null || metric.change === undefined) {
+                        return "Nog te weinig meetmomenten voor een trend.";
+                    }
+                    const change = Number(metric.change);
+                    if (Math.abs(change) < 0.001) {
+                        return "Gelijk gebleven sinds de vorige meting.";
+                    }
+                    const prefix = change > 0 ? "Verbetering" : "Aandachtspunt";
+                    return `${prefix}: ${formatValue(Math.abs(change), metric.unit)} ten opzichte van de vorige meting.`;
+                };
+
+                const chart = new Chart(canvas, {
+                    type: "line",
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: "",
+                            data: [],
+                            borderColor: "#cf202f",
+                            backgroundColor: "rgba(207, 32, 47, 0.12)",
+                            borderWidth: 3,
+                            pointBackgroundColor: "#cf202f",
+                            pointBorderColor: "#fff",
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            tension: 0.35,
+                            fill: true,
+                            spanGaps: true,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => {
+                                        const metric = metrics[canvas.dataset.metric] || {};
+                                        return formatValue(context.parsed.y, metric.unit || "");
+                                    },
+                                },
+                            },
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: "#687792", font: { weight: "800" } },
+                            },
+                            y: {
+                                beginAtZero: false,
+                                grid: { color: "#e7edf5" },
+                                ticks: { color: "#687792", font: { weight: "800" } },
+                            },
+                        },
+                    },
+                });
+
+                const setMetric = (code) => {
+                    const metric = metrics[code];
+                    if (!metric) {
+                        return;
+                    }
+                    canvas.dataset.metric = code;
+                    labelNode.textContent = metric.label;
+                    valueNode.textContent = formatValue(metric.latest, metric.unit || "");
+                    changeNode.textContent = formatChange(metric);
+                    chart.data.datasets[0].label = metric.label;
+                    chart.data.datasets[0].data = metric.values || [];
+                    chart.update();
+                    buttons.forEach((button) => {
+                        button.classList.toggle("is-active", button.dataset.playerTestMetric === code);
+                    });
+                };
+
+                buttons.forEach((button) => {
+                    button.addEventListener("click", () => setMetric(button.dataset.playerTestMetric));
+                });
+                setMetric(buttons[0].dataset.playerTestMetric);
+            }
+
             initDashboardPlayerSliders();
+            initDashboardPlayerTestdata();
             document.addEventListener("DOMContentLoaded", initDashboardPlayerSliders);
+            document.addEventListener("DOMContentLoaded", initDashboardPlayerTestdata);
             document.addEventListener("input", (event) => {
                 const slider = event.target.closest(".dashboard-player-slider");
                 if (slider) {

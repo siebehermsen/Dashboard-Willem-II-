@@ -627,6 +627,8 @@ def dashboard(request):
     player_app_gps_recent = []
     player_app_latest_test = None
     player_app_recent_tests = []
+    player_app_test_metrics = []
+    player_app_test_trends = {"labels": [], "metrics": {}}
     if player_app_form_player:
         player_app_today_wellness = WellnessEntry.objects.filter(
             player=player_app_form_player,
@@ -683,16 +685,51 @@ def dashboard(request):
                 "length": latest_test.get("length"),
                 "sum_skinfolds": latest_test.get("sum_skinfolds"),
             }
-        player_app_recent_tests = [
-            {
-                "date": row["session_date"],
-                "sprint_10": row.get("sprint_10"),
-                "sprint_30": row.get("sprint_30"),
-                "cmj": row.get("cmj"),
-                "isrt": row.get("isrt"),
-            }
-            for row in test_rows[:4]
+        test_rows_chronological = list(reversed(test_rows))
+
+        def test_float(row, code):
+            raw_value = row.get(code)
+            if raw_value in (None, ""):
+                return None
+            try:
+                return float(raw_value)
+            except (TypeError, ValueError):
+                return None
+
+        test_metric_config = [
+            {"code": "sprint_10", "label": "10 meter", "unit": "s", "lower_is_better": True},
+            {"code": "sprint_30", "label": "30 meter", "unit": "s", "lower_is_better": True},
+            {"code": "cmj", "label": "CMJ", "unit": "cm", "lower_is_better": False},
+            {"code": "isrt", "label": "ISRT", "unit": "m", "lower_is_better": False},
+            {"code": "curr_weight", "label": "Gewicht", "unit": "kg", "lower_is_better": False},
+            {"code": "length", "label": "Lengte", "unit": "cm", "lower_is_better": False},
         ]
+        player_app_test_trends = {
+            "labels": [row["session_date"].strftime("%d-%m") for row in test_rows_chronological],
+            "metrics": {},
+        }
+        for metric in test_metric_config:
+            code = metric["code"]
+            values = [test_float(row, code) for row in test_rows_chronological]
+            real_values = [value for value in values if value is not None]
+            latest_value = real_values[-1] if real_values else None
+            previous_value = real_values[-2] if len(real_values) >= 2 else None
+            change_value = None
+            if latest_value is not None and previous_value is not None:
+                change_value = previous_value - latest_value if metric["lower_is_better"] else latest_value - previous_value
+            player_app_test_metrics.append({
+                **metric,
+                "latest": latest_value,
+                "change": change_value,
+                "has_data": latest_value is not None,
+            })
+            player_app_test_trends["metrics"][code] = {
+                **metric,
+                "values": values,
+                "latest": latest_value,
+                "change": change_value,
+                "has_data": latest_value is not None,
+            }
 
     # ---------- CONTEXT ----------
     context = {
@@ -731,6 +768,8 @@ def dashboard(request):
         "player_app_gps_recent": player_app_gps_recent,
         "player_app_latest_test": player_app_latest_test,
         "player_app_recent_tests": player_app_recent_tests,
+        "player_app_test_metrics": player_app_test_metrics,
+        "player_app_test_trends": player_app_test_trends,
     }
 
     return render(request, "Load_dashboard.html", context)

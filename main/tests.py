@@ -226,9 +226,12 @@ class DashboardPersistenceTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Mijn testdata")
+        self.assertContains(response, "dashboardPlayerTestChart")
+        self.assertContains(response, "30 meter")
+        self.assertContains(response, "CMJ")
+        self.assertContains(response, "ISRT")
         self.assertContains(response, "1,72 s")
-        self.assertContains(response, "41,2 cm")
-        self.assertContains(response, "122 m")
+        self.assertNotContains(response, "dashboard-player-test-row")
         self.assertNotContains(response, "dashboardPlayerSelect")
 
     def test_dashboard_agenda_can_show_requested_week(self):
