@@ -649,6 +649,7 @@ class DashboardPersistenceTests(TestCase):
                 "form_type": "add_player",
                 "player_name": "Nieuwe Testspeler",
                 "position_name": "Buitenspeler",
+                "team_code": "O17",
             },
         )
 
@@ -657,8 +658,10 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(player.position_ref.name, "Buitenspeler")
         self.assertTrue(player.is_active)
         self.assertTrue(hasattr(player, "monitoring_profile"))
+        assignment = PlayerTeamAssignment.objects.select_related("team").get(player=player)
+        self.assertEqual(assignment.team.code, "O17")
 
-    def test_staf_page_admin_can_update_and_archive_player(self):
+    def test_staf_page_admin_can_update_player_to_old_players(self):
         position = PlayerPosition.objects.create(name="Middenvelder")
         player = Player.objects.create(name="Oude Speler", position_ref=position)
 
@@ -669,6 +672,8 @@ class DashboardPersistenceTests(TestCase):
                 "player_id": player.id,
                 "player_name": "Nieuwe Speler",
                 "position_name": "Buitenspeler",
+                "team_code": "OUD",
+                "is_active": "on",
             },
         )
 
@@ -678,6 +683,8 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(player.position_ref.name, "Buitenspeler")
         self.assertFalse(player.is_active)
         self.assertTrue(hasattr(player, "monitoring_profile"))
+        assignment = PlayerTeamAssignment.objects.select_related("team").get(player=player)
+        self.assertEqual(assignment.team.code, "OUD")
 
     def test_staf_page_admin_can_create_staff_user_with_dashboard_role(self):
         response = self.client.post(

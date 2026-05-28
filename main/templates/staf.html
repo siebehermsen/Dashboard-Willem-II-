@@ -425,6 +425,15 @@
                     </datalist>
                 </div>
                 <div class="staf-field">
+                    <label for="player-team">Team</label>
+                    <select id="player-team" name="team_code" required>
+                        <option value="">Kies team</option>
+                        {% for team in player_team_options %}
+                        <option value="{{ team.code }}">{{ team.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="staf-field">
                     <label for="player-image">Foto</label>
                     <input id="player-image" type="file" name="player_image" accept="image/*">
                 </div>
@@ -539,6 +548,7 @@
                 </div>
                 <h4 class="staf-name">{{ player.name }}</h4>
                 <p class="staf-role">{{ player.position_ref.name|default:"Geen positie ingevuld" }}</p>
+                <p class="staf-role staf-muted">{{ player.current_team_label }}</p>
                 <span class="staf-status-pill {% if not player.is_active %}is-archived{% endif %}">
                     {% if player.is_active %}Actief{% else %}Gearchiveerd{% endif %}
                 </span>
@@ -636,6 +646,15 @@
                 <div class="staf-field">
                     <label for="player-edit-position-{{ player.id }}">Positie</label>
                     <input id="player-edit-position-{{ player.id }}" type="text" name="position_name" list="player-position-options" value="{{ player.position_ref.name|default:'' }}">
+                </div>
+                <div class="staf-field">
+                    <label for="player-edit-team-{{ player.id }}">Team</label>
+                    <select id="player-edit-team-{{ player.id }}" name="team_code" required>
+                        <option value="">Kies team</option>
+                        {% for team in player_team_options %}
+                        <option value="{{ team.code }}" {% if player.current_team_code == team.code %}selected{% endif %}>{{ team.label }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="staf-field">
                     <label for="player-edit-image-{{ player.id }}">Foto vervangen</label>

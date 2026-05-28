@@ -68,6 +68,7 @@ from .models import (
     PerformanceMetricType,
     PerformanceSession,
     PerformanceSessionKind,
+    PlayerTeamAssignment,
     PlayerMonitoringProfile,
     PlayerPosition,
     StaffRole,
@@ -5720,10 +5721,69 @@ def beleid(request):
 @role_required(ROLE_ADMIN)
 def staf(request):
     staff_members = Staff.objects.select_related("role_ref", "user").all().order_by("name")
-    players = Player.objects.select_related("position_ref").all().order_by("name")
+    players = list(
+        Player.objects
+        .select_related("position_ref")
+        .prefetch_related("team_assignments__team")
+        .all()
+        .order_by("name")
+    )
     staff_roles = StaffRole.objects.filter(is_active=True).order_by("name")
     player_positions = PlayerPosition.objects.filter(is_active=True).order_by("name")
     dashboard_roles = _dashboard_role_values()
+    player_team_options = _academy_team_options()
+
+    def current_player_team(player):
+        today = timezone.localdate()
+        assignments = [
+            assignment
+            for assignment in player.team_assignments.all()
+            if assignment.start_date <= today and (assignment.end_date is None or assignment.end_date >= today)
+        ]
+        if assignments:
+            assignment = sorted(assignments, key=lambda item: item.start_date, reverse=True)[0]
+            return assignment.team
+        if not player.is_active:
+            return Team.objects.filter(code__iexact="OUD").first()
+        return None
+
+    def sync_player_team(player, team_code):
+        team_code = (team_code or "").strip().upper()
+        if not team_code:
+            return
+        if team_code == "OUD":
+            team, _ = Team.objects.get_or_create(code="OUD", defaults={"name": "Oud spelers"})
+            if team.name != "Oud spelers":
+                team.name = "Oud spelers"
+                team.save(update_fields=["name"])
+            player.is_active = False
+            player.save(update_fields=["is_active"])
+        else:
+            team, _ = Team.objects.get_or_create(code=team_code, defaults={"name": team_code})
+            if team.name != team_code:
+                team.name = team_code
+                team.save(update_fields=["name"])
+            player.is_active = True
+            player.save(update_fields=["is_active"])
+
+        today = timezone.localdate()
+        PlayerTeamAssignment.objects.filter(
+            player=player,
+            end_date__isnull=True,
+        ).exclude(team=team).update(end_date=today - timedelta(days=1))
+        PlayerTeamAssignment.objects.filter(
+            player=player,
+            end_date__gte=today,
+        ).exclude(team=team).update(end_date=today - timedelta(days=1))
+        assignment, created = PlayerTeamAssignment.objects.get_or_create(
+            player=player,
+            team=team,
+            start_date=today,
+            defaults={"end_date": None},
+        )
+        if not created and assignment.end_date is not None:
+            assignment.end_date = None
+            assignment.save(update_fields=["end_date"])
 
     if request.method == "POST":
         form_type = (request.POST.get("form_type") or "").strip()
@@ -5731,10 +5791,17 @@ def staf(request):
         if form_type == "add_player":
             name = (request.POST.get("player_name") or "").strip()
             position_name = (request.POST.get("position_name") or "").strip()
+            team_code = (request.POST.get("team_code") or "").strip().upper()
             image = request.FILES.get("player_image")
 
             if not name:
                 messages.error(request, "Vul een spelernaam in.")
+                return redirect("staf")
+            if not team_code:
+                messages.error(request, "Kies een team voor deze speler.")
+                return redirect("staf")
+            if team_code and team_code not in _academy_codes():
+                messages.error(request, "Kies een geldig team voor deze speler.")
                 return redirect("staf")
             if Player.objects.filter(name__iexact=name).exists():
                 messages.error(request, f"Speler {name} bestaat al.")
@@ -5750,6 +5817,7 @@ def staf(request):
                 image=image if image else None,
                 is_active=True,
             )
+            sync_player_team(player, team_code)
             PlayerMonitoringProfile.objects.get_or_create(player=player)
             messages.success(request, f"Succesvol opgeslagen. Speler {player.name} toegevoegd.")
             return redirect("staf")
@@ -5758,10 +5826,17 @@ def staf(request):
             player = get_object_or_404(Player.objects.select_related("position_ref"), id=request.POST.get("player_id"))
             name = (request.POST.get("player_name") or "").strip()
             position_name = (request.POST.get("position_name") or "").strip()
+            team_code = (request.POST.get("team_code") or "").strip().upper()
             image = request.FILES.get("player_image")
 
             if not name:
                 messages.error(request, "Vul een spelernaam in.")
+                return redirect("staf")
+            if not team_code:
+                messages.error(request, "Kies een team voor deze speler.")
+                return redirect("staf")
+            if team_code and team_code not in _academy_codes():
+                messages.error(request, "Kies een geldig team voor deze speler.")
                 return redirect("staf")
             if Player.objects.exclude(id=player.id).filter(name__iexact=name).exists():
                 messages.error(request, f"Speler {name} bestaat al.")
@@ -5777,6 +5852,7 @@ def staf(request):
             if image:
                 player.image = image
             player.save()
+            sync_player_team(player, team_code)
             PlayerMonitoringProfile.objects.get_or_create(player=player)
             messages.success(request, f"Succesvol opgeslagen. Speler {player.name} bijgewerkt.")
             return redirect("staf")
@@ -5912,6 +5988,11 @@ def staf(request):
         return redirect("staf")
 
     staff_member_rows = []
+    for player in players:
+        team = current_player_team(player)
+        player.current_team_code = team.code if team else ""
+        player.current_team_label = _academy_team_label(team.code) if team else "Geen team gekoppeld"
+
     for member in staff_members:
         dashboard_role = _user_dashboard_role(member.user)
         staff_member_rows.append(
@@ -5928,6 +6009,7 @@ def staf(request):
         "players": players,
         "staff_roles": staff_roles,
         "player_positions": player_positions,
+        "player_team_options": player_team_options,
         "dashboard_role_choices": ROLE_CHOICES,
     })
 
