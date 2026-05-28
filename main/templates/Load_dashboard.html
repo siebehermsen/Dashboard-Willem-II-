@@ -916,6 +916,10 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         grid-template-columns: 52px 1fr 1fr 1fr;
     }
 
+    html.app-mode .dashboard-player-test-row {
+        grid-template-columns: 76px 1fr 1fr 1fr;
+    }
+
     html.app-mode .dashboard-player-gps-row strong {
         font-size: 0.9rem;
     }
@@ -1738,6 +1742,13 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                         </span>
                         <span class="dashboard-app-link-accent">&rsaquo;</span>
                     </a>
+                    <a class="dashboard-app-link" href="{% url 'dashboard' %}?app_view=player&player_tab=testdata{% if PLAYER_APP_PREVIEW_MODE %}&player_id={{ player_app_form_player.id }}{% endif %}">
+                        <span class="dashboard-app-link-main">
+                            <span class="dashboard-app-link-title">Testdata</span>
+                            <span class="dashboard-app-link-text">Je fysieke testen en laatste metingen bekijken.</span>
+                        </span>
+                        <span class="dashboard-app-link-accent">&rsaquo;</span>
+                    </a>
                 </div>
                 {% endif %}
 
@@ -1870,6 +1881,57 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                             <div class="dashboard-player-gps-empty">Nog geen trainingsdata beschikbaar.</div>
                         {% endfor %}
                     </div>
+                </section>
+                {% endif %}
+
+                {% if player_app_tab == 'testdata' %}
+                <section class="dashboard-player-gps" aria-label="Testdata speler">
+                    <div class="dashboard-player-gps-head">
+                        <div>
+                            <h3>{% if PLAYER_APP_PREVIEW_MODE %}Testdata{% else %}Mijn testdata{% endif %}</h3>
+                            <p>{% if player_app_latest_test %}Laatste test: {{ player_app_latest_test.date|date:"d-m-Y" }}{% else %}Nog geen testmeting beschikbaar{% endif %}</p>
+                        </div>
+                    </div>
+                    {% if player_app_latest_test %}
+                    <div class="dashboard-player-gps-grid">
+                        <div class="dashboard-player-gps-kpi">
+                            <span>10 meter</span>
+                            <strong>{% if player_app_latest_test.sprint_10 %}{{ player_app_latest_test.sprint_10|floatformat:2 }} s{% else %}-{% endif %}</strong>
+                        </div>
+                        <div class="dashboard-player-gps-kpi">
+                            <span>30 meter</span>
+                            <strong>{% if player_app_latest_test.sprint_30 %}{{ player_app_latest_test.sprint_30|floatformat:2 }} s{% else %}-{% endif %}</strong>
+                        </div>
+                        <div class="dashboard-player-gps-kpi">
+                            <span>CMJ</span>
+                            <strong>{% if player_app_latest_test.cmj %}{{ player_app_latest_test.cmj|floatformat:1 }} cm{% else %}-{% endif %}</strong>
+                        </div>
+                        <div class="dashboard-player-gps-kpi">
+                            <span>ISRT</span>
+                            <strong>{% if player_app_latest_test.isrt %}{{ player_app_latest_test.isrt|floatformat:0 }} m{% else %}-{% endif %}</strong>
+                        </div>
+                        <div class="dashboard-player-gps-kpi">
+                            <span>Gewicht</span>
+                            <strong>{% if player_app_latest_test.curr_weight %}{{ player_app_latest_test.curr_weight|floatformat:1 }} kg{% else %}-{% endif %}</strong>
+                        </div>
+                        <div class="dashboard-player-gps-kpi">
+                            <span>Lengte</span>
+                            <strong>{% if player_app_latest_test.length %}{{ player_app_latest_test.length|floatformat:0 }} cm{% else %}-{% endif %}</strong>
+                        </div>
+                    </div>
+                    <div class="dashboard-player-gps-list">
+                        {% for test in player_app_recent_tests %}
+                            <div class="dashboard-player-gps-row dashboard-player-test-row">
+                                <strong>{{ test.date|date:"d-m-Y" }}</strong>
+                                <span>{% if test.sprint_10 %}10m {{ test.sprint_10|floatformat:2 }} s{% else %}10m -{% endif %}</span>
+                                <span>{% if test.cmj %}CMJ {{ test.cmj|floatformat:1 }} cm{% else %}CMJ -{% endif %}</span>
+                                <span>{% if test.isrt %}ISRT {{ test.isrt|floatformat:0 }} m{% else %}ISRT -{% endif %}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        <div class="dashboard-player-gps-empty">Nog geen testdata beschikbaar.</div>
+                    {% endif %}
                 </section>
                 {% endif %}
             {% else %}

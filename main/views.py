@@ -293,7 +293,7 @@ def dashboard(request):
     player_app_player = _player_for_user(request.user) if player_app_user else None
     player_app_preview_mode = request.GET.get("app_view") == "player" and not player_app_user
     player_app_tab = request.GET.get("player_tab")
-    if player_app_tab not in {"wellness", "data"}:
+    if player_app_tab not in {"wellness", "data", "testdata"}:
         player_app_tab = ""
 
     # ---------- BASIS ----------
@@ -625,6 +625,8 @@ def dashboard(request):
         "sprints": 0,
     }
     player_app_gps_recent = []
+    player_app_latest_test = None
+    player_app_recent_tests = []
     if player_app_form_player:
         player_app_today_wellness = WellnessEntry.objects.filter(
             player=player_app_form_player,
@@ -662,6 +664,35 @@ def dashboard(request):
             }
             for row in gps_rows[:5]
         ]
+        test_rows = [
+            row
+            for row in fetch_performance_rows("test", player_app_form_player)
+            if row.get("session_date")
+        ]
+        test_rows.sort(key=lambda row: row["session_date"], reverse=True)
+        if test_rows:
+            latest_test = test_rows[0]
+            player_app_latest_test = {
+                "date": latest_test["session_date"],
+                "sprint_10": latest_test.get("sprint_10"),
+                "sprint_30": latest_test.get("sprint_30"),
+                "cmj": latest_test.get("cmj"),
+                "isrt": latest_test.get("isrt"),
+                "submax": latest_test.get("submax"),
+                "curr_weight": latest_test.get("curr_weight"),
+                "length": latest_test.get("length"),
+                "sum_skinfolds": latest_test.get("sum_skinfolds"),
+            }
+        player_app_recent_tests = [
+            {
+                "date": row["session_date"],
+                "sprint_10": row.get("sprint_10"),
+                "sprint_30": row.get("sprint_30"),
+                "cmj": row.get("cmj"),
+                "isrt": row.get("isrt"),
+            }
+            for row in test_rows[:4]
+        ]
 
     # ---------- CONTEXT ----------
     context = {
@@ -698,6 +729,8 @@ def dashboard(request):
         "player_app_today_rpe": player_app_today_rpe,
         "player_app_gps_summary": player_app_gps_summary,
         "player_app_gps_recent": player_app_gps_recent,
+        "player_app_latest_test": player_app_latest_test,
+        "player_app_recent_tests": player_app_recent_tests,
     }
 
     return render(request, "Load_dashboard.html", context)

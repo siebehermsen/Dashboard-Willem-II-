@@ -109,6 +109,7 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, "Spelersapp")
         self.assertContains(response, "Dagelijkse check en sessiebelasting invullen.")
         self.assertContains(response, "player_tab=data")
+        self.assertContains(response, "player_tab=testdata")
         self.assertNotContains(response, "Slaap")
         self.assertContains(response, "app_view=staff")
 
@@ -189,6 +190,45 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, "5,3 km")
         self.assertContains(response, "251,0 m")
         self.assertContains(response, "17")
+        self.assertNotContains(response, "dashboardPlayerSelect")
+
+    def test_player_app_dashboard_shows_own_testdata(self):
+        player_user = get_user_model().objects.create_user(username="player-testdata", password="test-pass")
+        player_group, _ = Group.objects.get_or_create(name=ROLE_PLAYER)
+        player_user.groups.add(player_group)
+        self.player.user = player_user
+        self.player.save(update_fields=["user"])
+        test_kind = PerformanceSessionKind.objects.get(code="test")
+        session = PerformanceSession.objects.create(
+            player=self.player,
+            session_kind_ref=test_kind,
+            session_date=date(2026, 5, 16),
+            week=20,
+            source_legacy_table="test",
+            source_legacy_id=2,
+        )
+        for code, value in {
+            "sprint_10": 1.72,
+            "sprint_30": 4.35,
+            "cmj": 41.2,
+            "isrt": 122,
+            "curr_weight": 76.4,
+            "length": 183,
+        }.items():
+            PerformanceMetric.objects.create(
+                session=session,
+                metric_type=PerformanceMetricType.objects.get(code=code),
+                value=value,
+            )
+
+        self.client.force_login(player_user)
+        response = self.client.get(reverse("dashboard") + "?app_view=player&player_tab=testdata")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Mijn testdata")
+        self.assertContains(response, "1,72 s")
+        self.assertContains(response, "41,2 cm")
+        self.assertContains(response, "122 m")
         self.assertNotContains(response, "dashboardPlayerSelect")
 
     def test_dashboard_agenda_can_show_requested_week(self):
