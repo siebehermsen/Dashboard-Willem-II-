@@ -2832,6 +2832,28 @@ def academie_team(request, team_code):
         "sprints": sum(val(row, "sprints") for row in match_rows),
         "matches": len(match_rows),
     }
+    active_injuries = (
+        InjuryCase.objects
+        .select_related("player", "injury_type_ref", "phase_ref", "status_ref")
+        .filter(player_id__in=player_ids, closed_on__isnull=True)
+        .order_by("expected_return_on", "started_on", "player__name")
+    )
+    rehab_rows = []
+    for injury in active_injuries:
+        ui = _injury_to_ui(injury)
+        rehab_rows.append(
+            {
+                "injury": ui,
+                "player_id": injury.player_id,
+                "rehab_url": f"{reverse('revalidatie')}?team={requested_code}&player_id={injury.player_id}",
+            }
+        )
+    rehab_summary = {
+        "total": len(rehab_rows),
+        "early": sum(1 for item in rehab_rows if item["injury"].phase == "early"),
+        "mid": sum(1 for item in rehab_rows if item["injury"].phase == "mid"),
+        "final": sum(1 for item in rehab_rows if item["injury"].phase == "final"),
+    }
 
     context = {
         "academy_codes": academy_codes,
@@ -2850,6 +2872,8 @@ def academie_team(request, team_code):
         "test_chart_data": json.dumps(test_chart_data),
         "match_table_rows": match_table_rows,
         "match_totals": match_totals,
+        "rehab_rows": rehab_rows,
+        "rehab_summary": rehab_summary,
         "gps_chart_labels": json.dumps([item["player"].name for item in gps_rows]),
         "gps_chart_load": json.dumps([round(item["load"], 1) for item in gps_rows]),
         "gps_chart_distance": json.dumps([round(item["total_distance"], 1) for item in gps_rows]),
@@ -3570,8 +3594,6 @@ def individuele_programmas(request):
     - laatste individuele programma + oefeningen worden getoond
     """
 
-    players = Player.objects.select_related("monitoring_profile", "position_ref").all().order_by("name")
-
     # Haal geselecteerde speler uit URL parameters
     player_id = request.GET.get("player_id")
     active_view = (request.GET.get("view") or request.POST.get("view") or "dagprogramma").strip().lower()
@@ -3587,6 +3609,33 @@ def individuele_programmas(request):
     }
     if focus_tab not in focus_tab_options:
         focus_tab = "sprint-acceleratie"
+
+    def team_code_for_player(player_id_value):
+        if not player_id_value:
+            return ""
+        today = timezone.localdate()
+        assignment = (
+            PlayerTeamAssignment.objects
+            .select_related("team")
+            .filter(player_id=player_id_value, start_date__lte=today)
+            .filter(Q(end_date__isnull=True) | Q(end_date__gte=today))
+            .order_by("-start_date", "-id")
+            .first()
+        )
+        return assignment.team.code if assignment and assignment.team else ""
+
+    selected_team_code = (
+        request.GET.get("team")
+        or request.POST.get("team")
+        or team_code_for_player(player_id)
+        or "O21"
+    ).strip().upper()
+    academy_context = _academy_team_context(selected_team_code)
+    selected_team_code = academy_context["requested_code"]
+    selected_team_label = academy_context["team_label"]
+    players = academy_context["players"]
+    selected_team_obj = SimpleNamespace(name=selected_team_label, code=selected_team_code)
+
     selected_player = None
     programma = None
     oefeningen = []
@@ -3778,7 +3827,7 @@ def individuele_programmas(request):
                     action.save(update_fields=["is_done", "updated_at"])
                     messages.success(request, "Actiepunt afgerond.")
                 active_view = "mdo"
-            return redirect(f"/individuele_programmas/?player_id={player_id}&focus_tab={focus_tab}&view={active_view}")
+            return redirect(f"/individuele_programmas/?team={selected_team_code}&player_id={player_id}&focus_tab={focus_tab}&view={active_view}")
 
         today = date.today()
         player_training_rows = fetch_performance_rows("training", selected_player)
@@ -3985,23 +4034,14 @@ def individuele_programmas(request):
         }
         mdo_context["player_profile_overview"] = player_profile_overview
 
-    selected_team = (request.GET.get("team") or "").strip()
-    selected_team_obj = None
-    if selected_team and not player_id:
-        selected_team_obj = Team.objects.filter(
-            Q(code__iexact=selected_team) | Q(name__iexact=selected_team),
-            is_active=True,
-        ).first()
-        if selected_team_obj:
-            players = players.filter(team_assignments__team=selected_team_obj).distinct()
-        else:
-            selected_team_obj = SimpleNamespace(name=selected_team, code=selected_team)
-            players = players.none()
-
     context = {
         "players": players,
         "selected_player": selected_player,
         "selected_team": selected_team_obj,
+        "selected_team_code": selected_team_code,
+        "selected_team_label": selected_team_label,
+        "individual_team_options": academy_context["academy_team_options"],
+        "demo_players": academy_context["demo_players"],
         "day_program": day_program,
         "programma": programma,
         "oefeningen": oefeningen,

@@ -52,6 +52,35 @@
     border-color: var(--ind-navy);
   }
 
+  .ind-team-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 22px;
+  }
+
+  .ind-team-tab {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #c8d2e6;
+    border-radius: 999px;
+    color: var(--ind-navy);
+    display: inline-flex;
+    font-weight: 800;
+    justify-content: center;
+    min-height: 42px;
+    min-width: 86px;
+    padding: 0 18px;
+    text-decoration: none;
+  }
+
+  .ind-team-tab.is-active {
+    background: var(--ind-red);
+    border-color: var(--ind-red);
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(182, 0, 0, 0.18);
+  }
+
   .ind-view-panel {
     display: none;
   }
@@ -289,6 +318,15 @@
     font-weight: 800;
     text-align: center;
     line-height: 1.25;
+  }
+
+  .ind-player-position {
+    color: var(--ind-muted);
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 800;
+    margin-top: 8px;
+    text-align: center;
   }
 
   .ind-selected-shell {
@@ -1083,13 +1121,27 @@
     <h1>Individueel Overzicht</h1>
   </section>
 
+  <nav class="ind-team-tabs" aria-label="Teamselectie individueel overzicht">
+    {% for team in individual_team_options %}
+      <a
+        class="ind-team-tab {% if selected_team_code == team.code %}is-active{% endif %}"
+        href="{% url 'individuele_programmas' %}?team={{ team.code }}&focus_tab={{ focus_tab }}&view={{ active_individual_view }}"
+      >
+        {{ team.label }}
+      </a>
+    {% endfor %}
+  </nav>
+
   {% if not selected_player %}
     <section class="ind-card" style="margin-bottom:22px;">
       <div class="ind-card-head">
-        <h2>{% if selected_team %}{{ selected_team.name }}{% else %}Speler selecteren{% endif %}</h2>
+        <h2>{{ selected_team_label }} selecteren</h2>
       </div>
       <div class="ind-card-body">
         <form method="get" class="ind-form">
+          <input type="hidden" name="team" value="{{ selected_team_code }}">
+          <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
+          <input type="hidden" name="view" value="{{ active_individual_view }}">
           <div class="ind-field">
             <label class="ind-label" for="player_id">Speler</label>
             <select class="ind-select" id="player_id" name="player_id" onchange="this.form.submit()">
@@ -1101,11 +1153,6 @@
               {% endfor %}
             </select>
           </div>
-          {% if selected_team %}
-            <input type="hidden" name="team" value="{{ selected_team.name }}">
-          {% endif %}
-          <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
-          <input type="hidden" name="view" value="{{ active_individual_view }}">
           <noscript>
             <div class="ind-btn-row">
               <button type="submit" class="ind-btn ind-btn-light">Laden</button>
@@ -1149,7 +1196,7 @@
                   </span>
                 </div>
               </div>
-              <a href="{% url 'individuele_programmas' %}?player_id={{ selected_player.id }}&focus_tab={{ focus_tab }}&view=mdo" class="ind-back-link">Open MDO</a>
+              <a href="{% url 'individuele_programmas' %}?team={{ selected_team_code }}&player_id={{ selected_player.id }}&focus_tab={{ focus_tab }}&view=mdo" class="ind-back-link">Open MDO</a>
             </div>
 
             <div class="ind-profile-grid">
@@ -1222,10 +1269,11 @@
         </div>
         <div class="ind-card-body">
           <div class="ind-btn-row" style="margin-bottom:16px;">
-            <a href="{% url 'individuele_programmas' %}" class="ind-back-link">Terug naar spelers</a>
+            <a href="{% url 'individuele_programmas' %}?team={{ selected_team_code }}&focus_tab={{ focus_tab }}&view={{ active_individual_view }}" class="ind-back-link">Terug naar spelers</a>
           </div>
           <form method="post" class="ind-form">
             {% csrf_token %}
+            <input type="hidden" name="team" value="{{ selected_team_code }}">
             <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
             <input type="hidden" name="view" value="dagprogramma">
             <div class="ind-field">
@@ -1249,13 +1297,16 @@
     {% if not selected_player %}
       <article class="ind-card" style="margin-top:22px;">
         <div class="ind-card-head">
-          <h3>{% if selected_team %}Spelers {{ selected_team.name }}{% else %}Spelers{% endif %}</h3>
+          <h3>Spelers {{ selected_team_label }}</h3>
+          {% if demo_players %}
+            <p>Testspelers. Zodra dit team gekoppeld is, verschijnt hier automatisch de juiste spelerslijst.</p>
+          {% endif %}
         </div>
         <div class="ind-card-body">
           <div class="ind-player-grid">
             {% for player in players %}
               <a
-                href="{% url 'individuele_programmas' %}?player_id={{ player.id }}&focus_tab={{ focus_tab }}&view={{ active_individual_view }}#selected-player-workspace"
+                href="{% url 'individuele_programmas' %}?team={{ selected_team_code }}&player_id={{ player.id }}&focus_tab={{ focus_tab }}&view={{ active_individual_view }}#selected-player-workspace"
                 class="ind-player-card"
               >
                 <div class="ind-player-photo">
@@ -1266,9 +1317,12 @@
                   {% endif %}
                 </div>
                 <h4 class="ind-player-name">{{ player.name }}</h4>
+                <span class="ind-player-position">
+                  {% if player.position_ref %}{{ player.position_ref.name }}{% else %}Geen positie{% endif %}
+                </span>
               </a>
             {% empty %}
-              <div class="ind-help">Er zijn nog geen spelers beschikbaar.</div>
+              <div class="ind-help">Er zijn nog geen spelers beschikbaar voor {{ selected_team_label }}.</div>
             {% endfor %}
           </div>
         </div>
@@ -1286,6 +1340,7 @@
         <div class="ind-card-body">
           <form method="post" class="ind-form">
             {% csrf_token %}
+            <input type="hidden" name="team" value="{{ selected_team_code }}">
             <input type="hidden" name="focus_tab" id="focus-tab-input" value="{{ focus_tab }}">
             <input type="hidden" name="view" value="trainen">
 
@@ -1508,6 +1563,7 @@
 
             <form method="post" class="ind-form">
               {% csrf_token %}
+              <input type="hidden" name="team" value="{{ selected_team_code }}">
               <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
               <input type="hidden" name="view" value="mdo">
               <div class="ind-field">
@@ -1537,6 +1593,7 @@
                     </option>
                   {% endfor %}
                 </select>
+                <input type="hidden" name="team" value="{{ selected_team_code }}">
                 <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
                 <input type="hidden" name="view" value="mdo">
               </form>
@@ -1619,6 +1676,7 @@
             <div class="mdo-action-grid">
               <form method="post" class="mdo-action-form">
                 {% csrf_token %}
+                <input type="hidden" name="team" value="{{ selected_team_code }}">
                 <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
                 <input type="hidden" name="view" value="mdo">
                 <div class="ind-field">
@@ -1664,6 +1722,7 @@
                     {% if not action.is_done %}
                       <form method="post">
                         {% csrf_token %}
+                        <input type="hidden" name="team" value="{{ selected_team_code }}">
                         <input type="hidden" name="focus_tab" value="{{ focus_tab }}">
                         <input type="hidden" name="view" value="mdo">
                         <input type="hidden" name="action_id" value="{{ action.id }}">
@@ -1687,6 +1746,7 @@
         </div>
         <div class="ind-card-body">
           <form method="get" class="ind-form">
+            <input type="hidden" name="team" value="{{ selected_team_code }}">
             <div class="ind-field">
               <label class="ind-label" for="mdo_empty_player_id">Speler</label>
               <select class="ind-select" id="mdo_empty_player_id" name="player_id" onchange="this.form.submit()">
@@ -1702,7 +1762,7 @@
 
           <div class="mdo-player-picker-grid">
             {% for player in players %}
-              <a class="mdo-picker-card" href="{% url 'individuele_programmas' %}?player_id={{ player.id }}&focus_tab={{ focus_tab }}&view=mdo">
+              <a class="mdo-picker-card" href="{% url 'individuele_programmas' %}?team={{ selected_team_code }}&player_id={{ player.id }}&focus_tab={{ focus_tab }}&view=mdo">
                 <span class="mdo-picker-avatar">
                   {% if player.image %}
                     <img src="{{ player.image.url }}" alt="{{ player.name }}">

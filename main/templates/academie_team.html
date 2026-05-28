@@ -380,6 +380,41 @@
     color: #cf202f;
     float: right;
 }
+.rehab-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.rehab-summary-card {
+    background: #f6f8fb;
+    border: 1px solid #dde5ef;
+    border-radius: 10px;
+    padding: 16px;
+}
+.rehab-summary-card span {
+    color: #69758c;
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+.rehab-summary-card strong {
+    color: #1f2a44;
+    font-size: 2rem;
+    line-height: 1;
+}
+.rehab-phase-pill {
+    background: #eef2f7;
+    border-radius: 999px;
+    color: #1f2a44;
+    display: inline-flex;
+    font-size: 0.76rem;
+    font-weight: 900;
+    padding: 7px 11px;
+}
 @media (max-width: 900px) {
     .academy-page {
         grid-template-columns: 1fr;
@@ -394,6 +429,9 @@
         grid-template-columns: repeat(2, minmax(140px, 1fr));
     }
     .test-overview-grid {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+    .rehab-summary-grid {
         grid-template-columns: repeat(2, minmax(140px, 1fr));
     }
 }
@@ -433,6 +471,7 @@
             <button class="academy-tab-btn is-active" type="button" data-academy-tab="gps">GPS-data</button>
             <button class="academy-tab-btn" type="button" data-academy-tab="test">Testdata</button>
             <button class="academy-tab-btn" type="button" data-academy-tab="match">Wedstrijddata</button>
+            <button class="academy-tab-btn" type="button" data-academy-tab="rehab">Revalidatie</button>
         </nav>
 
         {% if not team_exists and not demo_players %}
@@ -570,6 +609,56 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+            </article>
+        </section>
+
+        <section class="academy-panel" data-academy-panel="rehab">
+            <article class="academy-card">
+                <div class="academy-card-head">
+                    <h2>Huidige revalidaties</h2>
+                    <span class="academy-muted">Actieve blessures binnen {{ selected_team_label }}</span>
+                </div>
+                <div class="academy-card-body">
+                    <div class="rehab-summary-grid">
+                        <div class="rehab-summary-card"><span>Totaal actief</span><strong>{{ rehab_summary.total }}</strong></div>
+                        <div class="rehab-summary-card"><span>Vroege fase</span><strong>{{ rehab_summary.early }}</strong></div>
+                        <div class="rehab-summary-card"><span>Middenfase</span><strong>{{ rehab_summary.mid }}</strong></div>
+                        <div class="rehab-summary-card"><span>Laatste fase</span><strong>{{ rehab_summary.final }}</strong></div>
+                    </div>
+                    <div class="academy-table-wrap">
+                        <table class="academy-table">
+                            <thead>
+                                <tr>
+                                    <th>Speler</th>
+                                    <th>Type blessure</th>
+                                    <th>Startdatum</th>
+                                    <th>Verwachte terugkeer</th>
+                                    <th>Fase</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in rehab_rows %}
+                                    <tr>
+                                        <td>{{ item.injury.name }}</td>
+                                        <td>{{ item.injury.injury_type }}</td>
+                                        <td>{{ item.injury.start_date|date:"d-m-Y"|default:"-" }}</td>
+                                        <td>
+                                            {{ item.injury.expected_return|date:"d-m-Y"|default:"-" }}
+                                            {% if item.injury.duration %}
+                                                <br><span class="academy-muted">{{ item.injury.duration }} dagen</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><span class="rehab-phase-pill">{{ item.injury.phase_label }}</span></td>
+                                        <td><a class="academy-open-link" href="{{ item.rehab_url }}">Openen</a></td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="6" class="academy-muted">Geen actieve revalidaties voor dit team.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </article>
         </section>

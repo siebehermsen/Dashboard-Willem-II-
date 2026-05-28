@@ -11,6 +11,7 @@ from .models import (
     AttendanceRecord,
     AttendanceStatus,
     DayProgramEntry,
+    InjuryCase,
     MDOActionPoint,
     NutritionIntakeItem,
     NutritionIntakeSession,
@@ -477,6 +478,58 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, self.player.name)
         self.assertNotContains(response, self.other_player.name)
         self.assertNotContains(response, "Oud spelers")
+
+    def test_academie_team_shows_current_revalidations_for_selected_team(self):
+        team_o17 = Team.objects.create(code="O17", name="O17")
+        team_o19 = Team.objects.create(code="O19", name="O19")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team_o17,
+            start_date=date(2026, 1, 1),
+        )
+        PlayerTeamAssignment.objects.create(
+            player=self.other_player,
+            team=team_o19,
+            start_date=date(2026, 1, 1),
+        )
+        InjuryCase.objects.create(
+            player=self.player,
+            started_on=date(2026, 5, 1),
+            expected_return_on=date(2026, 5, 30),
+        )
+        InjuryCase.objects.create(
+            player=self.other_player,
+            started_on=date(2026, 5, 1),
+            expected_return_on=date(2026, 5, 30),
+        )
+
+        response = self.client.get(reverse("academie_team", args=["O17"]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Huidige revalidaties")
+        self.assertContains(response, self.player.name)
+        self.assertNotContains(response, self.other_player.name)
+
+    def test_individuele_programmas_filters_players_by_academy_team(self):
+        team_o17 = Team.objects.create(code="O17", name="O17")
+        team_o19 = Team.objects.create(code="O19", name="O19")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team_o17,
+            start_date=date(2026, 1, 1),
+        )
+        PlayerTeamAssignment.objects.create(
+            player=self.other_player,
+            team=team_o19,
+            start_date=date(2026, 1, 1),
+        )
+
+        response = self.client.get(reverse("individuele_programmas") + "?team=O17")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Spelers O17")
+        self.assertContains(response, self.player.name)
+        self.assertNotContains(response, self.other_player.name)
 
     def test_gps_training_upload_rejects_duplicate_player_date_rows(self):
         team = Team.objects.create(code="O17", name="O17")
