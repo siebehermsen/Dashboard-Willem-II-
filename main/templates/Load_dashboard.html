@@ -934,39 +934,50 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         margin: 0;
     }
 
-    html.app-mode .dashboard-player-test-tabs {
-        display: flex;
-        gap: 8px;
-        margin: 2px -2px 0;
-        overflow-x: auto;
-        padding: 2px 2px 8px;
-        scrollbar-width: none;
+    html.app-mode .dashboard-player-test-list {
+        display: grid;
+        gap: 10px;
     }
 
-    html.app-mode .dashboard-player-test-tabs::-webkit-scrollbar {
-        display: none;
-    }
-
-    html.app-mode .dashboard-player-test-tab {
+    html.app-mode .dashboard-player-test-choice {
         appearance: none;
         background: #fff;
-        border: 1px solid #d5deec;
-        border-radius: 999px;
+        border: 1px solid #e2e9f3;
+        border-radius: 16px;
         color: #10213f;
         cursor: pointer;
-        flex: 0 0 auto;
+        display: grid;
+        gap: 4px;
         font: inherit;
-        font-size: 0.86rem;
-        font-weight: 900;
-        min-height: 42px;
-        padding: 0 14px;
+        grid-template-columns: 1fr auto;
+        min-height: 62px;
+        padding: 12px 14px;
+        text-align: left;
+        width: 100%;
     }
 
-    html.app-mode .dashboard-player-test-tab.is-active {
-        background: #cf202f;
-        border-color: #cf202f;
-        color: #fff;
-        box-shadow: 0 10px 22px rgba(207, 32, 47, 0.22);
+    html.app-mode .dashboard-player-test-choice strong {
+        font-size: 0.98rem;
+        font-weight: 900;
+    }
+
+    html.app-mode .dashboard-player-test-choice span {
+        color: #687792;
+        font-size: 0.84rem;
+        font-weight: 800;
+    }
+
+    html.app-mode .dashboard-player-test-choice-icon {
+        align-self: center;
+        background: #f4f7fb;
+        border-radius: 999px;
+        color: #cf202f;
+        display: grid;
+        font-size: 1.3rem;
+        font-weight: 900;
+        height: 34px;
+        place-items: center;
+        width: 34px;
     }
 
     html.app-mode .dashboard-player-test-detail {
@@ -976,6 +987,26 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         display: grid;
         gap: 14px;
         padding: 14px;
+    }
+
+    html.app-mode .dashboard-player-test-detail[hidden],
+    html.app-mode .dashboard-player-test-list[hidden] {
+        display: none;
+    }
+
+    html.app-mode .dashboard-player-test-back {
+        appearance: none;
+        background: #cf202f;
+        border: 0;
+        border-radius: 14px;
+        color: #fff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.92rem;
+        font-weight: 900;
+        justify-self: start;
+        min-height: 42px;
+        padding: 0 18px;
     }
 
     html.app-mode .dashboard-player-test-value {
@@ -1978,14 +2009,23 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                         </div>
                     </div>
                     {% if player_app_latest_test %}
-                    <div class="dashboard-player-test-tabs" role="tablist" aria-label="Testdata onderdelen">
+                    <div class="dashboard-player-test-list" data-player-test-list aria-label="Testdata onderdelen">
                         {% for metric in player_app_test_metrics %}
-                            <button class="dashboard-player-test-tab {% if forloop.first %}is-active{% endif %}" type="button" data-player-test-metric="{{ metric.code }}">
-                                {{ metric.label }}
+                            <button class="dashboard-player-test-choice" type="button" data-player-test-metric="{{ metric.code }}">
+                                <span>
+                                    <strong>{{ metric.label }}</strong>
+                                    {% if metric.has_data %}
+                                        {{ metric.latest|floatformat:2 }} {{ metric.unit }}
+                                    {% else %}
+                                        Nog geen meting
+                                    {% endif %}
+                                </span>
+                                <span class="dashboard-player-test-choice-icon" aria-hidden="true">&rsaquo;</span>
                             </button>
                         {% endfor %}
                     </div>
-                    <div class="dashboard-player-test-detail">
+                    <div class="dashboard-player-test-detail" data-player-test-detail hidden>
+                        <button class="dashboard-player-test-back" type="button" data-player-test-back>Terug</button>
                         <div class="dashboard-player-test-value">
                             <span id="dashboardPlayerTestLabel">{% for metric in player_app_test_metrics %}{% if forloop.first %}{{ metric.label }}{% endif %}{% endfor %}</span>
                             <strong id="dashboardPlayerTestValue">
@@ -2065,7 +2105,10 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                 const valueNode = document.getElementById("dashboardPlayerTestValue");
                 const changeNode = document.getElementById("dashboardPlayerTestChange");
                 const buttons = Array.from(document.querySelectorAll("[data-player-test-metric]"));
-                if (!dataNode || !canvas || !labelNode || !valueNode || !changeNode || !buttons.length || !window.Chart) {
+                const listNode = document.querySelector("[data-player-test-list]");
+                const detailNode = document.querySelector("[data-player-test-detail]");
+                const backButton = document.querySelector("[data-player-test-back]");
+                if (!dataNode || !canvas || !labelNode || !valueNode || !changeNode || !buttons.length || !listNode || !detailNode || !window.Chart) {
                     return;
                 }
                 if (canvas.dataset.chartReady === "1") {
@@ -2157,15 +2200,19 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                     chart.data.datasets[0].label = metric.label;
                     chart.data.datasets[0].data = metric.values || [];
                     chart.update();
-                    buttons.forEach((button) => {
-                        button.classList.toggle("is-active", button.dataset.playerTestMetric === code);
-                    });
+                    listNode.hidden = true;
+                    detailNode.hidden = false;
                 };
 
                 buttons.forEach((button) => {
                     button.addEventListener("click", () => setMetric(button.dataset.playerTestMetric));
                 });
-                setMetric(buttons[0].dataset.playerTestMetric);
+                if (backButton) {
+                    backButton.addEventListener("click", () => {
+                        detailNode.hidden = true;
+                        listNode.hidden = false;
+                    });
+                }
             }
 
             initDashboardPlayerSliders();
