@@ -3060,14 +3060,47 @@ from .models import (
 
 def revalidatie(request):
     """Pagina voor overzicht van geblesseerde spelers + invoer van veldrevalidatie."""
-    injuries = InjuryCase.objects.select_related(
-        "player", "injury_type_ref", "phase_ref", "status_ref"
-    ).order_by("started_on")
-    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
-
+    data_team_codes = _academy_data_codes()
     selected_player_id = request.GET.get("player_id")
     selected_player_name = request.GET.get("player")
     selected_player = None
+
+    def team_code_for_player(player_id_value):
+        if not player_id_value:
+            return ""
+        today = timezone.localdate()
+        assignment = (
+            PlayerTeamAssignment.objects
+            .select_related("team")
+            .filter(
+                player_id=player_id_value,
+                team__code__in=data_team_codes,
+                start_date__lte=today,
+            )
+            .filter(Q(end_date__isnull=True) | Q(end_date__gte=today))
+            .order_by("-start_date", "-id")
+            .first()
+        )
+        return assignment.team.code if assignment and assignment.team else ""
+
+    selected_team_code = (
+        request.GET.get("team")
+        or request.POST.get("team")
+        or team_code_for_player(selected_player_id)
+        or data_team_codes[0]
+    ).strip().upper()
+    if selected_team_code not in data_team_codes:
+        selected_team_code = data_team_codes[0]
+    selected_team, team_players_qs = _team_players_for_gps_upload(selected_team_code)
+    selected_team_label = selected_team.name if selected_team else _academy_team_label(selected_team_code)
+    players = list(team_players_qs.select_related("monitoring_profile", "position_ref"))
+    team_player_ids = {player.id for player in players}
+    injuries = (
+        InjuryCase.objects
+        .select_related("player", "injury_type_ref", "phase_ref", "status_ref")
+        .filter(player_id__in=team_player_ids)
+        .order_by("started_on")
+    )
 
     if selected_player_id:
         selected_player = Player.objects.filter(id=selected_player_id).first()
@@ -3254,13 +3287,13 @@ def revalidatie(request):
 
             if not player_id or not injury_type or not start_date or not expected_return or not phase:
                 messages.error(request, "Vul speler, type blessure, startdatum, verwachte terugkeer en fase in.")
-                return redirect("revalidatie")
+                return redirect(f"{reverse('revalidatie')}?team={selected_team_code}")
 
             try:
                 player = Player.objects.get(id=player_id)
             except Player.DoesNotExist:
                 messages.error(request, "Ongeldige speler geselecteerd.")
-                return redirect("revalidatie")
+                return redirect(f"{reverse('revalidatie')}?team={selected_team_code}")
 
             _upsert_injury_case(
                 player=player,
@@ -3271,7 +3304,8 @@ def revalidatie(request):
                 phase=phase,
             )
             messages.success(request, f"Blessure voor {player.name} toegevoegd.")
-            return redirect("revalidatie")
+            redirect_team_code = team_code_for_player(player.id) or selected_team_code
+            return redirect(f"{reverse('revalidatie')}?team={redirect_team_code}")
 
         player_id = request.POST.get("player")
         phase = request.POST.get("phase")
@@ -3336,15 +3370,20 @@ def revalidatie(request):
             print("Ongeldige speler geselecteerd")
 
         if player_id:
-            return redirect(f"/revalidatie/?player_id={player_id}")
+            redirect_team_code = team_code_for_player(player_id) or selected_team_code
+            return redirect(f"{reverse('revalidatie')}?team={redirect_team_code}&player_id={player_id}")
         if selected_player:
-            return redirect(f"/revalidatie/?player_id={selected_player.id}")
-        return redirect("revalidatie")
+            redirect_team_code = team_code_for_player(selected_player.id) or selected_team_code
+            return redirect(f"{reverse('revalidatie')}?team={redirect_team_code}&player_id={selected_player.id}")
+        return redirect(f"{reverse('revalidatie')}?team={selected_team_code}")
 
     context = {
         "injuries": [_injury_to_ui(injury) for injury in injuries],
         "players": players,
         "selected_player": selected_player,
+        "rehab_team_options": _academy_data_team_options(),
+        "selected_team_code": selected_team_code,
+        "selected_team_label": selected_team_label,
         "rehab_month_data": rehab_month_data,
         "rehab_month_range_label": rehab_month_range_label,
         "rehab_month_labels_json": json.dumps(rehab_month_labels),
