@@ -48,26 +48,58 @@
 <!-- UPLOADFORMULIER -->
 <section class="card fade-in upload-card" style="margin-bottom: 25px;">
     <h3>Upload StatsSports CSV-bestand</h3>
-
-    {% if active_page == "wedstrijd" %}
-        <!-- WEDSTRIJD UPLOAD -->
-        <form method="post" action="{% url 'upload_wedstrijddata' %}" enctype="multipart/form-data"
-              class="upload-block-form" style="margin-top: 10px;">
-            {% csrf_token %}
-            <input type="file" name="file" accept=".csv" required class="form-control" style="margin-bottom: 10px;">
+    <p class="subtext">Kies eerst het team en event. De upload wordt daarna automatisch onder het juiste team en type data verwerkt.</p>
+    <form method="post"
+          action="{% if active_page == 'wedstrijd' %}{% url 'upload_wedstrijddata' %}{% else %}{% url 'upload_file' %}{% endif %}"
+          data-training-upload-form
+          data-training-upload-url="{% url 'upload_file' %}"
+          data-match-upload-url="{% url 'upload_wedstrijddata' %}"
+          enctype="multipart/form-data"
+          class="upload-block-form gps-upload-form">
+        {% csrf_token %}
+        <div class="gps-upload-grid">
+            <label>
+                Team
+                <select name="upload_team" required>
+                    <option value="">-- Kies een team --</option>
+                    {% for code in upload_team_codes %}
+                        <option value="{{ code }}">{{ code }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                Event
+                <select name="upload_event" required data-upload-event-select>
+                    <option value="">-- Kies event --</option>
+                    {% for value, event in upload_events.items %}
+                        <option value="{{ value }}">{{ event.0 }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                CSV-bestand
+                <input type="file" name="file" accept=".csv" required class="form-control">
+            </label>
             <button type="submit" class="btn btn-primary">Uploaden</button>
-        </form>
-
-    {% else %}
-        <!-- TRAINING UPLOAD -->
-        <form method="post" action="{% url 'upload_file' %}" enctype="multipart/form-data"
-              class="upload-block-form" style="margin-top: 10px;">
-            {% csrf_token %}
-            <input type="file" name="file" accept=".csv" required class="form-control" style="margin-bottom: 10px;">
-            <button type="submit" class="btn btn-primary">Uploaden</button>
-        </form>
-    {% endif %}
+        </div>
+    </form>
 </section>
+<script>
+    (() => {
+        const form = document.querySelector("[data-training-upload-form]");
+        const eventSelect = document.querySelector("[data-upload-event-select]");
+        if (!form || !eventSelect) {
+            return;
+        }
+        const syncUploadAction = () => {
+            form.action = eventSelect.value === "competitiewedstrijd"
+                ? form.dataset.matchUploadUrl
+                : form.dataset.trainingUploadUrl;
+        };
+        eventSelect.addEventListener("change", syncUploadAction);
+        syncUploadAction();
+    })();
+</script>
 {% endif %}
 
 {% if active_page == "training" %}
@@ -2519,6 +2551,49 @@ main.container {
 .btn-primary:hover {
     background-color: #e74c3c;
     transform: translateY(-2px);
+}
+
+.gps-upload-form {
+    margin-top: 16px;
+}
+
+.gps-upload-grid {
+    display: grid;
+    grid-template-columns: minmax(160px, 0.8fr) minmax(220px, 1fr) minmax(240px, 1fr) auto;
+    gap: 14px;
+    align-items: end;
+}
+
+.gps-upload-grid label {
+    display: grid;
+    gap: 7px;
+    color: #1f2a44;
+    font-weight: 800;
+}
+
+.gps-upload-grid select,
+.gps-upload-grid input[type="file"] {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid #cfd8e7;
+    border-radius: 12px;
+    background: #fbfdff;
+    color: #1f2a44;
+    font: inherit;
+    box-sizing: border-box;
+    padding: 8px 10px;
+}
+
+@media (max-width: 1000px) {
+    .gps-upload-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .gps-upload-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* --------------------------

@@ -1890,6 +1890,8 @@ def training(request):
         "training_daily_range_label": f"{start_date.strftime('%d-%m-%Y')} t/m {end_date.strftime('%d-%m-%Y')}",
         "week_targets": week_targets,
         "week_target_rows": week_target_rows,
+        "upload_team_codes": _academy_codes(),
+        "upload_events": GPS_UPLOAD_EVENTS,
 
         "active_page": "training",
     }
@@ -2047,6 +2049,8 @@ def wedstrijddata(request):
         "team_d20": team_d20,
         "team_d25": team_d25,
         "team_max_speed": team_max_speed,
+        "upload_team_codes": _academy_codes(),
+        "upload_events": GPS_UPLOAD_EVENTS,
 
         "active_page": "wedstrijd",
     }
@@ -5919,6 +5923,13 @@ GPS_MATCH_METRICS = {
     "second_half_load": ("Load tweede helft", "au", "load"),
 }
 
+GPS_UPLOAD_EVENTS = {
+    "opstart_training": ("Opstart training", "training"),
+    "sneller_herstellen": ("Sneller herstellen", "training"),
+    "volhouden_herstellen": ("Volhouden herstellen", "training"),
+    "competitiewedstrijd": ("Competitiewedstrijd", "match"),
+}
+
 
 def _decode_uploaded_csv(uploaded_file):
     raw = uploaded_file.read()
@@ -6001,6 +6012,48 @@ def _find_player_from_gps_lastname(players, csv_lastname, *, allow_contains=Fals
     return None
 
 
+def _team_players_for_gps_upload(team_code):
+    team_code = _normalize_csv_value(team_code).upper()
+    team = Team.objects.filter(Q(code__iexact=team_code) | Q(name__iexact=team_code), is_active=True).first()
+    if not team:
+        return None, Player.objects.none()
+    today = timezone.localdate()
+    players = (
+        Player.objects
+        .filter(is_active=True, team_assignments__team=team)
+        .filter(Q(team_assignments__end_date__isnull=True) | Q(team_assignments__end_date__gte=today))
+        .distinct()
+        .order_by("name")
+    )
+    return team, players
+
+
+def _gps_upload_selection(request):
+    team_code = _normalize_csv_value(request.POST.get("upload_team"))
+    event_code = _normalize_csv_value(request.POST.get("upload_event"))
+    if not team_code:
+        messages.error(request, "Kies eerst een team voor de GPS-upload.")
+        return None
+    if event_code not in GPS_UPLOAD_EVENTS:
+        messages.error(request, "Kies eerst een geldig event voor de GPS-upload.")
+        return None
+    team, players = _team_players_for_gps_upload(team_code)
+    if not team:
+        messages.error(request, f"Team {team_code} is niet gevonden.")
+        return None
+    if not players.exists():
+        messages.error(request, f"Team {team.code} heeft nog geen actieve spelers. Koppel eerst spelers aan dit team.")
+        return None
+    event_label, session_kind = GPS_UPLOAD_EVENTS[event_code]
+    return {
+        "team": team,
+        "players": list(players),
+        "event_code": event_code,
+        "event_label": event_label,
+        "session_kind": session_kind,
+    }
+
+
 def _gps_session_exists(player, session_kind, session_date):
     kind = PerformanceSessionKind.objects.filter(code=session_kind).first()
     if not kind:
@@ -6037,6 +6090,11 @@ def upload_file(request):
         if not csv_file.name.lower().endswith('.csv'):
             messages.error(request, 'Upload een geldig CSV-bestand (.csv).')
             return redirect('training')
+        upload_selection = _gps_upload_selection(request)
+        if not upload_selection:
+            return redirect('training')
+        if upload_selection["session_kind"] == "match":
+            return upload_wedstrijddata(request)
 
         try:
             decoded_file = _decode_uploaded_csv(csv_file)
@@ -6056,7 +6114,7 @@ def upload_file(request):
             return redirect('training')
 
         _ensure_gps_metric_types(GPS_TRAINING_METRICS)
-        players = list(Player.objects.all())
+        players = upload_selection["players"]
         seen_sessions = set()
         count = 0
         duplicates = 0
@@ -6097,7 +6155,7 @@ def upload_file(request):
                     'sprints': _csv_int(row.get('Sprints')),
                     'load': 0,
                 },
-                source_tag='main_upload_training',
+                source_tag=f"main_upload_training_{upload_selection['event_code']}",
             )
             seen_sessions.add(session_key)
             count += 1
@@ -6109,7 +6167,7 @@ def upload_file(request):
             skipped=skipped,
             invalid_dates=invalid_dates,
             unknown_players=unknown_players,
-            label="training",
+            label=f"{upload_selection['team'].code} {upload_selection['event_label'].lower()}",
         )
         return redirect('training')
 
@@ -6125,24 +6183,29 @@ def upload_wedstrijddata(request):
 
         if not csv_file.name.lower().endswith('.csv'):
             messages.error(request, 'Upload een geldig CSV-bestand (.csv).')
-            return redirect('training')
+            return redirect('wedstrijddata')
+        upload_selection = _gps_upload_selection(request)
+        if not upload_selection:
+            return redirect('wedstrijddata')
+        if upload_selection["session_kind"] == "training":
+            return upload_file(request)
 
         try:
             decoded = _decode_uploaded_csv(csv_file)
         except UnicodeDecodeError:
             messages.error(request, 'Het CSV-bestand kon niet worden gelezen. Exporteer het bestand opnieuw als CSV met UTF-8 of Windows-1252 encoding.')
-            return redirect('training')
+            return redirect('wedstrijddata')
 
         reader = csv.DictReader(decoded, skipinitialspace=True)
         if not reader.fieldnames:
             messages.error(request, 'Het CSV-bestand bevat geen kolomkoppen.')
-            return redirect('training')
+            return redirect('wedstrijddata')
         if not _csv_has_columns(reader, ("Player Last Name", "Session Date")):
             messages.error(request, 'Het CSV-bestand mist verplichte kolommen: Player Last Name en Session Date.')
-            return redirect('training')
+            return redirect('wedstrijddata')
         if not _csv_has_any_column(reader, ("Total Distance", "HIR (M>20 KM/U)", "Sprints", "HML Distance")):
             messages.error(request, 'Het CSV-bestand bevat geen herkenbare wedstrijd-GPS-kolommen zoals Total Distance, HIR, Sprints of HML Distance.')
-            return redirect('training')
+            return redirect('wedstrijddata')
 
         def first_available_float(row, names):
             normalized = {str(key).strip().lower(): value for key, value in row.items()}
@@ -6153,7 +6216,7 @@ def upload_wedstrijddata(request):
             return 0.0
 
         _ensure_gps_metric_types(GPS_MATCH_METRICS)
-        players = list(Player.objects.all())
+        players = upload_selection["players"]
         seen_sessions = set()
         count = 0
         duplicates = 0
@@ -6225,7 +6288,7 @@ def upload_wedstrijddata(request):
                     'first_half_load': first_half_load,
                     'second_half_load': second_half_load,
                 },
-                source_tag='main_upload_match',
+                source_tag=f"main_upload_match_{upload_selection['event_code']}",
             )
             seen_sessions.add(session_key)
             count += 1
@@ -6237,13 +6300,13 @@ def upload_wedstrijddata(request):
             skipped=skipped,
             invalid_dates=invalid_dates,
             unknown_players=unknown_players,
-            label="wedstrijd",
+            label=f"{upload_selection['team'].code} {upload_selection['event_label'].lower()}",
         )
-        return redirect('training')
+        return redirect('wedstrijddata')
 
     if request.method == 'POST':
         messages.error(request, 'Kies eerst een CSV-bestand om te uploaden.')
-    return redirect('training')
+    return redirect('wedstrijddata')
 
 
 def beweeganalyse(request):

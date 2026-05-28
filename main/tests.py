@@ -374,6 +374,12 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(metric.value, 1.79)
 
     def test_gps_training_upload_rejects_duplicate_player_date_rows(self):
+        team = Team.objects.create(code="O17", name="O17")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team,
+            start_date=date(2026, 1, 1),
+        )
         csv_content = (
             "Player Last Name,Session Date,Total Distance,HIR (M>20 KM/U),Sprints\n"
             "Speler,15/05/2026,5306,251,17\n"
@@ -381,11 +387,19 @@ class DashboardPersistenceTests(TestCase):
 
         first_response = self.client.post(
             reverse("upload_file"),
-            {"file": SimpleUploadedFile("training.csv", csv_content, content_type="text/csv")},
+            {
+                "upload_team": "O17",
+                "upload_event": "opstart_training",
+                "file": SimpleUploadedFile("training.csv", csv_content, content_type="text/csv"),
+            },
         )
         second_response = self.client.post(
             reverse("upload_file"),
-            {"file": SimpleUploadedFile("training.csv", csv_content, content_type="text/csv")},
+            {
+                "upload_team": "O17",
+                "upload_event": "opstart_training",
+                "file": SimpleUploadedFile("training.csv", csv_content, content_type="text/csv"),
+            },
         )
 
         self.assertEqual(first_response.status_code, 302)
@@ -399,7 +413,7 @@ class DashboardPersistenceTests(TestCase):
             1,
         )
         message_text = " ".join(str(message) for message in get_messages(second_response.wsgi_request))
-        self.assertIn("dubbele trainingregel", message_text)
+        self.assertIn("dubbele O17 opstart trainingregel", message_text)
 
     def test_nutrition_intake_post_persists_and_updates_session_items(self):
         payload = {
