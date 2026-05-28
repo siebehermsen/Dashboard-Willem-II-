@@ -225,6 +225,7 @@ class DashboardPersistenceTests(TestCase):
         response = self.client.get(reverse("dashboard") + "?app_view=player&player_tab=testdata")
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Terug")
         self.assertContains(response, "Mijn testdata")
         self.assertContains(response, "dashboardPlayerTestChart")
         self.assertContains(response, "30 meter")
