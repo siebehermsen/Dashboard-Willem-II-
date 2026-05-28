@@ -1596,7 +1596,7 @@ def training(request):
     selected_metric = request.GET.get("metric", "load")
     if selected_metric not in metric_field_map:
         selected_metric = "load"
-    data_team_codes = _academy_codes()
+    data_team_codes = _academy_data_codes()
     selected_data_team_code = (request.GET.get("team") or data_team_codes[0]).strip().upper()
     if selected_data_team_code not in data_team_codes:
         selected_data_team_code = data_team_codes[0]
@@ -1904,7 +1904,7 @@ def training(request):
         "upload_team_codes": data_team_codes,
         "upload_events": GPS_UPLOAD_EVENTS,
         "data_team_codes": data_team_codes,
-        "data_team_options": _academy_team_options(),
+        "data_team_options": _academy_data_team_options(),
         "selected_data_team_code": selected_data_team_code,
         "selected_data_team_label": selected_data_team_label,
         "data_team_query": f"team={selected_data_team_code}",
@@ -1932,7 +1932,7 @@ def wedstrijddata(request):
     selected_metric = request.GET.get("metric", "load")
     if selected_metric not in metric_field_map:
         selected_metric = "load"
-    data_team_codes = _academy_codes()
+    data_team_codes = _academy_data_codes()
     selected_data_team_code = (request.GET.get("team") or data_team_codes[0]).strip().upper()
     if selected_data_team_code not in data_team_codes:
         selected_data_team_code = data_team_codes[0]
@@ -2076,7 +2076,7 @@ def wedstrijddata(request):
         "upload_team_codes": data_team_codes,
         "upload_events": GPS_UPLOAD_EVENTS,
         "data_team_codes": data_team_codes,
-        "data_team_options": _academy_team_options(),
+        "data_team_options": _academy_data_team_options(),
         "selected_data_team_code": selected_data_team_code,
         "selected_data_team_label": selected_data_team_label,
         "data_team_query": f"team={selected_data_team_code}",
@@ -2091,7 +2091,7 @@ def fysiek_rapport(request):
     import json
 
     players = Player.objects.select_related("monitoring_profile", "position_ref").all().order_by("name")
-    report_team_codes = _academy_codes()
+    report_team_codes = _academy_data_codes()
     selected_team_code = (request.GET.get("team") or report_team_codes[0]).strip().upper()
     if selected_team_code not in report_team_codes:
         selected_team_code = report_team_codes[0]
@@ -2223,7 +2223,7 @@ def fysiek_rapport(request):
         "players": players,
         "active_page": "rapport",
         "report_team_codes": report_team_codes,
-        "report_team_options": _academy_team_options(),
+        "report_team_options": _academy_data_team_options(),
         "selected_team_code": selected_team_code,
         "selected_team_label": selected_team_label,
         "selected_data_team_code": selected_team_code,
@@ -2454,7 +2454,11 @@ def testdata(request):
 
 
 def _academy_codes():
-    return ["O21", "O19", "O17", "O15", "O14", "O13", "O12", "OUD"]
+    return ["OUD", "O21", "O19", "O17", "O15", "O14", "O13", "O12"]
+
+
+def _academy_data_codes():
+    return ["O21", "O19", "O17", "O15", "O14", "O13", "O12"]
 
 
 def _academy_team_label(team_code):
@@ -2463,6 +2467,10 @@ def _academy_team_label(team_code):
 
 def _academy_team_options():
     return [{"code": code, "label": _academy_team_label(code)} for code in _academy_codes()]
+
+
+def _academy_data_team_options():
+    return [{"code": code, "label": _academy_team_label(code)} for code in _academy_data_codes()]
 
 
 def _academy_team_context(team_code):

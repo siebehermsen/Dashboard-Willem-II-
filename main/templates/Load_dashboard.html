@@ -87,11 +87,11 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
     object-fit: contain;
     filter: drop-shadow(0 22px 30px rgba(31, 42, 68, 0.20));
 }
-.academy-team-012 { grid-column: 1; grid-row: 1; }
-.academy-team-013 { grid-column: 1; grid-row: 2; }
-.academy-team-014 { grid-column: 2; grid-row: 1; }
-.academy-team-015 { grid-column: 2; grid-row: 2; }
-.academy-team-old { grid-column: 4; grid-row: 1; }
+.academy-team-old { grid-column: 1; grid-row: 1; }
+.academy-team-012 { grid-column: 1; grid-row: 2; }
+.academy-team-013 { grid-column: 2; grid-row: 1; }
+.academy-team-014 { grid-column: 2; grid-row: 2; }
+.academy-team-015 { grid-column: 4; grid-row: 1; }
 .academy-team-017 { grid-column: 4; grid-row: 2; }
 .academy-team-019 { grid-column: 5; grid-row: 1; }
 .academy-team-021 { grid-column: 5; grid-row: 2; }
@@ -2173,6 +2173,12 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
     <div class="dashboard-desktop-shell">
 
     <section class="academy-switchboard" aria-label="Academie teams">
+        <a class="academy-team-tile academy-team-old" href="{% url 'academie_team' 'OUD' %}">
+            <span class="academy-team-main">
+                <span class="academy-team-name">Oud spelers</span>
+            </span>
+            <span class="academy-team-arrow" aria-hidden="true"></span>
+        </a>
         <a class="academy-team-tile academy-team-012" href="{% url 'academie_team' 'O12' %}">
             <span class="academy-team-main">
                 <span class="academy-team-name">O12</span>
@@ -2191,18 +2197,12 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
             </span>
             <span class="academy-team-arrow" aria-hidden="true"></span>
         </a>
-        <a class="academy-team-tile academy-team-015" href="{% url 'academie_team' 'O15' %}">
-            <span class="academy-team-main">
-                <span class="academy-team-name">O15</span>
-            </span>
-            <span class="academy-team-arrow" aria-hidden="true"></span>
-        </a>
         <div class="academy-logo-card" aria-label="NEC Nijmegen">
             <img src="{% static 'icons/nec-logo.svg' %}" alt="NEC logo">
         </div>
-        <a class="academy-team-tile academy-team-old" href="{% url 'academie_team' 'OUD' %}">
+        <a class="academy-team-tile academy-team-015" href="{% url 'academie_team' 'O15' %}">
             <span class="academy-team-main">
-                <span class="academy-team-name">Oud spelers</span>
+                <span class="academy-team-name">O15</span>
             </span>
             <span class="academy-team-arrow" aria-hidden="true"></span>
         </a>

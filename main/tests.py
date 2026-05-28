@@ -722,7 +722,7 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, "O21 fysiek rapport")
         self.assertContains(response, "Kies team")
         self.assertContains(response, "O12")
-        self.assertContains(response, "Oud spelers")
+        self.assertNotContains(response, "Oud spelers")
         self.assertNotContains(response, "O16")
         self.assertNotContains(response, "Speler fysiek rapport")
 
