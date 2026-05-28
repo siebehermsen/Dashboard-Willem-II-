@@ -1596,14 +1596,25 @@ def training(request):
     selected_metric = request.GET.get("metric", "load")
     if selected_metric not in metric_field_map:
         selected_metric = "load"
+    data_team_codes = _academy_codes()
+    selected_data_team_code = (request.GET.get("team") or data_team_codes[0]).strip().upper()
+    if selected_data_team_code not in data_team_codes:
+        selected_data_team_code = data_team_codes[0]
+    selected_data_team, team_players_qs = _team_players_for_gps_upload(selected_data_team_code)
+    selected_data_team_label = selected_data_team.name if selected_data_team else selected_data_team_code
+    team_player_ids = set(team_players_qs.values_list("id", flat=True)) if selected_data_team else set()
     selected_metric_field = metric_field_map[selected_metric]
 
     players_qs = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    if selected_data_team:
+        players_qs = players_qs.filter(id__in=team_player_ids)
+    else:
+        players_qs = players_qs.none()
     if player_app_user:
         players_qs = players_qs.filter(id=player_app_player.id) if player_app_player else players_qs.none()
     players = list(players_qs)
     week_targets, _ = TrainingWeekTarget.objects.get_or_create(
-        name="Geplande weektargets training"
+        name=f"Geplande weektargets training {selected_data_team_code}"
     )
 
     day_field_map = [
@@ -1651,8 +1662,8 @@ def training(request):
         for field_name, _label in day_field_map:
             setattr(week_targets, field_name, serialize_weektarget_value(field_name))
         week_targets.save()
-        messages.success(request, "Geplande weektargets opgeslagen!")
-        return redirect("training")
+        messages.success(request, f"Geplande weektargets voor {selected_data_team_code} opgeslagen!")
+        return redirect(f"{reverse('training')}?team={selected_data_team_code}")
 
     week_target_rows = [
         {
@@ -1662,7 +1673,7 @@ def training(request):
         }
         for field_name, label in day_field_map
     ]
-    rows = fetch_performance_rows("training")
+    rows = [row for row in fetch_performance_rows("training") if row["player_id"] in team_player_ids]
 
     by_player = {}
     for row in rows:
@@ -1719,7 +1730,7 @@ def training(request):
     ]
 
     selected_player_name = request.GET.get("player")
-    selected_player = Player.objects.filter(name=selected_player_name).first() if selected_player_name else None
+    selected_player = players_qs.filter(name=selected_player_name).first() if selected_player_name else None
     trend_labels, trend_loads, trend_sprints = [], [], []
     if selected_player:
         week_group = {}
@@ -1890,8 +1901,12 @@ def training(request):
         "training_daily_range_label": f"{start_date.strftime('%d-%m-%Y')} t/m {end_date.strftime('%d-%m-%Y')}",
         "week_targets": week_targets,
         "week_target_rows": week_target_rows,
-        "upload_team_codes": _academy_codes(),
+        "upload_team_codes": data_team_codes,
         "upload_events": GPS_UPLOAD_EVENTS,
+        "data_team_codes": data_team_codes,
+        "selected_data_team_code": selected_data_team_code,
+        "selected_data_team_label": selected_data_team_label,
+        "data_team_query": f"team={selected_data_team_code}",
 
         "active_page": "training",
     }
@@ -1916,6 +1931,13 @@ def wedstrijddata(request):
     selected_metric = request.GET.get("metric", "load")
     if selected_metric not in metric_field_map:
         selected_metric = "load"
+    data_team_codes = _academy_codes()
+    selected_data_team_code = (request.GET.get("team") or data_team_codes[0]).strip().upper()
+    if selected_data_team_code not in data_team_codes:
+        selected_data_team_code = data_team_codes[0]
+    selected_data_team, team_players_qs = _team_players_for_gps_upload(selected_data_team_code)
+    selected_data_team_label = selected_data_team.name if selected_data_team else selected_data_team_code
+    team_player_ids = set(team_players_qs.values_list("id", flat=True)) if selected_data_team else set()
 
     POSITION_TARGETS = {
         "Spits": {"km": 11.5, "hir": 950, "his": 200, "a_d": 180},
@@ -1927,11 +1949,12 @@ def wedstrijddata(request):
         "Vleugelverdediger": {"km": 11, "hir": 1000, "his": 250, "a_d": 190},
     }
 
-    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    players = Player.objects.select_related("monitoring_profile").filter(id__in=team_player_ids).order_by("name")
     selected_player_name = request.GET.get("player")
-    selected_player = Player.objects.filter(name=selected_player_name).first() if selected_player_name else None
+    selected_player = players.filter(name=selected_player_name).first() if selected_player_name else None
 
     all_rows = fetch_performance_rows("match")
+    all_rows = [row for row in all_rows if row["player_id"] in team_player_ids]
     match_rows = [r for r in all_rows if (not selected_player or r["player_id"] == selected_player.id)]
     match_rows.sort(key=lambda r: ((r.get("week") or 0), r["session_date"]), reverse=True)
 
@@ -2049,8 +2072,12 @@ def wedstrijddata(request):
         "team_d20": team_d20,
         "team_d25": team_d25,
         "team_max_speed": team_max_speed,
-        "upload_team_codes": _academy_codes(),
+        "upload_team_codes": data_team_codes,
         "upload_events": GPS_UPLOAD_EVENTS,
+        "data_team_codes": data_team_codes,
+        "selected_data_team_code": selected_data_team_code,
+        "selected_data_team_label": selected_data_team_label,
+        "data_team_query": f"team={selected_data_team_code}",
 
         "active_page": "wedstrijd",
     }
@@ -2211,6 +2238,7 @@ def fysiek_rapport(request):
         "report_team_codes": report_team_codes,
         "selected_team_code": selected_team_code,
         "selected_team_label": selected_team_label,
+        "selected_data_team_code": selected_team_code,
         "report_summary": report_summary,
         "player_report_rows": player_report_rows[:10],
         "report_daily_labels": json.dumps(daily_labels),

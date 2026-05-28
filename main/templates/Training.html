@@ -6,17 +6,17 @@
 
 <!-- SWITCH KNOPPEN: TRAINING / WEDSTRIJDDATA -->
 <div class="data-tabs-container">
-    <a href="{% url 'training' %}"
+    <a href="{% url 'training' %}?team={{ selected_data_team_code|default:'O21' }}"
        class="data-tab {% if active_page == 'training' %}active{% endif %}">
         Trainingdata
     </a>
 
-    <a href="{% url 'wedstrijddata' %}"
+    <a href="{% url 'wedstrijddata' %}?team={{ selected_data_team_code|default:'O21' }}"
        class="data-tab {% if active_page == 'wedstrijd' %}active{% endif %}">
         Wedstrijddata
     </a>
 
-    <a href="{% url 'fysiek_rapport' %}"
+    <a href="{% url 'fysiek_rapport' %}?team={{ selected_data_team_code|default:'O21' }}"
        class="data-tab {% if active_page == 'rapport' %}active{% endif %}">
         Fysiek rapport
     </a>
@@ -39,12 +39,26 @@
         {% elif selected_player %}
             Overzicht voor {{ selected_player.name }}.
         {% else %}
-            Teamoverzicht met de belangrijkste belasting en intensiteitsdata.
+            Teamoverzicht voor {{ selected_data_team_label }} met de belangrijkste belasting en intensiteitsdata.
         {% endif %}
     </p>
 </section>
 
 {% if active_page != "rapport" %}
+<section class="selection-section report-team-select data-team-select">
+    <div class="report-team-select-head">
+        <strong>Kies team</strong>
+        <span>Upload, bekijk en plan data binnen het juiste academieteam.</span>
+    </div>
+    <div class="report-team-tabs" aria-label="Teamselectie data">
+        {% for code in data_team_codes %}
+            <a href="{% if active_page == 'wedstrijd' %}{% url 'wedstrijddata' %}{% else %}{% url 'training' %}{% endif %}?team={{ code }}" class="report-team-tab {% if selected_data_team_code == code %}active{% endif %}">
+                {{ code }}
+            </a>
+        {% endfor %}
+    </div>
+</section>
+
 <!-- UPLOADFORMULIER -->
 <section class="card fade-in upload-card" style="margin-bottom: 25px;">
     <h3>Upload StatsSports CSV-bestand</h3>
@@ -60,12 +74,8 @@
         <div class="gps-upload-grid">
             <label>
                 Team
-                <select name="upload_team" required>
-                    <option value="">-- Kies een team --</option>
-                    {% for code in upload_team_codes %}
-                        <option value="{{ code }}">{{ code }}</option>
-                    {% endfor %}
-                </select>
+                <input type="hidden" name="upload_team" value="{{ selected_data_team_code }}">
+                <span class="gps-upload-team-pill">{{ selected_data_team_code }}</span>
             </label>
             <label>
                 Event
@@ -98,6 +108,13 @@
         };
         eventSelect.addEventListener("change", syncUploadAction);
         syncUploadAction();
+
+        const activeTeam = "{{ selected_data_team_code }}";
+        document.querySelectorAll('.metric-btn[href*="metric="]').forEach((link) => {
+            const url = new URL(link.getAttribute("href"), window.location.href);
+            url.searchParams.set("team", activeTeam);
+            link.setAttribute("href", `${url.pathname}${url.search}`);
+        });
     })();
 </script>
 {% endif %}
@@ -113,6 +130,7 @@
     <form method="post" class="weektargets-form">
         {% csrf_token %}
         <input type="hidden" name="save_weektargets" value="1">
+        <input type="hidden" name="team" value="{{ selected_data_team_code }}">
         <div class="weektargets-table-wrap">
             <table class="weektargets-table">
                 <thead>
@@ -151,6 +169,7 @@
  {% if active_page == "training" %}
 <section class="selection-section">
     <form method="get" action="" class="player-form">
+        <input type="hidden" name="team" value="{{ selected_data_team_code }}">
         <input type="hidden" name="metric" value="{{ selected_metric|default:'load' }}">
         <label for="player"><strong>Selecteer speler:</strong></label>
         <select name="player" id="player" onchange="this.form.submit()">
@@ -169,7 +188,7 @@
 {% if selected_player %}
     <h2 class="section-heading">Trainingsbelasting van {{ selected_player.name }}</h2>
 {% else %}
-    <h2 class="section-heading">Gemiddelde trainingsbelasting team</h2>
+    <h2 class="section-heading">Gemiddelde trainingsbelasting {{ selected_data_team_label }}</h2>
     <p class="subtext">Overzicht van de gemiddelde trainingsbelasting, ACWR en wedstrijdbelasting.</p>
 {% endif %}
 
@@ -912,6 +931,7 @@ if (document.readyState === "loading") {
 <!-- SPELERSELECTIE -->
 <section class="selection-section">
     <form method="get" class="player-form">
+        <input type="hidden" name="team" value="{{ selected_data_team_code }}">
         <input type="hidden" name="metric" value="{{ selected_metric|default:'load' }}">
         <label><strong>Selecteer speler:</strong></label>
         <select name="player" onchange="this.form.submit()">
@@ -932,7 +952,7 @@ if (document.readyState === "loading") {
     {% if selected_player %}
         {{ selected_player.name }} ({% if selected_player.position_ref %}{{ selected_player.position_ref.name }}{% else %}-{% endif %})
     {% else %}
-        Team Gemiddelde
+        Team Gemiddelde {{ selected_data_team_label }}
     {% endif %}
 </h2>
 
@@ -2582,6 +2602,18 @@ main.container {
     font: inherit;
     box-sizing: border-box;
     padding: 8px 10px;
+}
+
+.gps-upload-team-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    border: 1px solid #cfd8e7;
+    border-radius: 12px;
+    background: #eef3fa;
+    color: #1f2a44;
+    font-weight: 900;
+    padding: 0 14px;
 }
 
 @media (max-width: 1000px) {
