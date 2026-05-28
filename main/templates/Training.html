@@ -51,9 +51,9 @@
         <span>Upload, bekijk en plan data binnen het juiste academieteam.</span>
     </div>
     <div class="report-team-tabs" aria-label="Teamselectie data">
-        {% for code in data_team_codes %}
-            <a href="{% if active_page == 'wedstrijd' %}{% url 'wedstrijddata' %}{% else %}{% url 'training' %}{% endif %}?team={{ code }}" class="report-team-tab {% if selected_data_team_code == code %}active{% endif %}">
-                {{ code }}
+        {% for team in data_team_options %}
+            <a href="{% if active_page == 'wedstrijd' %}{% url 'wedstrijddata' %}{% else %}{% url 'training' %}{% endif %}?team={{ team.code }}" class="report-team-tab {% if selected_data_team_code == team.code %}active{% endif %}">
+                {{ team.label }}
             </a>
         {% endfor %}
     </div>
@@ -75,7 +75,7 @@
             <label>
                 Team
                 <input type="hidden" name="upload_team" value="{{ selected_data_team_code }}">
-                <span class="gps-upload-team-pill">{{ selected_data_team_code }}</span>
+                <span class="gps-upload-team-pill">{{ selected_data_team_label }}</span>
             </label>
             <label>
                 Event
@@ -1465,9 +1465,9 @@ setMatchMetric(selectedMetricMatchState, false);
             <span>Bekijk het fysieke weekrapport per academieteam.</span>
         </div>
         <div class="report-team-tabs" aria-label="Teamselectie fysiek rapport">
-            {% for code in report_team_codes %}
-                <a href="{% url 'fysiek_rapport' %}?team={{ code }}" class="report-team-tab {% if selected_team_code == code %}active{% endif %}" data-report-team-link>
-                    {{ code }}
+            {% for team in report_team_options %}
+                <a href="{% url 'fysiek_rapport' %}?team={{ team.code }}" class="report-team-tab {% if selected_team_code == team.code %}active{% endif %}" data-report-team-link>
+                    {{ team.label }}
                 </a>
             {% endfor %}
         </div>

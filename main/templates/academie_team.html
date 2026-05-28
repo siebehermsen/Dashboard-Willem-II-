@@ -403,9 +403,9 @@
     <aside class="academy-side">
         <a class="academy-back-link" href="{% url 'dashboard' %}">Terug</a>
         <p class="academy-side-title">Naar teamomgeving</p>
-        {% for code in academy_codes %}
-            <a class="academy-team-link {% if code == selected_team_code %}is-active{% endif %}" href="{% url 'academie_team' code %}">{{ code }}</a>
-            {% if code == selected_team_code and players %}
+        {% for team in academy_team_options %}
+            <a class="academy-team-link {% if team.code == selected_team_code %}is-active{% endif %}" href="{% url 'academie_team' team.code %}">{{ team.label }}</a>
+            {% if team.code == selected_team_code and players %}
                 <div class="academy-player-list">
                     {% if demo_players %}
                         <p class="academy-player-demo">Testspelers</p>

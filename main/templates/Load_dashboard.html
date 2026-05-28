@@ -91,7 +91,7 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
 .academy-team-013 { grid-column: 1; grid-row: 2; }
 .academy-team-014 { grid-column: 2; grid-row: 1; }
 .academy-team-015 { grid-column: 2; grid-row: 2; }
-.academy-team-016 { grid-column: 4; grid-row: 1; }
+.academy-team-old { grid-column: 4; grid-row: 1; }
 .academy-team-017 { grid-column: 4; grid-row: 2; }
 .academy-team-019 { grid-column: 5; grid-row: 1; }
 .academy-team-021 { grid-column: 5; grid-row: 2; }
@@ -107,7 +107,7 @@ button.primary-btn:hover { background-color: #b60000; transform: scale(1.03); }
     .academy-team-013,
     .academy-team-014,
     .academy-team-015,
-    .academy-team-016,
+    .academy-team-old,
     .academy-team-017,
     .academy-team-019,
     .academy-team-021 {
@@ -2111,10 +2111,10 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                             <option value="O13">O13</option>
                             <option value="O14">O14</option>
                             <option value="O15">O15</option>
-                            <option value="O16">O16</option>
                             <option value="O17">O17</option>
                             <option value="O19">O19</option>
                             <option value="O21">O21</option>
+                            <option value="OUD">Oud spelers</option>
                         </select>
                     </div>
                     <div class="dashboard-app-form-group">
@@ -2200,9 +2200,9 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
         <div class="academy-logo-card" aria-label="NEC Nijmegen">
             <img src="{% static 'icons/nec-logo.svg' %}" alt="NEC logo">
         </div>
-        <a class="academy-team-tile academy-team-016" href="{% url 'academie_team' 'O16' %}">
+        <a class="academy-team-tile academy-team-old" href="{% url 'academie_team' 'OUD' %}">
             <span class="academy-team-main">
-                <span class="academy-team-name">O16</span>
+                <span class="academy-team-name">Oud spelers</span>
             </span>
             <span class="academy-team-arrow" aria-hidden="true"></span>
         </a>
@@ -2552,10 +2552,10 @@ document.addEventListener("change", (event) => {
                     <option value="O13">O13</option>
                     <option value="O14">O14</option>
                     <option value="O15">O15</option>
-                    <option value="O16">O16</option>
                     <option value="O17">O17</option>
                     <option value="O19">O19</option>
                     <option value="O21">O21</option>
+                    <option value="OUD">Oud spelers</option>
                 </select>
             </div>
 

@@ -229,6 +229,21 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(player_response, "Laatste 7 dagen")
         self.assertContains(player_response, "academyPlayerGpsChart")
 
+    def test_academie_old_players_environment_shows_archived_players(self):
+        old_player = Player.objects.create(name="Oude Testspeler", is_active=False)
+
+        response = self.client.get(reverse("academie_team", args=["OUD"]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Oud spelers")
+        self.assertContains(response, old_player.name)
+        self.assertNotContains(response, "O16")
+
+        player_response = self.client.get(reverse("academie_player", args=["OUD", old_player.id]))
+        self.assertEqual(player_response.status_code, 200)
+        self.assertContains(player_response, "Oud spelers")
+        self.assertContains(player_response, old_player.name)
+
     def test_wellness_post_creates_and_updates_one_entry_per_player_date(self):
         payload = {
             "player_id": self.player.id,
@@ -707,6 +722,8 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, "O21 fysiek rapport")
         self.assertContains(response, "Kies team")
         self.assertContains(response, "O12")
+        self.assertContains(response, "Oud spelers")
+        self.assertNotContains(response, "O16")
         self.assertNotContains(response, "Speler fysiek rapport")
 
     def test_mdo_tab_persists_player_note(self):

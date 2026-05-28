@@ -1601,12 +1601,12 @@ def training(request):
     if selected_data_team_code not in data_team_codes:
         selected_data_team_code = data_team_codes[0]
     selected_data_team, team_players_qs = _team_players_for_gps_upload(selected_data_team_code)
-    selected_data_team_label = selected_data_team.name if selected_data_team else selected_data_team_code
-    team_player_ids = set(team_players_qs.values_list("id", flat=True)) if selected_data_team else set()
+    selected_data_team_label = selected_data_team.name if selected_data_team else _academy_team_label(selected_data_team_code)
+    team_player_ids = set(team_players_qs.values_list("id", flat=True))
     selected_metric_field = metric_field_map[selected_metric]
 
     players_qs = Player.objects.select_related("monitoring_profile").all().order_by("name")
-    if selected_data_team:
+    if team_player_ids:
         players_qs = players_qs.filter(id__in=team_player_ids)
     else:
         players_qs = players_qs.none()
@@ -1662,7 +1662,7 @@ def training(request):
         for field_name, _label in day_field_map:
             setattr(week_targets, field_name, serialize_weektarget_value(field_name))
         week_targets.save()
-        messages.success(request, f"Geplande weektargets voor {selected_data_team_code} opgeslagen!")
+        messages.success(request, f"Geplande weektargets voor {selected_data_team_label} opgeslagen!")
         return redirect(f"{reverse('training')}?team={selected_data_team_code}")
 
     week_target_rows = [
@@ -1904,6 +1904,7 @@ def training(request):
         "upload_team_codes": data_team_codes,
         "upload_events": GPS_UPLOAD_EVENTS,
         "data_team_codes": data_team_codes,
+        "data_team_options": _academy_team_options(),
         "selected_data_team_code": selected_data_team_code,
         "selected_data_team_label": selected_data_team_label,
         "data_team_query": f"team={selected_data_team_code}",
@@ -1936,8 +1937,8 @@ def wedstrijddata(request):
     if selected_data_team_code not in data_team_codes:
         selected_data_team_code = data_team_codes[0]
     selected_data_team, team_players_qs = _team_players_for_gps_upload(selected_data_team_code)
-    selected_data_team_label = selected_data_team.name if selected_data_team else selected_data_team_code
-    team_player_ids = set(team_players_qs.values_list("id", flat=True)) if selected_data_team else set()
+    selected_data_team_label = selected_data_team.name if selected_data_team else _academy_team_label(selected_data_team_code)
+    team_player_ids = set(team_players_qs.values_list("id", flat=True))
 
     POSITION_TARGETS = {
         "Spits": {"km": 11.5, "hir": 950, "his": 200, "a_d": 180},
@@ -2075,6 +2076,7 @@ def wedstrijddata(request):
         "upload_team_codes": data_team_codes,
         "upload_events": GPS_UPLOAD_EVENTS,
         "data_team_codes": data_team_codes,
+        "data_team_options": _academy_team_options(),
         "selected_data_team_code": selected_data_team_code,
         "selected_data_team_label": selected_data_team_label,
         "data_team_query": f"team={selected_data_team_code}",
@@ -2093,23 +2095,8 @@ def fysiek_rapport(request):
     selected_team_code = (request.GET.get("team") or report_team_codes[0]).strip().upper()
     if selected_team_code not in report_team_codes:
         selected_team_code = report_team_codes[0]
-    selected_team = Team.objects.filter(
-        Q(code__iexact=selected_team_code) | Q(name__iexact=selected_team_code),
-        is_active=True,
-    ).first()
-    selected_team_label = selected_team.name if selected_team else selected_team_code
-    team_players = Player.objects.none()
-    if selected_team:
-        today = timezone.localdate()
-        team_players = (
-            players
-            .filter(
-                is_active=True,
-                team_assignments__team=selected_team,
-            )
-            .filter(Q(team_assignments__end_date__isnull=True) | Q(team_assignments__end_date__gte=today))
-            .distinct()
-        )
+    selected_team, team_players = _team_players_for_gps_upload(selected_team_code)
+    selected_team_label = selected_team.name if selected_team else _academy_team_label(selected_team_code)
     team_player_ids = set(team_players.values_list("id", flat=True))
     training_rows_all = fetch_performance_rows("training")
     match_rows_all = fetch_performance_rows("match")
@@ -2236,6 +2223,7 @@ def fysiek_rapport(request):
         "players": players,
         "active_page": "rapport",
         "report_team_codes": report_team_codes,
+        "report_team_options": _academy_team_options(),
         "selected_team_code": selected_team_code,
         "selected_team_label": selected_team_label,
         "selected_data_team_code": selected_team_code,
@@ -2466,7 +2454,15 @@ def testdata(request):
 
 
 def _academy_codes():
-    return ["O21", "O19", "O17", "O16", "O15", "O14", "O13", "O12"]
+    return ["O21", "O19", "O17", "O15", "O14", "O13", "O12", "OUD"]
+
+
+def _academy_team_label(team_code):
+    return "Oud spelers" if (team_code or "").strip().upper() == "OUD" else (team_code or "").strip().upper()
+
+
+def _academy_team_options():
+    return [{"code": code, "label": _academy_team_label(code)} for code in _academy_codes()]
 
 
 def _academy_team_context(team_code):
@@ -2479,10 +2475,27 @@ def _academy_team_context(team_code):
         Q(code__iexact=requested_code) | Q(name__iexact=requested_code),
         is_active=True,
     ).first()
-    team_label = team_obj.name if team_obj else requested_code
+    team_label = team_obj.name if team_obj else _academy_team_label(requested_code)
 
     players = Player.objects.select_related("position_ref", "monitoring_profile").none()
-    if team_obj:
+    if requested_code == "OUD":
+        today = timezone.localdate()
+        assigned_old_players = Player.objects.none()
+        if team_obj:
+            assigned_old_players = (
+                Player.objects
+                .select_related("position_ref", "monitoring_profile")
+                .filter(team_assignments__team=team_obj)
+                .filter(Q(team_assignments__end_date__isnull=True) | Q(team_assignments__end_date__gte=today))
+            )
+        players = (
+            Player.objects
+            .select_related("position_ref", "monitoring_profile")
+            .filter(Q(is_active=False) | Q(id__in=assigned_old_players.values("id")))
+            .distinct()
+            .order_by("name")
+        )
+    elif team_obj:
         today = timezone.localdate()
         players = (
             Player.objects
@@ -2503,6 +2516,7 @@ def _academy_team_context(team_code):
 
     return {
         "academy_codes": academy_codes,
+        "academy_team_options": _academy_team_options(),
         "requested_code": requested_code,
         "team_obj": team_obj,
         "team_label": team_label,
@@ -2515,7 +2529,7 @@ def academie_team(request, team_code):
     import json
 
     academy_context = _academy_team_context(team_code)
-    academy_codes = ["O21", "O19", "O17", "O16", "O15", "O14", "O13", "O12"]
+    academy_codes = academy_context["academy_codes"]
     requested_code = academy_context["requested_code"]
     team_obj = academy_context["team_obj"]
     team_label = academy_context["team_label"]
@@ -2704,9 +2718,10 @@ def academie_team(request, team_code):
 
     context = {
         "academy_codes": academy_codes,
+        "academy_team_options": academy_context["academy_team_options"],
         "selected_team_code": requested_code,
         "selected_team_label": team_label,
-        "team_exists": team_obj is not None,
+        "team_exists": team_obj is not None or requested_code == "OUD",
         "demo_players": academy_context["demo_players"],
         "players": players,
         "gps_rows": gps_rows,
@@ -2731,11 +2746,10 @@ def academie_team(request, team_code):
 def academie_player(request, team_code, player_id):
     academy_context = _academy_team_context(team_code)
     requested_code = academy_context["requested_code"]
-    player = get_object_or_404(
-        Player.objects.select_related("position_ref", "monitoring_profile"),
-        id=player_id,
-        is_active=True,
-    )
+    player_queryset = Player.objects.select_related("position_ref", "monitoring_profile")
+    if requested_code != "OUD":
+        player_queryset = player_queryset.filter(is_active=True)
+    player = get_object_or_404(player_queryset, id=player_id)
 
     rows_training = [row for row in fetch_performance_rows("training") if row["player_id"] == player.id]
     rows_match = [row for row in fetch_performance_rows("match") if row["player_id"] == player.id]
@@ -2845,6 +2859,7 @@ def academie_player(request, team_code, player_id):
 
     context = {
         "academy_codes": academy_context["academy_codes"],
+        "academy_team_options": academy_context["academy_team_options"],
         "selected_team_code": requested_code,
         "selected_team_label": academy_context["team_label"],
         "players": academy_context["players"],
@@ -6042,17 +6057,34 @@ def _find_player_from_gps_lastname(players, csv_lastname, *, allow_contains=Fals
 
 def _team_players_for_gps_upload(team_code):
     team_code = _normalize_csv_value(team_code).upper()
+    if team_code in {"OUD SPELERS", "OUD-SPELERS", "OUD"}:
+        team_code = "OUD"
     team = Team.objects.filter(Q(code__iexact=team_code) | Q(name__iexact=team_code), is_active=True).first()
-    if not team:
+    if not team and team_code != "OUD":
         return None, Player.objects.none()
     today = timezone.localdate()
-    players = (
-        Player.objects
-        .filter(is_active=True, team_assignments__team=team)
-        .filter(Q(team_assignments__end_date__isnull=True) | Q(team_assignments__end_date__gte=today))
-        .distinct()
-        .order_by("name")
-    )
+    if team_code == "OUD":
+        assigned_old_players = Player.objects.none()
+        if team:
+            assigned_old_players = (
+                Player.objects
+                .filter(team_assignments__team=team)
+                .filter(Q(team_assignments__end_date__isnull=True) | Q(team_assignments__end_date__gte=today))
+            )
+        players = (
+            Player.objects
+            .filter(Q(is_active=False) | Q(id__in=assigned_old_players.values("id")))
+            .distinct()
+            .order_by("name")
+        )
+    else:
+        players = (
+            Player.objects
+            .filter(is_active=True, team_assignments__team=team)
+            .filter(Q(team_assignments__end_date__isnull=True) | Q(team_assignments__end_date__gte=today))
+            .distinct()
+            .order_by("name")
+        )
     return team, players
 
 
@@ -6066,15 +6098,19 @@ def _gps_upload_selection(request):
         messages.error(request, "Kies eerst een geldig event voor de GPS-upload.")
         return None
     team, players = _team_players_for_gps_upload(team_code)
-    if not team:
+    if not team and team_code.upper() not in {"OUD", "OUD SPELERS", "OUD-SPELERS"}:
         messages.error(request, f"Team {team_code} is niet gevonden.")
         return None
+    is_old_players_team = team_code.upper() in {"OUD", "OUD SPELERS", "OUD-SPELERS"}
+    team_label = _academy_team_label("OUD") if is_old_players_team else team.name
     if not players.exists():
-        messages.error(request, f"Team {team.code} heeft nog geen actieve spelers. Koppel eerst spelers aan dit team.")
+        messages.error(request, f"{team_label} heeft nog geen spelers. Koppel eerst spelers aan dit team of archiveer oude spelers.")
         return None
     event_label, session_kind = GPS_UPLOAD_EVENTS[event_code]
     return {
         "team": team,
+        "team_code": "OUD" if is_old_players_team else team.code,
+        "team_label": team_label,
         "players": list(players),
         "event_code": event_code,
         "event_label": event_label,
@@ -6195,7 +6231,7 @@ def upload_file(request):
             skipped=skipped,
             invalid_dates=invalid_dates,
             unknown_players=unknown_players,
-            label=f"{upload_selection['team'].code} {upload_selection['event_label'].lower()}",
+            label=f"{upload_selection['team_label']} {upload_selection['event_label'].lower()}",
         )
         return redirect('training')
 
@@ -6328,7 +6364,7 @@ def upload_wedstrijddata(request):
             skipped=skipped,
             invalid_dates=invalid_dates,
             unknown_players=unknown_players,
-            label=f"{upload_selection['team'].code} {upload_selection['event_label'].lower()}",
+            label=f"{upload_selection['team_label']} {upload_selection['event_label'].lower()}",
         )
         return redirect('wedstrijddata')
 
