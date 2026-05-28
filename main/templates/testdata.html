@@ -4,6 +4,20 @@
 {% block content %}
 <main style="max-width:1600px;margin:auto;padding:20px">
 
+<section class="testdata-team-select" aria-label="Teamselectie testdata">
+    <div class="testdata-team-head">
+        <strong>Kies team</strong>
+        <span>Werk per academieteam en selecteer daarna de juiste speler.</span>
+    </div>
+    <div class="testdata-team-tabs">
+        {% for team in testdata_team_options %}
+        <a class="testdata-team-tab {% if selected_team_code == team.code %}is-active{% endif %}" href="{% url 'testdata' %}?team={{ team.code }}&tab={{ active_testdata_tab }}">
+            {{ team.label }}
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
 <div class="testdata-view-tabs" role="tablist" aria-label="Testdata weergave">
     <button type="button" class="testdata-view-btn {% if active_testdata_tab == 'invoer' %}is-active{% endif %}" data-view-tab="invoer" aria-selected="{% if active_testdata_tab == 'invoer' %}true{% else %}false{% endif %}">
         Testdata invoeren
@@ -25,6 +39,7 @@
 
     <form method="get" action="">
         <input type="hidden" name="tab" value="profiel">
+        <input type="hidden" name="team" value="{{ selected_team_code }}">
         <div class="select-wrapper">
             <select name="player_id" class="styled-select" onchange="this.form.submit()">
                 <option value="">-- Kies een speler --</option>
@@ -43,7 +58,7 @@
 <section class="team-max-card">
     <div class="team-max-head">
         <h3>Teamoverzicht testdata</h3>
-        <p>Maximale waarden per speler op basis van beschikbare testdata.</p>
+        <p>Maximale waarden per speler binnen {{ selected_team_label }} op basis van beschikbare testdata.</p>
     </div>
     <div class="team-max-table-wrap">
         <table class="team-max-table">
@@ -263,6 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     <form method="post" class="input-form">
         {% csrf_token %}
+        <input type="hidden" name="team" value="{{ selected_team_code }}">
 
         {% now "Y-m-d" as today_date %}
         <div class="form-step flow-section">
@@ -674,6 +690,64 @@ makeDonut("donut_submax", donutPercentiles.submax);
     justify-content: center;
     gap: 14px;
     margin: 6px auto 24px;
+}
+
+.testdata-team-select {
+    background: #fff;
+    border: 1px solid #dbe5f3;
+    border-radius: 18px;
+    box-shadow: 0 10px 24px rgba(31, 42, 68, 0.08);
+    margin: 0 0 22px;
+    padding: 20px 22px;
+}
+
+.testdata-team-head {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.testdata-team-head strong {
+    color: #1f2a44;
+    font-size: 1.12rem;
+    font-weight: 900;
+}
+
+.testdata-team-head span {
+    color: #687897;
+    font-size: 0.96rem;
+    font-weight: 700;
+}
+
+.testdata-team-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.testdata-team-tab {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #c8d3e8;
+    border-radius: 999px;
+    color: #1f2a44;
+    display: inline-flex;
+    font-size: 1rem;
+    font-weight: 900;
+    justify-content: center;
+    min-height: 46px;
+    min-width: 92px;
+    padding: 0 20px;
+    text-decoration: none;
+}
+
+.testdata-team-tab.is-active {
+    background: #d71920;
+    border-color: #d71920;
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(215, 25, 32, 0.22);
 }
 
 .testdata-view-btn {

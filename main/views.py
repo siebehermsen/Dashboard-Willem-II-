@@ -2342,8 +2342,41 @@ def testdata(request):
             return round(100 * (max_val - value) / (max_val - min_val))
         return round(100 * (value - min_val) / (max_val - min_val))
 
-    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    data_team_codes = _academy_data_codes()
+    player_id = request.GET.get("player_id")
+
+    def team_code_for_player(player_id_value):
+        if not player_id_value:
+            return ""
+        today = timezone.localdate()
+        assignment = (
+            PlayerTeamAssignment.objects
+            .select_related("team")
+            .filter(
+                player_id=player_id_value,
+                team__code__in=data_team_codes,
+                start_date__lte=today,
+            )
+            .filter(Q(end_date__isnull=True) | Q(end_date__gte=today))
+            .order_by("-start_date", "-id")
+            .first()
+        )
+        return assignment.team.code if assignment and assignment.team else ""
+
+    selected_team_code = (
+        request.GET.get("team")
+        or request.POST.get("team")
+        or team_code_for_player(player_id)
+        or data_team_codes[0]
+    ).strip().upper()
+    if selected_team_code not in data_team_codes:
+        selected_team_code = data_team_codes[0]
+    selected_team, team_players_qs = _team_players_for_gps_upload(selected_team_code)
+    selected_team_label = selected_team.name if selected_team else _academy_team_label(selected_team_code)
+    players = list(team_players_qs.select_related("monitoring_profile", "position_ref"))
+    team_player_ids = {player.id for player in players}
     test_rows = fetch_performance_rows("test")
+    team_test_rows = [row for row in test_rows if row["player_id"] in team_player_ids]
 
     test_data = [
         SimpleNamespace(
@@ -2358,7 +2391,7 @@ def testdata(request):
             length=row.get("length"),
             sum_skinfolds=row.get("sum_skinfolds"),
         )
-        for row in test_rows
+        for row in team_test_rows
     ]
 
     # Teamoverzicht voor tab "Testdata bekijken" zonder geselecteerde speler
@@ -2374,7 +2407,7 @@ def testdata(request):
             speed_by_player[player_key] = mss_float
 
     metrics_by_player = {}
-    for row in test_rows:
+    for row in team_test_rows:
         pid = row["player_id"]
         bucket = metrics_by_player.setdefault(pid, {"isrt": None, "max_hr": None})
         isrt_val = row.get("isrt")
@@ -2402,7 +2435,7 @@ def testdata(request):
 
     def metric_values(code):
         vals = []
-        for row in test_rows:
+        for row in team_test_rows:
             raw = row.get(code)
             if raw is not None:
                 vals.append(float(raw))
@@ -2429,7 +2462,6 @@ def testdata(request):
         "submax_max": max(submax_vals) if submax_vals else None,
     }
 
-    player_id = request.GET.get("player_id")
     tab_param = (request.GET.get("tab") or "").strip().lower()
     if tab_param not in {"invoer", "profiel"}:
         tab_param = "profiel" if player_id else "invoer"
@@ -2483,7 +2515,7 @@ def testdata(request):
         player_obj = get_object_or_404(Player, id=request.POST.get("player_id"))
         test_date = request.POST.get("test_date")
         if not test_date:
-            return redirect("/testdata/?tab=invoer")
+            return redirect(f"/testdata/?tab=invoer&team={selected_team_code}")
 
         parsed_date = datetime.strptime(test_date, "%Y-%m-%d").date()
         upsert_performance_session_metrics(
@@ -2502,11 +2534,15 @@ def testdata(request):
             },
             source_tag="main_manual_test",
         )
-        return redirect("/testdata/?tab=invoer")
+        redirect_team_code = team_code_for_player(player_obj.id) or selected_team_code
+        return redirect(f"/testdata/?tab=invoer&team={redirect_team_code}")
 
     context = {
         "players": players,
         "selected_player": selected_player,
+        "testdata_team_options": _academy_data_team_options(),
+        "selected_team_code": selected_team_code,
+        "selected_team_label": selected_team_label,
         "test_data": test_data,
         "team_avg": team_avg,
         "percentiles": percentiles,
