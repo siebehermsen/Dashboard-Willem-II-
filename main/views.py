@@ -272,6 +272,70 @@ def _attendance_status_from_agenda(chosen_date, team_code):
     return status, agenda_entry
 
 
+def _gps_event_from_agenda_category(category):
+    category = (category or "training").strip().lower()
+    if category == "wedstrijd":
+        return "competitiewedstrijd"
+    if category in {"training", "kracht", "testing"}:
+        return "opstart_training"
+    return None
+
+
+def _agenda_upload_suggestions(active_page, selected_team_code):
+    today = timezone.localdate()
+    start_date = today - timedelta(days=2)
+    end_date = today + timedelta(days=7)
+    data_team_codes = _academy_data_codes()
+    selected_team_code = (selected_team_code or "").strip().upper()
+    page_url_name = "wedstrijddata" if active_page == "wedstrijd" else "training"
+
+    suggestions = []
+    entries = (
+        DayProgramEntry.objects
+        .filter(date__gte=start_date, date__lte=end_date, team__in=data_team_codes)
+        .exclude(category__iexact="rust")
+        .order_by("date", "start_time", "id")
+    )
+    day_names = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"]
+    for entry in entries:
+        event_code = _gps_event_from_agenda_category(entry.category)
+        if not event_code or event_code not in GPS_UPLOAD_EVENTS:
+            continue
+        event_label, session_kind = GPS_UPLOAD_EVENTS[event_code]
+        target_page = "wedstrijd" if session_kind == "match" else "training"
+        target_url = reverse("wedstrijddata" if target_page == "wedstrijd" else "training")
+        team_code = (entry.team or "").strip().upper()
+        date_label = f"{day_names[entry.date.weekday()]} {entry.date.strftime('%d-%m')}"
+        suggestions.append(
+            SimpleNamespace(
+                team_code=team_code,
+                team_label=_academy_team_label(team_code),
+                event_code=event_code,
+                event_label=event_label,
+                date=entry.date,
+                date_label=date_label,
+                title=entry.title or event_label,
+                target_page=target_page,
+                href=f"{target_url}?team={team_code}&upload_event={event_code}",
+                is_selected=team_code == selected_team_code and target_page == active_page,
+            )
+        )
+
+    selected_event = None
+    selected_suggestion = None
+    for suggestion in suggestions:
+        if suggestion.team_code == selected_team_code and suggestion.target_page == active_page:
+            selected_event = suggestion.event_code
+            selected_suggestion = suggestion
+            break
+
+    return {
+        "suggestions": suggestions,
+        "selected_event": selected_event,
+        "selected_suggestion": selected_suggestion,
+    }
+
+
 def _dashboard_week_url(date_value):
     if not date_value:
         return reverse("dashboard")
@@ -1732,6 +1796,10 @@ def training(request):
         selected_data_team_code = data_team_codes[0]
     selected_data_team, team_players_qs = _team_players_for_gps_upload(selected_data_team_code)
     selected_data_team_label = selected_data_team.name if selected_data_team else _academy_team_label(selected_data_team_code)
+    upload_agenda = _agenda_upload_suggestions("training", selected_data_team_code)
+    selected_upload_event = request.GET.get("upload_event")
+    if selected_upload_event not in GPS_UPLOAD_EVENTS:
+        selected_upload_event = upload_agenda["selected_event"] or ""
     team_player_ids = set(team_players_qs.values_list("id", flat=True))
     selected_metric_field = metric_field_map[selected_metric]
 
@@ -2033,6 +2101,9 @@ def training(request):
         "week_target_rows": week_target_rows,
         "upload_team_codes": data_team_codes,
         "upload_events": GPS_UPLOAD_EVENTS,
+        "selected_upload_event": selected_upload_event,
+        "agenda_upload_suggestions": upload_agenda["suggestions"],
+        "selected_agenda_upload_suggestion": upload_agenda["selected_suggestion"],
         "data_team_codes": data_team_codes,
         "data_team_options": _academy_data_team_options(),
         "selected_data_team_code": selected_data_team_code,
@@ -2068,6 +2139,10 @@ def wedstrijddata(request):
         selected_data_team_code = data_team_codes[0]
     selected_data_team, team_players_qs = _team_players_for_gps_upload(selected_data_team_code)
     selected_data_team_label = selected_data_team.name if selected_data_team else _academy_team_label(selected_data_team_code)
+    upload_agenda = _agenda_upload_suggestions("wedstrijd", selected_data_team_code)
+    selected_upload_event = request.GET.get("upload_event")
+    if selected_upload_event not in GPS_UPLOAD_EVENTS:
+        selected_upload_event = upload_agenda["selected_event"] or ""
     team_player_ids = set(team_players_qs.values_list("id", flat=True))
 
     POSITION_TARGETS = {
@@ -2205,6 +2280,9 @@ def wedstrijddata(request):
         "team_max_speed": team_max_speed,
         "upload_team_codes": data_team_codes,
         "upload_events": GPS_UPLOAD_EVENTS,
+        "selected_upload_event": selected_upload_event,
+        "agenda_upload_suggestions": upload_agenda["suggestions"],
+        "selected_agenda_upload_suggestion": upload_agenda["selected_suggestion"],
         "data_team_codes": data_team_codes,
         "data_team_options": _academy_data_team_options(),
         "selected_data_team_code": selected_data_team_code,
@@ -6399,7 +6477,6 @@ def _csv_float(value):
     cleaned = cleaned.replace(" ", "")
     if "," in cleaned and "." not in cleaned:
         cleaned = cleaned.replace(",", ".")
-    _require_own_player_for_player_user(request, player_id)
     try:
         return float(cleaned)
     except ValueError:

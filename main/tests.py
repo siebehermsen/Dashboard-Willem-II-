@@ -6,6 +6,7 @@ from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from .models import (
     AttendanceRecord,
@@ -609,6 +610,27 @@ class DashboardPersistenceTests(TestCase):
         )
         message_text = " ".join(str(message) for message in get_messages(second_response.wsgi_request))
         self.assertIn("dubbele O17 opstart trainingregel", message_text)
+
+    def test_training_upload_prefills_event_from_agenda(self):
+        team = Team.objects.create(code="O17", name="O17")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team,
+            start_date=date(2026, 1, 1),
+        )
+        DayProgramEntry.objects.create(
+            date=timezone.localdate(),
+            title="Training O17",
+            team="O17",
+            category="training",
+        )
+
+        response = self.client.get(reverse("training"), {"team": "O17"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Agenda-suggesties")
+        self.assertContains(response, "O17 · Opstart training")
+        self.assertContains(response, 'value="opstart_training" selected')
 
     def test_nutrition_intake_post_persists_and_updates_session_items(self):
         payload = {

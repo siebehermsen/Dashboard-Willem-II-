@@ -63,6 +63,27 @@
 <section class="card fade-in upload-card" style="margin-bottom: 25px;">
     <h3>Upload StatsSports CSV-bestand</h3>
     <p class="subtext">Kies eerst het team en event. De upload wordt daarna automatisch onder het juiste team en type data verwerkt.</p>
+    {% if agenda_upload_suggestions %}
+        <div class="agenda-upload-suggestions">
+            <div>
+                <strong>Agenda-suggesties</strong>
+                <span>Klik op een gepland moment om team en event direct klaar te zetten.</span>
+            </div>
+            <div class="agenda-upload-suggestion-list">
+                {% for suggestion in agenda_upload_suggestions %}
+                    <a class="agenda-upload-suggestion {% if suggestion.is_selected %}is-active{% endif %}" href="{{ suggestion.href }}">
+                        <span>{{ suggestion.date_label }}</span>
+                        <strong>{{ suggestion.team_label }} · {{ suggestion.event_label }}</strong>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    {% if selected_agenda_upload_suggestion %}
+        <p class="agenda-upload-selected">
+            Voorgesteld vanuit agenda: {{ selected_agenda_upload_suggestion.event_label }} {{ selected_agenda_upload_suggestion.team_label }} op {{ selected_agenda_upload_suggestion.date|date:"d-m-Y" }}.
+        </p>
+    {% endif %}
     <form method="post"
           action="{% if active_page == 'wedstrijd' %}{% url 'upload_wedstrijddata' %}{% else %}{% url 'upload_file' %}{% endif %}"
           data-training-upload-form
@@ -82,7 +103,7 @@
                 <select name="upload_event" required data-upload-event-select>
                     <option value="">-- Kies event --</option>
                     {% for value, event in upload_events.items %}
-                        <option value="{{ value }}">{{ event.0 }}</option>
+                        <option value="{{ value }}" {% if selected_upload_event == value %}selected{% endif %}>{{ event.0 }}</option>
                     {% endfor %}
                 </select>
             </label>
@@ -2575,6 +2596,67 @@ main.container {
 
 .gps-upload-form {
     margin-top: 16px;
+}
+
+.agenda-upload-suggestions {
+    background: #f6f8fb;
+    border: 1px solid #dfe7f2;
+    border-radius: 14px;
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 14px;
+}
+
+.agenda-upload-suggestions strong {
+    color: #1f2a44;
+    display: block;
+    font-weight: 900;
+}
+
+.agenda-upload-suggestions span {
+    color: #687897;
+    font-weight: 800;
+}
+
+.agenda-upload-suggestion-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.agenda-upload-suggestion {
+    background: #fff;
+    border: 1px solid #cfd8e7;
+    border-radius: 999px;
+    color: #1f2a44;
+    display: inline-flex;
+    flex-direction: column;
+    min-width: 180px;
+    padding: 9px 14px;
+    text-decoration: none;
+}
+
+.agenda-upload-suggestion.is-active {
+    background: #d71920;
+    border-color: #d71920;
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(215, 25, 32, 0.18);
+}
+
+.agenda-upload-suggestion.is-active span,
+.agenda-upload-suggestion.is-active strong {
+    color: #fff;
+}
+
+.agenda-upload-selected {
+    background: #fff7e6;
+    border: 1px solid #f4ad43;
+    border-radius: 12px;
+    color: #1f2a44;
+    font-weight: 900;
+    margin: 14px 0 0;
+    padding: 10px 12px;
 }
 
 .gps-upload-grid {
