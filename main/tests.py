@@ -630,7 +630,29 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Agenda-suggesties")
         self.assertContains(response, "O17 · Opstart training")
+        self.assertContains(response, "Agenda-items voor O17")
+        self.assertContains(response, "Training")
         self.assertContains(response, 'value="opstart_training" selected')
+
+    def test_match_upload_prefills_event_from_agenda(self):
+        team = Team.objects.create(code="O19", name="O19")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team,
+            start_date=date(2026, 1, 1),
+        )
+        DayProgramEntry.objects.create(
+            date=timezone.localdate(),
+            title="Competitiewedstrijd O19",
+            team="O19",
+            category="wedstrijd",
+        )
+
+        response = self.client.get(reverse("wedstrijddata"), {"team": "O19"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "O19 · Competitiewedstrijd")
+        self.assertContains(response, 'value="competitiewedstrijd" selected')
 
     def test_nutrition_intake_post_persists_and_updates_session_items(self):
         payload = {

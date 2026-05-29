@@ -336,6 +336,31 @@ def _agenda_upload_suggestions(active_page, selected_team_code):
     }
 
 
+def _agenda_week_items_by_day(team_code):
+    team_code = (team_code or "").strip().upper()
+    week_start = timezone.localdate() - timedelta(days=timezone.localdate().weekday())
+    week_end = week_start + timedelta(days=6)
+    items_by_day = {week_start + timedelta(days=offset): [] for offset in range(7)}
+    if not team_code:
+        return items_by_day
+
+    entries = (
+        DayProgramEntry.objects
+        .filter(date__gte=week_start, date__lte=week_end, team__iexact=team_code)
+        .order_by("date", "start_time", "id")
+    )
+    for entry in entries:
+        items_by_day.setdefault(entry.date, []).append(
+            SimpleNamespace(
+                label=_agenda_category_label(entry.category),
+                title=entry.title or _agenda_category_label(entry.category),
+                start_time=entry.start_time,
+                location=entry.location,
+            )
+        )
+    return items_by_day
+
+
 def _dashboard_week_url(date_value):
     if not date_value:
         return reverse("dashboard")
@@ -1814,6 +1839,7 @@ def training(request):
     week_targets, _ = TrainingWeekTarget.objects.get_or_create(
         name=f"Geplande weektargets training {selected_data_team_code}"
     )
+    agenda_week_items = _agenda_week_items_by_day(selected_data_team_code)
 
     day_field_map = [
         ("monday", "Maandag"),
@@ -1867,9 +1893,14 @@ def training(request):
         {
             "field_name": field_name,
             "label": label,
+            "date": timezone.localdate() - timedelta(days=timezone.localdate().weekday()) + timedelta(days=index),
+            "agenda_items": agenda_week_items.get(
+                timezone.localdate() - timedelta(days=timezone.localdate().weekday()) + timedelta(days=index),
+                [],
+            ),
             "values": parse_weektarget_value(getattr(week_targets, field_name, "")),
         }
-        for field_name, label in day_field_map
+        for index, (field_name, label) in enumerate(day_field_map)
     ]
     rows = [row for row in fetch_performance_rows("training") if row["player_id"] in team_player_ids]
 
@@ -5004,10 +5035,20 @@ def wellness(request):
     else:
         date = timezone.now().date()
 
+    wellness_team_codes = _attendance_team_codes()
+    selected_team_code = (request.GET.get("team") or wellness_team_codes[0]).strip().upper()
+    if selected_team_code not in wellness_team_codes:
+        selected_team_code = wellness_team_codes[0]
+    selected_team, team_players_qs = _team_players_for_gps_upload(selected_team_code)
+    selected_team_label = selected_team.name if selected_team else _academy_team_label(selected_team_code)
+
     # 2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Spelers ophalen
     players_qs = Player.objects.select_related("monitoring_profile").all().order_by("name")
     if player_app_user:
         players_qs = players_qs.filter(id=player_app_player.id) if player_app_player else players_qs.none()
+    else:
+        team_player_ids = set(team_players_qs.values_list("id", flat=True))
+        players_qs = players_qs.filter(id__in=team_player_ids) if team_player_ids else players_qs.none()
     players = list(players_qs)
 
     # 3) Entries van deze datum ophalen
@@ -5061,7 +5102,10 @@ def wellness(request):
             )
 
         # Refresh pagina zodat speler naar 'wel ingevuld' gaat
-        return redirect(f"/wellness/?date={date_obj}")
+        redirect_url = f"/wellness/?date={date_obj}"
+        if not player_app_user:
+            redirect_url = f"{redirect_url}&team={selected_team_code}"
+        return redirect(redirect_url)
 
     wellness_by_player = {entry.player_id: entry for entry in existing_entries}
     wellness_rows = []
@@ -5088,12 +5132,28 @@ def wellness(request):
             "fitness_label": _wellness_label(wellness_entry.fitness if wellness_entry else None, fitness_labels),
             "soreness_label": _wellness_label(wellness_entry.soreness if wellness_entry else None, soreness_labels),
         })
+    previous_day = date - timedelta(days=1)
+    next_day = date + timedelta(days=1)
+    total_players = len(players)
+    wellness_count = len(players_filled)
+    rpe_count = len(rpe_by_player)
+    wellness_percentage = round((wellness_count / total_players) * 100) if total_players else None
 
     # 6) Context + render
     return render(request, "wellness.html", {
         "date": date.strftime("%Y-%m-%d"),
+        "date_obj": date,
+        "previous_day": previous_day,
+        "next_day": next_day,
         "player_app_user": player_app_user,
         "player_app_player": player_app_player,
+        "wellness_team_options": _attendance_team_options(),
+        "selected_team_code": selected_team_code,
+        "selected_team_label": selected_team_label,
+        "total_players": total_players,
+        "wellness_count": wellness_count,
+        "rpe_count": rpe_count,
+        "wellness_percentage": wellness_percentage,
         "players_filled": players_filled,
         "players_not_filled": players_not_filled,
         "existing_entries": existing_entries,
