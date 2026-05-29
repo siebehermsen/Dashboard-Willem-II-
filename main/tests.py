@@ -236,6 +236,43 @@ class DashboardPersistenceTests(TestCase):
         self.assertNotContains(response, "dashboard-player-test-row")
         self.assertNotContains(response, "dashboardPlayerSelect")
 
+    def test_player_user_testdata_page_only_shows_own_profile(self):
+        player_user = get_user_model().objects.create_user(username="player-testdata-page", password="test-pass")
+        player_group, _ = Group.objects.get_or_create(name=ROLE_PLAYER)
+        player_user.groups.add(player_group)
+        self.player.user = player_user
+        self.player.save(update_fields=["user"])
+
+        test_kind = PerformanceSessionKind.objects.get(code="test")
+        own_session = PerformanceSession.objects.create(
+            player=self.player,
+            session_kind_ref=test_kind,
+            session_date=date(2026, 5, 16),
+            source_legacy_table="test",
+            source_legacy_id=20,
+        )
+        other_session = PerformanceSession.objects.create(
+            player=self.other_player,
+            session_kind_ref=test_kind,
+            session_date=date(2026, 5, 16),
+            source_legacy_table="test",
+            source_legacy_id=21,
+        )
+        metric_type = PerformanceMetricType.objects.get(code="sprint_10")
+        PerformanceMetric.objects.create(session=own_session, metric_type=metric_type, value=1.72)
+        PerformanceMetric.objects.create(session=other_session, metric_type=metric_type, value=1.88)
+
+        self.client.force_login(player_user)
+        response = self.client.get(reverse("testdata"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.player.name)
+        self.assertNotContains(response, self.other_player.name)
+        self.assertNotContains(response, "Kies team")
+        self.assertNotContains(response, "Testdata invoeren")
+        self.assertNotContains(response, "Teamoverzicht testdata")
+        self.assertNotContains(response, "-- Kies een speler --")
+
     def test_dashboard_agenda_can_show_requested_week(self):
         DayProgramEntry.objects.create(
             date=date(2026, 6, 3),

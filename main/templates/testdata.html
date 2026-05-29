@@ -4,6 +4,7 @@
 {% block content %}
 <main style="max-width:1600px;margin:auto;padding:20px">
 
+{% if not player_only_mode %}
 <section class="testdata-team-select" aria-label="Teamselectie testdata">
     <div class="testdata-team-head">
         <strong>Kies team</strong>
@@ -17,7 +18,9 @@
         {% endfor %}
     </div>
 </section>
+{% endif %}
 
+{% if not player_only_mode %}
 <div class="testdata-view-tabs" role="tablist" aria-label="Testdata weergave">
     <button type="button" class="testdata-view-btn {% if active_testdata_tab == 'invoer' %}is-active{% endif %}" data-view-tab="invoer" aria-selected="{% if active_testdata_tab == 'invoer' %}true{% else %}false{% endif %}">
         Testdata invoeren
@@ -26,11 +29,13 @@
         Testdata bekijken
     </button>
 </div>
+{% endif %}
 
 <section class="testdata-view-panel {% if active_testdata_tab == 'profiel' %}is-active{% endif %}" data-view-panel="profiel" {% if active_testdata_tab != 'profiel' %}hidden{% endif %}>
 <!-- ============================================ -->
 <!-- SPELERSELECTIE - MOOIE KAART                 -->
 <!-- ============================================ -->
+{% if not player_only_mode %}
 <section class="player-select-card">
     <h2 class="card-title">Testdata Analyse</h2>
     <p class="card-description">
@@ -53,8 +58,9 @@
         </div>
     </form>
 </section>
+{% endif %}
 
-{% if not selected_player %}
+{% if not player_only_mode and not selected_player %}
 <section class="team-max-card">
     <div class="team-max-head">
         <h3>Teamoverzicht testdata</h3>
@@ -95,7 +101,11 @@
 
     <!-- ========== LINKERKOLOM ========== -->
     <aside class="player-info-card">
+        {% if selected_player.image %}
         <img src="{{ selected_player.image.url }}" class="player-photo" alt="{{ selected_player.name }}">
+        {% else %}
+        <div class="player-photo" style="display:flex;align-items:center;justify-content:center;background:#eef3fa;color:#667085;font-weight:800;text-align:center;">Geen foto</div>
+        {% endif %}
         <h2 class="player-name">{{ selected_player.name }}</h2>
 
         <p class="player-meta">
@@ -267,6 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
  <!-- ===================================== -->
 <!-- NIEUWE TESTDATA INVOER (MOOIE LAYOUT) -->
+{% if not player_only_mode %}
 <section class="testdata-view-panel {% if active_testdata_tab == 'invoer' %}is-active{% endif %}" data-view-panel="invoer" {% if active_testdata_tab != 'invoer' %}hidden{% endif %}>
 <!-- ===================================== -->
 <section class="input-card">
@@ -458,6 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     </form>
 </section>
+{% endif %}
 </section>
 
 <script>

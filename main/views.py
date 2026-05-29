@@ -2362,7 +2362,8 @@ def testdata(request):
 
     data_team_codes = _academy_data_codes()
     player_id = request.GET.get("player_id")
-    if _is_player_app_user(request.user):
+    player_only_mode = _is_player_app_user(request.user)
+    if player_only_mode:
         player_for_user = _player_for_user(request.user)
         if not player_for_user:
             raise PermissionDenied
@@ -2490,6 +2491,8 @@ def testdata(request):
     tab_param = (request.GET.get("tab") or "").strip().lower()
     if tab_param not in {"invoer", "profiel"}:
         tab_param = "profiel" if player_id else "invoer"
+    if player_only_mode:
+        tab_param = "profiel"
     selected_player = None
     percentiles = {}
 
@@ -2565,16 +2568,17 @@ def testdata(request):
         return redirect(f"/testdata/?tab=invoer&team={redirect_team_code}")
 
     context = {
-        "players": players,
+        "players": [selected_player] if player_only_mode and selected_player else players,
         "selected_player": selected_player,
-        "testdata_team_options": _academy_data_team_options(),
+        "testdata_team_options": [] if player_only_mode else _academy_data_team_options(),
         "selected_team_code": selected_team_code,
         "selected_team_label": selected_team_label,
         "test_data": test_data,
         "team_avg": team_avg,
         "percentiles": percentiles,
         "active_testdata_tab": tab_param,
-        "team_profile_rows": team_profile_rows,
+        "team_profile_rows": [] if player_only_mode else team_profile_rows,
+        "player_only_mode": player_only_mode,
     }
 
     if player_id:
