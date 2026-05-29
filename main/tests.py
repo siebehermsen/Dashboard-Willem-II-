@@ -34,7 +34,7 @@ from .models import (
     WeightEntry,
     WellnessEntry,
 )
-from .permissions import ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_PLAYER, ROLE_READ_ONLY, ROLE_TRAINER
+from .permissions import ROLE_ADMIN, ROLE_FYSIO, ROLE_PERFORMANCE, ROLE_PLAYER, ROLE_READ_ONLY, ROLE_TRAINER
 
 
 @override_settings(
@@ -670,6 +670,50 @@ class DashboardPersistenceTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_teamtrainer_has_limited_academy_permissions(self):
+        trainer_user = get_user_model().objects.create_user(
+            username="teamtrainer",
+            password="test-pass",
+        )
+        trainer_group, _ = Group.objects.get_or_create(name=ROLE_TRAINER)
+        trainer_user.groups.add(trainer_group)
+        self.client.force_login(trainer_user)
+
+        self.assertEqual(self.client.get(reverse("testdata")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("individuele_programmas")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("aanwezigheden")).status_code, 403)
+        self.assertEqual(self.client.get(reverse("nutrition")).status_code, 403)
+        self.assertEqual(self.client.get(reverse("revalidatie")).status_code, 403)
+
+    def test_fysio_can_open_rehab_but_not_staf(self):
+        fysio_user = get_user_model().objects.create_user(
+            username="fysio",
+            password="test-pass",
+        )
+        fysio_group, _ = Group.objects.get_or_create(name=ROLE_FYSIO)
+        fysio_user.groups.add(fysio_group)
+        self.client.force_login(fysio_user)
+
+        self.assertEqual(self.client.get(reverse("revalidatie")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("staf")).status_code, 403)
+
+    def test_player_data_endpoints_are_limited_to_own_player(self):
+        player_user = get_user_model().objects.create_user(
+            username="own-player",
+            password="test-pass",
+        )
+        player_group, _ = Group.objects.get_or_create(name=ROLE_PLAYER)
+        player_user.groups.add(player_group)
+        self.player.user = player_user
+        self.player.save(update_fields=["user"])
+        self.client.force_login(player_user)
+
+        own_response = self.client.get(reverse("player_data", args=[self.player.id]))
+        other_response = self.client.get(reverse("player_data", args=[self.other_player.id]))
+
+        self.assertEqual(own_response.status_code, 200)
+        self.assertEqual(other_response.status_code, 403)
+
     def test_delete_weekday_requires_post_and_deletes_entry(self):
         day = DayProgramEntry.objects.create(
             date=date(2026, 5, 15),
@@ -808,7 +852,7 @@ class DashboardPersistenceTests(TestCase):
                 "username": "medisch",
                 "email": "medisch@example.test",
                 "password": "temporary-pass-123",
-                "dashboard_role": "Medisch",
+                "dashboard_role": ROLE_FYSIO,
             },
         )
 
@@ -816,7 +860,7 @@ class DashboardPersistenceTests(TestCase):
         staff = Staff.objects.select_related("role_ref", "user").get(name="Medische Tester")
         self.assertEqual(staff.role_ref.name, "Fysiotherapeut")
         self.assertEqual(staff.user.username, "medisch")
-        self.assertTrue(staff.user.groups.filter(name="Medisch").exists())
+        self.assertTrue(staff.user.groups.filter(name=ROLE_FYSIO).exists())
 
     def test_staf_page_admin_can_update_staff_login_role_password_and_status(self):
         role = StaffRole.objects.create(name="Assistent")

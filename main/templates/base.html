@@ -528,18 +528,36 @@
     <nav aria-label="Hoofdnavigatie">
         <div class="site-nav-links">
             <a href="{% url 'dashboard' %}" class="{% if 'dashboard' in request.path %}active{% endif %}">Home</a>
+            {% if NAV_CAN_FULL_STAFF %}
             <a href="{% url 'nutrition' %}" class="{% if 'nutrition' in request.path or 'huidplooimeting' in request.path %}active{% endif %}">Voeding</a>
+            {% endif %}
+            {% if NAV_CAN_TEAM_DATA %}
             <a href="{% url 'training' %}" class="{% if 'training' in request.path %}active{% endif %}">Data</a>
             <a href="{% url 'wellness' %}" class="{% if 'wellness' in request.path or 'rpe' in request.path %}active{% endif %}">Wellness & RPE</a>
             <a href="{% url 'testdata' %}" class="{% if 'testdata' in request.path %}active{% endif %}">Testdata</a>
+            {% endif %}
+            {% if NAV_CAN_FULL_STAFF %}
             <a href="{% url 'revalidatie' %}" class="{% if 'revalidatie' in request.path %}active{% endif %}">Revalidatie</a>
-                <a href="{% url 'individuele_programmas' %}" class="{% if 'individuele_programmas' in request.path %}active{% endif %}">Individueel</a>
+            {% endif %}
+            {% if NAV_CAN_TEAM_DATA %}
+            <a href="{% url 'individuele_programmas' %}" class="{% if 'individuele_programmas' in request.path %}active{% endif %}">Individueel</a>
+            {% endif %}
+            {% if NAV_CAN_FULL_STAFF %}
             <a href="{% url 'aanwezigheden' %}" class="{% if 'aanwezigheden' in request.path %}active{% endif %}">Aanwezigheden</a>
             <a href="{% url 'beweeganalyse' %}{% if selected_player %}?player_id={{ selected_player.id }}{% endif %}" class="{% if 'beweeganalyse' in request.path %}active{% endif %}">Beweeganalyse</a>
+            {% endif %}
+            {% if NAV_CAN_TEAM_DATA %}
             <a href="{% url 'potentials' %}" class="{% if 'potentials' in request.path %}active{% endif %}">Potentials</a>
+            {% endif %}
+            {% if NAV_CAN_FULL_STAFF %}
             <a href="{% url 'beleid' %}" class="{% if 'beleid' in request.path %}active{% endif %}">Beleid</a>
+            {% endif %}
+            {% if NAV_CAN_ADMIN %}
             <a href="{% url 'staf' %}" class="{% if 'staf' in request.path %}active{% endif %}">Staf</a>
+            {% endif %}
+            {% if NAV_CAN_FULL_STAFF %}
             <a href="{% url 'overig' %}" class="{% if 'overig' in request.path %}active{% endif %}">Overig</a>
+            {% endif %}
         </div>
         <form method="post" action="{% url 'logout' %}" class="site-nav-actions">
             {% csrf_token %}

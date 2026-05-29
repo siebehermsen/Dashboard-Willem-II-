@@ -73,12 +73,15 @@ from .models import (
     PlayerPosition,
     StaffRole,
 )
-from .permissions import ALL_DASHBOARD_ROLES, ROLE_CHOICES, ROLE_ADMIN, ROLE_PLAYER, role_required
+from .permissions import ALL_DASHBOARD_ROLES, LEGACY_ROLE_ALIASES, ROLE_CHOICES, ROLE_ADMIN, ROLE_PLAYER, role_required
 from .performance_3nf import fetch_performance_rows, mean, upsert_performance_session_metrics
 
 
 def _dashboard_role_values():
-    return {role for role, _label in ROLE_CHOICES}
+    values = {role for role, _label in ROLE_CHOICES}
+    for aliases in LEGACY_ROLE_ALIASES.values():
+        values.update(aliases)
+    return values
 
 
 def _dashboard_role_label(role_name):
@@ -89,7 +92,14 @@ def _user_dashboard_role(user):
     if not user:
         return ""
     role_values = _dashboard_role_values()
+    legacy_to_current = {
+        legacy: current
+        for current, aliases in LEGACY_ROLE_ALIASES.items()
+        for legacy in aliases
+    }
     for group in user.groups.all():
+        if group.name in legacy_to_current:
+            return legacy_to_current[group.name]
         if group.name in role_values:
             return group.name
     return ""
@@ -125,6 +135,14 @@ def _player_for_user(user):
         return None
     normalized_username = username.replace(".", " ").replace("_", " ").replace("-", " ").strip()
     return Player.objects.filter(Q(name__iexact=username) | Q(name__iexact=normalized_username)).first()
+
+
+def _require_own_player_for_player_user(request, player_id):
+    if not _is_player_app_user(request.user):
+        return
+    player = _player_for_user(request.user)
+    if not player or str(player.id) != str(player_id):
+        raise PermissionDenied
 
 
 def logout_view(request):
@@ -2344,6 +2362,13 @@ def testdata(request):
 
     data_team_codes = _academy_data_codes()
     player_id = request.GET.get("player_id")
+    if _is_player_app_user(request.user):
+        player_for_user = _player_for_user(request.user)
+        if not player_for_user:
+            raise PermissionDenied
+        if player_id and str(player_id) != str(player_for_user.id):
+            raise PermissionDenied
+        player_id = str(player_for_user.id)
 
     def team_code_for_player(player_id_value):
         if not player_id_value:
@@ -2512,6 +2537,8 @@ def testdata(request):
     }
 
     if request.method == "POST":
+        if _is_player_app_user(request.user):
+            raise PermissionDenied
         player_obj = get_object_or_404(Player, id=request.POST.get("player_id"))
         test_date = request.POST.get("test_date")
         if not test_date:
@@ -4734,7 +4761,12 @@ def _clean_int_or_none(value):
 def rpe_view_old(request):
     """RPE dashboard met robuuste POST-afhandeling en 3NF velden."""
 
-    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    player_app_user = _is_player_app_user(request.user)
+    player_app_player = _player_for_user(request.user) if player_app_user else None
+    players_qs = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    if player_app_user:
+        players_qs = players_qs.filter(id=player_app_player.id) if player_app_player else players_qs.none()
+    players = list(players_qs)
     training_types = RPETrainingType.objects.filter(is_active=True).order_by("name")
     today = timezone.now().date()
 
@@ -4762,6 +4794,9 @@ def rpe_view_old(request):
         date_raw = request.POST.get("date")
 
         errors = []
+
+        if player_app_user and (not player_app_player or str(player_app_player.id) != player_id_raw):
+            raise PermissionDenied
 
         player = Player.objects.filter(id=player_id_raw).first()
         if not player:
@@ -6135,6 +6170,7 @@ def player_data(request, player_id):
     voor ??n specifieke speler. Wordt aangeroepen als je op een speler klikt.
     """
     from .models import Player
+    _require_own_player_for_player_user(request, player_id)
 
     try:
         player = Player.objects.get(id=player_id)
@@ -6277,6 +6313,7 @@ def _csv_float(value):
     cleaned = cleaned.replace(" ", "")
     if "," in cleaned and "." not in cleaned:
         cleaned = cleaned.replace(",", ".")
+    _require_own_player_for_player_user(request, player_id)
     try:
         return float(cleaned)
     except ValueError:
