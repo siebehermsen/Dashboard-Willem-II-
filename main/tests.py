@@ -357,6 +357,28 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(entry.sleep, 5)
         self.assertEqual(entry.comment, "Bijgewerkt")
 
+    def test_wellness_filters_players_by_team_layout(self):
+        team_o17 = Team.objects.create(code="O17", name="O17")
+        team_o19 = Team.objects.create(code="O19", name="O19")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team_o17,
+            start_date=date(2026, 1, 1),
+        )
+        PlayerTeamAssignment.objects.create(
+            player=self.other_player,
+            team=team_o19,
+            start_date=date(2026, 1, 1),
+        )
+
+        response = self.client.get(reverse("wellness"), {"date": "2026-05-15", "team": "O17"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Teams")
+        self.assertContains(response, "Wellness")
+        self.assertContains(response, self.player.name)
+        self.assertNotContains(response, self.other_player.name)
+
     def test_player_app_user_only_sees_and_saves_own_wellness(self):
         player_user = get_user_model().objects.create_user(username="player-login", password="test-pass")
         player_group = Group.objects.create(name=ROLE_PLAYER)

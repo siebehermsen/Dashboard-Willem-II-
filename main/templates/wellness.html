@@ -468,6 +468,182 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
     font-size: 1rem;
     padding: 12px 14px;
 }
+
+.container:has(.wellness-layout) {
+    max-width: none;
+    width: 100%;
+    padding-left: 18px;
+    padding-right: 18px;
+}
+
+.wellness-container:not(.player-wellness-app) {
+    max-width: 1880px;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.wellness-container:not(.player-wellness-app) h1 {
+    text-align: left;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin-bottom: 22px;
+}
+
+.wellness-layout {
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.wellness-team-side,
+.wellness-workspace {
+    background: #fff;
+    border: 1px solid #dbe5f3;
+    border-radius: 18px;
+    box-shadow: 0 12px 28px rgba(31, 42, 68, 0.08);
+}
+
+.wellness-team-side {
+    padding: 14px;
+    position: sticky;
+    top: 18px;
+}
+
+.wellness-side-title {
+    color: #687897;
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    margin: 0 0 14px;
+    text-transform: uppercase;
+}
+
+.wellness-team-tabs {
+    display: grid;
+    gap: 10px;
+}
+
+.wellness-team-tab {
+    align-items: center;
+    background: #eef2f7;
+    border: 1px solid #d8e2ef;
+    border-radius: 12px;
+    color: #1f2a44;
+    display: flex;
+    font-weight: 900;
+    min-height: 42px;
+    padding: 0 12px;
+    text-decoration: none;
+}
+
+.wellness-team-tab.is-active {
+    background: #d71920;
+    border-color: #d71920;
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(215, 25, 32, 0.2);
+}
+
+.wellness-workspace {
+    overflow: hidden;
+}
+
+.wellness-toolbar {
+    align-items: center;
+    border-bottom: 1px solid #e3eaf4;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 14px;
+    padding: 14px 18px;
+}
+
+.wellness-date-block {
+    text-align: center;
+}
+
+.wellness-date-block span {
+    color: #687897;
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.wellness-date-block strong {
+    color: #1f2a44;
+    display: block;
+    font-size: 1.45rem;
+    font-weight: 900;
+}
+
+.wellness-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(130px, 1fr));
+    gap: 12px;
+    padding: 14px 18px;
+}
+
+.wellness-kpi {
+    background: #f6f8fb;
+    border: 1px solid #dfe7f2;
+    border-radius: 14px;
+    padding: 12px 14px;
+}
+
+.wellness-kpi span {
+    color: #687897;
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.wellness-kpi strong {
+    color: #1f2a44;
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.wellness-container:not(.player-wellness-app) .date-selector {
+    display: none;
+}
+
+.wellness-container:not(.player-wellness-app) .combined-summary {
+    margin: 0 18px 18px;
+}
+
+.wellness-container:not(.player-wellness-app) .tabs {
+    margin: 0 18px 16px;
+}
+
+.wellness-container:not(.player-wellness-app) .wellness-table-wrapper {
+    border-top: 1px solid #e3eaf4;
+}
+
+@media (max-width: 900px) {
+    .wellness-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .wellness-team-side {
+        position: static;
+    }
+
+    .wellness-team-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .wellness-toolbar,
+    .wellness-summary {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 
 <div class="wellness-container {% if PLAYER_APP_MODE %}player-wellness-app{% endif %}">
@@ -476,6 +652,48 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
     <div class="player-link-warning">
         Je account is nog niet gekoppeld aan een spelerprofiel. Vraag staf om je login aan jouw speler te koppelen.
     </div>
+    {% endif %}
+
+    {% if not PLAYER_APP_MODE %}
+    <div class="wellness-layout">
+        <aside class="wellness-team-side" aria-label="Teamselectie">
+            <p class="wellness-side-title">Teams</p>
+            <div class="wellness-team-tabs">
+                {% for team in wellness_team_options %}
+                    <a
+                        class="wellness-team-tab {% if selected_team_code == team.code %}is-active{% endif %}"
+                        href="{% url 'wellness' %}?date={{ date }}&team={{ team.code }}"
+                    >
+                        <span>{{ team.label }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <section class="wellness-workspace">
+            <div class="wellness-toolbar">
+                <a href="{% url 'wellness' %}?date={{ previous_day|date:'Y-m-d' }}&team={{ selected_team_code }}" class="nav-btn">Vorige dag</a>
+                <div class="wellness-date-block">
+                    <span>{{ selected_team_label }}</span>
+                    <strong>{{ date_obj|date:"d-m-Y" }}</strong>
+                </div>
+                <a href="{% url 'wellness' %}?date={{ next_day|date:'Y-m-d' }}&team={{ selected_team_code }}" class="nav-btn">Volgende dag</a>
+            </div>
+
+            <div class="wellness-summary">
+                <div class="wellness-kpi">
+                    <span>Wellness</span>
+                    <strong>{% if wellness_percentage != None %}{{ wellness_percentage }}%{% else %}-{% endif %}</strong>
+                </div>
+                <div class="wellness-kpi">
+                    <span>RPE ingevuld</span>
+                    <strong>{{ rpe_count }}</strong>
+                </div>
+                <div class="wellness-kpi">
+                    <span>Spelers</span>
+                    <strong>{{ total_players }}</strong>
+                </div>
+            </div>
     {% endif %}
 
     <div class="date-selector">
@@ -695,6 +913,10 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
         </tbody>
     </table>
     </div>
+    {% if not PLAYER_APP_MODE %}
+        </section>
+    </div>
+    {% endif %}
 </div>
 
 
@@ -702,6 +924,8 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
 function saveRow(button, playerId) {
     const row = button.closest("tr");
     const dateValue = document.getElementById("date").value;
+    const selectedTeam = "{{ selected_team_code|default:'' }}";
+    const teamQuery = selectedTeam ? "&team=" + encodeURIComponent(selectedTeam) : "";
 
     const payload = {
         player_id: playerId,
@@ -714,7 +938,7 @@ function saveRow(button, playerId) {
         comment: row.querySelector(".comment").value,
     };
 
-    fetch("/wellness/?date=" + encodeURIComponent(dateValue), {
+    fetch("/wellness/?date=" + encodeURIComponent(dateValue) + teamQuery, {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -733,7 +957,7 @@ function saveRow(button, playerId) {
         // ✅ jouw view.py doet redirect om filled/not filled te herberekenen
         // dus we herladen gewoon de pagina op dezelfde datum
         setTimeout(() => {
-            window.location.href = "/wellness/?date=" + encodeURIComponent(dateValue);
+            window.location.href = "/wellness/?date=" + encodeURIComponent(dateValue) + teamQuery;
         }, 400);
     })
     .catch(error => {
@@ -862,23 +1086,29 @@ if (!dateInput.value || dateInput.value === "None") {
 
 // Bij aanpassing van de datum → herlaad pagina
 dateInput.addEventListener("change", () => {
-    window.location.href = `/wellness/?date=${dateInput.value}`;
+    const selectedTeam = "{{ selected_team_code|default:'' }}";
+    const teamQuery = selectedTeam ? `&team=${encodeURIComponent(selectedTeam)}` : "";
+    window.location.href = `/wellness/?date=${dateInput.value}${teamQuery}`;
 });
 
 // Dag terug
 document.getElementById("prev-day").addEventListener("click", () => {
+    const selectedTeam = "{{ selected_team_code|default:'' }}";
+    const teamQuery = selectedTeam ? `&team=${encodeURIComponent(selectedTeam)}` : "";
     const current = new Date(dateInput.value);
     current.setDate(current.getDate() - 1);
     const newDate = current.toISOString().substring(0, 10);
-    window.location.href = `/wellness/?date=${newDate}`;
+    window.location.href = `/wellness/?date=${newDate}${teamQuery}`;
 });
 
 // Dag vooruit
 document.getElementById("next-day").addEventListener("click", () => {
+    const selectedTeam = "{{ selected_team_code|default:'' }}";
+    const teamQuery = selectedTeam ? `&team=${encodeURIComponent(selectedTeam)}` : "";
     const current = new Date(dateInput.value);
     current.setDate(current.getDate() + 1);
     const newDate = current.toISOString().substring(0, 10);
-    window.location.href = `/wellness/?date=${newDate}`;
+    window.location.href = `/wellness/?date=${newDate}${teamQuery}`;
 });
 </script>
 
