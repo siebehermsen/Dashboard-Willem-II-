@@ -637,6 +637,64 @@
         gap: 14px;
     }
 
+    .potential-accordion {
+        display: grid;
+        gap: 12px;
+    }
+
+    .potential-accordion-item {
+        background: #ffffff;
+        border: 1px solid #dfe7f2;
+        border-radius: 18px;
+        box-shadow: 0 14px 28px rgba(31, 42, 68, 0.07);
+        overflow: hidden;
+    }
+
+    .potential-accordion-item summary {
+        align-items: center;
+        color: #1f2a44;
+        cursor: pointer;
+        display: flex;
+        font-size: 1.1rem;
+        font-weight: 950;
+        justify-content: space-between;
+        list-style: none;
+        min-height: 64px;
+        padding: 0 20px;
+    }
+
+    .potential-accordion-item summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .potential-accordion-item summary::after {
+        background: #eef3fa;
+        border-radius: 999px;
+        color: #1f2a44;
+        content: "+";
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        font-weight: 950;
+        height: 38px;
+        width: 38px;
+    }
+
+    .potential-accordion-item[open] summary {
+        border-bottom: 1px solid #e5ebf4;
+    }
+
+    .potential-accordion-item[open] summary::after {
+        background: #d71920;
+        color: #ffffff;
+        content: "-";
+    }
+
+    .potential-accordion-body {
+        padding: 18px 20px 20px;
+    }
+
     .potential-wide {
         grid-column: 1 / -1;
     }
@@ -1120,11 +1178,10 @@
                 </article>
 
                 <div class="potential-tab-content is-active" data-potential-panel="overzicht">
-                <div class="potential-grid">
-                    <article class="potentials-card potential-wide">
-                        <div class="potential-section-title">
-                            <h3>Individueel programma</h3>
-                        </div>
+                <div class="potential-accordion">
+                    <details class="potential-accordion-item">
+                        <summary>Individueel programma</summary>
+                        <div class="potential-accordion-body">
                         <form class="potentials-form" method="post" data-potential-ajax>
                             {% csrf_token %}
                             <input type="hidden" name="action" value="save_program">
@@ -1166,12 +1223,12 @@
                             </div>
                             <button class="potentials-btn" type="submit">Programma opslaan</button>
                         </form>
-                    </article>
-
-                    <article class="potentials-card">
-                        <div class="potential-section-title">
-                            <h3>Aandachtspunten</h3>
                         </div>
+                    </details>
+
+                    <details class="potential-accordion-item">
+                        <summary>Aandachtspunten</summary>
+                        <div class="potential-accordion-body">
                         <div class="potential-list" data-potential-attention-list>
                             {% for note in attention_notes %}
                                 <div class="potential-list-item">
@@ -1214,23 +1271,23 @@
                             </div>
                             <button class="potentials-btn secondary" type="submit">Aandachtspunt opslaan</button>
                         </form>
-                    </article>
-
-                    <article class="potentials-card">
-                        <div class="potential-section-title">
-                            <h3>Monitoring</h3>
                         </div>
+                    </details>
+
+                    <details class="potential-accordion-item" open>
+                        <summary>Monitoring</summary>
+                        <div class="potential-accordion-body">
                         <div class="potential-list">
                             <div class="potential-list-item">Wellness: {% if latest_wellness %}{{ latest_wellness.date|date:"d-m-Y" }}{% else %}geen recente invoer{% endif %}</div>
                             <div class="potential-list-item">Laatste RPE: {% if latest_rpe %}{{ latest_rpe.rpe }} op {{ latest_rpe.date|date:"d-m-Y" }}{% else %}geen recente invoer{% endif %}</div>
                             <div class="potential-list-item">MSS/MAS: {% if latest_speed_test %}{{ latest_speed_test.mss_kmh|floatformat:1 }} / {{ latest_speed_test.mas_kmh|floatformat:1 }} km/u{% else %}geen recente test{% endif %}</div>
                         </div>
-                    </article>
-
-                    <article class="potentials-card potential-wide">
-                        <div class="potential-section-title">
-                            <h3>Oefeningen en werkvormen</h3>
                         </div>
+                    </details>
+
+                    <details class="potential-accordion-item">
+                        <summary>Oefeningen en werkvormen</summary>
+                        <div class="potential-accordion-body">
                         <div class="potential-list" data-potential-exercise-list>
                             <div class="exercise-row header">
                                 <span>Oefening</span>
@@ -1279,7 +1336,8 @@
                             </div>
                             <button class="potentials-btn secondary" type="submit">Oefening toevoegen</button>
                         </form>
-                    </article>
+                        </div>
+                    </details>
                 </div>
                 </div>
             {% else %}
