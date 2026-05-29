@@ -725,6 +725,27 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, self.player.name)
         self.assertNotContains(response, self.other_player.name)
 
+    def test_attendance_page_uses_agenda_training_as_default_status(self):
+        team = Team.objects.create(code="O17", name="O17")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team,
+            start_date=date(2026, 1, 1),
+        )
+        DayProgramEntry.objects.create(
+            date=date(2026, 5, 15),
+            title="O17 training",
+            team="O17",
+            category="training",
+        )
+
+        response = self.client.get(reverse("aanwezigheden"), {"date": "2026-05-15", "team": "O17"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Training O17")
+        record = AttendanceRecord.objects.get(player=self.player, date=date(2026, 5, 15))
+        self.assertEqual(record.status.code, "training_o17")
+
     def test_performance_staff_can_open_attendance_page(self):
         performance_user = get_user_model().objects.create_user(
             username="performance",

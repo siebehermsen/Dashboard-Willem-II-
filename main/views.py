@@ -233,6 +233,45 @@ def _agenda_category_label(category):
     return labels.get((category or "").strip().lower(), category or "Training")
 
 
+def _attendance_status_from_agenda(chosen_date, team_code):
+    team_code = (team_code or "").strip().upper()
+    if not team_code:
+        return None, None
+
+    agenda_entry = (
+        DayProgramEntry.objects
+        .filter(date=chosen_date, team__iexact=team_code)
+        .exclude(category__iexact="rust")
+        .order_by("start_time", "id")
+        .first()
+    )
+    if not agenda_entry:
+        return None, None
+
+    category = (agenda_entry.category or "training").strip().lower()
+    if category == "wedstrijd":
+        base_code = "wedstrijd"
+        base_label = "Wedstrijd"
+    else:
+        base_code = "training"
+        base_label = "Training"
+
+    status_code = f"{base_code}_{team_code.lower()}"
+    status, _created = AttendanceStatus.objects.get_or_create(
+        code=status_code,
+        defaults={
+            "label": f"{base_label} {team_code}",
+            "sort_order": 50,
+            "is_active": True,
+        },
+    )
+    if not status.is_active:
+        status.is_active = True
+        status.save(update_fields=["is_active"])
+
+    return status, agenda_entry
+
+
 def _dashboard_week_url(date_value):
     if not date_value:
         return reverse("dashboard")
@@ -2611,6 +2650,14 @@ def _academy_team_options():
 
 def _academy_data_team_options():
     return [{"code": code, "label": _academy_team_label(code)} for code in _academy_data_codes()]
+
+
+def _attendance_team_codes():
+    return ["O21", "O19", "O17", "O15"]
+
+
+def _attendance_team_options():
+    return [{"code": code, "label": _academy_team_label(code)} for code in _attendance_team_codes()]
 
 
 def _academy_team_context(team_code):
@@ -5172,7 +5219,7 @@ def aanwezigheden_pagina(request):
         chosen_date = datetime.today().date()
 
     # 2. Team en spelers ophalen
-    attendance_team_codes = _academy_data_codes()
+    attendance_team_codes = _attendance_team_codes()
     selected_team_code = (request.GET.get("team") or attendance_team_codes[0]).strip().upper()
     if selected_team_code not in attendance_team_codes:
         selected_team_code = attendance_team_codes[0]
@@ -5180,9 +5227,12 @@ def aanwezigheden_pagina(request):
     selected_team_label = selected_team.name if selected_team else _academy_team_label(selected_team_code)
     players = list(team_players_qs.select_related("monitoring_profile", "position_ref"))
 
+    agenda_status, agenda_entry = _attendance_status_from_agenda(chosen_date, selected_team_code)
+
     status_qs = AttendanceStatus.objects.filter(is_active=True).order_by("sort_order", "label")
     status_choices = [(status.code, status.label) for status in status_qs]
-    default_status = status_qs.filter(code="overig").first() or status_qs.first()
+    fallback_status = status_qs.filter(code="overig").first() or status_qs.first()
+    default_status = agenda_status or fallback_status
 
     # 3. Voor elke speler een AttendanceRecord entry ophalen of automatisch aanmaken
     records = []
@@ -5192,6 +5242,15 @@ def aanwezigheden_pagina(request):
             date=chosen_date,
             defaults={"status": default_status, "completed": False},
         )
+        if (
+            not created
+            and agenda_status
+            and not aanwezigheid.completed
+            and aanwezigheid.status
+            and aanwezigheid.status.code == "overig"
+        ):
+            aanwezigheid.status = agenda_status
+            aanwezigheid.save(update_fields=["status", "updated_at"])
         records.append(
             SimpleNamespace(
                 id=aanwezigheid.id,
@@ -5219,9 +5278,10 @@ def aanwezigheden_pagina(request):
         "previous_day": previous_day,
         "next_day": next_day,
         "status_choices": status_choices,
-        "attendance_team_options": _academy_data_team_options(),
+        "attendance_team_options": _attendance_team_options(),
         "selected_team_code": selected_team_code,
         "selected_team_label": selected_team_label,
+        "agenda_suggestion": agenda_entry,
         "completed_count": completed_count,
         "registered_count": registered_count,
         "attendance_percentage": attendance_percentage,
