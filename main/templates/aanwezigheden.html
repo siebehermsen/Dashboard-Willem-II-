@@ -2,8 +2,17 @@
 {% block content %}
 
 <style>
+    .container:has(.attendance-page) {
+        max-width: none;
+        width: 100%;
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
     .attendance-page {
         color: #1f2a44;
+        margin: 0 auto;
+        max-width: 1880px;
     }
 
     .attendance-title {
@@ -16,8 +25,8 @@
 
     .attendance-layout {
         display: grid;
-        grid-template-columns: 230px minmax(0, 1fr);
-        gap: 22px;
+        grid-template-columns: 190px minmax(0, 1fr);
+        gap: 16px;
         align-items: start;
     }
 
@@ -32,7 +41,7 @@
     .attendance-team-side {
         position: sticky;
         top: 104px;
-        padding: 18px;
+        padding: 14px;
     }
 
     .attendance-side-title {
@@ -58,8 +67,8 @@
         display: flex;
         font-weight: 900;
         justify-content: space-between;
-        min-height: 48px;
-        padding: 0 14px;
+        min-height: 42px;
+        padding: 0 12px;
         text-decoration: none;
     }
 
@@ -80,7 +89,7 @@
         display: grid;
         grid-template-columns: auto minmax(0, 1fr) auto;
         gap: 14px;
-        padding: 18px 22px;
+        padding: 14px 18px;
     }
 
     .date-nav-btn {
@@ -119,15 +128,15 @@
     .attendance-summary {
         display: grid;
         grid-template-columns: repeat(3, minmax(130px, 1fr));
-        gap: 14px;
-        padding: 18px 22px;
+        gap: 12px;
+        padding: 14px 18px;
     }
 
     .attendance-kpi {
         background: #f6f8fb;
         border: 1px solid #dfe7f2;
         border-radius: 14px;
-        padding: 14px;
+        padding: 12px 14px;
     }
 
     .attendance-kpi span {
@@ -148,7 +157,7 @@
     }
 
     .attendance-table-wrap {
-        max-height: calc(100vh - 360px);
+        max-height: calc(100vh - 300px);
         min-height: 420px;
         overflow: auto;
         border-top: 1px solid #e3eaf4;
@@ -157,7 +166,7 @@
     .attendance-table {
         border-collapse: separate;
         border-spacing: 0;
-        min-width: 980px;
+        min-width: 920px;
         width: 100%;
     }
 
@@ -167,7 +176,7 @@
         font-size: 0.78rem;
         font-weight: 900;
         letter-spacing: 0.06em;
-        padding: 12px 14px;
+        padding: 10px 12px;
         position: sticky;
         text-align: left;
         text-transform: uppercase;
@@ -177,7 +186,7 @@
 
     .attendance-table td {
         border-bottom: 1px solid #e3eaf4;
-        padding: 12px 14px;
+        padding: 9px 12px;
         vertical-align: middle;
     }
 
@@ -219,9 +228,9 @@
         border: 2px solid #f4ad43;
         border-radius: 12px;
         display: grid;
-        grid-template-columns: minmax(180px, 1fr) auto auto;
-        gap: 10px;
-        padding: 7px;
+        grid-template-columns: minmax(170px, 1fr) auto auto;
+        gap: 8px;
+        padding: 6px;
     }
 
     tr.row-green .status-form {
