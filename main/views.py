@@ -5138,6 +5138,7 @@ def wellness(request):
     wellness_count = len(players_filled)
     rpe_count = len(rpe_by_player)
     wellness_percentage = round((wellness_count / total_players) * 100) if total_players else None
+    rpe_percentage = round((rpe_count / total_players) * 100) if total_players else None
 
     # 6) Context + render
     return render(request, "wellness.html", {
@@ -5154,6 +5155,7 @@ def wellness(request):
         "wellness_count": wellness_count,
         "rpe_count": rpe_count,
         "wellness_percentage": wellness_percentage,
+        "rpe_percentage": rpe_percentage,
         "players_filled": players_filled,
         "players_not_filled": players_not_filled,
         "existing_entries": existing_entries,

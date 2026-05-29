@@ -610,6 +610,14 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
     line-height: 1;
 }
 
+.wellness-kpi small {
+    color: #687897;
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 850;
+    margin-top: 8px;
+}
+
 .wellness-container:not(.player-wellness-app) .date-selector {
     display: none;
 }
@@ -684,10 +692,12 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
                 <div class="wellness-kpi">
                     <span>Wellness</span>
                     <strong>{% if wellness_percentage != None %}{{ wellness_percentage }}%{% else %}-{% endif %}</strong>
+                    <small>{{ wellness_count }} van {{ total_players }} spelers</small>
                 </div>
                 <div class="wellness-kpi">
-                    <span>RPE ingevuld</span>
-                    <strong>{{ rpe_count }}</strong>
+                    <span>RPE</span>
+                    <strong>{% if rpe_percentage != None %}{{ rpe_percentage }}%{% else %}-{% endif %}</strong>
+                    <small>{{ rpe_count }} van {{ total_players }} spelers</small>
                 </div>
                 <div class="wellness-kpi">
                     <span>Spelers</span>
