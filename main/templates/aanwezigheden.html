@@ -2,294 +2,397 @@
 {% block content %}
 
 <style>
-    .page-title {
-    color: #0c2340;
-    font-size: 40px;
-    font-weight: 900;
-    text-align: center;
-    margin-bottom: 25px;
-}
-
-/* DATE SWITCHER */
-.date-nav {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 25px;
-}
-
-.nav-btn {
-    background: #0c2340;      /* dashboard blauw */
-    color: #ffffff;
-    padding: 10px 25px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 700;
-    transition: .25s;
-    font-size: 16px;
-}
-
-.nav-btn:hover {
-    background: #081a30;      /* iets donkerder bij hover */
-    transform: translateY(-2px);
-}
-
-.date-display {
-    background: #ffffff;
-    border: 2px solid #0c2340; /* dashboard blauw */
-    padding: 8px 20px;
-    font-size: 22px;
-    font-weight: 700;
-    border-radius: 10px;
-    color: #0c2340;
-}
-
-    /* TABLE */
-    .table-wrapper {
-        margin-top: 10px;
-        background: #ffffff;
-        padding: 25px;
-        border-radius: 16px;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.07);
-        overflow-x: auto;
+    .attendance-page {
+        color: #1f2a44;
     }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 15px;
-        min-width: 900px;
+    .attendance-title {
+        color: #1f2a44;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        margin: 0 0 22px;
     }
 
-    th {
-        background: #0c2340;
-        color: white;
-        padding: 12px;
+    .attendance-layout {
+        display: grid;
+        grid-template-columns: 230px minmax(0, 1fr);
+        gap: 22px;
+        align-items: start;
+    }
+
+    .attendance-team-side,
+    .attendance-workspace {
+        background: #fff;
+        border: 1px solid #dbe5f3;
+        border-radius: 18px;
+        box-shadow: 0 12px 28px rgba(31, 42, 68, 0.08);
+    }
+
+    .attendance-team-side {
         position: sticky;
-        top: 0;
-        z-index: 10;
-        text-align: left;
-        font-weight: 800;
+        top: 104px;
+        padding: 18px;
     }
 
-    td {
-        padding: 10px;
-        border-bottom: 1px solid #e3e6eb;
+    .attendance-side-title {
+        color: #687897;
+        font-size: 0.8rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        margin: 0 0 14px;
+        text-transform: uppercase;
     }
 
-    /* INPUTS */
-    .status-box {
-        background: #ffe7c2;
-        padding: 5px;
-        border-radius: 10px;
-        border: 2px solid #ffbb6a;
+    .attendance-team-tabs {
+        display: grid;
+        gap: 10px;
     }
 
-    select, input[type="checkbox"] {
-        padding: 7px;
-        border-radius: 8px;
-        border: 1px solid #c7c7c7;
-        background: white;
-        width: 100%;
+    .attendance-team-tab {
+        align-items: center;
+        background: #eef2f7;
+        border: 1px solid #d8e2ef;
+        border-radius: 12px;
+        color: #1f2a44;
+        display: flex;
+        font-weight: 900;
+        justify-content: space-between;
+        min-height: 48px;
+        padding: 0 14px;
+        text-decoration: none;
     }
 
-    .save-btn {
-    background: #0c2340;      /* dashboard donkerblauw */
-    color: #ffffff;           /* wit */
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: .25s;
-    width: 100%;
-}
-
-.save-btn:hover {
-    background: #081a30;      /* iets donkerder voor hover */
-}
-
-
-    /* COLORS */
-    .row-green { background: #e8ffec !important; }
-    .row-orange { background: #fff3e0 !important; }
-
-    html.app-ui.app-mode .page-title {
-        text-align: left;
-        font-size: 1.55rem;
-        margin-bottom: 16px;
+    .attendance-team-tab.is-active {
+        background: #d71920;
+        border-color: #d71920;
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(215, 25, 32, 0.2);
     }
 
-    html.app-ui.app-mode .date-nav {
+    .attendance-workspace {
+        overflow: hidden;
+    }
+
+    .attendance-toolbar {
+        align-items: center;
+        border-bottom: 1px solid #e3eaf4;
         display: grid;
         grid-template-columns: auto minmax(0, 1fr) auto;
-        gap: 10px;
-        align-items: center;
-        margin-bottom: 16px;
+        gap: 14px;
+        padding: 18px 22px;
     }
 
-    html.app-ui.app-mode .nav-btn {
-        padding: 10px 12px;
-        border-radius: 12px;
-        font-size: 0.88rem;
-        text-align: center;
-        white-space: nowrap;
-    }
-
-    html.app-ui.app-mode .date-display {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 10px 12px;
-        font-size: 1rem;
-        text-align: center;
-    }
-
-    html.app-ui.app-mode .table-wrapper {
-        margin-top: 0;
-        padding: 14px;
-        border-radius: 18px;
-        overflow: visible;
-    }
-
-    html.app-ui.app-mode table,
-    html.app-ui.app-mode tbody {
-        display: block;
-        width: 100%;
-        min-width: 0;
-    }
-
-    html.app-ui.app-mode thead {
-        display: none;
-    }
-
-    html.app-ui.app-mode tbody tr {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto auto;
-        gap: 10px;
-        margin-bottom: 10px;
-        padding: 12px;
-        border: 1px solid #e5ebf3;
-        border-radius: 14px;
-        background: #ffffff;
-        box-shadow: 0 6px 16px rgba(12, 35, 64, 0.07);
-    }
-
-    html.app-ui.app-mode tbody tr.row-green {
-        border-color: #b9e4c2;
-        background: linear-gradient(180deg, #f8fff9 0%, #eefbf1 100%) !important;
-    }
-
-    html.app-ui.app-mode tbody tr.row-orange {
-        border-color: #ffd59e;
-        background: linear-gradient(180deg, #fffdfa 0%, #fff4e5 100%) !important;
-    }
-
-    html.app-ui.app-mode td {
-        padding: 0;
-        border-bottom: none;
-    }
-
-    html.app-ui.app-mode .player-name-cell {
-        grid-column: 1 / -1;
-        font-size: 1rem;
-        font-weight: 800;
-        color: #0c2340;
-        padding-bottom: 2px;
-    }
-
-    html.app-ui.app-mode .status-cell {
-        min-width: 0;
-    }
-
-    html.app-ui.app-mode .status-box {
-        padding: 4px;
-        border-radius: 12px;
-    }
-
-    html.app-ui.app-mode .status-cell select {
-        min-height: 40px;
-    }
-
-    html.app-ui.app-mode .save-cell,
-    html.app-ui.app-mode .complete-cell {
-        display: flex;
+    .date-nav-btn {
+        background: #1f2a44;
+        border-radius: 999px;
+        color: #fff;
+        font-weight: 900;
+        min-height: 42px;
+        padding: 0 16px;
+        text-decoration: none;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
     }
 
-    html.app-ui.app-mode .save-btn {
-        width: 44px;
-        min-width: 44px;
-        height: 40px;
-        padding: 0;
-        border-radius: 12px;
+    .attendance-date-block {
+        text-align: center;
     }
 
-    html.app-ui.app-mode .complete-toggle {
-        width: 22px;
-        height: 22px;
-        margin: 0;
-        accent-color: #0c2340;
+    .attendance-date-block span {
+        color: #687897;
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 900;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+
+    .attendance-date-block strong {
+        color: #1f2a44;
+        display: block;
+        font-size: 1.45rem;
+        font-weight: 900;
+    }
+
+    .attendance-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(130px, 1fr));
+        gap: 14px;
+        padding: 18px 22px;
+    }
+
+    .attendance-kpi {
+        background: #f6f8fb;
+        border: 1px solid #dfe7f2;
+        border-radius: 14px;
+        padding: 14px;
+    }
+
+    .attendance-kpi span {
+        color: #687897;
+        display: block;
+        font-size: 0.76rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .attendance-kpi strong {
+        color: #1f2a44;
+        font-size: 1.8rem;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .attendance-table-wrap {
+        max-height: calc(100vh - 360px);
+        min-height: 420px;
+        overflow: auto;
+        border-top: 1px solid #e3eaf4;
+    }
+
+    .attendance-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        min-width: 980px;
+        width: 100%;
+    }
+
+    .attendance-table th {
+        background: #1f2a44;
+        color: #fff;
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        padding: 12px 14px;
+        position: sticky;
+        text-align: left;
+        text-transform: uppercase;
+        top: 0;
+        z-index: 2;
+    }
+
+    .attendance-table td {
+        border-bottom: 1px solid #e3eaf4;
+        padding: 12px 14px;
+        vertical-align: middle;
+    }
+
+    .attendance-table tbody tr {
+        background: #fff;
+    }
+
+    .attendance-table tbody tr.row-green {
+        background: #f0fff4;
+    }
+
+    .attendance-table tbody tr.row-orange {
+        background: #fff8ea;
+    }
+
+    .team-cell {
+        color: #687897;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .player-cell strong {
+        color: #1f2a44;
+        display: block;
+        font-weight: 900;
+    }
+
+    .player-cell span {
+        color: #687897;
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 800;
+        margin-top: 3px;
+    }
+
+    .status-form {
+        align-items: center;
+        background: #fff0d4;
+        border: 2px solid #f4ad43;
+        border-radius: 12px;
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) auto auto;
+        gap: 10px;
+        padding: 7px;
+    }
+
+    tr.row-green .status-form {
+        background: #e9fbef;
+        border-color: #65c878;
+    }
+
+    .status-form select {
+        background: #fff;
+        border: 1px solid #c9d4e4;
+        border-radius: 9px;
+        color: #1f2a44;
+        font: inherit;
+        font-weight: 800;
+        min-height: 38px;
+        padding: 0 10px;
+        width: 100%;
+    }
+
+    .save-btn {
+        background: #d71920;
+        border: 0;
+        border-radius: 10px;
+        color: #fff;
+        cursor: pointer;
+        font-weight: 900;
+        min-height: 38px;
+        padding: 0 14px;
+        white-space: nowrap;
+    }
+
+    .complete-toggle {
+        align-items: center;
+        color: #1f2a44;
+        display: inline-flex;
+        font-size: 0.86rem;
+        font-weight: 900;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .complete-toggle input {
+        accent-color: #16a34a;
+        height: 20px;
+        width: 20px;
+    }
+
+    .status-label {
+        color: #687897;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .empty-row {
+        color: #687897;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    @media (max-width: 900px) {
+        .attendance-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .attendance-team-side {
+            position: static;
+        }
+
+        .attendance-team-tabs {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .attendance-toolbar {
+            grid-template-columns: 1fr;
+        }
+
+        .attendance-summary {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
-<h1 class="page-title">AANWEZIGHEDEN</h1>
+<section class="attendance-page">
+    <h1 class="attendance-title">Aanwezigheden</h1>
 
-<div class="date-nav">
-    <a href="?date={{ previous_day|date:'Y-m-d' }}" class="nav-btn">← Vorige dag</a>
+    <div class="attendance-layout">
+        <aside class="attendance-team-side" aria-label="Teamselectie">
+            <p class="attendance-side-title">Teams</p>
+            <div class="attendance-team-tabs">
+                {% for team in attendance_team_options %}
+                    <a
+                        class="attendance-team-tab {% if selected_team_code == team.code %}is-active{% endif %}"
+                        href="{% url 'aanwezigheden' %}?date={{ chosen_date|date:'Y-m-d' }}&team={{ team.code }}"
+                    >
+                        <span>{{ team.label }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </aside>
 
-    <span class="date-display">{{ chosen_date|date:"Y-m-d" }}</span>
+        <section class="attendance-workspace">
+            <div class="attendance-toolbar">
+                <a href="{% url 'aanwezigheden' %}?date={{ previous_day|date:'Y-m-d' }}&team={{ selected_team_code }}" class="date-nav-btn">Vorige dag</a>
+                <div class="attendance-date-block">
+                    <span>{{ selected_team_label }}</span>
+                    <strong>{{ chosen_date|date:"d-m-Y" }}</strong>
+                </div>
+                <a href="{% url 'aanwezigheden' %}?date={{ next_day|date:'Y-m-d' }}&team={{ selected_team_code }}" class="date-nav-btn">Volgende dag</a>
+            </div>
 
-    <a href="?date={{ next_day|date:'Y-m-d' }}" class="nav-btn">Volgende dag →</a>
-</div>
+            <div class="attendance-summary">
+                <div class="attendance-kpi">
+                    <span>Aanwezigheid</span>
+                    <strong>{% if attendance_percentage != None %}{{ attendance_percentage }}%{% else %}-{% endif %}</strong>
+                </div>
+                <div class="attendance-kpi">
+                    <span>Afgevinkt</span>
+                    <strong>{{ completed_count }}</strong>
+                </div>
+                <div class="attendance-kpi">
+                    <span>Spelers</span>
+                    <strong>{{ registered_count }}</strong>
+                </div>
+            </div>
 
-<div class="table-wrapper">
-    <table>
-        <thead>
-            <tr>
-                <th>Speler</th>
-                <th>Aanwezigheid</th>
-                <th>Opslaan</th>
-                <th>✔</th>
-            </tr>
-        </thead>
-
-        <tbody>
-        {% for record in records %}
-            <tr
-                {% if record.completed %}
-                    class="row-green"
-                {% elif record.status != 'overig' %}
-                    class="row-orange"
-                {% endif %}
-            >
-                <td class="player-name-cell">{{ record.player.name }}</td>
-
-                <form method="POST" action="{% url 'aanwezigheden_update' record.id %}">
-                {% csrf_token %}
-                    <td class="status-cell">
-                        <div class="status-box">
-                            <select name="status" onchange="this.form.submit()">
-                                {% for value, label in status_choices %}
-                                    <option value="{{ value }}" {% if record.status == value %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </td>
-
-                    <td class="save-cell">
-                        <button type="submit" class="save-btn">💾</button>
-                    </td>
-
-                    <td class="complete-cell" style="text-align:center;">
-                        <input class="complete-toggle" type="checkbox" name="completed" {% if record.completed %}checked{% endif %} onchange="this.form.submit()">
-                    </td>
-                </form>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+            <div class="attendance-table-wrap">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Team</th>
+                            <th>Speler</th>
+                            <th>Registratie</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for record in records %}
+                        <tr class="{% if record.completed %}row-green{% elif record.status != 'overig' %}row-orange{% endif %}">
+                            <td class="team-cell">{{ record.team_code }}</td>
+                            <td class="player-cell">
+                                <strong>{{ record.player.name }}</strong>
+                                <span>{% if record.position %}{{ record.position }}{% else %}Geen positie{% endif %}</span>
+                            </td>
+                            <td>
+                                <form class="status-form" method="POST" action="{% url 'aanwezigheden_update' record.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="team" value="{{ selected_team_code }}">
+                                    <select name="status" aria-label="Status {{ record.player.name }}">
+                                        {% for value, label in status_choices %}
+                                            <option value="{{ value }}" {% if record.status == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="save-btn">Opslaan</button>
+                                    <label class="complete-toggle">
+                                        <input type="checkbox" name="completed" {% if record.completed %}checked{% endif %} onchange="this.form.submit()">
+                                        Klaar
+                                    </label>
+                                </form>
+                            </td>
+                            <td class="status-label">{{ record.status_label }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="empty-row">Geen spelers gevonden voor {{ selected_team_label }}.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</section>
 
 {% endblock %}

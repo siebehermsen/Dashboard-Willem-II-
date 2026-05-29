@@ -677,22 +677,53 @@ class DashboardPersistenceTests(TestCase):
         self.assertEqual(entry.weight, 81.2)
 
     def test_attendance_page_creates_records_and_update_persists(self):
-        response = self.client.get(reverse("aanwezigheden"), {"date": "2026-05-15"})
+        team = Team.objects.create(code="O17", name="O17")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team,
+            start_date=date(2026, 1, 1),
+        )
+
+        response = self.client.get(reverse("aanwezigheden"), {"date": "2026-05-15", "team": "O17"})
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Teams")
+        self.assertContains(response, "O17")
+        self.assertContains(response, self.player.name)
         record = AttendanceRecord.objects.get(player=self.player, date=date(2026, 5, 15))
         self.assertEqual(record.status.code, "overig")
         self.assertFalse(record.completed)
 
         response = self.client.post(
             reverse("aanwezigheden_update", args=[record.id]),
-            {"status": "fit", "completed": "on"},
+            {"status": "fit", "completed": "on", "team": "O17"},
         )
 
         self.assertEqual(response.status_code, 302)
+        self.assertIn("team=O17", response["Location"])
         record.refresh_from_db()
         self.assertEqual(record.status.code, "fit")
         self.assertTrue(record.completed)
+
+    def test_attendance_page_filters_players_by_team(self):
+        team_o17 = Team.objects.create(code="O17", name="O17")
+        team_o19 = Team.objects.create(code="O19", name="O19")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team_o17,
+            start_date=date(2026, 1, 1),
+        )
+        PlayerTeamAssignment.objects.create(
+            player=self.other_player,
+            team=team_o19,
+            start_date=date(2026, 1, 1),
+        )
+
+        response = self.client.get(reverse("aanwezigheden"), {"date": "2026-05-15", "team": "O17"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.player.name)
+        self.assertNotContains(response, self.other_player.name)
 
     def test_performance_staff_can_open_attendance_page(self):
         performance_user = get_user_model().objects.create_user(

@@ -5171,8 +5171,14 @@ def aanwezigheden_pagina(request):
     else:
         chosen_date = datetime.today().date()
 
-    # 2. Spelers ophalen
-    players = Player.objects.select_related("monitoring_profile").all().order_by("name")
+    # 2. Team en spelers ophalen
+    attendance_team_codes = _academy_data_codes()
+    selected_team_code = (request.GET.get("team") or attendance_team_codes[0]).strip().upper()
+    if selected_team_code not in attendance_team_codes:
+        selected_team_code = attendance_team_codes[0]
+    selected_team, team_players_qs = _team_players_for_gps_upload(selected_team_code)
+    selected_team_label = selected_team.name if selected_team else _academy_team_label(selected_team_code)
+    players = list(team_players_qs.select_related("monitoring_profile", "position_ref"))
 
     status_qs = AttendanceStatus.objects.filter(is_active=True).order_by("sort_order", "label")
     status_choices = [(status.code, status.label) for status in status_qs]
@@ -5191,14 +5197,20 @@ def aanwezigheden_pagina(request):
                 id=aanwezigheid.id,
                 player=aanwezigheid.player,
                 status=aanwezigheid.status.code if aanwezigheid.status else "overig",
+                status_label=aanwezigheid.status.label if aanwezigheid.status else "Overig",
                 completed=aanwezigheid.completed,
                 date=aanwezigheid.date,
+                team_code=selected_team_code,
+                position=aanwezigheid.player.position_ref.name if aanwezigheid.player.position_ref else "",
             )
         )
 
     # 4. Navigatie (vorige dag / volgende dag)
     previous_day = chosen_date - timedelta(days=1)
     next_day = chosen_date + timedelta(days=1)
+    completed_count = sum(1 for record in records if record.completed)
+    registered_count = len(records)
+    attendance_percentage = round((completed_count / registered_count) * 100) if registered_count else None
 
     context = {
         "players": players,
@@ -5207,6 +5219,12 @@ def aanwezigheden_pagina(request):
         "previous_day": previous_day,
         "next_day": next_day,
         "status_choices": status_choices,
+        "attendance_team_options": _academy_data_team_options(),
+        "selected_team_code": selected_team_code,
+        "selected_team_label": selected_team_label,
+        "completed_count": completed_count,
+        "registered_count": registered_count,
+        "attendance_percentage": attendance_percentage,
     }
 
     return render(request, "aanwezigheden.html", context)
@@ -5219,6 +5237,7 @@ def aanwezigheden_update(request, record_id):
     """Update ÃƒÆ’Ã‚Â©ÃƒÆ’Ã‚Â©n aanwezigheidsrecord (dropdown + checkmark)."""
 
     aanwezigheid = get_object_or_404(AttendanceRecord, id=record_id)
+    selected_team_code = (request.POST.get("team") or request.GET.get("team") or "").strip().upper()
 
     if request.method == "POST":
         new_status_code = request.POST.get("status")
@@ -5235,7 +5254,10 @@ def aanwezigheden_update(request, record_id):
             f"Aanwezigheid bijgewerkt voor {aanwezigheid.player.name}"
         )
 
-    return redirect(f"/aanwezigheden/?date={aanwezigheid.date}")
+    redirect_url = f"/aanwezigheden/?date={aanwezigheid.date}"
+    if selected_team_code:
+        redirect_url = f"{redirect_url}&team={selected_team_code}"
+    return redirect(redirect_url)
 
 
 def overig(request):
