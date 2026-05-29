@@ -34,7 +34,7 @@ from .models import (
     WeightEntry,
     WellnessEntry,
 )
-from .permissions import ROLE_ADMIN, ROLE_PLAYER, ROLE_READ_ONLY, ROLE_TRAINER
+from .permissions import ROLE_ADMIN, ROLE_PERFORMANCE, ROLE_PLAYER, ROLE_READ_ONLY, ROLE_TRAINER
 
 
 @override_settings(
@@ -656,6 +656,19 @@ class DashboardPersistenceTests(TestCase):
         record.refresh_from_db()
         self.assertEqual(record.status.code, "fit")
         self.assertTrue(record.completed)
+
+    def test_performance_staff_can_open_attendance_page(self):
+        performance_user = get_user_model().objects.create_user(
+            username="performance",
+            password="test-pass",
+        )
+        performance_group = Group.objects.create(name=ROLE_PERFORMANCE)
+        performance_user.groups.add(performance_group)
+        self.client.force_login(performance_user)
+
+        response = self.client.get(reverse("aanwezigheden"), {"date": "2026-05-15"})
+
+        self.assertEqual(response.status_code, 200)
 
     def test_delete_weekday_requires_post_and_deletes_entry(self):
         day = DayProgramEntry.objects.create(
