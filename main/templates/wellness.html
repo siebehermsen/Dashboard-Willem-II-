@@ -618,6 +618,20 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
     margin-top: 8px;
 }
 
+.wellness-ajax-message {
+    background: #edf9f1;
+    border: 1px solid #65c878;
+    border-radius: 12px;
+    color: #147a3d;
+    font-weight: 900;
+    margin: 0 18px 14px;
+    padding: 10px 12px;
+}
+
+.wellness-ajax-message[hidden] {
+    display: none;
+}
+
 .wellness-container:not(.player-wellness-app) .date-selector {
     display: none;
 }
@@ -704,6 +718,7 @@ html.app-ui.app-mode #wellnessTable input[type="text"] {
                     <strong>{{ total_players }}</strong>
                 </div>
             </div>
+            <div class="wellness-ajax-message" data-wellness-message hidden></div>
     {% endif %}
 
     <div class="date-selector">
@@ -936,6 +951,21 @@ function saveRow(button, playerId) {
     const dateValue = document.getElementById("date").value;
     const selectedTeam = "{{ selected_team_code|default:'' }}";
     const teamQuery = selectedTeam ? "&team=" + encodeURIComponent(selectedTeam) : "";
+    const messageBox = document.querySelector("[data-wellness-message]");
+    const originalText = button.innerText;
+
+    const showWellnessMessage = (text, ok = true) => {
+        if (!messageBox) return;
+        messageBox.hidden = false;
+        messageBox.textContent = text;
+        messageBox.style.background = ok ? "#edf9f1" : "#fff4f4";
+        messageBox.style.borderColor = ok ? "#65c878" : "#d71920";
+        messageBox.style.color = ok ? "#147a3d" : "#d71920";
+        window.clearTimeout(showWellnessMessage.timer);
+        showWellnessMessage.timer = window.setTimeout(() => {
+            messageBox.hidden = true;
+        }, 2600);
+    };
 
     const payload = {
         player_id: playerId,
@@ -948,36 +978,48 @@ function saveRow(button, playerId) {
         comment: row.querySelector(".comment").value,
     };
 
+    button.disabled = true;
+    button.innerText = "Opslaan...";
+
     fetch("/wellness/?date=" + encodeURIComponent(dateValue) + teamQuery, {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRFToken": "{{ csrf_token }}"
+            "X-CSRFToken": "{{ csrf_token }}",
+            "X-Requested-With": "XMLHttpRequest",
+            "Accept": "application/json"
         },
-        body: new URLSearchParams(payload),
-        redirect: "follow"
+        body: new URLSearchParams(payload)
     })
-    .then(response => {
+    .then(async response => {
         if (!response.ok) throw new Error("Server error: " + response.status);
+        return response.json();
+    })
+    .then(data => {
+        if (!data.ok) throw new Error(data.message || "Opslaan is mislukt.");
 
-        // ✅ feedback op knop
         button.style.background = "#2ecc71";
-        button.innerText = "✔";
-
-        // ✅ jouw view.py doet redirect om filled/not filled te herberekenen
-        // dus we herladen gewoon de pagina op dezelfde datum
+        button.innerText = "Opgeslagen";
+        showWellnessMessage(data.message || "Succesvol opgeslagen.");
         setTimeout(() => {
-            window.location.href = "/wellness/?date=" + encodeURIComponent(dateValue) + teamQuery;
-        }, 400);
+            button.style.background = "#1f2a44";
+            button.innerText = originalText || "Opslaan";
+        }, 1200);
     })
     .catch(error => {
         console.error("Error:", error);
         button.style.background = "#e74c3c";
         button.innerText = "Fout";
+        showWellnessMessage("Opslaan is mislukt.", false);
         setTimeout(() => {
             button.style.background = "#1f2a44";
-            button.innerText = "Opslaan";
+            button.innerText = originalText || "Opslaan";
         }, 1200);
+    })
+    .finally(() => {
+        setTimeout(() => {
+            button.disabled = false;
+        }, 250);
     });
 }
 </script>

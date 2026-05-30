@@ -5101,6 +5101,19 @@ def wellness(request):
                 defaults={"rpe": srpe},
             )
 
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "message": "Succesvol opgeslagen.",
+                    "player_id": player.id,
+                    "player_name": player.name,
+                    "date": date_obj.isoformat(),
+                    "has_wellness": True,
+                    "has_rpe": srpe is not None,
+                }
+            )
+
         # Refresh pagina zodat speler naar 'wel ingevuld' gaat
         redirect_url = f"/wellness/?date={date_obj}"
         if not player_app_user:
@@ -5453,6 +5466,16 @@ def aanwezigheden_update(request, record_id):
             request,
             f"Aanwezigheid bijgewerkt voor {aanwezigheid.player.name}"
         )
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "message": "Succesvol opgeslagen.",
+                    "status": aanwezigheid.status.code if aanwezigheid.status else "overig",
+                    "status_label": aanwezigheid.status.label if aanwezigheid.status else "Overig",
+                    "completed": aanwezigheid.completed,
+                }
+            )
 
     redirect_url = f"/aanwezigheden/?date={aanwezigheid.date}"
     if selected_team_code:

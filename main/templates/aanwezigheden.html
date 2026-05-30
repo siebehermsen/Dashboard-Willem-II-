@@ -290,6 +290,20 @@
         text-align: center;
     }
 
+    .attendance-ajax-message {
+        background: #edf9f1;
+        border: 1px solid #65c878;
+        border-radius: 12px;
+        color: #147a3d;
+        font-weight: 900;
+        margin: 0 18px 14px;
+        padding: 10px 12px;
+    }
+
+    .attendance-ajax-message[hidden] {
+        display: none;
+    }
+
     @media (max-width: 900px) {
         .attendance-layout {
             grid-template-columns: 1fr;
@@ -356,6 +370,8 @@
                 </div>
             </div>
 
+            <div class="attendance-ajax-message" data-attendance-message hidden></div>
+
             <div class="attendance-table-wrap">
                 <table class="attendance-table">
                     <thead>
@@ -368,14 +384,14 @@
                     </thead>
                     <tbody>
                     {% for record in records %}
-                        <tr class="{% if record.completed %}row-green{% elif record.status != 'overig' %}row-orange{% endif %}">
+                        <tr class="{% if record.completed %}row-green{% elif record.status != 'overig' %}row-orange{% endif %}" data-attendance-row>
                             <td class="team-cell">{{ record.team_code }}</td>
                             <td class="player-cell">
                                 <strong>{{ record.player.name }}</strong>
                                 <span>{% if record.position %}{{ record.position }}{% else %}Geen positie{% endif %}</span>
                             </td>
                             <td>
-                                <form class="status-form" method="POST" action="{% url 'aanwezigheden_update' record.id %}">
+                                <form class="status-form" method="POST" action="{% url 'aanwezigheden_update' record.id %}" data-attendance-form>
                                     {% csrf_token %}
                                     <input type="hidden" name="team" value="{{ selected_team_code }}">
                                     <select name="status" aria-label="Status {{ record.player.name }}">
@@ -385,7 +401,7 @@
                                     </select>
                                     <button type="submit" class="save-btn">Opslaan</button>
                                     <label class="complete-toggle">
-                                        <input type="checkbox" name="completed" {% if record.completed %}checked{% endif %} onchange="this.form.submit()">
+                                        <input type="checkbox" name="completed" {% if record.completed %}checked{% endif %}>
                                         Klaar
                                     </label>
                                 </form>
@@ -403,5 +419,75 @@
         </section>
     </div>
 </section>
+
+<script>
+(() => {
+    const messageBox = document.querySelector("[data-attendance-message]");
+
+    const showMessage = (text, ok = true) => {
+        if (!messageBox) return;
+        messageBox.hidden = false;
+        messageBox.textContent = text;
+        messageBox.style.background = ok ? "#edf9f1" : "#fff4f4";
+        messageBox.style.borderColor = ok ? "#65c878" : "#d71920";
+        messageBox.style.color = ok ? "#147a3d" : "#d71920";
+        window.clearTimeout(showMessage.timer);
+        showMessage.timer = window.setTimeout(() => {
+            messageBox.hidden = true;
+        }, 2600);
+    };
+
+    document.querySelectorAll("[data-attendance-form]").forEach((form) => {
+        const submitForm = async () => {
+            const button = form.querySelector(".save-btn");
+            const originalText = button?.textContent;
+            if (button) {
+                button.disabled = true;
+                button.textContent = "Opslaan...";
+            }
+
+            try {
+                const response = await fetch(form.action, {
+                    method: "POST",
+                    body: new FormData(form),
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Accept": "application/json",
+                    },
+                });
+                const data = await response.json();
+                if (!response.ok || data.ok === false) {
+                    throw new Error(data.message || "Opslaan is mislukt.");
+                }
+
+                const row = form.closest("[data-attendance-row]");
+                row?.classList.toggle("row-green", Boolean(data.completed));
+                row?.classList.toggle("row-orange", !data.completed && data.status !== "overig");
+                const statusCell = row?.querySelector(".status-label");
+                if (statusCell) {
+                    statusCell.textContent = data.status_label || "-";
+                }
+                showMessage(data.message || "Succesvol opgeslagen.");
+            } catch (error) {
+                showMessage(error.message || "Opslaan is mislukt.", false);
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = originalText || "Opslaan";
+                }
+            }
+        };
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            submitForm();
+        });
+
+        form.querySelector('input[name="completed"]')?.addEventListener("change", () => {
+            submitForm();
+        });
+    });
+})();
+</script>
 
 {% endblock %}
