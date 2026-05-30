@@ -1880,6 +1880,15 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                         </span>
                         <span class="dashboard-app-link-accent">&rsaquo;</span>
                     </a>
+                    {% if player_app_is_potential %}
+                    <a class="dashboard-app-link" href="{% url 'dashboard' %}?app_view=player&player_tab=potential{% if PLAYER_APP_PREVIEW_MODE %}&player_id={{ player_app_form_player.id }}{% endif %}">
+                        <span class="dashboard-app-link-main">
+                            <span class="dashboard-app-link-title">Potential</span>
+                            <span class="dashboard-app-link-text">Je programma, aandachtspunten en oefeningen bekijken.</span>
+                        </span>
+                        <span class="dashboard-app-link-accent">&rsaquo;</span>
+                    </a>
+                    {% endif %}
                 </div>
                 {% endif %}
 
@@ -2064,6 +2073,75 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
                     {% endif %}
                 </section>
                 {{ player_app_test_trends|json_script:"dashboard-player-test-trends" }}
+                {% endif %}
+
+                {% if player_app_tab == 'potential' and player_app_is_potential %}
+                <a class="dashboard-player-back-link" href="{% url 'dashboard' %}?app_view=player{% if PLAYER_APP_PREVIEW_MODE %}&player_id={{ player_app_form_player.id }}{% endif %}">Terug</a>
+                <section class="dashboard-player-gps" aria-label="Potential omgeving speler">
+                    <div class="dashboard-player-gps-head">
+                        <div>
+                            <h3>{% if PLAYER_APP_PREVIEW_MODE %}Potential omgeving{% else %}Mijn Potential omgeving{% endif %}</h3>
+                            <p>{{ player_app_form_player.name }}</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-player-gps-list">
+                        <div class="dashboard-player-gps-empty">
+                            <strong>Individueel programma</strong>
+                            {% if player_app_potential_program %}
+                                <span>Doel: {{ player_app_potential_program.doel|default:"Nog niet ingevuld" }}</span>
+                                {% if player_app_potential_program.evaluatie_datum %}
+                                    <span>Evaluatie: {{ player_app_potential_program.evaluatie_datum|date:"d-m-Y" }}</span>
+                                {% endif %}
+                                {% if player_app_potential_program.plan_komende_periode %}
+                                    <span>Plan: {{ player_app_potential_program.plan_komende_periode }}</span>
+                                {% endif %}
+                                {% if player_app_potential_program.ontwikkelaanpak %}
+                                    <span>Aanpak: {{ player_app_potential_program.ontwikkelaanpak }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span>Er staat nog geen individueel programma klaar.</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="dashboard-player-gps-empty">
+                            <strong>Aandachtspunten</strong>
+                            {% for note in player_app_potential_attention_notes %}
+                                <span>{{ note.date|date:"d-m-Y" }} · {{ note.status_label }}{% if note.owner %} · {{ note.owner }}{% endif %}</span>
+                                <span>{{ note.text }}</span>
+                            {% empty %}
+                                <span>Er zijn nog geen aandachtspunten toegevoegd.</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="dashboard-player-gps-empty">
+                            <strong>Krachtprogramma</strong>
+                            {% if player_app_potential_strength.thema or player_app_potential_strength.frequentie or player_app_potential_strength.doelstelling or player_app_potential_strength.evaluatie %}
+                                {% if player_app_potential_strength.thema %}<span>Thema: {{ player_app_potential_strength.thema }}</span>{% endif %}
+                                {% if player_app_potential_strength.frequentie %}<span>Frequentie: {{ player_app_potential_strength.frequentie }}</span>{% endif %}
+                                {% if player_app_potential_strength.doelstelling %}<span>Doelstelling: {{ player_app_potential_strength.doelstelling }}</span>{% endif %}
+                                {% if player_app_potential_strength.evaluatie %}<span>Evaluatie: {{ player_app_potential_strength.evaluatie }}</span>{% endif %}
+                            {% else %}
+                                <span>Er staat nog geen krachtprogramma klaar.</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="dashboard-player-gps-empty">
+                            <strong>Oefeningen</strong>
+                            {% for exercise in player_app_potential_exercises %}
+                                <span>
+                                    {% if exercise.naam_ref %}{{ exercise.naam_ref.name }}{% else %}Oefening{% endif %}
+                                    {% if exercise.duur_text_override %} · {{ exercise.duur_text_override }} min{% endif %}
+                                    {% if exercise.frequentie_ref %} · {{ exercise.frequentie_ref.name }}{% endif %}
+                                    {% if exercise.rpe_value %} · RPE {{ exercise.rpe_value }}{% endif %}
+                                </span>
+                                {% if exercise.opmerkingen %}<span>{{ exercise.opmerkingen }}</span>{% endif %}
+                            {% empty %}
+                                <span>Er zijn nog geen oefeningen gekoppeld.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
                 {% endif %}
             {% else %}
                 <p>Je login is nog niet gekoppeld aan een spelerprofiel. Vraag staf om je account te koppelen.</p>

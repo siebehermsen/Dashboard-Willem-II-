@@ -237,6 +237,55 @@ class DashboardPersistenceTests(TestCase):
         self.assertNotContains(response, "dashboard-player-test-row")
         self.assertNotContains(response, "dashboardPlayerSelect")
 
+    def test_player_app_dashboard_shows_own_potential_environment(self):
+        player_user = get_user_model().objects.create_user(username="player-potential", password="test-pass")
+        player_group, _ = Group.objects.get_or_create(name=ROLE_PLAYER)
+        player_user.groups.add(player_group)
+        self.player.user = player_user
+        self.player.save(update_fields=["user"])
+        OverigNote.objects.create(
+            note_type="potential",
+            page_key="potentials",
+            section_key=f"player:{self.player.id}",
+            text="High Potential",
+        )
+        Programma.objects.create(
+            player=self.player,
+            doel="Eigen versnelling verbeteren",
+            plan_komende_periode="Twee blokken per week",
+            ontwikkelaanpak="Sprintprogressie met video",
+        )
+        OverigNote.objects.create(
+            note_type="note",
+            page_key="potentials",
+            section_key=f"player:{self.player.id}",
+            text="Eigen aandachtspunt in de eerste meters.",
+        )
+        OverigNote.objects.create(
+            note_type="potential",
+            page_key="potentials",
+            section_key=f"player:{self.other_player.id}",
+            text="High Potential",
+        )
+        Programma.objects.create(
+            player=self.other_player,
+            doel="Verborgen programma andere speler",
+        )
+
+        self.client.force_login(player_user)
+        home_response = self.client.get(reverse("dashboard") + "?app_view=player")
+        detail_response = self.client.get(reverse("dashboard") + "?app_view=player&player_tab=potential")
+
+        self.assertEqual(home_response.status_code, 200)
+        self.assertContains(home_response, "player_tab=potential")
+        self.assertContains(home_response, "Potential")
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertContains(detail_response, "Mijn Potential omgeving")
+        self.assertContains(detail_response, "Eigen versnelling verbeteren")
+        self.assertContains(detail_response, "Eigen aandachtspunt in de eerste meters.")
+        self.assertNotContains(detail_response, "Verborgen programma andere speler")
+        self.assertNotContains(detail_response, "dashboardPlayerSelect")
+
     def test_player_user_testdata_page_only_shows_own_profile(self):
         player_user = get_user_model().objects.create_user(username="player-testdata-page", password="test-pass")
         player_group, _ = Group.objects.get_or_create(name=ROLE_PLAYER)

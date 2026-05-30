@@ -440,7 +440,7 @@ def dashboard(request):
     player_app_player = _player_for_user(request.user) if player_app_user else None
     player_app_preview_mode = request.GET.get("app_view") == "player" and not player_app_user
     player_app_tab = request.GET.get("player_tab")
-    if player_app_tab not in {"wellness", "data", "testdata"}:
+    if player_app_tab not in {"wellness", "data", "testdata", "potential"}:
         player_app_tab = ""
 
     # ---------- BASIS ----------
@@ -762,6 +762,16 @@ def dashboard(request):
             player_app_form_player = players[0]
 
     player_app_today = today
+    player_app_is_potential = False
+    player_app_potential_program = None
+    player_app_potential_attention_notes = []
+    player_app_potential_exercises = []
+    player_app_potential_strength = {
+        "thema": "",
+        "frequentie": "",
+        "doelstelling": "",
+        "evaluatie": "",
+    }
     player_app_today_wellness = None
     player_app_today_rpe = None
     player_app_gps_summary = {
@@ -777,6 +787,71 @@ def dashboard(request):
     player_app_test_metrics = []
     player_app_test_trends = {"labels": [], "metrics": {}}
     if player_app_form_player:
+        potential_section_key = f"player:{player_app_form_player.id}"
+        player_app_is_potential = OverigNote.objects.filter(
+            note_type="potential",
+            page_key="potentials",
+            section_key=potential_section_key,
+        ).exists()
+        if player_app_tab == "potential" and not player_app_is_potential:
+            player_app_tab = ""
+        if player_app_is_potential:
+            player_app_potential_program = Programma.objects.filter(
+                player=player_app_form_player
+            ).order_by("-created_at").first()
+            if player_app_potential_program:
+                player_app_potential_exercises = list(
+                    ProgrammaOefening.objects.select_related(
+                        "naam_ref",
+                        "frequentie_ref",
+                        "duur_unit_ref",
+                    ).filter(programma=player_app_potential_program).order_by("id")[:8]
+                )
+
+            attention_status_labels = {
+                "open": "Open",
+                "mee_bezig": "Mee bezig",
+                "afgerond": "Afgerond",
+            }
+            for note in OverigNote.objects.filter(
+                note_type="note",
+                page_key="potentials",
+                section_key=potential_section_key,
+            ).order_by("-created_at", "-id")[:6]:
+                parsed_note = {
+                    "text": note.text,
+                    "date": note.created_at.date(),
+                    "owner": "",
+                    "status_label": attention_status_labels["open"],
+                }
+                try:
+                    saved_note = json.loads(note.text)
+                except (TypeError, ValueError):
+                    saved_note = None
+                if isinstance(saved_note, dict):
+                    status = saved_note.get("status")
+                    parsed_note.update({
+                        "text": saved_note.get("text") or "",
+                        "date": parse_date(str(saved_note.get("date") or "")) or note.created_at.date(),
+                        "owner": saved_note.get("owner") or "",
+                        "status_label": attention_status_labels.get(status, attention_status_labels["open"]),
+                    })
+                player_app_potential_attention_notes.append(parsed_note)
+
+            strength_note = OverigNote.objects.filter(
+                note_type="section",
+                page_key="potentials",
+                section_key=f"strength:{player_app_form_player.id}",
+            ).first()
+            if strength_note and strength_note.text:
+                try:
+                    saved_strength = json.loads(strength_note.text)
+                except (TypeError, ValueError):
+                    saved_strength = None
+                if isinstance(saved_strength, dict):
+                    for key in player_app_potential_strength:
+                        player_app_potential_strength[key] = saved_strength.get(key, "")
+
         player_app_today_wellness = WellnessEntry.objects.filter(
             player=player_app_form_player,
             date=player_app_today,
@@ -908,6 +983,11 @@ def dashboard(request):
         "player_app_preview_mode": player_app_preview_mode,
         "player_app_tab": player_app_tab,
         "player_app_form_player": player_app_form_player,
+        "player_app_is_potential": player_app_is_potential,
+        "player_app_potential_program": player_app_potential_program,
+        "player_app_potential_attention_notes": player_app_potential_attention_notes,
+        "player_app_potential_exercises": player_app_potential_exercises,
+        "player_app_potential_strength": player_app_potential_strength,
         "player_app_today": player_app_today,
         "player_app_today_wellness": player_app_today_wellness,
         "player_app_today_rpe": player_app_today_rpe,
