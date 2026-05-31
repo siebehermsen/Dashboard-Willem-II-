@@ -35,7 +35,15 @@ from .models import (
     WeightEntry,
     WellnessEntry,
 )
-from .permissions import ROLE_ADMIN, ROLE_FYSIO, ROLE_PERFORMANCE, ROLE_PLAYER, ROLE_READ_ONLY, ROLE_TRAINER
+from .permissions import (
+    ROLE_ADMIN,
+    ROLE_FYSIO,
+    ROLE_HEAD_PERFORMANCE,
+    ROLE_PLAYER,
+    ROLE_READ_ONLY,
+    ROLE_STRENGTH_TRAINER,
+    ROLE_TRAINER,
+)
 
 
 @override_settings(
@@ -861,18 +869,26 @@ class DashboardPersistenceTests(TestCase):
         record = AttendanceRecord.objects.get(player=self.player, date=date(2026, 5, 15))
         self.assertEqual(record.status.code, "training_o17")
 
-    def test_performance_staff_can_open_attendance_page(self):
-        performance_user = get_user_model().objects.create_user(
-            username="performance",
-            password="test-pass",
-        )
-        performance_group = Group.objects.create(name=ROLE_PERFORMANCE)
-        performance_user.groups.add(performance_group)
-        self.client.force_login(performance_user)
+    def test_full_staff_roles_can_open_performance_pages_but_not_staf(self):
+        for role in (ROLE_HEAD_PERFORMANCE, ROLE_FYSIO, ROLE_STRENGTH_TRAINER):
+            with self.subTest(role=role):
+                user = get_user_model().objects.create_user(
+                    username=f"role-{role.lower().replace(' ', '-')}",
+                    password="test-pass",
+                )
+                group, _ = Group.objects.get_or_create(name=role)
+                user.groups.add(group)
+                self.client.force_login(user)
 
-        response = self.client.get(reverse("aanwezigheden"), {"date": "2026-05-15"})
-
-        self.assertEqual(response.status_code, 200)
+                self.assertEqual(self.client.get(reverse("dashboard")).status_code, 200)
+                self.assertEqual(self.client.get(reverse("training")).status_code, 200)
+                self.assertEqual(self.client.get(reverse("testdata")).status_code, 200)
+                self.assertEqual(self.client.get(reverse("wellness")).status_code, 200)
+                self.assertEqual(self.client.get(reverse("aanwezigheden"), {"date": "2026-05-15"}).status_code, 200)
+                self.assertEqual(self.client.get(reverse("revalidatie")).status_code, 200)
+                self.assertEqual(self.client.get(reverse("nutrition")).status_code, 200)
+                self.assertEqual(self.client.get(reverse("potentials")).status_code, 200)
+                self.assertEqual(self.client.get(reverse("staf")).status_code, 403)
 
     def test_teamtrainer_has_limited_academy_permissions(self):
         trainer_user = get_user_model().objects.create_user(
@@ -884,10 +900,15 @@ class DashboardPersistenceTests(TestCase):
         self.client.force_login(trainer_user)
 
         self.assertEqual(self.client.get(reverse("testdata")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("training")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("wellness")).status_code, 200)
         self.assertEqual(self.client.get(reverse("individuele_programmas")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("potentials")).status_code, 200)
         self.assertEqual(self.client.get(reverse("aanwezigheden")).status_code, 403)
         self.assertEqual(self.client.get(reverse("nutrition")).status_code, 403)
         self.assertEqual(self.client.get(reverse("revalidatie")).status_code, 403)
+        self.assertEqual(self.client.get(reverse("beweeganalyse")).status_code, 403)
+        self.assertEqual(self.client.get(reverse("staf")).status_code, 403)
 
     def test_fysio_can_open_rehab_but_not_staf(self):
         fysio_user = get_user_model().objects.create_user(
@@ -900,6 +921,55 @@ class DashboardPersistenceTests(TestCase):
 
         self.assertEqual(self.client.get(reverse("revalidatie")).status_code, 200)
         self.assertEqual(self.client.get(reverse("staf")).status_code, 403)
+
+    def test_player_role_is_limited_to_own_app_and_own_data(self):
+        player_user = get_user_model().objects.create_user(
+            username="player-locked",
+            password="test-pass",
+        )
+        player_group, _ = Group.objects.get_or_create(name=ROLE_PLAYER)
+        player_user.groups.add(player_group)
+        self.player.user = player_user
+        self.player.save(update_fields=["user"])
+        WellnessEntry.objects.create(
+            player=self.player,
+            date=date(2026, 5, 15),
+            sleep=3,
+            mood=3,
+            fitness=3,
+            soreness=2,
+        )
+        WellnessEntry.objects.create(
+            player=self.other_player,
+            date=date(2026, 5, 15),
+            sleep=1,
+            mood=1,
+            fitness=1,
+            soreness=3,
+            comment="Mag niet zichtbaar zijn",
+        )
+        self.client.force_login(player_user)
+
+        dashboard_response = self.client.get(reverse("dashboard") + "?app_view=staff")
+        wellness_response = self.client.get(reverse("wellness"), {"date": "2026-05-15"})
+        testdata_response = self.client.get(reverse("testdata") + f"?player_id={self.player.id}")
+
+        self.assertEqual(dashboard_response.status_code, 200)
+        self.assertContains(dashboard_response, "Spelersapp")
+        self.assertNotContains(dashboard_response, "Stafapp")
+        self.assertNotContains(dashboard_response, 'href="/academie/')
+        self.assertEqual(wellness_response.status_code, 200)
+        self.assertContains(wellness_response, self.player.name)
+        self.assertNotContains(wellness_response, self.other_player.name)
+        self.assertNotContains(wellness_response, "Teams")
+        self.assertEqual(testdata_response.status_code, 200)
+        self.assertNotContains(testdata_response, "Kies team")
+        self.assertNotContains(testdata_response, "Teamoverzicht testdata")
+        self.assertEqual(self.client.get(reverse("staf")).status_code, 403)
+        self.assertEqual(self.client.get(reverse("training")).status_code, 403)
+        self.assertEqual(self.client.get(reverse("academie_team", args=["O21"])).status_code, 403)
+        self.assertEqual(self.client.get(reverse("aanwezigheden")).status_code, 403)
+        self.assertEqual(self.client.get(reverse("revalidatie")).status_code, 403)
 
     def test_player_data_endpoints_are_limited_to_own_player(self):
         player_user = get_user_model().objects.create_user(
