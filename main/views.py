@@ -6648,11 +6648,39 @@ def _csv_float(value):
         return 0.0
 
 
+def _csv_float_or_none(value):
+    cleaned = _normalize_csv_value(value)
+    if not cleaned:
+        return None
+    cleaned = cleaned.replace(" ", "")
+    if "," in cleaned and "." not in cleaned:
+        cleaned = cleaned.replace(",", ".")
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None
+
+
 def _csv_int(value):
     try:
         return int(round(_csv_float(value)))
     except (TypeError, ValueError):
         return 0
+
+
+def _csv_int_or_none(value):
+    value = _csv_float_or_none(value)
+    if value is None:
+        return None
+    return int(round(value))
+
+
+def _csv_get(row, column_name):
+    wanted = (column_name or "").strip().lower()
+    for key, value in row.items():
+        if str(key or "").strip().lower() == wanted:
+            return value
+    return None
 
 
 def _parse_statsports_date(value):
@@ -6760,31 +6788,36 @@ def _gps_upload_selection(request):
     }
 
 
-def _gps_session_exists(player, session_kind, session_date):
+def _gps_session_exists(player, session_kind, session_date, source_tag=None):
     kind = PerformanceSessionKind.objects.filter(code=session_kind).first()
     if not kind:
         return False
-    return PerformanceSession.objects.filter(
+    qs = PerformanceSession.objects.filter(
         player=player,
         session_kind_ref=kind,
         session_date=session_date,
-    ).exists()
+    )
+    if source_tag:
+        qs = qs.filter(source_legacy_table=source_tag, source_legacy_id=0)
+    return qs.exists()
 
 
-def _show_gps_import_feedback(request, *, imported, duplicates, skipped, invalid_dates, unknown_players, label):
+def _show_gps_import_feedback(request, *, imported, duplicates, skipped, invalid_dates, unknown_players, missing_values, label):
     if imported:
         messages.success(request, f"Succesvol opgeslagen. {imported} {label}regels geïmporteerd.")
+    elif duplicates and not (skipped or invalid_dates or unknown_players):
+        messages.error(request, f"Geen nieuwe {label}regels geïmporteerd. Dit bestand of deze speler-datum-event combinatie lijkt al eerder verwerkt.")
     else:
         messages.error(request, f"Er zijn geen {label}regels geïmporteerd.")
     if duplicates:
         messages.error(
             request,
-            f"{duplicates} dubbele {label}regel(s) overgeslagen. Deze speler-datum-combinatie bestaat al of stond dubbel in het bestand.",
+            f"{duplicates} dubbele {label}regel(s) overgeslagen. Deze speler-datum-event combinatie bestaat al of stond dubbel in het bestand.",
         )
-    if invalid_dates or unknown_players or skipped:
+    if invalid_dates or unknown_players or skipped or missing_values:
         messages.warning(
             request,
-            f"Controleer je CSV: {invalid_dates} ongeldige datum(s), {unknown_players} onbekende speler(s), {skipped} lege/onvolledige rij(en) overgeslagen.",
+            f"Controleer je CSV: {invalid_dates} ongeldige datum(s), {unknown_players} onbekende speler(s), {skipped} lege/onvolledige rij(en) overgeslagen, {missing_values} lege/ongeldige meetwaarde(n) genegeerd.",
         )
 
 
@@ -6821,15 +6854,18 @@ def upload_file(request):
 
         _ensure_gps_metric_types(GPS_TRAINING_METRICS)
         players = upload_selection["players"]
+        csv_columns = {str(field or "").strip().lower() for field in (reader.fieldnames or [])}
         seen_sessions = set()
         count = 0
         duplicates = 0
         skipped = 0
         invalid_dates = 0
         unknown_players = 0
+        missing_values = 0
+        source_tag = f"main_upload_training_{upload_selection['event_code']}"
 
         for row in reader:
-            csv_lastname = _normalize_csv_value(row.get('Player Last Name'))
+            csv_lastname = _normalize_csv_value(_csv_get(row, 'Player Last Name'))
             if not csv_lastname:
                 skipped += 1
                 continue
@@ -6839,14 +6875,33 @@ def upload_file(request):
                 unknown_players += 1
                 continue
 
-            date_obj = _parse_statsports_date(row.get('Session Date'))
+            date_obj = _parse_statsports_date(_csv_get(row, 'Session Date'))
             if not date_obj:
                 invalid_dates += 1
                 continue
 
-            session_key = (player.id, "training", date_obj)
-            if session_key in seen_sessions or _gps_session_exists(player, "training", date_obj):
+            session_key = (player.id, "training", date_obj, source_tag)
+            if session_key in seen_sessions or _gps_session_exists(player, "training", date_obj, source_tag):
                 duplicates += 1
+                continue
+
+            metric_columns = {
+                'total_distance': ('Total Distance', _csv_float_or_none),
+                'hsd': ('HIR (M>20 KM/U)', _csv_float_or_none),
+                'sprints': ('Sprints', _csv_int_or_none),
+                'load': ('Load', _csv_float_or_none),
+            }
+            valid_metrics = {}
+            for code, (column_name, parser) in metric_columns.items():
+                if column_name.lower() not in csv_columns:
+                    continue
+                value = parser(_csv_get(row, column_name))
+                if value is None:
+                    missing_values += 1
+                else:
+                    valid_metrics[code] = value
+            if not valid_metrics:
+                skipped += 1
                 continue
 
             week = date_obj.isocalendar()[1]
@@ -6855,13 +6910,9 @@ def upload_file(request):
                 session_kind='training',
                 session_date=date_obj,
                 week=week,
-                metrics={
-                    'total_distance': _csv_float(row.get('Total Distance')),
-                    'hsd': _csv_float(row.get('HIR (M>20 KM/U)')),
-                    'sprints': _csv_int(row.get('Sprints')),
-                    'load': 0,
-                },
-                source_tag=f"main_upload_training_{upload_selection['event_code']}",
+                metrics=valid_metrics,
+                source_tag=source_tag,
+                match_source=True,
             )
             seen_sessions.add(session_key)
             count += 1
@@ -6873,6 +6924,7 @@ def upload_file(request):
             skipped=skipped,
             invalid_dates=invalid_dates,
             unknown_players=unknown_players,
+            missing_values=missing_values,
             label=f"{upload_selection['team_label']} {upload_selection['event_label'].lower()}",
         )
         return redirect('training')
@@ -6918,20 +6970,23 @@ def upload_wedstrijddata(request):
             for name in names:
                 raw_value = normalized.get(name.strip().lower())
                 if raw_value not in (None, ""):
-                    return _csv_float(raw_value)
-            return 0.0
+                    return _csv_float_or_none(raw_value)
+            return None
 
         _ensure_gps_metric_types(GPS_MATCH_METRICS)
         players = upload_selection["players"]
+        csv_columns = {str(field or "").strip().lower() for field in (reader.fieldnames or [])}
         seen_sessions = set()
         count = 0
         duplicates = 0
         skipped = 0
         invalid_dates = 0
         unknown_players = 0
+        missing_values = 0
+        source_tag = f"main_upload_match_{upload_selection['event_code']}"
 
         for row in reader:
-            csv_lastname = _normalize_csv_value(row.get('Player Last Name'))
+            csv_lastname = _normalize_csv_value(_csv_get(row, 'Player Last Name'))
             if not csv_lastname:
                 skipped += 1
                 continue
@@ -6941,13 +6996,13 @@ def upload_wedstrijddata(request):
                 unknown_players += 1
                 continue
 
-            match_date = _parse_statsports_date(row.get('Session Date'))
+            match_date = _parse_statsports_date(_csv_get(row, 'Session Date'))
             if not match_date:
                 invalid_dates += 1
                 continue
 
-            session_key = (player.id, "match", match_date)
-            if session_key in seen_sessions or _gps_session_exists(player, "match", match_date):
+            session_key = (player.id, "match", match_date, source_tag)
+            if session_key in seen_sessions or _gps_session_exists(player, "match", match_date, source_tag):
                 duplicates += 1
                 continue
 
@@ -6978,23 +7033,40 @@ def upload_wedstrijddata(request):
                 "2nd Half Load",
                 "Tweede helft load",
             ])
+            metric_columns = {
+                'accelerations': ('Accelerations (Absolute)', _csv_int_or_none),
+                'decelerations': ('Decelerations (Absolute)', _csv_int_or_none),
+                'hsd': ('HIR (M>20 KM/U)', _csv_float_or_none),
+                'his': ('HIS (M>25 KM/U)', _csv_float_or_none),
+                'total_distance': ('Total Distance', _csv_float_or_none),
+                'sprints': ('Sprints', _csv_int_or_none),
+                'load': ('HML Distance', _csv_float_or_none),
+            }
+            valid_metrics = {}
+            for code, (column_name, parser) in metric_columns.items():
+                if column_name.lower() not in csv_columns:
+                    continue
+                value = parser(_csv_get(row, column_name))
+                if value is None:
+                    missing_values += 1
+                else:
+                    valid_metrics[code] = value
+            if first_half_load is not None:
+                valid_metrics["first_half_load"] = first_half_load
+            if second_half_load is not None:
+                valid_metrics["second_half_load"] = second_half_load
+            if not valid_metrics:
+                skipped += 1
+                continue
+
             upsert_performance_session_metrics(
                 player=player,
                 session_kind='match',
                 session_date=match_date,
                 week=week,
-                metrics={
-                    'accelerations': _csv_int(row.get('Accelerations (Absolute)')),
-                    'decelerations': _csv_int(row.get('Decelerations (Absolute)')),
-                    'hsd': _csv_float(row.get('HIR (M>20 KM/U)')),
-                    'his': _csv_float(row.get('HIS (M>25 KM/U)')),
-                    'total_distance': _csv_float(row.get('Total Distance')),
-                    'sprints': _csv_int(row.get('Sprints')),
-                    'load': _csv_float(row.get('HML Distance')),
-                    'first_half_load': first_half_load,
-                    'second_half_load': second_half_load,
-                },
-                source_tag=f"main_upload_match_{upload_selection['event_code']}",
+                metrics=valid_metrics,
+                source_tag=source_tag,
+                match_source=True,
             )
             seen_sessions.add(session_key)
             count += 1
@@ -7006,6 +7078,7 @@ def upload_wedstrijddata(request):
             skipped=skipped,
             invalid_dates=invalid_dates,
             unknown_players=unknown_players,
+            missing_values=missing_values,
             label=f"{upload_selection['team_label']} {upload_selection['event_label'].lower()}",
         )
         return redirect('wedstrijddata')

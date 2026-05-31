@@ -75,6 +75,8 @@ def upsert_performance_session_metrics(
     metrics: Dict[str, object],
     week: Optional[int] = None,
     source_tag: str = "app_3nf",
+    source_legacy_id: int = 0,
+    match_source: bool = False,
 ) -> Tuple[PerformanceSession, bool]:
     kind_code = (session_kind or "").strip().lower()
     if not kind_code:
@@ -85,12 +87,17 @@ def upsert_performance_session_metrics(
         defaults={"label": label_map.get(kind_code, kind_code.replace("_", " ").title())},
     )
 
-    session = (
-        PerformanceSession.objects
-        .filter(player=player, session_kind_ref=kind_obj, session_date=session_date)
-        .order_by("id")
-        .first()
+    session_qs = PerformanceSession.objects.filter(
+        player=player,
+        session_kind_ref=kind_obj,
+        session_date=session_date,
     )
+    if match_source:
+        session_qs = session_qs.filter(
+            source_legacy_table=source_tag,
+            source_legacy_id=source_legacy_id,
+        )
+    session = session_qs.order_by("id").first()
     created = False
     if session is None:
         session = PerformanceSession.objects.create(
@@ -99,7 +106,7 @@ def upsert_performance_session_metrics(
             session_date=session_date,
             week=week,
             source_legacy_table=source_tag,
-            source_legacy_id=0,
+            source_legacy_id=source_legacy_id,
         )
         created = True
     else:

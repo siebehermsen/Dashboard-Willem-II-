@@ -689,6 +689,80 @@ class DashboardPersistenceTests(TestCase):
         )
         message_text = " ".join(str(message) for message in get_messages(second_response.wsgi_request))
         self.assertIn("dubbele O17 opstart trainingregel", message_text)
+        self.assertIn("Geen nieuwe O17 opstart trainingregels", message_text)
+
+    def test_gps_training_upload_allows_different_event_same_day(self):
+        team = Team.objects.create(code="O17", name="O17")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team,
+            start_date=date(2026, 1, 1),
+        )
+        csv_content = (
+            "Player Last Name,Session Date,Total Distance,HIR (M>20 KM/U),Sprints\n"
+            "Speler,15/05/2026,5306,251,17\n"
+        ).encode("utf-8")
+
+        first_response = self.client.post(
+            reverse("upload_file"),
+            {
+                "upload_team": "O17",
+                "upload_event": "opstart_training",
+                "file": SimpleUploadedFile("training.csv", csv_content, content_type="text/csv"),
+            },
+        )
+        second_response = self.client.post(
+            reverse("upload_file"),
+            {
+                "upload_team": "O17",
+                "upload_event": "sneller_herstellen",
+                "file": SimpleUploadedFile("training.csv", csv_content, content_type="text/csv"),
+            },
+        )
+
+        self.assertEqual(first_response.status_code, 302)
+        self.assertEqual(second_response.status_code, 302)
+        self.assertEqual(
+            PerformanceSession.objects.filter(
+                player=self.player,
+                session_kind_ref__code="training",
+                session_date=date(2026, 5, 15),
+            ).count(),
+            2,
+        )
+
+    def test_gps_training_upload_reports_invalid_rows_and_missing_values(self):
+        team = Team.objects.create(code="O17", name="O17")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team,
+            start_date=date(2026, 1, 1),
+        )
+        csv_content = (
+            "Player Last Name,Session Date,Total Distance,HIR (M>20 KM/U),Sprints\n"
+            "Speler,15/05/2026,5306,,17\n"
+            "Speler,geen-datum,5306,251,17\n"
+            "Onbekend,15/05/2026,5306,251,17\n"
+            ",15/05/2026,5306,251,17\n"
+        ).encode("utf-8")
+
+        response = self.client.post(
+            reverse("upload_file"),
+            {
+                "upload_team": "O17",
+                "upload_event": "opstart_training",
+                "file": SimpleUploadedFile("training.csv", csv_content, content_type="text/csv"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(PerformanceSession.objects.filter(session_kind_ref__code="training").count(), 1)
+        message_text = " ".join(str(message) for message in get_messages(response.wsgi_request))
+        self.assertIn("Succesvol opgeslagen. 1 O17 opstart trainingregels", message_text)
+        self.assertIn("1 ongeldige datum", message_text)
+        self.assertIn("1 onbekende speler", message_text)
+        self.assertIn("1 lege/onvolledige rij", message_text)
+        self.assertIn("1 lege/ongeldige meetwaarde", message_text)
 
     def test_training_upload_prefills_event_from_agenda(self):
         team = Team.objects.create(code="O17", name="O17")
