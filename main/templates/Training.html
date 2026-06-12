@@ -155,6 +155,16 @@
         <input type="hidden" name="team" value="{{ selected_data_team_code }}">
         <div class="weektargets-table-wrap">
             <table class="weektargets-table">
+                <colgroup>
+                    <col class="weektargets-col-day">
+                    <col class="weektargets-col-agenda">
+                    <col class="weektargets-col-target">
+                    <col class="weektargets-col-target">
+                    <col class="weektargets-col-target">
+                    <col class="weektargets-col-target">
+                    <col class="weektargets-col-target">
+                    <col class="weektargets-col-target">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Dag</th>
@@ -172,13 +182,19 @@
                         <tr>
                             <td class="weektargets-day">{{ row.label }}</td>
                             <td class="weektargets-agenda-cell">
-                                {% for item in row.agenda_items %}
-                                    <span class="weektargets-agenda-pill">
-                                        {{ item.label }}{% if item.start_time %} · {{ item.start_time|time:"H:i" }}{% endif %}
-                                    </span>
-                                {% empty %}
-                                    <span class="weektargets-empty">Geen planning</span>
-                                {% endfor %}
+                                <div class="weektargets-agenda-list">
+                                    {% for item in row.agenda_items %}
+                                        <span class="weektargets-agenda-pill">
+                                            <strong>{{ item.label }}</strong>
+                                            <small>
+                                                {% if item.start_time %}{{ item.start_time|time:"H:i" }}{% else %}Tijd nog niet ingevuld{% endif %}
+                                                {% if item.location %} · {{ item.location }}{% endif %}
+                                            </small>
+                                        </span>
+                                    {% empty %}
+                                        <span class="weektargets-empty">Geen planning</span>
+                                    {% endfor %}
+                                </div>
                             </td>
                             <td><input type="text" name="{{ row.field_name }}_total_distance" value="{{ row.values.total_distance }}" placeholder="Totale afstand"></td>
                             <td><input type="text" name="{{ row.field_name }}_d15" value="{{ row.values.d15 }}" placeholder="D15"></td>
@@ -2434,6 +2450,7 @@ main.container {
 
 .weektargets-card {
     margin-bottom: 26px;
+    overflow: hidden;
 }
 
 .weektargets-header {
@@ -2445,43 +2462,71 @@ main.container {
 }
 
 .agenda-weektargets-note {
-    background: #fff7e6;
-    border: 1px solid #f4ad43;
-    border-radius: 12px;
+    background: #fff8ea;
+    border: 1px solid #f2bd62;
+    border-left: 5px solid #f4ad43;
+    border-radius: 14px;
     color: #1f2a44;
-    font-weight: 850;
-    margin: 0 0 14px;
-    padding: 10px 12px;
+    font-weight: 800;
+    line-height: 1.35;
+    margin: 0 0 18px;
+    padding: 12px 16px;
 }
 
 .weektargets-table-wrap {
     overflow-x: auto;
+    padding-bottom: 2px;
 }
 
 .weektargets-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    min-width: 1060px;
+    min-width: 1180px;
     table-layout: fixed;
+    border: 1px solid #dde5f0;
+    border-radius: 16px;
+    overflow: hidden;
 }
 
 .weektargets-table th {
     background: #0c2340;
     color: #fff;
-    padding: 12px 10px;
+    padding: 14px 12px;
     font-size: 0.95rem;
+    text-align: left;
+}
+
+.weektargets-col-day {
+    width: 140px;
+}
+
+.weektargets-col-agenda {
+    width: 260px;
+}
+
+.weektargets-col-target {
+    width: 130px;
 }
 
 .weektargets-table td {
-    background: #f8fbff;
-    border: 1px solid #e3e6ed;
-    border-top: none;
-    padding: 8px 8px;
+    background: #fff;
+    border: 0;
+    border-bottom: 1px solid #e1e7f0;
+    padding: 12px 12px;
     vertical-align: middle;
 }
 
+.weektargets-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.weektargets-table tbody tr:nth-child(odd) td {
+    background: #fbfdff;
+}
+
 .weektargets-day {
+    background: #f3f7fc !important;
     font-weight: 700;
     color: #0c2340;
     min-width: 120px;
@@ -2489,27 +2534,44 @@ main.container {
 }
 
 .weektargets-agenda-cell {
+    color: #52617a;
+}
+
+.weektargets-agenda-list {
     display: grid;
-    gap: 6px;
+    gap: 8px;
 }
 
 .weektargets-agenda-pill {
-    background: #eef3fa;
-    border: 1px solid #d8e2ef;
-    border-radius: 999px;
+    background: #eef7f1;
+    border: 1px solid #cfe7d7;
+    border-radius: 12px;
     color: #1f2a44;
-    display: inline-flex;
+    display: grid;
     font-size: 0.82rem;
     font-weight: 900;
-    justify-content: center;
-    padding: 6px 9px;
-    white-space: nowrap;
+    gap: 2px;
+    line-height: 1.2;
+    padding: 8px 10px;
+}
+
+.weektargets-agenda-pill small {
+    color: #6c7890;
+    font-size: 0.76rem;
+    font-weight: 800;
 }
 
 .weektargets-empty {
+    align-items: center;
+    background: #f1f5fa;
+    border: 1px dashed #ccd7e6;
+    border-radius: 12px;
     color: #8b97aa;
+    display: inline-flex;
     font-size: 0.86rem;
     font-weight: 800;
+    min-height: 38px;
+    padding: 0 10px;
 }
 
 .weektargets-table input {
@@ -2517,19 +2579,24 @@ main.container {
     min-width: 0;
     max-width: 100%;
     box-sizing: border-box;
-    border: 1px solid #d8deea;
-    border-radius: 10px;
-    padding: 7px 9px;
+    background: #fff;
+    border: 1px solid #d4deeb;
+    border-radius: 12px;
+    min-height: 44px;
+    padding: 8px 10px;
     font-size: 0.95rem;
     line-height: 1.2;
 }
 
-.weektargets-table tbody tr td:not(.weektargets-day) {
-    background: #fff;
+.weektargets-table input:focus {
+    border-color: #8fb4ff;
+    box-shadow: 0 0 0 3px rgba(143, 180, 255, 0.22);
+    outline: none;
 }
 
 .weektargets-save {
     margin-top: 16px;
+    min-width: 190px;
 }
 
 /* =======================================================================
