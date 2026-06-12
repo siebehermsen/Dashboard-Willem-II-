@@ -72,6 +72,7 @@ from .models import (
     PlayerMonitoringProfile,
     PlayerPosition,
     StaffRole,
+    AuditLog,
 )
 from .permissions import ALL_DASHBOARD_ROLES, LEGACY_ROLE_ALIASES, ROLE_CHOICES, ROLE_ADMIN, ROLE_PLAYER, role_required
 from .performance_3nf import fetch_performance_rows, mean, upsert_performance_session_metrics
@@ -143,6 +144,17 @@ def _require_own_player_for_player_user(request, player_id):
     player = _player_for_user(request.user)
     if not player or str(player.id) != str(player_id):
         raise PermissionDenied
+
+
+def _record_audit(request, *, action, category, object_label="", details=""):
+    user = request.user if getattr(request, "user", None) and request.user.is_authenticated else None
+    AuditLog.objects.create(
+        actor=user,
+        action=action,
+        category=category,
+        object_label=object_label or "",
+        details=details or "",
+    )
 
 
 def logout_view(request):
@@ -6298,6 +6310,13 @@ def staf(request):
             )
             sync_player_team(player, team_code)
             PlayerMonitoringProfile.objects.get_or_create(player=player)
+            _record_audit(
+                request,
+                action="toegevoegd",
+                category="Speler",
+                object_label=player.name,
+                details=f"Speler toegevoegd aan {_academy_team_label(team_code)}.",
+            )
             messages.success(request, f"Succesvol opgeslagen. Speler {player.name} toegevoegd.")
             return redirect("staf")
 
@@ -6333,6 +6352,13 @@ def staf(request):
             player.save()
             sync_player_team(player, team_code)
             PlayerMonitoringProfile.objects.get_or_create(player=player)
+            _record_audit(
+                request,
+                action="bijgewerkt",
+                category="Speler",
+                object_label=player.name,
+                details=f"Spelergegevens bijgewerkt. Team: {_academy_team_label(team_code)}.",
+            )
             messages.success(request, f"Succesvol opgeslagen. Speler {player.name} bijgewerkt.")
             return redirect("staf")
 
@@ -6382,6 +6408,13 @@ def staf(request):
                     role_ref=role_obj,
                     image=image if image else None,
                     user=user,
+                )
+                _record_audit(
+                    request,
+                    action="toegevoegd",
+                    category="Staf",
+                    object_label=name,
+                    details=f"Staflid toegevoegd met rol: {role_name}.",
                 )
                 messages.success(request, "Succesvol opgeslagen. Staflid toegevoegd.")
             except Exception:
@@ -6455,6 +6488,13 @@ def staf(request):
                         _sync_user_dashboard_role(user, dashboard_role)
 
                     staff_member.save()
+                _record_audit(
+                    request,
+                    action="bijgewerkt",
+                    category="Staf",
+                    object_label=staff_member.name,
+                    details=f"Stafprofiel bijgewerkt. Rol: {role_name}. Dashboardrol: {_dashboard_role_label(dashboard_role) or 'geen'}.",
+                )
                 messages.success(request, "Succesvol opgeslagen. Staflid bijgewerkt.")
             except Exception:
                 messages.error(
@@ -6474,6 +6514,13 @@ def staf(request):
 
             try:
                 with transaction.atomic():
+                    _record_audit(
+                        request,
+                        action="verwijderd",
+                        category="Staf",
+                        object_label=staff_name,
+                        details="Stafprofiel en gekoppelde login verwijderd.",
+                    )
                     staff_member.delete()
                     if linked_user:
                         linked_user.delete()
@@ -6491,6 +6538,14 @@ def staf(request):
         player.current_team_code = team.code if team else ""
         player.current_team_label = _academy_team_label(team.code) if team else "Geen team gekoppeld"
 
+    staff_user_ids = [member.user_id for member in staff_members if member.user_id]
+    audit_logs_by_user_id = {user_id: [] for user_id in staff_user_ids}
+    if staff_user_ids:
+        for log in AuditLog.objects.filter(actor_id__in=staff_user_ids).select_related("actor").order_by("actor_id", "-created_at"):
+            logs = audit_logs_by_user_id.setdefault(log.actor_id, [])
+            if len(logs) < 8:
+                logs.append(log)
+
     for member in staff_members:
         dashboard_role = _user_dashboard_role(member.user)
         staff_member_rows.append(
@@ -6498,6 +6553,7 @@ def staf(request):
                 member=member,
                 dashboard_role=dashboard_role,
                 dashboard_role_label=_dashboard_role_label(dashboard_role),
+                audit_logs=audit_logs_by_user_id.get(member.user_id, []),
             )
         )
 

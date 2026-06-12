@@ -920,6 +920,29 @@ class Staff(models.Model):
     def __str__(self):
         return getattr(self, 'name', f'{self.__class__.__name__} {self.pk}')
 
+class AuditLog(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    actor = models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='audit_logs', to=settings.AUTH_USER_MODEL)
+    action = models.CharField(max_length=40)
+    category = models.CharField(max_length=60)
+    object_label = models.CharField(blank=True, default='', max_length=160)
+    details = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Activiteitenlog'
+        verbose_name_plural = 'Activiteitenlogs'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['actor', 'created_at'], name='main_audit_actor_date_idx'),
+            models.Index(fields=['category', 'created_at'], name='main_audit_cat_date_idx'),
+            models.Index(fields=['action', 'created_at'], name='main_audit_action_date_idx'),
+        ]
+
+    def __str__(self):
+        actor_name = self.actor.get_username() if self.actor else 'Onbekend'
+        return f'{actor_name} - {self.category} - {self.action}'
+
 class StaffRole(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     name = models.CharField(max_length=200, unique=True)

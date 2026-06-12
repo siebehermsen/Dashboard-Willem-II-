@@ -309,6 +309,58 @@
         cursor: pointer;
     }
 
+    .staf-audit-log {
+        margin-top: 18px;
+        padding: 16px;
+        border: 1px solid #dfe7f2;
+        border-radius: 16px;
+        background: #f8fbff;
+    }
+
+    .staf-audit-log h4 {
+        margin: 0 0 6px;
+        color: #1f2a44;
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .staf-audit-log p {
+        margin: 0;
+        color: #65728a;
+        font-size: 0.88rem;
+        font-weight: 700;
+        line-height: 1.45;
+    }
+
+    .staf-audit-list {
+        display: grid;
+        gap: 10px;
+        list-style: none;
+        margin: 12px 0 0;
+        padding: 0;
+    }
+
+    .staf-audit-list li {
+        display: grid;
+        gap: 3px;
+        padding: 10px 12px;
+        border: 1px solid #e2e9f3;
+        border-radius: 12px;
+        background: #fff;
+    }
+
+    .staf-audit-meta {
+        color: #738099;
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .staf-audit-action {
+        color: #1f2a44;
+        font-weight: 900;
+    }
+
     .staf-password-tools {
         display: flex;
         flex-wrap: wrap;
@@ -691,6 +743,23 @@
                 </label>
                 <button type="submit" class="staf-submit">Wijzigingen opslaan</button>
             </form>
+            <div class="staf-audit-log">
+                <h4>Activiteitenlog</h4>
+                <p>Laatste acties die dit account heeft toegevoegd of aangepast.</p>
+                {% if row.audit_logs %}
+                <ul class="staf-audit-list">
+                    {% for log in row.audit_logs %}
+                    <li>
+                        <span class="staf-audit-meta">{{ log.created_at|date:"d-m-Y H:i" }} · {{ log.category }}</span>
+                        <span class="staf-audit-action">{{ log.action|capfirst }}{% if log.object_label %}: {{ log.object_label }}{% endif %}</span>
+                        {% if log.details %}<p>{{ log.details }}</p>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>Nog geen acties geregistreerd voor dit account.</p>
+                {% endif %}
+            </div>
             <div class="staf-danger-zone">
                 <h4>Staflid verwijderen</h4>
                 <p>Hiermee verwijder je het stafprofiel en de gekoppelde login. Deze persoon verliest direct toegang tot het platform.</p>
