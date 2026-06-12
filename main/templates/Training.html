@@ -160,7 +160,27 @@
                                 {% if upload.details %}
                                 <ul class="import-log-errors">
                                     {% for detail in upload.details %}
-                                    <li>{{ detail }}</li>
+                                    <li>
+                                        {% if detail.problem %}
+                                            <div class="import-error-main">
+                                                {% if detail.row %}
+                                                <span class="import-error-row">Rij {{ detail.row }}</span>
+                                                {% endif %}
+                                                <strong>{{ detail.problem }}</strong>
+                                            </div>
+                                            {% if detail.field or detail.value %}
+                                            <div class="import-error-meta">
+                                                {% if detail.field %}<span><strong>Veld:</strong> {{ detail.field }}</span>{% endif %}
+                                                {% if detail.value %}<span><strong>Waarde:</strong> {{ detail.value }}</span>{% endif %}
+                                            </div>
+                                            {% endif %}
+                                            <div class="import-error-action">
+                                                <strong>Actie:</strong> {{ detail.action }}
+                                            </div>
+                                        {% else %}
+                                            {{ detail }}
+                                        {% endif %}
+                                    </li>
                                     {% endfor %}
                                 </ul>
                                 {% else %}
@@ -3011,6 +3031,46 @@ main.container {
 .import-log-empty-row {
     color: #65728a;
     font-weight: 800;
+}
+
+.import-log-errors li {
+    background: #fff;
+    border: 1px solid #dfe7f2;
+    border-left: 5px solid #e11b22;
+    border-radius: 12px;
+    list-style: none;
+    padding: 10px 12px;
+}
+
+.import-error-main {
+    align-items: center;
+    color: #1f2a44;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.import-error-row {
+    background: #fdecec;
+    border-radius: 999px;
+    color: #b60000;
+    display: inline-flex;
+    font-size: 0.82rem;
+    font-weight: 900;
+    padding: 4px 8px;
+}
+
+.import-error-meta,
+.import-error-action {
+    color: #65728a;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.import-error-action {
+    color: #34425d;
 }
 
 .import-log-empty-row {

@@ -15,6 +15,7 @@ from .models import (
     AttendanceRecord,
     AttendanceStatus,
     DayProgramEntry,
+    DataImportLog,
     InjuryCase,
     MDOActionPoint,
     NutritionIntakeItem,
@@ -766,6 +767,42 @@ class DashboardPersistenceTests(TestCase):
         self.assertIn("1 onbekende speler", message_text)
         self.assertIn("1 lege/onvolledige rij", message_text)
         self.assertIn("1 lege/ongeldige meetwaarde", message_text)
+
+    def test_gps_training_upload_stores_actionable_import_log_details(self):
+        team = Team.objects.create(code="O17", name="O17")
+        PlayerTeamAssignment.objects.create(
+            player=self.player,
+            team=team,
+            start_date=date(2026, 1, 1),
+        )
+        csv_content = (
+            "Player Last Name,Session Date,Total Distance,HIR (M>20 KM/U),Sprints\n"
+            "Onbekend,15/05/2026,5306,251,17\n"
+            "Speler,geen-datum,5306,251,17\n"
+        ).encode("utf-8")
+
+        response = self.client.post(
+            reverse("upload_file"),
+            {
+                "upload_team": "O17",
+                "upload_event": "opstart_training",
+                "file": SimpleUploadedFile("training.csv", csv_content, content_type="text/csv"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        import_log = DataImportLog.objects.latest("created_at")
+        self.assertEqual(import_log.status, "failed")
+        self.assertEqual(import_log.error_count, 2)
+        self.assertEqual(import_log.details[0]["row"], 2)
+        self.assertEqual(import_log.details[0]["problem"], "Speler niet gevonden binnen het gekozen team.")
+        self.assertIn("juiste team", import_log.details[0]["action"])
+        self.assertEqual(import_log.details[1]["row"], 3)
+        self.assertEqual(import_log.details[1]["field"], "Session Date")
+        self.assertIn("geldige datum", import_log.details[1]["action"])
+        overview = self.client.get(reverse("training") + "?team=O17")
+        self.assertContains(overview, "Actie:")
+        self.assertContains(overview, "Speler niet gevonden binnen het gekozen team.")
 
     def test_training_upload_prefills_event_from_agenda(self):
         team = Team.objects.create(code="O17", name="O17")
