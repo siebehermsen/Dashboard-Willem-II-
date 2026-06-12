@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from django.db import transaction
 
@@ -38,7 +38,11 @@ def _to_float_or_none(raw):
         return None
 
 
-def fetch_performance_rows(session_kind: str, player: Optional[Player] = None) -> List[dict]:
+def fetch_performance_rows(
+    session_kind: str,
+    player: Optional[Player] = None,
+    player_ids: Optional[Sequence[int]] = None,
+) -> List[dict]:
     kind_code = (session_kind or "").strip().lower()
     qs = (
         PerformanceSession.objects
@@ -48,6 +52,9 @@ def fetch_performance_rows(session_kind: str, player: Optional[Player] = None) -
     )
     if player is not None:
         qs = qs.filter(player=player)
+    if player_ids is not None:
+        ids = list(player_ids)
+        qs = qs.filter(player_id__in=ids) if ids else qs.none()
 
     rows: List[dict] = []
     for session in qs:

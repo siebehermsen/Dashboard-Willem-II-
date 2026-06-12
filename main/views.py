@@ -2002,7 +2002,7 @@ def training(request):
         }
         for index, (field_name, label) in enumerate(day_field_map)
     ]
-    rows = [row for row in fetch_performance_rows("training") if row["player_id"] in team_player_ids]
+    rows = fetch_performance_rows("training", player_ids=team_player_ids)
 
     by_player = {}
     for row in rows:
@@ -2292,8 +2292,7 @@ def wedstrijddata(request):
     selected_player_name = request.GET.get("player")
     selected_player = players.filter(name=selected_player_name).first() if selected_player_name else None
 
-    all_rows = fetch_performance_rows("match")
-    all_rows = [row for row in all_rows if row["player_id"] in team_player_ids]
+    all_rows = fetch_performance_rows("match", player_ids=team_player_ids)
     match_rows = [r for r in all_rows if (not selected_player or r["player_id"] == selected_player.id)]
     match_rows.sort(key=lambda r: ((r.get("week") or 0), r["session_date"]), reverse=True)
 
@@ -2441,8 +2440,8 @@ def fysiek_rapport(request):
     selected_team, team_players = _team_players_for_gps_upload(selected_team_code)
     selected_team_label = selected_team.name if selected_team else _academy_team_label(selected_team_code)
     team_player_ids = set(team_players.values_list("id", flat=True))
-    training_rows_all = fetch_performance_rows("training")
-    match_rows_all = fetch_performance_rows("match")
+    training_rows_all = fetch_performance_rows("training", player_ids=team_player_ids)
+    match_rows_all = fetch_performance_rows("match", player_ids=team_player_ids)
     all_dates = [row["session_date"] for row in training_rows_all + match_rows_all if row.get("session_date")]
     report_end = max(all_dates) if all_dates else timezone.localdate()
     report_start = report_end - timedelta(days=6)
@@ -2451,8 +2450,8 @@ def fysiek_rapport(request):
         session_date = row.get("session_date")
         return session_date and report_start <= session_date <= report_end
 
-    training_rows = [row for row in training_rows_all if in_report_week(row) and row.get("player_id") in team_player_ids]
-    match_rows = [row for row in match_rows_all if in_report_week(row) and row.get("player_id") in team_player_ids]
+    training_rows = [row for row in training_rows_all if in_report_week(row)]
+    match_rows = [row for row in match_rows_all if in_report_week(row)]
     combined_rows = [*training_rows, *match_rows]
 
     def val(row, key):
@@ -2653,8 +2652,8 @@ def testdata(request):
     selected_team_label = selected_team.name if selected_team else _academy_team_label(selected_team_code)
     players = list(team_players_qs.select_related("monitoring_profile", "position_ref"))
     team_player_ids = {player.id for player in players}
-    test_rows = fetch_performance_rows("test")
-    team_test_rows = [row for row in test_rows if row["player_id"] in team_player_ids]
+    team_test_rows = fetch_performance_rows("test", player_ids=team_player_ids)
+    test_rows = team_test_rows
 
     test_data = [
         SimpleNamespace(
@@ -3000,7 +2999,7 @@ def academie_team(request, team_code):
     player_ids = set(players.values_list("id", flat=True))
 
     def team_rows(session_kind):
-        return [row for row in fetch_performance_rows(session_kind) if row["player_id"] in player_ids]
+        return fetch_performance_rows(session_kind, player_ids=player_ids)
 
     training_rows = team_rows("training")
     match_rows = team_rows("match")
@@ -5545,33 +5544,70 @@ def aanwezigheden_pagina(request):
     fallback_status = status_qs.filter(code="overig").first() or status_qs.first()
     default_status = agenda_status or fallback_status
 
-    # 3. Voor elke speler een AttendanceRecord entry ophalen of automatisch aanmaken
+    # 3. AttendanceRecords in bulk ophalen/aanmaken, zodat grote teams niet per speler losse queries doen.
+    player_ids = [player.id for player in players]
+    attendance_qs = (
+        AttendanceRecord.objects
+        .select_related("player", "player__position_ref", "status")
+        .filter(player_id__in=player_ids, date=chosen_date)
+    )
+    attendance_by_player = {record.player_id: record for record in attendance_qs}
+    missing_records = [
+        AttendanceRecord(player=player, date=chosen_date, status=default_status, completed=False)
+        for player in players
+        if player.id not in attendance_by_player and default_status
+    ]
+    if missing_records:
+        AttendanceRecord.objects.bulk_create(missing_records, ignore_conflicts=True)
+        attendance_by_player = {
+            record.player_id: record
+            for record in (
+                AttendanceRecord.objects
+                .select_related("player", "player__position_ref", "status")
+                .filter(player_id__in=player_ids, date=chosen_date)
+            )
+        }
+
+    if agenda_status:
+        agenda_update_ids = [
+            record.id
+            for record in attendance_by_player.values()
+            if (
+                not record.completed
+                and record.status
+                and record.status.code == "overig"
+                and record.status_id != agenda_status.id
+            )
+        ]
+        if agenda_update_ids:
+            AttendanceRecord.objects.filter(id__in=agenda_update_ids).update(
+                status=agenda_status,
+                updated_at=timezone.now(),
+            )
+            attendance_by_player = {
+                record.player_id: record
+                for record in (
+                    AttendanceRecord.objects
+                    .select_related("player", "player__position_ref", "status")
+                    .filter(player_id__in=player_ids, date=chosen_date)
+                )
+            }
+
     records = []
     for player in players:
-        aanwezigheid, created = AttendanceRecord.objects.get_or_create(
-            player=player,
-            date=chosen_date,
-            defaults={"status": default_status, "completed": False},
-        )
-        if (
-            not created
-            and agenda_status
-            and not aanwezigheid.completed
-            and aanwezigheid.status
-            and aanwezigheid.status.code == "overig"
-        ):
-            aanwezigheid.status = agenda_status
-            aanwezigheid.save(update_fields=["status", "updated_at"])
+        aanwezigheid = attendance_by_player.get(player.id)
+        if not aanwezigheid:
+            continue
         records.append(
             SimpleNamespace(
                 id=aanwezigheid.id,
-                player=aanwezigheid.player,
+                player=player,
                 status=aanwezigheid.status.code if aanwezigheid.status else "overig",
                 status_label=aanwezigheid.status.label if aanwezigheid.status else "Overig",
                 completed=aanwezigheid.completed,
                 date=aanwezigheid.date,
                 team_code=selected_team_code,
-                position=aanwezigheid.player.position_ref.name if aanwezigheid.player.position_ref else "",
+                position=player.position_ref.name if player.position_ref else "",
             )
         )
 

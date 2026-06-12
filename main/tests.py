@@ -1,13 +1,16 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
 from django.test import Client, TestCase, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
+from .performance_3nf import fetch_performance_rows
 from .models import (
     AttendanceRecord,
     AttendanceStatus,
@@ -1501,3 +1504,224 @@ class DashboardPersistenceTests(TestCase):
 
         self.assertEqual(get_response.status_code, 200)
         self.assertEqual(post_response.status_code, 403)
+
+
+@override_settings(
+    PASSWORD_HASHERS=["django.contrib.auth.hashers.MD5PasswordHasher"],
+)
+class AcademyScalePerformanceTests(TestCase):
+    """Schaalcheck voor academiegebruik met veel spelers en historische data."""
+
+    TEAM_CODES = ("O21", "O19", "O17", "O15")
+    REFERENCE_DATE = date(2026, 5, 29)
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user(
+            username="scale-admin",
+            password="test-pass",
+            is_staff=True,
+        )
+        admin_group = Group.objects.create(name=ROLE_ADMIN)
+        cls.user.groups.add(admin_group)
+
+        teams = [
+            Team(code=code, name=code, is_active=True)
+            for code in cls.TEAM_CODES
+        ]
+        Team.objects.bulk_create(teams)
+        team_by_code = {team.code: team for team in Team.objects.filter(code__in=cls.TEAM_CODES)}
+
+        AttendanceStatus.objects.bulk_create(
+            [
+                AttendanceStatus(code="overig", label="Overig", sort_order=1),
+                AttendanceStatus(code="training", label="Training", sort_order=2),
+                AttendanceStatus(code="wedstrijd", label="Wedstrijd", sort_order=3),
+            ]
+        )
+        RPETrainingType.objects.create(name="Training")
+
+        PerformanceSessionKind.objects.bulk_create(
+            [
+                PerformanceSessionKind(code="training", label="Training"),
+                PerformanceSessionKind(code="match", label="Wedstrijd"),
+                PerformanceSessionKind(code="test", label="Test"),
+            ]
+        )
+        metric_types = [
+            PerformanceMetricType(code=code, label=code.replace("_", " ").title(), category=category)
+            for category, codes in {
+                "gps": ("total_distance", "hsd", "his", "sprints", "load", "accelerations", "decelerations"),
+                "test": ("sprint_10", "sprint_30", "cmj", "isrt", "submax", "curr_weight", "length", "sum_skinfolds"),
+            }.items()
+            for code in codes
+        ]
+        PerformanceMetricType.objects.bulk_create(metric_types)
+
+        positions = [
+            PlayerPosition.objects.create(name="Vleugelverdediger"),
+            PlayerPosition.objects.create(name="Middenvelder"),
+            PlayerPosition.objects.create(name="Aanvaller"),
+        ]
+        players = [
+            Player(
+                name=f"Schaalspeler {idx + 1:03d}",
+                position_ref=positions[idx % len(positions)],
+                is_active=True,
+            )
+            for idx in range(150)
+        ]
+        Player.objects.bulk_create(players, batch_size=500)
+        players = list(Player.objects.order_by("id"))
+
+        PlayerMonitoringProfile.objects.bulk_create(
+            [PlayerMonitoringProfile(player=player) for player in players],
+            batch_size=500,
+        )
+        PlayerTeamAssignment.objects.bulk_create(
+            [
+                PlayerTeamAssignment(
+                    player=player,
+                    team=team_by_code[cls.TEAM_CODES[idx % len(cls.TEAM_CODES)]],
+                    start_date=date(2025, 7, 1),
+                )
+                for idx, player in enumerate(players)
+            ],
+            batch_size=500,
+        )
+
+        training_type = RPETrainingType.objects.get(name="Training")
+        overig_status = AttendanceStatus.objects.get(code="overig")
+        wellness_entries = []
+        rpe_entries = []
+        attendance_entries = []
+        for offset in range(20):
+            entry_date = cls.REFERENCE_DATE - timedelta(days=offset)
+            for player in players:
+                wellness_entries.append(
+                    WellnessEntry(player=player, date=entry_date, sleep=4, mood=4, fitness=4, soreness=2)
+                )
+                rpe_entries.append(
+                    RPEEntry(player=player, date=entry_date, rpe=6, session_load=360, training_type_ref=training_type)
+                )
+                attendance_entries.append(
+                    AttendanceRecord(player=player, date=entry_date, status=overig_status, completed=(offset % 3 != 0))
+                )
+        WellnessEntry.objects.bulk_create(wellness_entries, batch_size=1000)
+        RPEEntry.objects.bulk_create(rpe_entries, batch_size=1000)
+        AttendanceRecord.objects.bulk_create(attendance_entries, batch_size=1000)
+
+        kind_by_code = {kind.code: kind for kind in PerformanceSessionKind.objects.all()}
+        sessions = []
+        for offset in range(10):
+            session_date = cls.REFERENCE_DATE - timedelta(days=offset)
+            for player in players:
+                sessions.append(
+                    PerformanceSession(
+                        player=player,
+                        session_kind_ref=kind_by_code["training"],
+                        session_date=session_date,
+                        source_legacy_table="scale_training",
+                        source_legacy_id=(offset * 1000) + player.id,
+                    )
+                )
+        for offset in range(3):
+            session_date = cls.REFERENCE_DATE - timedelta(days=offset * 7)
+            for player in players:
+                sessions.append(
+                    PerformanceSession(
+                        player=player,
+                        session_kind_ref=kind_by_code["match"],
+                        session_date=session_date,
+                        source_legacy_table="scale_match",
+                        source_legacy_id=(offset * 1000) + player.id,
+                    )
+                )
+        for offset in range(3):
+            session_date = cls.REFERENCE_DATE - timedelta(days=offset * 14)
+            for player in players:
+                sessions.append(
+                    PerformanceSession(
+                        player=player,
+                        session_kind_ref=kind_by_code["test"],
+                        session_date=session_date,
+                        source_legacy_table="scale_test",
+                        source_legacy_id=(offset * 1000) + player.id,
+                    )
+                )
+        PerformanceSession.objects.bulk_create(sessions, batch_size=1000)
+
+        metric_type_by_code = {metric.code: metric for metric in PerformanceMetricType.objects.all()}
+        metrics = []
+        for session in PerformanceSession.objects.select_related("session_kind_ref", "player").all():
+            player_mod = session.player_id % 12
+            if session.session_kind_ref.code == "training":
+                values = {
+                    "total_distance": 4500 + player_mod * 80,
+                    "hsd": 180 + player_mod * 4,
+                    "sprints": 8 + player_mod,
+                    "load": 600 + player_mod * 10,
+                }
+            elif session.session_kind_ref.code == "match":
+                values = {
+                    "total_distance": 8200 + player_mod * 110,
+                    "hsd": 420 + player_mod * 6,
+                    "his": 600 + player_mod * 5,
+                    "sprints": 18 + player_mod,
+                    "load": 1200 + player_mod * 20,
+                    "accelerations": 32 + player_mod,
+                    "decelerations": 30 + player_mod,
+                }
+            else:
+                values = {
+                    "sprint_10": 1.70 + (player_mod / 100),
+                    "sprint_30": 4.20 + (player_mod / 50),
+                    "cmj": 38 + player_mod,
+                    "isrt": 1100 + player_mod * 20,
+                    "submax": 86 + player_mod / 10,
+                    "curr_weight": 68 + player_mod,
+                    "length": 176 + player_mod / 2,
+                    "sum_skinfolds": 42 + player_mod,
+                }
+            metrics.extend(
+                PerformanceMetric(session=session, metric_type=metric_type_by_code[code], value=value)
+                for code, value in values.items()
+            )
+        PerformanceMetric.objects.bulk_create(metrics, batch_size=1000)
+
+    def setUp(self):
+        self.client.force_login(self.user)
+
+    def test_fetch_performance_rows_filters_by_team_players(self):
+        team = Team.objects.get(code="O21")
+        player_ids = list(
+            Player.objects.filter(team_assignments__team=team).values_list("id", flat=True)
+        )
+
+        rows = fetch_performance_rows("training", player_ids=player_ids)
+
+        self.assertEqual(len(rows), len(player_ids) * 10)
+        self.assertTrue(all(row["player_id"] in player_ids for row in rows))
+
+    def test_heavy_academy_pages_render_with_scale_dataset(self):
+        urls = [
+            reverse("training") + "?team=O21",
+            reverse("wedstrijddata") + "?team=O21",
+            reverse("fysiek_rapport") + "?team=O21",
+            reverse("testdata") + "?team=O21&tab=profiel",
+            reverse("wellness") + f"?team=O21&date={self.REFERENCE_DATE.isoformat()}",
+            reverse("aanwezigheden") + f"?team=O21&date={self.REFERENCE_DATE.isoformat()}",
+        ]
+
+        for url in urls:
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200, url)
+
+    def test_attendance_page_uses_bounded_queries_for_large_team(self):
+        url = reverse("aanwezigheden") + f"?team=O21&date={self.REFERENCE_DATE.isoformat()}"
+
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertLessEqual(len(queries), 25)
