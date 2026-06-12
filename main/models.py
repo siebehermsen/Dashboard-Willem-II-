@@ -943,6 +943,42 @@ class AuditLog(models.Model):
         actor_name = self.actor.get_username() if self.actor else 'Onbekend'
         return f'{actor_name} - {self.category} - {self.action}'
 
+class DataImportLog(models.Model):
+    STATUS_CHOICES = [
+        ('success', 'Succesvol'),
+        ('partial', 'Deels gelukt'),
+        ('failed', 'Mislukt'),
+    ]
+
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    uploaded_by = models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='data_import_logs', to=settings.AUTH_USER_MODEL)
+    data_type = models.CharField(max_length=40)
+    team_code = models.CharField(blank=True, default='', max_length=30)
+    team_label = models.CharField(blank=True, default='', max_length=80)
+    event_code = models.CharField(blank=True, default='', max_length=60)
+    event_label = models.CharField(blank=True, default='', max_length=100)
+    filename = models.CharField(blank=True, default='', max_length=255)
+    status = models.CharField(choices=STATUS_CHOICES, default='failed', max_length=20)
+    processed_count = models.PositiveIntegerField(default=0)
+    duplicate_count = models.PositiveIntegerField(default=0)
+    error_count = models.PositiveIntegerField(default=0)
+    details = models.JSONField(blank=True, default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Data-importlog'
+        verbose_name_plural = 'Data-importlogs'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['uploaded_by', 'created_at'], name='main_import_user_date_idx'),
+            models.Index(fields=['data_type', 'created_at'], name='main_import_type_date_idx'),
+            models.Index(fields=['team_code', 'created_at'], name='main_import_team_date_idx'),
+            models.Index(fields=['status', 'created_at'], name='main_import_status_date_idx'),
+        ]
+
+    def __str__(self):
+        return f'{self.data_type} {self.team_label or self.team_code} {self.created_at:%d-%m-%Y %H:%M}'
+
 class StaffRole(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     name = models.CharField(max_length=200, unique=True)

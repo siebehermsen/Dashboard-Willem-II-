@@ -115,6 +115,72 @@
         </div>
     </form>
 </section>
+{% if show_import_log %}
+<section class="card fade-in import-log-card">
+    <div class="import-log-header">
+        <div>
+            <h3>Laatste uploads</h3>
+            <p class="subtext">Alleen zichtbaar voor admin. Klik op een upload om details en foutmeldingen te bekijken.</p>
+        </div>
+    </div>
+    <div class="import-log-table-wrap">
+        <table class="import-log-table">
+            <thead>
+                <tr>
+                    <th>Tijd</th>
+                    <th>Type</th>
+                    <th>Team</th>
+                    <th>Event</th>
+                    <th>Bestand</th>
+                    <th>Door</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if latest_import_logs %}
+                {% for upload in latest_import_logs %}
+                <tr>
+                    <td colspan="7" class="import-log-detail-cell">
+                        <details class="import-log-detail">
+                            <summary>
+                                <span>{{ upload.created_at|date:"d-m H:i" }}</span>
+                                <span>{{ upload.data_type }}</span>
+                                <span>{{ upload.team_label|default:upload.team_code|default:"-" }}</span>
+                                <span>{{ upload.event_label|default:"-" }}</span>
+                                <span title="{{ upload.filename }}">{{ upload.filename|default:"Geen bestandsnaam" }}</span>
+                                <span>{{ upload.uploaded_by.username|default:"Onbekend" }}</span>
+                                <span class="import-status import-status-{{ upload.status }}">{{ upload.get_status_display }}</span>
+                            </summary>
+                            <div class="import-log-details-panel">
+                                <div class="import-log-counts">
+                                    <span><strong>Verwerkt:</strong> {{ upload.processed_count }}</span>
+                                    <span><strong>Dubbel:</strong> {{ upload.duplicate_count }}</span>
+                                    <span><strong>Fouten:</strong> {{ upload.error_count }}</span>
+                                </div>
+                                {% if upload.details %}
+                                <ul class="import-log-errors">
+                                    {% for detail in upload.details %}
+                                    <li>{{ detail }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <p class="import-log-empty">Geen foutdetails opgeslagen voor deze upload.</p>
+                                {% endif %}
+                            </div>
+                        </details>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="7" class="import-log-empty-row">Nog geen uploads geregistreerd.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
 <script>
     (() => {
         const form = document.querySelector("[data-training-upload-form]");
@@ -2808,6 +2874,148 @@ main.container {
     color: #1f2a44;
     font-weight: 900;
     padding: 0 14px;
+}
+
+.import-log-card {
+    margin: -6px 0 25px;
+}
+
+.import-log-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.import-log-table-wrap {
+    overflow-x: auto;
+}
+
+.import-log-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid #dfe7f2;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.import-log-table th {
+    background: #0c2340;
+    color: #fff;
+    font-size: 0.86rem;
+    font-weight: 900;
+    padding: 12px 14px;
+    text-align: left;
+}
+
+.import-log-detail-cell {
+    border-bottom: 1px solid #e5ebf4;
+    padding: 0;
+}
+
+.import-log-table tbody tr:last-child .import-log-detail-cell {
+    border-bottom: 0;
+}
+
+.import-log-detail summary {
+    align-items: center;
+    cursor: pointer;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 90px 110px 90px 150px minmax(190px, 1fr) 120px 120px 58px;
+    list-style: none;
+    padding: 13px 14px;
+}
+
+.import-log-detail summary::-webkit-details-marker {
+    display: none;
+}
+
+.import-log-detail summary span {
+    color: #1f2a44;
+    font-size: 0.9rem;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.import-log-detail summary::after {
+    color: #6c7890;
+    content: "Open";
+    font-size: 0.78rem;
+    font-weight: 900;
+    justify-self: end;
+    text-transform: uppercase;
+}
+
+.import-log-detail[open] summary::after {
+    content: "Sluit";
+}
+
+.import-status {
+    border-radius: 999px;
+    display: inline-flex;
+    justify-content: center;
+    padding: 6px 10px;
+}
+
+.import-status-success {
+    background: #e8f7ee;
+    color: #16783a !important;
+}
+
+.import-status-partial {
+    background: #fff5df;
+    color: #9a6200 !important;
+}
+
+.import-status-failed {
+    background: #fdecec;
+    color: #b60000 !important;
+}
+
+.import-log-details-panel {
+    background: #f8fbff;
+    border-top: 1px solid #e5ebf4;
+    padding: 14px;
+}
+
+.import-log-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.import-log-counts span {
+    background: #fff;
+    border: 1px solid #dfe7f2;
+    border-radius: 12px;
+    color: #1f2a44;
+    font-weight: 800;
+    padding: 8px 10px;
+}
+
+.import-log-errors {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding-left: 18px;
+}
+
+.import-log-errors li,
+.import-log-empty,
+.import-log-empty-row {
+    color: #65728a;
+    font-weight: 800;
+}
+
+.import-log-empty-row {
+    padding: 18px;
+    text-align: center;
 }
 
 @media (max-width: 1000px) {

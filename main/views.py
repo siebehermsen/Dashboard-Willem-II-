@@ -73,6 +73,7 @@ from .models import (
     PlayerPosition,
     StaffRole,
     AuditLog,
+    DataImportLog,
 )
 from .permissions import ALL_DASHBOARD_ROLES, LEGACY_ROLE_ALIASES, ROLE_CHOICES, ROLE_ADMIN, ROLE_PLAYER, role_required
 from .performance_3nf import fetch_performance_rows, mean, upsert_performance_session_metrics
@@ -154,6 +155,13 @@ def _record_audit(request, *, action, category, object_label="", details=""):
         category=category,
         object_label=object_label or "",
         details=details or "",
+    )
+
+
+def _is_admin_user(user):
+    return bool(
+        getattr(user, "is_authenticated", False)
+        and (getattr(user, "is_superuser", False) or _user_dashboard_role(user) == ROLE_ADMIN)
     )
 
 
@@ -2232,6 +2240,8 @@ def training(request):
         "selected_data_team_code": selected_data_team_code,
         "selected_data_team_label": selected_data_team_label,
         "data_team_query": f"team={selected_data_team_code}",
+        "show_import_log": _is_admin_user(request.user),
+        "latest_import_logs": _latest_admin_import_logs(request),
 
         "active_page": "training",
     }
@@ -2411,6 +2421,8 @@ def wedstrijddata(request):
         "selected_data_team_code": selected_data_team_code,
         "selected_data_team_label": selected_data_team_label,
         "data_team_query": f"team={selected_data_team_code}",
+        "show_import_log": _is_admin_user(request.user),
+        "latest_import_logs": _latest_admin_import_logs(request),
 
         "active_page": "wedstrijd",
     }
@@ -2785,26 +2797,80 @@ def testdata(request):
         player_obj = get_object_or_404(Player, id=request.POST.get("player_id"))
         test_date = request.POST.get("test_date")
         if not test_date:
+            _record_data_import_log(
+                request,
+                data_type="Testdata",
+                filename="Handmatige invoer",
+                upload_selection={
+                    "team_code": selected_team_code,
+                    "team_label": selected_team_label,
+                    "event_code": "testdata",
+                    "event_label": "Testdata",
+                },
+                status="failed",
+                error_count=1,
+                details=[f"Testdata voor {player_obj.name} niet opgeslagen: datum ontbreekt."],
+            )
             return redirect(f"/testdata/?tab=invoer&team={selected_team_code}")
 
-        parsed_date = datetime.strptime(test_date, "%Y-%m-%d").date()
+        try:
+            parsed_date = datetime.strptime(test_date, "%Y-%m-%d").date()
+        except ValueError:
+            _record_data_import_log(
+                request,
+                data_type="Testdata",
+                filename="Handmatige invoer",
+                upload_selection={
+                    "team_code": selected_team_code,
+                    "team_label": selected_team_label,
+                    "event_code": "testdata",
+                    "event_label": "Testdata",
+                },
+                status="failed",
+                error_count=1,
+                details=[f"Testdata voor {player_obj.name} niet opgeslagen: datum is ongeldig."],
+            )
+            messages.error(request, "Kies een geldige datum voor de testdata.")
+            return redirect(f"/testdata/?tab=invoer&team={selected_team_code}")
+
+        submitted_metrics = {
+            "sprint_10": request.POST.get("sprint_10"),
+            "sprint_30": request.POST.get("sprint_30"),
+            "cmj": request.POST.get("cmj"),
+            "isrt": request.POST.get("isrt"),
+            "submax": request.POST.get("submax"),
+            "curr_weight": request.POST.get("curr_weight"),
+            "length": request.POST.get("length"),
+            "sum_skinfolds": request.POST.get("sum_skinfolds"),
+        }
+        filled_metric_count = sum(1 for value in submitted_metrics.values() if str(value or "").strip())
         upsert_performance_session_metrics(
             player=player_obj,
             session_kind="test",
             session_date=parsed_date,
-            metrics={
-                "sprint_10": request.POST.get("sprint_10"),
-                "sprint_30": request.POST.get("sprint_30"),
-                "cmj": request.POST.get("cmj"),
-                "isrt": request.POST.get("isrt"),
-                "submax": request.POST.get("submax"),
-                "curr_weight": request.POST.get("curr_weight"),
-                "length": request.POST.get("length"),
-                "sum_skinfolds": request.POST.get("sum_skinfolds"),
-            },
+            metrics=submitted_metrics,
             source_tag="main_manual_test",
         )
         redirect_team_code = team_code_for_player(player_obj.id) or selected_team_code
+        _record_data_import_log(
+            request,
+            data_type="Testdata",
+            filename="Handmatige invoer",
+            upload_selection={
+                "team_code": redirect_team_code,
+                "team_label": _academy_team_label(redirect_team_code),
+                "event_code": "testdata",
+                "event_label": "Testdata",
+            },
+            status="success" if filled_metric_count else "partial",
+            processed_count=1 if filled_metric_count else 0,
+            error_count=0 if filled_metric_count else 1,
+            details=[
+                f"Testdata opgeslagen voor {player_obj.name} op {parsed_date.strftime('%d-%m-%Y')}."
+                if filled_metric_count
+                else f"Testdata-invoer voor {player_obj.name} bevatte geen ingevulde meetwaarden."
+            ],
+        )
         return redirect(f"/testdata/?tab=invoer&team={redirect_team_code}")
 
     context = {
@@ -6896,16 +6962,81 @@ def _show_gps_import_feedback(request, *, imported, duplicates, skipped, invalid
         )
 
 
+def _import_log_status(*, processed_count, duplicate_count=0, error_count=0):
+    if processed_count and not duplicate_count and not error_count:
+        return "success"
+    if processed_count:
+        return "partial"
+    return "failed"
+
+
+def _add_import_detail(details, message, limit=20):
+    if len(details) < limit:
+        details.append(message)
+
+
+def _record_data_import_log(
+    request,
+    *,
+    data_type,
+    filename="",
+    upload_selection=None,
+    status="failed",
+    processed_count=0,
+    duplicate_count=0,
+    error_count=0,
+    details=None,
+):
+    upload_selection = upload_selection or {}
+    DataImportLog.objects.create(
+        uploaded_by=request.user if getattr(request, "user", None) and request.user.is_authenticated else None,
+        data_type=data_type,
+        team_code=upload_selection.get("team_code", ""),
+        team_label=upload_selection.get("team_label", ""),
+        event_code=upload_selection.get("event_code", ""),
+        event_label=upload_selection.get("event_label", ""),
+        filename=filename or "",
+        status=status,
+        processed_count=processed_count or 0,
+        duplicate_count=duplicate_count or 0,
+        error_count=error_count or 0,
+        details=details or [],
+    )
+
+
+def _latest_admin_import_logs(request, limit=20):
+    if not _is_admin_user(request.user):
+        return []
+    return DataImportLog.objects.select_related("uploaded_by").order_by("-created_at")[:limit]
+
+
 def upload_file(request):
     """Uploadt een StatsSports CSV en schrijft trainingdata naar 3NF performance-tabellen."""
     if request.method == 'POST' and request.FILES.get('file'):
         csv_file = request.FILES['file']
+        filename = csv_file.name or ""
 
         if not csv_file.name.lower().endswith('.csv'):
             messages.error(request, 'Upload een geldig CSV-bestand (.csv).')
+            _record_data_import_log(
+                request,
+                data_type="GPS",
+                filename=filename,
+                status="failed",
+                error_count=1,
+                details=["Bestand geweigerd: upload een geldig CSV-bestand (.csv)."],
+            )
             return redirect('training')
         upload_selection = _gps_upload_selection(request)
         if not upload_selection:
+            _record_data_import_log(
+                request,
+                data_type="GPS",
+                filename=filename,
+                status="failed",
+                error_count=1,
+                details=["Upload afgebroken: team, event of spelerslijst is niet geldig."],
+            )
             return redirect('training')
         if upload_selection["session_kind"] == "match":
             return upload_wedstrijddata(request)
@@ -6914,17 +7045,53 @@ def upload_file(request):
             decoded_file = _decode_uploaded_csv(csv_file)
         except UnicodeDecodeError:
             messages.error(request, 'Het CSV-bestand kon niet worden gelezen. Exporteer het bestand opnieuw als CSV met UTF-8 of Windows-1252 encoding.')
+            _record_data_import_log(
+                request,
+                data_type="GPS",
+                filename=filename,
+                upload_selection=upload_selection,
+                status="failed",
+                error_count=1,
+                details=["CSV kon niet worden gelezen. Gebruik UTF-8 of Windows-1252 encoding."],
+            )
             return redirect('training')
 
         reader = csv.DictReader(decoded_file, skipinitialspace=True)
         if not reader.fieldnames:
             messages.error(request, 'Het CSV-bestand bevat geen kolomkoppen.')
+            _record_data_import_log(
+                request,
+                data_type="GPS",
+                filename=filename,
+                upload_selection=upload_selection,
+                status="failed",
+                error_count=1,
+                details=["CSV bevat geen kolomkoppen."],
+            )
             return redirect('training')
         if not _csv_has_columns(reader, ("Player Last Name", "Session Date")):
             messages.error(request, 'Het CSV-bestand mist verplichte kolommen: Player Last Name en Session Date.')
+            _record_data_import_log(
+                request,
+                data_type="GPS",
+                filename=filename,
+                upload_selection=upload_selection,
+                status="failed",
+                error_count=1,
+                details=["CSV mist verplichte kolommen: Player Last Name en Session Date."],
+            )
             return redirect('training')
         if not _csv_has_any_column(reader, ("Total Distance", "HIR (M>20 KM/U)", "Sprints")):
             messages.error(request, 'Het CSV-bestand bevat geen herkenbare GPS-kolommen zoals Total Distance, HIR of Sprints.')
+            _record_data_import_log(
+                request,
+                data_type="GPS",
+                filename=filename,
+                upload_selection=upload_selection,
+                status="failed",
+                error_count=1,
+                details=["CSV bevat geen herkenbare GPS-kolommen zoals Total Distance, HIR of Sprints."],
+            )
             return redirect('training')
 
         _ensure_gps_metric_types(GPS_TRAINING_METRICS)
@@ -6937,27 +7104,32 @@ def upload_file(request):
         invalid_dates = 0
         unknown_players = 0
         missing_values = 0
+        details = []
         source_tag = f"main_upload_training_{upload_selection['event_code']}"
 
-        for row in reader:
+        for row_number, row in enumerate(reader, start=2):
             csv_lastname = _normalize_csv_value(_csv_get(row, 'Player Last Name'))
             if not csv_lastname:
                 skipped += 1
+                _add_import_detail(details, f"Rij {row_number}: spelernaam ontbreekt.")
                 continue
 
             player = _find_player_from_gps_lastname(players, csv_lastname)
             if not player:
                 unknown_players += 1
+                _add_import_detail(details, f"Rij {row_number}: speler niet gevonden: {csv_lastname}.")
                 continue
 
             date_obj = _parse_statsports_date(_csv_get(row, 'Session Date'))
             if not date_obj:
                 invalid_dates += 1
+                _add_import_detail(details, f"Rij {row_number}: datum ontbreekt of is ongeldig.")
                 continue
 
             session_key = (player.id, "training", date_obj, source_tag)
             if session_key in seen_sessions or _gps_session_exists(player, "training", date_obj, source_tag):
                 duplicates += 1
+                _add_import_detail(details, f"Rij {row_number}: dubbele GPS-data voor {player.name} op {date_obj.strftime('%d-%m-%Y')}.")
                 continue
 
             metric_columns = {
@@ -6977,6 +7149,7 @@ def upload_file(request):
                     valid_metrics[code] = value
             if not valid_metrics:
                 skipped += 1
+                _add_import_detail(details, f"Rij {row_number}: geen geldige GPS-meetwaarden gevonden.")
                 continue
 
             week = date_obj.isocalendar()[1]
@@ -7002,10 +7175,29 @@ def upload_file(request):
             missing_values=missing_values,
             label=f"{upload_selection['team_label']} {upload_selection['event_label'].lower()}",
         )
+        error_count = skipped + invalid_dates + unknown_players + missing_values
+        _record_data_import_log(
+            request,
+            data_type="GPS",
+            filename=filename,
+            upload_selection=upload_selection,
+            status=_import_log_status(processed_count=count, duplicate_count=duplicates, error_count=error_count),
+            processed_count=count,
+            duplicate_count=duplicates,
+            error_count=error_count,
+            details=details,
+        )
         return redirect('training')
 
     if request.method == 'POST':
         messages.error(request, 'Kies eerst een CSV-bestand om te uploaden.')
+        _record_data_import_log(
+            request,
+            data_type="GPS",
+            status="failed",
+            error_count=1,
+            details=["Upload afgebroken: er is geen CSV-bestand gekozen."],
+        )
     return redirect('training')
 
 
@@ -7013,12 +7205,29 @@ def upload_file(request):
 def upload_wedstrijddata(request):
     if request.method == 'POST' and request.FILES.get('file'):
         csv_file = request.FILES['file']
+        filename = csv_file.name or ""
 
         if not csv_file.name.lower().endswith('.csv'):
             messages.error(request, 'Upload een geldig CSV-bestand (.csv).')
+            _record_data_import_log(
+                request,
+                data_type="Wedstrijddata",
+                filename=filename,
+                status="failed",
+                error_count=1,
+                details=["Bestand geweigerd: upload een geldig CSV-bestand (.csv)."],
+            )
             return redirect('wedstrijddata')
         upload_selection = _gps_upload_selection(request)
         if not upload_selection:
+            _record_data_import_log(
+                request,
+                data_type="Wedstrijddata",
+                filename=filename,
+                status="failed",
+                error_count=1,
+                details=["Upload afgebroken: team, event of spelerslijst is niet geldig."],
+            )
             return redirect('wedstrijddata')
         if upload_selection["session_kind"] == "training":
             return upload_file(request)
@@ -7027,17 +7236,53 @@ def upload_wedstrijddata(request):
             decoded = _decode_uploaded_csv(csv_file)
         except UnicodeDecodeError:
             messages.error(request, 'Het CSV-bestand kon niet worden gelezen. Exporteer het bestand opnieuw als CSV met UTF-8 of Windows-1252 encoding.')
+            _record_data_import_log(
+                request,
+                data_type="Wedstrijddata",
+                filename=filename,
+                upload_selection=upload_selection,
+                status="failed",
+                error_count=1,
+                details=["CSV kon niet worden gelezen. Gebruik UTF-8 of Windows-1252 encoding."],
+            )
             return redirect('wedstrijddata')
 
         reader = csv.DictReader(decoded, skipinitialspace=True)
         if not reader.fieldnames:
             messages.error(request, 'Het CSV-bestand bevat geen kolomkoppen.')
+            _record_data_import_log(
+                request,
+                data_type="Wedstrijddata",
+                filename=filename,
+                upload_selection=upload_selection,
+                status="failed",
+                error_count=1,
+                details=["CSV bevat geen kolomkoppen."],
+            )
             return redirect('wedstrijddata')
         if not _csv_has_columns(reader, ("Player Last Name", "Session Date")):
             messages.error(request, 'Het CSV-bestand mist verplichte kolommen: Player Last Name en Session Date.')
+            _record_data_import_log(
+                request,
+                data_type="Wedstrijddata",
+                filename=filename,
+                upload_selection=upload_selection,
+                status="failed",
+                error_count=1,
+                details=["CSV mist verplichte kolommen: Player Last Name en Session Date."],
+            )
             return redirect('wedstrijddata')
         if not _csv_has_any_column(reader, ("Total Distance", "HIR (M>20 KM/U)", "Sprints", "HML Distance")):
             messages.error(request, 'Het CSV-bestand bevat geen herkenbare wedstrijd-GPS-kolommen zoals Total Distance, HIR, Sprints of HML Distance.')
+            _record_data_import_log(
+                request,
+                data_type="Wedstrijddata",
+                filename=filename,
+                upload_selection=upload_selection,
+                status="failed",
+                error_count=1,
+                details=["CSV bevat geen herkenbare wedstrijd-GPS-kolommen zoals Total Distance, HIR, Sprints of HML Distance."],
+            )
             return redirect('wedstrijddata')
 
         def first_available_float(row, names):
@@ -7058,27 +7303,32 @@ def upload_wedstrijddata(request):
         invalid_dates = 0
         unknown_players = 0
         missing_values = 0
+        details = []
         source_tag = f"main_upload_match_{upload_selection['event_code']}"
 
-        for row in reader:
+        for row_number, row in enumerate(reader, start=2):
             csv_lastname = _normalize_csv_value(_csv_get(row, 'Player Last Name'))
             if not csv_lastname:
                 skipped += 1
+                _add_import_detail(details, f"Rij {row_number}: spelernaam ontbreekt.")
                 continue
 
             player = _find_player_from_gps_lastname(players, csv_lastname, allow_contains=True)
             if not player:
                 unknown_players += 1
+                _add_import_detail(details, f"Rij {row_number}: speler niet gevonden: {csv_lastname}.")
                 continue
 
             match_date = _parse_statsports_date(_csv_get(row, 'Session Date'))
             if not match_date:
                 invalid_dates += 1
+                _add_import_detail(details, f"Rij {row_number}: datum ontbreekt of is ongeldig.")
                 continue
 
             session_key = (player.id, "match", match_date, source_tag)
             if session_key in seen_sessions or _gps_session_exists(player, "match", match_date, source_tag):
                 duplicates += 1
+                _add_import_detail(details, f"Rij {row_number}: dubbele wedstrijddata voor {player.name} op {match_date.strftime('%d-%m-%Y')}.")
                 continue
 
             week = match_date.isocalendar()[1]
@@ -7132,6 +7382,7 @@ def upload_wedstrijddata(request):
                 valid_metrics["second_half_load"] = second_half_load
             if not valid_metrics:
                 skipped += 1
+                _add_import_detail(details, f"Rij {row_number}: geen geldige wedstrijdmeetwaarden gevonden.")
                 continue
 
             upsert_performance_session_metrics(
@@ -7156,10 +7407,29 @@ def upload_wedstrijddata(request):
             missing_values=missing_values,
             label=f"{upload_selection['team_label']} {upload_selection['event_label'].lower()}",
         )
+        error_count = skipped + invalid_dates + unknown_players + missing_values
+        _record_data_import_log(
+            request,
+            data_type="Wedstrijddata",
+            filename=filename,
+            upload_selection=upload_selection,
+            status=_import_log_status(processed_count=count, duplicate_count=duplicates, error_count=error_count),
+            processed_count=count,
+            duplicate_count=duplicates,
+            error_count=error_count,
+            details=details,
+        )
         return redirect('wedstrijddata')
 
     if request.method == 'POST':
         messages.error(request, 'Kies eerst een CSV-bestand om te uploaden.')
+        _record_data_import_log(
+            request,
+            data_type="Wedstrijddata",
+            status="failed",
+            error_count=1,
+            details=["Upload afgebroken: er is geen CSV-bestand gekozen."],
+        )
     return redirect('wedstrijddata')
 
 
