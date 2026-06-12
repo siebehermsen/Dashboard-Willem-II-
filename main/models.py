@@ -192,6 +192,11 @@ class DayProgramEntry(models.Model):
 
     class Meta:
         ordering = ['date', 'id']
+        indexes = [
+            models.Index(fields=['team', 'date'], name='main_day_team_date_idx'),
+            models.Index(fields=['team', 'category', 'date'], name='main_day_team_cat_date_idx'),
+            models.Index(fields=['date', 'category'], name='main_day_date_cat_idx'),
+        ]
         constraints = [models.UniqueConstraint(fields=('date', 'title'), name='uniq_dayprogram_date_title')]
 
     def __str__(self):
@@ -657,7 +662,12 @@ class PerformanceSession(models.Model):
 
     class Meta:
         ordering = ['-session_date', 'player__name', 'session_kind_ref__code']
-        indexes = [models.Index(fields=['player', 'session_date'], name='main_perfor_player__4b4079_idx'), models.Index(fields=['session_kind_ref', 'session_date'], name='main_perfor_session_f2abd8_idx')]
+        indexes = [
+            models.Index(fields=['player', 'session_date'], name='main_perfor_player__4b4079_idx'),
+            models.Index(fields=['session_kind_ref', 'session_date'], name='main_perfor_session_f2abd8_idx'),
+            models.Index(fields=['player', 'session_kind_ref', 'session_date'], name='main_perf_player_kind_date_idx'),
+            models.Index(fields=['source_legacy_table', 'source_legacy_id'], name='main_perf_source_idx'),
+        ]
         constraints = [models.UniqueConstraint(fields=('player', 'session_kind_ref', 'session_date', 'source_legacy_table', 'source_legacy_id'), name='uniq_perf_session_per_source')]
 
     def __str__(self):
@@ -685,7 +695,10 @@ class Player(models.Model):
     user = models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='player_profile', to=settings.AUTH_USER_MODEL)
 
     class Meta:
-        pass
+        indexes = [
+            models.Index(fields=['is_active', 'name'], name='main_player_active_name_idx'),
+            models.Index(fields=['position_ref', 'is_active'], name='main_player_pos_active_idx'),
+        ]
 
     def __str__(self):
         return getattr(self, 'name', f'{self.__class__.__name__} {self.pk}')
@@ -776,6 +789,11 @@ class PlayerTeamAssignment(models.Model):
 
     class Meta:
         ordering = ['-start_date', 'player__name']
+        indexes = [
+            models.Index(fields=['team', 'end_date', 'start_date'], name='main_assign_team_dates_idx'),
+            models.Index(fields=['player', 'end_date', 'start_date'], name='main_assign_player_dates_idx'),
+            models.Index(fields=['team', 'player'], name='main_assign_team_player_idx'),
+        ]
         constraints = [models.UniqueConstraint(fields=('player', 'team', 'start_date'), name='uniq_player_team_start')]
 
     def __str__(self):
@@ -980,6 +998,9 @@ class TrainingWeekTarget(models.Model):
         verbose_name = 'Training weektarget'
         verbose_name_plural = 'Training weektargets'
         ordering = ['-updated_at']
+        indexes = [
+            models.Index(fields=['updated_at'], name='main_weektarget_updated_idx'),
+        ]
 
     def __str__(self):
         return getattr(self, 'name', f'{self.__class__.__name__} {self.pk}')
