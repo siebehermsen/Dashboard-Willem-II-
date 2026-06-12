@@ -6463,6 +6463,25 @@ def staf(request):
                 )
             return redirect("staf")
 
+        if form_type == "delete_staff":
+            staff_member = get_object_or_404(Staff.objects.select_related("user"), id=request.POST.get("staff_id"))
+            staff_name = staff_member.name
+            linked_user = staff_member.user
+
+            if linked_user and linked_user.pk == request.user.pk:
+                messages.error(request, "Je kunt je eigen ingelogde account niet via deze pagina verwijderen.")
+                return redirect("staf")
+
+            try:
+                with transaction.atomic():
+                    staff_member.delete()
+                    if linked_user:
+                        linked_user.delete()
+                messages.success(request, f"Staflid {staff_name} is verwijderd en de toegang is ingetrokken.")
+            except Exception:
+                messages.error(request, "Staflid verwijderen is mislukt. Probeer het opnieuw.")
+            return redirect("staf")
+
         messages.error(request, "Onbekend formulier.")
         return redirect("staf")
 

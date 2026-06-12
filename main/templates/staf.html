@@ -274,6 +274,66 @@
         cursor: pointer;
     }
 
+    .staf-danger-zone {
+        margin-top: 18px;
+        padding: 16px;
+        border: 1px solid #f0c7c7;
+        border-radius: 16px;
+        background: #fff6f6;
+    }
+
+    .staf-danger-zone h4 {
+        margin: 0 0 6px;
+        color: #b60000;
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .staf-danger-zone p {
+        margin: 0 0 12px;
+        color: #65728a;
+        font-size: 0.9rem;
+        line-height: 1.45;
+        font-weight: 700;
+    }
+
+    .staf-delete-button {
+        border: 0;
+        border-radius: 14px;
+        padding: 11px 16px;
+        background: #b60000;
+        color: #fff;
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .staf-password-tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: -4px;
+    }
+
+    .staf-password-tools button {
+        border: 1px solid #d7dfec;
+        border-radius: 12px;
+        padding: 9px 12px;
+        background: #f7f9fd;
+        color: #1f2a44;
+        font: inherit;
+        font-size: 0.84rem;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .staf-password-tools button:first-child {
+        background: #1f2a44;
+        border-color: #1f2a44;
+        color: #fff;
+    }
+
     .staf-checkbox-field {
         display: flex;
         align-items: center;
@@ -483,6 +543,11 @@
                     <label for="staf-password">Tijdelijk wachtwoord</label>
                     <input id="staf-password" type="password" name="password">
                 </div>
+                <div class="staf-password-tools" data-password-tools="staf-password">
+                    <button type="button" data-password-generate>Genereer sterk wachtwoord</button>
+                    <button type="button" data-password-toggle>Toon</button>
+                    <button type="button" data-password-copy>Kopieer</button>
+                </div>
                 <div class="staf-field">
                     <label for="dashboard-role">Dashboardrol</label>
                     <select id="dashboard-role" name="dashboard_role">
@@ -606,6 +671,11 @@
                     <label for="staf-edit-password-{{ row.member.id }}">Nieuw wachtwoord</label>
                     <input id="staf-edit-password-{{ row.member.id }}" type="password" name="password">
                 </div>
+                <div class="staf-password-tools" data-password-tools="staf-edit-password-{{ row.member.id }}">
+                    <button type="button" data-password-generate>Genereer sterk wachtwoord</button>
+                    <button type="button" data-password-toggle>Toon</button>
+                    <button type="button" data-password-copy>Kopieer</button>
+                </div>
                 <div class="staf-field">
                     <label for="staf-edit-dashboard-role-{{ row.member.id }}">Dashboardrol</label>
                     <select id="staf-edit-dashboard-role-{{ row.member.id }}" name="dashboard_role">
@@ -621,6 +691,16 @@
                 </label>
                 <button type="submit" class="staf-submit">Wijzigingen opslaan</button>
             </form>
+            <div class="staf-danger-zone">
+                <h4>Staflid verwijderen</h4>
+                <p>Hiermee verwijder je het stafprofiel en de gekoppelde login. Deze persoon verliest direct toegang tot het platform.</p>
+                <form method="post" onsubmit="return confirm('Weet je zeker dat je {{ row.member.name|escapejs }} wilt verwijderen? De gekoppelde login wordt ook verwijderd.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="delete_staff">
+                    <input type="hidden" name="staff_id" value="{{ row.member.id }}">
+                    <button type="submit" class="staf-delete-button">Staflid en account verwijderen</button>
+                </form>
+            </div>
         </div>
     </div>
     {% endfor %}
