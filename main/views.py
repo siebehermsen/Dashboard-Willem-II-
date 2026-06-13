@@ -3192,6 +3192,7 @@ def academie_team(request, team_code):
             .select_related("player")
         )
     }
+    wellness_labels = _wellness_label_sets()
     wellness_rows = []
     wellness_scores = []
     for player in players:
@@ -3205,6 +3206,10 @@ def academie_team(request, team_code):
                 "entry": entry,
                 "score": score,
                 "status": "Ingevuld" if entry else "Niet ingevuld",
+                "sleep_label": _wellness_label(entry.sleep if entry else None, wellness_labels["sleep"]),
+                "mood_label": _wellness_label(entry.mood if entry else None, wellness_labels["mood"]),
+                "fitness_label": _wellness_label(entry.fitness if entry else None, wellness_labels["fitness"]),
+                "soreness_label": _wellness_label(entry.soreness if entry else None, wellness_labels["soreness"]),
             }
         )
     wellness_filled_count = sum(1 for item in wellness_rows if item["entry"])
@@ -5109,6 +5114,15 @@ def _wellness_score(entry):
     return round(sum(values) / len(values), 1)
 
 
+def _wellness_label_sets():
+    return {
+        "sleep": {1: "Heel goed", 2: "Goed", 3: "Oké", 4: "Slecht"},
+        "mood": {1: "Heel goed", 2: "Goed", 3: "Matig", 4: "Slecht"},
+        "fitness": {1: "Heel fit", 2: "Fit", 3: "Oké", 4: "Vermoeid"},
+        "soreness": {1: "Geen", 2: "Licht", 3: "Veel"},
+    }
+
+
 def _clean_int_or_none(value):
     value = (value or "").strip()
     if not value:
@@ -5326,10 +5340,7 @@ def wellness(request):
     for entry in existing_entries.order_by("player__name"):
         entry.rpe_entry = rpe_by_player.get(entry.player_id)
         wellness_rows.append(entry)
-    sleep_labels = {1: "Heel goed", 2: "Goed", 3: "Oké", 4: "Slecht"}
-    mood_labels = {1: "Heel goed", 2: "Goed", 3: "Matig", 4: "Slecht"}
-    fitness_labels = {1: "Heel fit", 2: "Fit", 3: "Oké", 4: "Vermoeid"}
-    soreness_labels = {1: "Geen", 2: "Licht", 3: "Veel"}
+    wellness_labels = _wellness_label_sets()
     combined_rows = []
     for player in players:
         wellness_entry = wellness_by_player.get(player.id)
@@ -5341,10 +5352,10 @@ def wellness(request):
             "wellness": wellness_entry,
             "rpe": rpe_entry,
             "wellness_score": _wellness_score(wellness_entry),
-            "sleep_label": _wellness_label(wellness_entry.sleep if wellness_entry else None, sleep_labels),
-            "mood_label": _wellness_label(wellness_entry.mood if wellness_entry else None, mood_labels),
-            "fitness_label": _wellness_label(wellness_entry.fitness if wellness_entry else None, fitness_labels),
-            "soreness_label": _wellness_label(wellness_entry.soreness if wellness_entry else None, soreness_labels),
+            "sleep_label": _wellness_label(wellness_entry.sleep if wellness_entry else None, wellness_labels["sleep"]),
+            "mood_label": _wellness_label(wellness_entry.mood if wellness_entry else None, wellness_labels["mood"]),
+            "fitness_label": _wellness_label(wellness_entry.fitness if wellness_entry else None, wellness_labels["fitness"]),
+            "soreness_label": _wellness_label(wellness_entry.soreness if wellness_entry else None, wellness_labels["soreness"]),
         })
     previous_day = date - timedelta(days=1)
     next_day = date + timedelta(days=1)

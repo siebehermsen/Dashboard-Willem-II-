@@ -364,7 +364,7 @@ class DashboardPersistenceTests(TestCase):
             date=date(2026, 5, 15),
             sleep=4,
             mood=3,
-            fitness=5,
+            fitness=4,
             soreness=2,
             comment="Goed hersteld",
         )
@@ -381,6 +381,10 @@ class DashboardPersistenceTests(TestCase):
         self.assertContains(response, 'data-academy-tab="wellness"')
         self.assertContains(response, "Wellness")
         self.assertContains(response, "100%")
+        self.assertContains(response, "Matig")
+        self.assertContains(response, "Slecht")
+        self.assertContains(response, "Vermoeid")
+        self.assertContains(response, "Licht")
         self.assertContains(response, "Goed hersteld")
         self.assertContains(response, self.player.name)
 

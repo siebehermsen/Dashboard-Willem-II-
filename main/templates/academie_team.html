@@ -683,12 +683,12 @@
                                 <tr>
                                     <th>Speler</th>
                                     <th>Status</th>
-                                    <th>Score</th>
+                                    <th>Wellness</th>
+                                    <th>Hoe voel je je?</th>
                                     <th>Slaap</th>
-                                    <th>Gevoel</th>
-                                    <th>Fit</th>
+                                    <th>Fitheid</th>
                                     <th>Spierpijn</th>
-                                    <th>Opmerking</th>
+                                    <th>Opmerkingen</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -702,10 +702,10 @@
                                         </td>
                                         {% if item.entry %}
                                             <td>{{ item.score|floatformat:1 }}</td>
-                                            <td>{{ item.entry.sleep|default:"-" }}</td>
-                                            <td>{{ item.entry.mood|default:"-" }}</td>
-                                            <td>{{ item.entry.fitness|default:"-" }}</td>
-                                            <td>{{ item.entry.soreness|default:"-" }}</td>
+                                            <td>{{ item.mood_label }}</td>
+                                            <td>{{ item.sleep_label }}</td>
+                                            <td>{{ item.fitness_label }}</td>
+                                            <td>{{ item.soreness_label }}</td>
                                             <td>{{ item.entry.comment|default:"-" }}</td>
                                         {% else %}
                                             <td colspan="6" class="academy-muted">Nog niet ingevuld.</td>
