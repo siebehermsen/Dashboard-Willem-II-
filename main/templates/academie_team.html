@@ -151,6 +151,44 @@
 .gps-subpanel.is-active {
     display: block;
 }
+.gps-control-block {
+    display: grid;
+    gap: 14px;
+    margin: 0 0 20px;
+}
+.gps-control-row {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+.gps-control-label {
+    color: #69758c;
+    flex: 0 0 auto;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.gps-metric-btn,
+.gps-player-btn {
+    background: #f8fafc;
+    border: 1px solid #d8e0ea;
+    border-radius: 999px;
+    color: #1f2a44;
+    cursor: pointer;
+    flex: 0 0 auto;
+    font-weight: 900;
+    padding: 9px 14px;
+    white-space: nowrap;
+}
+.gps-metric-btn.is-active,
+.gps-player-btn.is-active {
+    background: #cf202f;
+    border-color: #cf202f;
+    color: #fff;
+}
 .academy-header {
     display: flex;
     justify-content: space-between;
@@ -554,10 +592,25 @@
                 </div>
                 <div class="academy-card-body">
                     <div class="academy-kpis">
-                        <div class="academy-kpi"><span>Belasting</span><strong>{{ gps_totals.load|floatformat:0 }}</strong></div>
-                        <div class="academy-kpi"><span>Afstand</span><strong>{{ gps_totals.distance|floatformat:0 }}</strong></div>
-                        <div class="academy-kpi"><span>HSD</span><strong>{{ gps_totals.hsd|floatformat:0 }}</strong></div>
-                        <div class="academy-kpi"><span>Sprints</span><strong>{{ gps_totals.sprints|floatformat:0 }}</strong></div>
+                        <div class="academy-kpi"><span>Gem. belasting</span><strong>{{ gps_team_averages.load|floatformat:0 }}</strong></div>
+                        <div class="academy-kpi"><span>Gem. afstand</span><strong>{{ gps_team_averages.distance|floatformat:0 }}</strong></div>
+                        <div class="academy-kpi"><span>Gem. D15</span><strong>{{ gps_team_averages.d15|floatformat:0 }}</strong></div>
+                        <div class="academy-kpi"><span>Gem. sprints</span><strong>{{ gps_team_averages.sprints|floatformat:0 }}</strong></div>
+                    </div>
+                    <div class="gps-control-block">
+                        <div class="gps-control-row" aria-label="Kies GPS-metriek">
+                            <span class="gps-control-label">Metriek</span>
+                            {% for metric in gps_metric_config %}
+                                <button class="gps-metric-btn {% if forloop.first %}is-active{% endif %}" type="button" data-team-gps-metric="{{ metric.code }}">{{ metric.label }}</button>
+                            {% endfor %}
+                        </div>
+                        <div class="gps-control-row" aria-label="Kies speler">
+                            <span class="gps-control-label">Weergave</span>
+                            <button class="gps-player-btn is-active" type="button" data-team-gps-player="team">Teamgemiddelde</button>
+                            {% for player in players %}
+                                <button class="gps-player-btn" type="button" data-team-gps-player="{{ player.id }}">{{ player.name }}</button>
+                            {% endfor %}
+                        </div>
                     </div>
                     <div class="academy-chart">
                         <canvas id="academyGpsChart"></canvas>
@@ -804,16 +857,72 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const gpsCanvas = document.getElementById("academyGpsChart");
     if (gpsCanvas) {
+        const gpsLabels = {{ gps_training_labels|safe }};
+        const gpsData = {{ gps_training_chart_data|safe }};
+        const metricLabels = {
+            {% for metric in gps_metric_config %}
+            "{{ metric.code }}": "{{ metric.label }}"{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
+        const metricColors = {
+            total_distance: "#cf202f",
+            load: "#1f2a44",
+            d15: "#2563eb",
+            d20: "#0891b2",
+            d25: "#7c3aed",
+            sprints: "#ea580c",
+        };
+        let activeGpsMetric = "total_distance";
+        let activeGpsPlayer = "team";
+
+        function currentGpsSubject() {
+            if (activeGpsPlayer === "team") {
+                return gpsData.team || { label: "Teamgemiddelde", metrics: {} };
+            }
+            return (gpsData.players && gpsData.players[activeGpsPlayer]) || { label: "Speler", metrics: {} };
+        }
+
+        function gpsValues() {
+            const subject = currentGpsSubject();
+            return (subject.metrics && subject.metrics[activeGpsMetric]) || [];
+        }
+
         gpsChart = new Chart(gpsCanvas, {
             type: "bar",
             data: {
-                labels: {{ gps_chart_labels|safe }},
+                labels: gpsLabels,
                 datasets: [
-                    { label: "Belasting", data: {{ gps_chart_load|safe }}, backgroundColor: "#1f2a44" },
-                    { label: "Afstand", data: {{ gps_chart_distance|safe }}, backgroundColor: "#cf202f" }
+                    {
+                        label: `${currentGpsSubject().label} - ${metricLabels[activeGpsMetric] || "GPS"}`,
+                        data: gpsValues(),
+                        backgroundColor: metricColors[activeGpsMetric] || "#cf202f",
+                    }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        function updateGpsChart() {
+            gpsChart.data.datasets[0].label = `${currentGpsSubject().label} - ${metricLabels[activeGpsMetric] || "GPS"}`;
+            gpsChart.data.datasets[0].data = gpsValues();
+            gpsChart.data.datasets[0].backgroundColor = metricColors[activeGpsMetric] || "#cf202f";
+            gpsChart.update();
+        }
+
+        document.querySelectorAll("[data-team-gps-metric]").forEach((button) => {
+            button.addEventListener("click", () => {
+                activeGpsMetric = button.dataset.teamGpsMetric;
+                document.querySelectorAll("[data-team-gps-metric]").forEach((btn) => btn.classList.toggle("is-active", btn === button));
+                updateGpsChart();
+            });
+        });
+
+        document.querySelectorAll("[data-team-gps-player]").forEach((button) => {
+            button.addEventListener("click", () => {
+                activeGpsPlayer = button.dataset.teamGpsPlayer;
+                document.querySelectorAll("[data-team-gps-player]").forEach((btn) => btn.classList.toggle("is-active", btn === button));
+                updateGpsChart();
+            });
         });
     }
 

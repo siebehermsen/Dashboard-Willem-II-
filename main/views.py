@@ -3041,6 +3041,73 @@ def academie_team(request, team_code):
         "hsd": sum(item["hsd"] for item in gps_rows),
         "sprints": sum(item["sprints"] for item in gps_rows),
     }
+    gps_metric_config = [
+        {"code": "total_distance", "label": "Totale afstand", "unit": "m"},
+        {"code": "load", "label": "Belasting", "unit": ""},
+        {"code": "d15", "label": "D15", "unit": "m"},
+        {"code": "d20", "label": "D20", "unit": "m"},
+        {"code": "d25", "label": "D25", "unit": "m"},
+        {"code": "sprints", "label": "Sprints", "unit": ""},
+    ]
+
+    def gps_metric_value(row, metric_code):
+        if metric_code == "d15":
+            return val(row, "hsd")
+        if metric_code == "d20":
+            return val(row, "d20") or val(row, "hsd")
+        if metric_code == "d25":
+            return val(row, "d25") or val(row, "his")
+        return val(row, metric_code)
+
+    gps_dates = []
+    if latest_training_date:
+        start_date = gps_start_date or latest_training_date
+        day_count = (latest_training_date - start_date).days
+        gps_dates = [start_date + timedelta(days=offset) for offset in range(day_count + 1)]
+
+    rows_by_date = {}
+    rows_by_player_date = {}
+    for row in recent_training_rows:
+        session_date = row.get("session_date")
+        if not session_date:
+            continue
+        rows_by_date.setdefault(session_date, []).append(row)
+        rows_by_player_date.setdefault(row["player_id"], {}).setdefault(session_date, []).append(row)
+
+    def build_metric_series(rows_for_dates, *, average=False):
+        metric_series = {}
+        for metric in gps_metric_config:
+            values = []
+            for current_date in gps_dates:
+                day_rows = rows_for_dates.get(current_date, [])
+                total = sum(gps_metric_value(row, metric["code"]) for row in day_rows)
+                if average and day_rows:
+                    player_count = len({row["player_id"] for row in day_rows}) or 1
+                    total = total / player_count
+                values.append(round(total, 1))
+            metric_series[metric["code"]] = values
+        return metric_series
+
+    gps_training_chart_data = {
+        "team": {
+            "label": "Teamgemiddelde",
+            "metrics": build_metric_series(rows_by_date, average=True),
+        },
+        "players": {},
+    }
+    for player in players:
+        gps_training_chart_data["players"][str(player.id)] = {
+            "label": player.name,
+            "metrics": build_metric_series(rows_by_player_date.get(player.id, {}), average=False),
+        }
+
+    gps_player_count = len(players) or 1
+    gps_team_averages = {
+        "load": round(gps_totals["load"] / gps_player_count, 1),
+        "distance": round(gps_totals["distance"] / gps_player_count, 1),
+        "d15": round(gps_totals["hsd"] / gps_player_count, 1),
+        "sprints": round(gps_totals["sprints"] / gps_player_count, 1),
+    }
 
     latest_tests = {}
     for row in sorted(test_rows, key=lambda item: item["session_date"], reverse=True):
@@ -3256,6 +3323,10 @@ def academie_team(request, team_code):
         "players": players,
         "gps_rows": gps_rows,
         "gps_totals": gps_totals,
+        "gps_team_averages": gps_team_averages,
+        "gps_metric_config": gps_metric_config,
+        "gps_training_labels": json.dumps([date_value.strftime("%d-%m") for date_value in gps_dates]),
+        "gps_training_chart_data": json.dumps(gps_training_chart_data),
         "test_table_rows": test_table_rows,
         "test_summary": test_summary,
         "test_metric_config": test_metric_config,
@@ -3267,9 +3338,6 @@ def academie_team(request, team_code):
         "wellness_summary": wellness_summary,
         "rehab_rows": rehab_rows,
         "rehab_summary": rehab_summary,
-        "gps_chart_labels": json.dumps([item["player"].name for item in gps_rows]),
-        "gps_chart_load": json.dumps([round(item["load"], 1) for item in gps_rows]),
-        "gps_chart_distance": json.dumps([round(item["total_distance"], 1) for item in gps_rows]),
         "match_chart_labels": json.dumps([item["player"].name for item in match_table_rows if item["row"]]),
         "match_chart_load": json.dumps([round(val(item["row"], "load"), 1) for item in match_table_rows if item["row"]]),
         "active_page": "academie",
