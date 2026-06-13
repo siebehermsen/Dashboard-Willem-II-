@@ -359,13 +359,29 @@ class DashboardPersistenceTests(TestCase):
             team=team,
             start_date=date(2026, 1, 1),
         )
+        WellnessEntry.objects.create(
+            player=self.player,
+            date=date(2026, 5, 15),
+            sleep=4,
+            mood=3,
+            fitness=5,
+            soreness=2,
+            comment="Goed hersteld",
+        )
 
         response = self.client.get(reverse("academie_team", args=["O17"]))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "GPS-data")
+        self.assertContains(response, 'data-gps-subtab="training"')
+        self.assertContains(response, 'data-gps-subtab="match"')
         self.assertContains(response, "Testdata")
         self.assertContains(response, "Wedstrijddata")
+        self.assertNotContains(response, 'data-academy-tab="match"')
+        self.assertContains(response, 'data-academy-tab="wellness"')
+        self.assertContains(response, "Wellness")
+        self.assertContains(response, "100%")
+        self.assertContains(response, "Goed hersteld")
         self.assertContains(response, self.player.name)
 
         player_response = self.client.get(reverse("academie_player", args=["O17", self.player.id]))

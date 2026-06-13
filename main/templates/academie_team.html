@@ -125,6 +125,32 @@
     background: #cf202f;
     color: #fff;
 }
+.gps-subtabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.gps-subtab-btn {
+    background: #eef2f7;
+    border: 1px solid #d8e0ea;
+    border-radius: 999px;
+    color: #1f2a44;
+    cursor: pointer;
+    font-weight: 900;
+    padding: 10px 18px;
+}
+.gps-subtab-btn.is-active {
+    background: #cf202f;
+    border-color: #cf202f;
+    color: #fff;
+}
+.gps-subpanel {
+    display: none;
+}
+.gps-subpanel.is-active {
+    display: block;
+}
 .academy-header {
     display: flex;
     justify-content: space-between;
@@ -406,6 +432,21 @@
     font-size: 2rem;
     line-height: 1;
 }
+.wellness-status {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 0.76rem;
+    font-weight: 900;
+    padding: 7px 11px;
+}
+.wellness-status.is-filled {
+    background: #dcfce7;
+    color: #166534;
+}
+.wellness-status.is-missing {
+    background: #f1f5f9;
+    color: #667085;
+}
 .rehab-phase-pill {
     background: #eef2f7;
     border-radius: 999px;
@@ -433,6 +474,10 @@
     }
     .rehab-summary-grid {
         grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+    .academy-table th,
+    .academy-table td {
+        padding: 12px 10px;
     }
 }
 </style>
@@ -470,7 +515,7 @@
         <nav class="academy-tabs" aria-label="Academie onderdelen">
             <button class="academy-tab-btn is-active" type="button" data-academy-tab="gps">GPS-data</button>
             <button class="academy-tab-btn" type="button" data-academy-tab="test">Testdata</button>
-            <button class="academy-tab-btn" type="button" data-academy-tab="match">Wedstrijddata</button>
+            <button class="academy-tab-btn" type="button" data-academy-tab="wellness">Wellness</button>
             <button class="academy-tab-btn" type="button" data-academy-tab="rehab">Revalidatie</button>
         </nav>
 
@@ -496,6 +541,12 @@
         {% endif %}
 
         <section class="academy-panel is-active" data-academy-panel="gps">
+            <div class="gps-subtabs" aria-label="GPS-data type">
+                <button class="gps-subtab-btn is-active" type="button" data-gps-subtab="training">Trainingdata</button>
+                <button class="gps-subtab-btn" type="button" data-gps-subtab="match">Wedstrijddata</button>
+            </div>
+
+            <div class="gps-subpanel is-active" data-gps-subpanel="training">
             <article class="academy-card">
                 <div class="academy-card-head">
                     <h2>GPS-data</h2>
@@ -513,53 +564,9 @@
                     </div>
                 </div>
             </article>
+            </div>
 
-        </section>
-
-        <section class="academy-panel" data-academy-panel="test">
-            <article class="academy-card">
-                <div class="academy-card-head">
-                    <h2>Testoverzicht</h2>
-                    <span class="academy-muted">Snelheid, lichaam en conditie</span>
-                </div>
-                <div class="academy-card-body">
-                    <div class="test-overview-grid">
-                        <div class="test-overview-card"><span>Sprint / sprong</span><strong>{{ test_summary.speed }}</strong></div>
-                        <div class="test-overview-card"><span>Gewicht / huidplooi</span><strong>{{ test_summary.body }}</strong></div>
-                        <div class="test-overview-card"><span>Conditie</span><strong>{{ test_summary.condition }}</strong></div>
-                        <div class="test-overview-card"><span>Compleet profiel</span><strong>{{ test_summary.complete }}</strong></div>
-                    </div>
-                </div>
-            </article>
-
-            <article class="academy-card">
-                <div class="academy-card-head">
-                    <h2>Testdata</h2>
-                    <span class="academy-muted">Selecteer een test en vergelijk spelers</span>
-                </div>
-                <div class="academy-card-body">
-                    <div class="test-selector-row" aria-label="Kies test">
-                        {% for code, label, unit in test_metric_config %}
-                            <button class="test-selector-btn {% if forloop.first %}is-active{% endif %}" type="button" data-test-metric="{{ code }}">{{ label }}</button>
-                        {% endfor %}
-                    </div>
-
-                    <div class="test-chart-card">
-                        <div class="test-chart-head">
-                            <h3 id="testChartTitle">10 meter sprint</h3>
-                            <span id="testChartUnit">sec</span>
-                        </div>
-                        <div class="test-chart-wrap">
-                            <canvas id="academyTestChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="test-detail-grid" id="testDetailGrid"></div>
-                </div>
-            </article>
-        </section>
-
-        <section class="academy-panel" data-academy-panel="match">
+            <div class="gps-subpanel" data-gps-subpanel="match">
             <article class="academy-card">
                 <div class="academy-card-head">
                     <h2>Wedstrijddata</h2>
@@ -609,6 +616,107 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+            </article>
+            </div>
+        </section>
+
+        <section class="academy-panel" data-academy-panel="test">
+            <article class="academy-card">
+                <div class="academy-card-head">
+                    <h2>Testoverzicht</h2>
+                    <span class="academy-muted">Snelheid, lichaam en conditie</span>
+                </div>
+                <div class="academy-card-body">
+                    <div class="test-overview-grid">
+                        <div class="test-overview-card"><span>Sprint / sprong</span><strong>{{ test_summary.speed }}</strong></div>
+                        <div class="test-overview-card"><span>Gewicht / huidplooi</span><strong>{{ test_summary.body }}</strong></div>
+                        <div class="test-overview-card"><span>Conditie</span><strong>{{ test_summary.condition }}</strong></div>
+                        <div class="test-overview-card"><span>Compleet profiel</span><strong>{{ test_summary.complete }}</strong></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="academy-card">
+                <div class="academy-card-head">
+                    <h2>Testdata</h2>
+                    <span class="academy-muted">Selecteer een test en vergelijk spelers</span>
+                </div>
+                <div class="academy-card-body">
+                    <div class="test-selector-row" aria-label="Kies test">
+                        {% for code, label, unit in test_metric_config %}
+                            <button class="test-selector-btn {% if forloop.first %}is-active{% endif %}" type="button" data-test-metric="{{ code }}">{{ label }}</button>
+                        {% endfor %}
+                    </div>
+
+                    <div class="test-chart-card">
+                        <div class="test-chart-head">
+                            <h3 id="testChartTitle">10 meter sprint</h3>
+                            <span id="testChartUnit">sec</span>
+                        </div>
+                        <div class="test-chart-wrap">
+                            <canvas id="academyTestChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="test-detail-grid" id="testDetailGrid"></div>
+                </div>
+            </article>
+        </section>
+
+        <section class="academy-panel" data-academy-panel="wellness">
+            <article class="academy-card">
+                <div class="academy-card-head">
+                    <h2>Wellness</h2>
+                    <span class="academy-muted">{{ wellness_summary.date|date:"d-m-Y" }}</span>
+                </div>
+                <div class="academy-card-body">
+                    <div class="academy-kpis">
+                        <div class="academy-kpi"><span>Ingevuld</span><strong>{% if wellness_summary.percentage is not None %}{{ wellness_summary.percentage }}%{% else %}-{% endif %}</strong></div>
+                        <div class="academy-kpi"><span>Spelers ingevuld</span><strong>{{ wellness_summary.filled }}/{{ wellness_summary.total }}</strong></div>
+                        <div class="academy-kpi"><span>Nog missen</span><strong>{{ wellness_summary.missing }}</strong></div>
+                        <div class="academy-kpi"><span>Gem. wellness</span><strong>{% if wellness_summary.average is not None %}{{ wellness_summary.average|floatformat:1 }}{% else %}-{% endif %}</strong></div>
+                    </div>
+                    <div class="academy-table-wrap">
+                        <table class="academy-table">
+                            <thead>
+                                <tr>
+                                    <th>Speler</th>
+                                    <th>Status</th>
+                                    <th>Score</th>
+                                    <th>Slaap</th>
+                                    <th>Gevoel</th>
+                                    <th>Fit</th>
+                                    <th>Spierpijn</th>
+                                    <th>Opmerking</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in wellness_rows %}
+                                    <tr>
+                                        <td>{{ item.player.name }}</td>
+                                        <td>
+                                            <span class="wellness-status {% if item.entry %}is-filled{% else %}is-missing{% endif %}">
+                                                {{ item.status }}
+                                            </span>
+                                        </td>
+                                        {% if item.entry %}
+                                            <td>{{ item.score|floatformat:1 }}</td>
+                                            <td>{{ item.entry.sleep|default:"-" }}</td>
+                                            <td>{{ item.entry.mood|default:"-" }}</td>
+                                            <td>{{ item.entry.fitness|default:"-" }}</td>
+                                            <td>{{ item.entry.soreness|default:"-" }}</td>
+                                            <td>{{ item.entry.comment|default:"-" }}</td>
+                                        {% else %}
+                                            <td colspan="6" class="academy-muted">Nog niet ingevuld.</td>
+                                        {% endif %}
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="8" class="academy-muted">Geen spelers in dit team.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </article>
         </section>
@@ -678,9 +786,25 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    let gpsChart = null;
+    let matchChart = null;
+    const gpsSubtabButtons = document.querySelectorAll("[data-gps-subtab]");
+    const gpsSubpanels = document.querySelectorAll("[data-gps-subpanel]");
+    gpsSubtabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const target = button.dataset.gpsSubtab;
+            gpsSubtabButtons.forEach((btn) => btn.classList.toggle("is-active", btn === button));
+            gpsSubpanels.forEach((panel) => panel.classList.toggle("is-active", panel.dataset.gpsSubpanel === target));
+            window.requestAnimationFrame(() => {
+                if (gpsChart) gpsChart.resize();
+                if (matchChart) matchChart.resize();
+            });
+        });
+    });
+
     const gpsCanvas = document.getElementById("academyGpsChart");
     if (gpsCanvas) {
-        new Chart(gpsCanvas, {
+        gpsChart = new Chart(gpsCanvas, {
             type: "bar",
             data: {
                 labels: {{ gps_chart_labels|safe }},
@@ -695,7 +819,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const matchCanvas = document.getElementById("academyMatchChart");
     if (matchCanvas) {
-        new Chart(matchCanvas, {
+        matchChart = new Chart(matchCanvas, {
             type: "bar",
             data: {
                 labels: {{ match_chart_labels|safe }},
