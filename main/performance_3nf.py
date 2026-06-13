@@ -14,7 +14,7 @@ from .models import (
 )
 
 
-TRAINING_CODES = ("total_distance", "hsd", "sprints", "load")
+TRAINING_CODES = ("total_distance", "hsd", "d20", "d25", "accelerations", "decelerations", "sprints", "load")
 MATCH_CODES = (
     "accelerations",
     "decelerations",

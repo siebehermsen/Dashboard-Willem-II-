@@ -677,7 +677,7 @@ select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
     box-shadow: 0 6px 16px rgba(182, 0, 0, 0.25);
 }
 
-/* MEETRAINERS JEUGD */
+/* MEETRAINERS BIJ ANDERE TEAMS */
 .youth-form {
     display: flex;
     flex-wrap: wrap;
@@ -3070,16 +3070,16 @@ document.addEventListener("change", (event) => {
 </style>
 
 
-<!-- MEETRAINERS JEUGD DEZE WEEK -->
+<!-- MEETRAINERS BIJ ANDERE TEAMS -->
 <div class="card">
     <div class="card-header">
-        <h2><i data-feather="users"></i> Meetrainers jeugd deze week</h2>
+        <h2><i data-feather="users"></i> Meetrainers bij andere teams</h2>
     </div>
 
     <form class="youth-form" method="post" action="{% url 'add_youth_guest' %}">
         {% csrf_token %}
         <input type="text" name="name" placeholder="Naam" required>
-        <input type="text" name="team" placeholder="Team (bijv. O17)">
+        <input type="text" name="team" placeholder="Team waar hij meetraint (bijv. O17)">
         <input type="date" name="week_of" title="Week van">
         <button type="submit" class="primary-btn">Opslaan</button>
     </form>
@@ -3089,9 +3089,9 @@ document.addEventListener("change", (event) => {
             {% for guest in youth_guests %}
                 <li class="youth-item">
                     <span>
-                        {{ guest.name }}
-                        {% if guest.team %}
-                            <span class="youth-meta">{{ guest.team }}</span>
+                        {{ guest.profile.name }}
+                        {% if guest.profile.team_ref %}
+                            <span class="youth-meta">{{ guest.profile.team_ref.name }}</span>
                         {% endif %}
                     </span>
                     <span class="youth-actions">
@@ -3107,7 +3107,7 @@ document.addEventListener("change", (event) => {
             {% endfor %}
         </ul>
     {% else %}
-        <p class="birthday-empty">Nog geen meetrainers toegevoegd.</p>
+        <p class="birthday-empty">Nog geen meetrainers bij andere teams toegevoegd.</p>
     {% endif %}
 </div>
 

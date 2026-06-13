@@ -15,6 +15,7 @@ from .models import (
     BirthdayProfile,
     YouthGuestWeek,
     YouthGuestProfile,
+    YouthGuestTeam,
     VakantieProgrammaEntry,
     VakantiePlanning,
     GrowthProfile,
@@ -633,7 +634,7 @@ def dashboard(request):
     home_logo = logos.get(home_name, "") if upcoming_match else ""
     away_logo = logos.get(away_name, "") if upcoming_match else ""
 
-    # ---------- MEETRAINERS JEUGD ----------
+    # ---------- MEETRAINERS BIJ ANDERE TEAMS ----------
     youth_guests = YouthGuestWeek.objects.select_related("profile", "profile__team_ref").all().order_by("-week_of", "profile__name")
 
     # ---------- VERJAARDAGEN ----------
@@ -1126,38 +1127,40 @@ def delete_birthday(request, pk):
     return redirect("dashboard")
 
 
-# ---------- MEETRAINER JEUGD TOEVOEGEN ----------
+# ---------- MEETRAINER BIJ ANDER TEAM TOEVOEGEN ----------
 def add_youth_guest(request):
     if request.method == "POST":
         name = request.POST.get("name")
-        team = request.POST.get("team") or None
+        team = (request.POST.get("team") or "").strip()
         week_of = request.POST.get("week_of") or None
 
         if not name:
             messages.error(request, "Naam is verplicht.")
             return redirect("dashboard")
 
-        profile = YouthGuestProfile(name=name)
-        profile.team = team
+        team_ref = None
+        if team:
+            team_ref, _ = YouthGuestTeam.objects.get_or_create(name=team)
+
         profile, _ = YouthGuestProfile.objects.get_or_create(
             name=name,
-            team_ref=profile.team_ref,
+            team_ref=team_ref,
         )
         YouthGuestWeek.objects.get_or_create(
             profile=profile,
             week_of=week_of,
         )
-        messages.success(request, f"Meetrainer {name} toegevoegd.")
+        messages.success(request, f"Meetrainer bij ander team {name} toegevoegd.")
 
     return redirect("dashboard")
 
 
-# ---------- MEETRAINER JEUGD VERWIJDEREN ----------
+# ---------- MEETRAINER BIJ ANDER TEAM VERWIJDEREN ----------
 def delete_youth_guest(request, pk):
     if request.method == "POST":
         guest = get_object_or_404(YouthGuestWeek, pk=pk)
         guest.delete()
-        messages.success(request, "Meetrainer verwijderd.")
+        messages.success(request, "Meetrainer bij ander team verwijderd.")
 
     return redirect("dashboard")
 
@@ -3024,6 +3027,10 @@ def academie_team(request, team_code):
                 "load": 0.0,
                 "total_distance": 0.0,
                 "hsd": 0.0,
+                "d20": 0.0,
+                "d25": 0.0,
+                "accelerations": 0.0,
+                "decelerations": 0.0,
                 "sprints": 0.0,
                 "sessions": 0,
             },
@@ -3031,6 +3038,10 @@ def academie_team(request, team_code):
         data["load"] += val(row, "load")
         data["total_distance"] += val(row, "total_distance")
         data["hsd"] += val(row, "hsd")
+        data["d20"] += val(row, "d20")
+        data["d25"] += val(row, "d25")
+        data["accelerations"] += val(row, "accelerations")
+        data["decelerations"] += val(row, "decelerations")
         data["sprints"] += val(row, "sprints")
         data["sessions"] += 1
 
@@ -3039,6 +3050,10 @@ def academie_team(request, team_code):
         "load": sum(item["load"] for item in gps_rows),
         "distance": sum(item["total_distance"] for item in gps_rows),
         "hsd": sum(item["hsd"] for item in gps_rows),
+        "d20": sum(item["d20"] for item in gps_rows),
+        "d25": sum(item["d25"] for item in gps_rows),
+        "accelerations": sum(item["accelerations"] for item in gps_rows),
+        "decelerations": sum(item["decelerations"] for item in gps_rows),
         "sprints": sum(item["sprints"] for item in gps_rows),
     }
     gps_metric_config = [
@@ -3047,6 +3062,8 @@ def academie_team(request, team_code):
         {"code": "d15", "label": "D15", "unit": "m"},
         {"code": "d20", "label": "D20", "unit": "m"},
         {"code": "d25", "label": "D25", "unit": "m"},
+        {"code": "accelerations", "label": "Acc", "unit": ""},
+        {"code": "decelerations", "label": "Dec", "unit": ""},
         {"code": "sprints", "label": "Sprints", "unit": ""},
     ]
 
@@ -3106,6 +3123,10 @@ def academie_team(request, team_code):
         "load": round(gps_totals["load"] / gps_player_count, 1),
         "distance": round(gps_totals["distance"] / gps_player_count, 1),
         "d15": round(gps_totals["hsd"] / gps_player_count, 1),
+        "d20": round(gps_totals["d20"] / gps_player_count, 1),
+        "d25": round(gps_totals["d25"] / gps_player_count, 1),
+        "accelerations": round(gps_totals["accelerations"] / gps_player_count, 1),
+        "decelerations": round(gps_totals["decelerations"] / gps_player_count, 1),
         "sprints": round(gps_totals["sprints"] / gps_player_count, 1),
     }
 
@@ -6892,6 +6913,10 @@ import unicodedata
 GPS_TRAINING_METRICS = {
     "total_distance": ("Total Distance", "m", "distance"),
     "hsd": ("HIR (M>20 KM/U)", "m", "speed"),
+    "d20": ("D20", "m", "speed"),
+    "d25": ("D25", "m", "speed"),
+    "accelerations": ("Accelerations", "", "intensity"),
+    "decelerations": ("Decelerations", "", "intensity"),
     "sprints": ("Sprints", "", "speed"),
     "load": ("Load", "au", "load"),
 }
@@ -7380,6 +7405,10 @@ def upload_file(request):
             metric_columns = {
                 'total_distance': ('Total Distance', _csv_float_or_none),
                 'hsd': ('HIR (M>20 KM/U)', _csv_float_or_none),
+                'd20': ('D20', _csv_float_or_none),
+                'd25': ('D25', _csv_float_or_none),
+                'accelerations': ('Accelerations', _csv_int_or_none),
+                'decelerations': ('Decelerations', _csv_int_or_none),
                 'sprints': ('Sprints', _csv_int_or_none),
                 'load': ('Load', _csv_float_or_none),
             }
