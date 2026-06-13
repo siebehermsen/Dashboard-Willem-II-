@@ -589,24 +589,6 @@
                     <span class="academy-muted">Laatste beschikbare 30 dagen</span>
                 </div>
                 <div class="academy-card-body">
-                    <div class="academy-kpis">
-                        <div class="academy-kpi"><span>Gem. belasting</span><strong>{{ gps_team_averages.load|floatformat:0 }}</strong></div>
-                        <div class="academy-kpi"><span>Gem. afstand</span><strong>{{ gps_team_averages.distance|floatformat:0 }}</strong></div>
-                        <div class="academy-kpi"><span>Gem. D15</span><strong>{{ gps_team_averages.d15|floatformat:0 }}</strong></div>
-                        <div class="academy-kpi"><span>Gem. D20</span><strong>{{ gps_team_averages.d20|floatformat:0 }}</strong></div>
-                        <div class="academy-kpi"><span>Gem. D25</span><strong>{{ gps_team_averages.d25|floatformat:0 }}</strong></div>
-                        <div class="academy-kpi"><span>Gem. Acc</span><strong>{{ gps_team_averages.accelerations|floatformat:0 }}</strong></div>
-                        <div class="academy-kpi"><span>Gem. Dec</span><strong>{{ gps_team_averages.decelerations|floatformat:0 }}</strong></div>
-                        <div class="academy-kpi"><span>Gem. sprints</span><strong>{{ gps_team_averages.sprints|floatformat:0 }}</strong></div>
-                    </div>
-                    <div class="gps-control-block">
-                        <div class="gps-control-row" aria-label="Kies GPS-metriek">
-                            <span class="gps-control-label">Metrics</span>
-                            {% for metric in gps_metric_config %}
-                                <button class="gps-metric-btn {% if forloop.first %}is-active{% endif %}" type="button" data-team-gps-metric="{{ metric.code }}">{{ metric.label }}</button>
-                            {% endfor %}
-                        </div>
-                    </div>
                     <div class="academy-chart">
                         <canvas id="academyGpsChart"></canvas>
                     </div>
@@ -854,30 +836,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (gpsCanvas) {
         const gpsLabels = {{ gps_training_labels|safe }};
         const gpsData = {{ gps_training_chart_data|safe }};
-        const metricLabels = {
-            {% for metric in gps_metric_config %}
-            "{{ metric.code }}": "{{ metric.label }}"{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        };
-        const metricColors = {
-            total_distance: "#cf202f",
-            load: "#1f2a44",
-            d15: "#2563eb",
-            d20: "#0891b2",
-            d25: "#7c3aed",
-            accelerations: "#16a34a",
-            decelerations: "#f97316",
-            sprints: "#ea580c",
-        };
-        let activeGpsMetric = "total_distance";
+        const teamMetrics = (gpsData.team && gpsData.team.metrics) || {};
 
         function currentGpsSubjectLabel() {
             return (gpsData.team && gpsData.team.label) || "Teamgemiddelde";
-        }
-
-        function gpsValues() {
-            const subject = gpsData.team || { metrics: {} };
-            return (subject.metrics && subject.metrics[activeGpsMetric]) || [];
         }
 
         gpsChart = new Chart(gpsCanvas, {
@@ -886,28 +848,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 labels: gpsLabels,
                 datasets: [
                     {
-                        label: `${currentGpsSubjectLabel()} - ${metricLabels[activeGpsMetric] || "GPS"}`,
-                        data: gpsValues(),
-                        backgroundColor: metricColors[activeGpsMetric] || "#cf202f",
+                        label: `${currentGpsSubjectLabel()} - Totale afstand`,
+                        data: teamMetrics.total_distance || [],
+                        backgroundColor: "#cf202f",
                     }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false }
-        });
-
-        function updateGpsChart() {
-            gpsChart.data.datasets[0].label = `${currentGpsSubjectLabel()} - ${metricLabels[activeGpsMetric] || "GPS"}`;
-            gpsChart.data.datasets[0].data = gpsValues();
-            gpsChart.data.datasets[0].backgroundColor = metricColors[activeGpsMetric] || "#cf202f";
-            gpsChart.update();
-        }
-
-        document.querySelectorAll("[data-team-gps-metric]").forEach((button) => {
-            button.addEventListener("click", () => {
-                activeGpsMetric = button.dataset.teamGpsMetric;
-                document.querySelectorAll("[data-team-gps-metric]").forEach((btn) => btn.classList.toggle("is-active", btn === button));
-                updateGpsChart();
-            });
         });
     }
 
