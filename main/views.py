@@ -3176,6 +3176,48 @@ def academie_team(request, team_code):
         "sprints": sum(val(row, "sprints") for row in match_rows),
         "matches": len(match_rows),
     }
+
+    latest_wellness_date = (
+        WellnessEntry.objects
+        .filter(player_id__in=player_ids)
+        .order_by("-date")
+        .values_list("date", flat=True)
+        .first()
+    ) or timezone.localdate()
+    wellness_entries = {
+        entry.player_id: entry
+        for entry in (
+            WellnessEntry.objects
+            .filter(player_id__in=player_ids, date=latest_wellness_date)
+            .select_related("player")
+        )
+    }
+    wellness_rows = []
+    wellness_scores = []
+    for player in players:
+        entry = wellness_entries.get(player.id)
+        score = _wellness_score(entry)
+        if score is not None:
+            wellness_scores.append(score)
+        wellness_rows.append(
+            {
+                "player": player,
+                "entry": entry,
+                "score": score,
+                "status": "Ingevuld" if entry else "Niet ingevuld",
+            }
+        )
+    wellness_filled_count = sum(1 for item in wellness_rows if item["entry"])
+    wellness_total_count = len(wellness_rows)
+    wellness_summary = {
+        "date": latest_wellness_date,
+        "filled": wellness_filled_count,
+        "missing": max(wellness_total_count - wellness_filled_count, 0),
+        "total": wellness_total_count,
+        "percentage": round((wellness_filled_count / wellness_total_count) * 100) if wellness_total_count else None,
+        "average": round(sum(wellness_scores) / len(wellness_scores), 1) if wellness_scores else None,
+    }
+
     active_injuries = (
         InjuryCase.objects
         .select_related("player", "injury_type_ref", "phase_ref", "status_ref")
@@ -3216,6 +3258,8 @@ def academie_team(request, team_code):
         "test_chart_data": json.dumps(test_chart_data),
         "match_table_rows": match_table_rows,
         "match_totals": match_totals,
+        "wellness_rows": wellness_rows,
+        "wellness_summary": wellness_summary,
         "rehab_rows": rehab_rows,
         "rehab_summary": rehab_summary,
         "gps_chart_labels": json.dumps([item["player"].name for item in gps_rows]),
